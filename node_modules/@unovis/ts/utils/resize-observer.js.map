@@ -1,1 +1,0 @@
-{"version":3,"file":"resize-observer.js","sources":["../../src/utils/resize-observer.ts"],"sourcesContent":["import { ResizeObserver as ResizeObserverPolyfill } from '@juggle/resize-observer'\nexport const ResizeObserver = globalThis.ResizeObserver || ResizeObserverPolyfill\n"],"names":["ResizeObserverPolyfill"],"mappings":";;MACa,cAAc,GAAG,UAAU,CAAC,cAAc,IAAIA;;;;"}

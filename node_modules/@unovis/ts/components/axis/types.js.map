@@ -1,1 +1,0 @@
-{"version":3,"file":"types.js","sources":["../../../src/components/axis/types.ts"],"sourcesContent":["export enum AxisType {\n  X = 'x',\n  Y = 'y',\n}\n"],"names":[],"mappings":"IAAY,SAGX;AAHD,CAAA,UAAY,QAAQ,EAAA;AAClB,IAAA,QAAA,CAAA,GAAA,CAAA,GAAA,GAAO,CAAA;AACP,IAAA,QAAA,CAAA,GAAA,CAAA,GAAA,GAAO,CAAA;AACT,CAAC,EAHW,QAAQ,KAAR,QAAQ,GAGnB,EAAA,CAAA,CAAA;;;;"}

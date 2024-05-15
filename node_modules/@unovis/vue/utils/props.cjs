@@ -1,2 +1,0 @@
-"use strict";Object.defineProperty(exports,Symbol.toStringTag,{value:"Module"});const a=require("@unovis/ts"),e=require("vue");function c(t,r){return a.isEqual(t,r)}function i(t){const r=e.getCurrentInstance(),n=r.attrs;return e.computed(()=>{const s={},u=(r==null?void 0:r.vnode.props)??{};return Object.keys(u).forEach(o=>{s[e.camelize(o)]=t[e.camelize(o)]}),{...s,...n}})}exports.arePropsEqual=c;exports.useForwardProps=i;
-//# sourceMappingURL=props.cjs.map
