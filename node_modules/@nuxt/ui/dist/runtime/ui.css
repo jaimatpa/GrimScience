@@ -1,0 +1,1 @@
+.dark{color-scheme:dark}a:focus-visible{@apply outline-primary}::-moz-selection{@apply bg-primary/40}::selection{@apply bg-primary/40}

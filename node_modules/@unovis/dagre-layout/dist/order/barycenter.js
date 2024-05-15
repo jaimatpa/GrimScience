@@ -1,0 +1,35 @@
+import _reduce from 'lodash-es/reduce';
+import _map from 'lodash-es/map';
+
+function barycenter (g, movable) {
+  return _map(movable, function (v) {
+    const inV = g.inEdges(v);
+
+    if (!inV.length) {
+      return {
+        v: v
+      }
+    } else {
+      const result = _reduce(inV, function (acc, e) {
+        const edge = g.edge(e);
+        const nodeU = g.node(e.v);
+        return {
+          sum: acc.sum + edge.weight * nodeU.order,
+          weight: acc.weight + edge.weight
+        }
+      }, {
+        sum: 0,
+        weight: 0
+      });
+
+      return {
+        v: v,
+        barycenter: result.sum / result.weight,
+        weight: result.weight
+      }
+    }
+  })
+}
+
+export { barycenter as default };
+//# sourceMappingURL=barycenter.js.map

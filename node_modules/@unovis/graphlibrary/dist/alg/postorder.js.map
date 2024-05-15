@@ -1,0 +1,1 @@
+{"version":3,"file":"postorder.js","sources":["../../lib/alg/postorder.js"],"sourcesContent":["import dfs from './dfs'\nexport default postorder\n\nfunction postorder (g, vs) {\n  return dfs(g, vs, 'post')\n}\n"],"names":[],"mappings":";;AAGA,SAAS,SAAS,EAAE,CAAC,EAAE,EAAE,EAAE;AAC3B,EAAE,OAAO,GAAG,CAAC,CAAC,EAAE,EAAE,EAAE,MAAM,CAAC;AAC3B;;;;"}

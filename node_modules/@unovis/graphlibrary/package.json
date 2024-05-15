@@ -1,0 +1,63 @@
+{
+  "name": "@unovis/graphlibrary",
+  "version": "2.2.0-2",
+  "description": "A fork of `graphlibrary` with individual lodash-es imports; exported as ES modules",
+  "author": "Nikita Rokotyan (nikita@f5.com)",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "browser": "dist/index.js",
+  "keywords": [
+    "graph",
+    "algorithms"
+  ],
+  "scripts": {
+    "lint": "standard",
+    "build": "rm -rf dist; rollup -c",
+    "build:watch": "npm run build -- -w",
+    "test": "standard && make test && make bench",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "lodash-es": "^4.17.21"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.19.3",
+    "babel-plugin-lodash": "^3.3.4",
+    "benchmark": "^2.1.4",
+    "browserify": "^16.1.0",
+    "chai": "^4.1.2",
+    "husky": "^0.14.3",
+    "istanbul": "^0.4.5",
+    "karma": "^2.0.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-firefox-launcher": "^1.1.0",
+    "karma-mocha": "^1.3.0",
+    "karma-requirejs": "^1.1.0",
+    "karma-safari-launcher": "^1.0.0",
+    "mocha": "^5.0.1",
+    "requirejs": "^2.3.5",
+    "rollup": "^2.79.1",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "seedrandom": "^2.4.3",
+    "sprintf": "^0.1.5",
+    "standard": "^17.0.0",
+    "uglify-es": "^3.3.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/unovis/graphlibrary.git"
+  },
+  "files": [
+    "dist/",
+    "lib/",
+    "index.js"
+  ],
+  "license": "MIT",
+  "standard": {
+    "ignore": [
+      "dist/**/*.js"
+    ]
+  }
+}

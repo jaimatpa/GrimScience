@@ -1,0 +1,31 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateObjectProperty = void 0;
+const shared_1 = require("@vue/shared");
+const common_1 = require("../common");
+const camelized_1 = require("./camelized");
+const interpolation_1 = require("./interpolation");
+const stringLiteralKey_1 = require("./stringLiteralKey");
+function* generateObjectProperty(options, ctx, code, offset, features, astHolder, shouldCamelize = false) {
+    if (code.startsWith('[') && code.endsWith(']') && astHolder) {
+        yield* (0, interpolation_1.generateInterpolation)(options, ctx, code, astHolder, offset, features, '', '');
+    }
+    else if (shouldCamelize) {
+        if (common_1.variableNameRegex.test((0, shared_1.camelize)(code))) {
+            yield* (0, camelized_1.generateCamelized)(code, offset, features);
+        }
+        else {
+            yield* (0, common_1.wrapWith)(offset, offset + code.length, features, `"`, ...(0, camelized_1.generateCamelized)(code, offset, common_1.combineLastMapping), `"`);
+        }
+    }
+    else {
+        if (common_1.variableNameRegex.test(code)) {
+            yield [code, 'template', offset, features];
+        }
+        else {
+            yield* (0, stringLiteralKey_1.generateStringLiteralKey)(code, offset, features);
+        }
+    }
+}
+exports.generateObjectProperty = generateObjectProperty;
+//# sourceMappingURL=objectProperty.js.map

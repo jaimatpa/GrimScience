@@ -1,0 +1,5 @@
+{
+  "main": "../dist/entireMetricsCollection.cjs",
+  "module": "../dist/entireMetricsCollection.mjs",
+  "types": "./index.d.ts"
+}

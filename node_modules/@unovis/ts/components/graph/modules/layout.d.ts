@@ -1,0 +1,10 @@
+import { GraphDataModel } from "../../../data-models/graph";
+import { GraphInputLink, GraphInputNode } from "../../../types/graph";
+import { GraphNode, GraphLink } from '../types';
+import { GraphConfigInterface } from '../config';
+export declare function applyLayoutCircular<N extends GraphInputNode, L extends GraphInputLink>(datamodel: GraphDataModel<N, L, GraphNode<N, L>, GraphLink<N, L>>, config: GraphConfigInterface<N, L>, width: number, height: number): void;
+export declare function applyLayoutParallel<N extends GraphInputNode, L extends GraphInputLink>(datamodel: GraphDataModel<N, L, GraphNode<N, L>, GraphLink<N, L>>, config: GraphConfigInterface<N, L>, width: number, height: number, orientation?: string): void;
+export declare function applyLayoutDagre<N extends GraphInputNode, L extends GraphInputLink>(datamodel: GraphDataModel<N, L, GraphNode<N, L>, GraphLink<N, L>>, config: GraphConfigInterface<N, L>, width: number): Promise<void>;
+export declare function applyLayoutConcentric<N extends GraphInputNode, L extends GraphInputLink>(datamodel: GraphDataModel<N, L, GraphNode<N, L>, GraphLink<N, L>>, config: GraphConfigInterface<N, L>, width: number, height: number): void;
+export declare function applyLayoutForce<N extends GraphInputNode, L extends GraphInputLink>(datamodel: GraphDataModel<N, L, GraphNode<N, L>, GraphLink<N, L>>, config: GraphConfigInterface<N, L>, width: number): Promise<void>;
+export declare function applyELKLayout<N extends GraphInputNode, L extends GraphInputLink>(datamodel: GraphDataModel<N, L, GraphNode<N, L>, GraphLink<N, L>>, config: GraphConfigInterface<N, L>, width: number): Promise<void>;

@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sources":["../lib/index.js"],"sourcesContent":["import dagreLayout from './layout'\n\nexport const layout = dagreLayout\nexport default {\n  layout: dagreLayout\n}\n\n"],"names":["dagreLayout"],"mappings":";;AAEY,MAAC,MAAM,GAAGA,SAAW;AACjC,YAAe;AACf,EAAE,MAAM,EAAEA,QAAW;AACrB;;;;"}

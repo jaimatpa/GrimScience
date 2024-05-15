@@ -1,0 +1,12 @@
+{
+  "name": "@nuxtjs/color-mode",
+  "version": "3.4.1",
+  "configKey": "colorMode",
+  "compatibility": {
+    "bridge": true
+  },
+  "builder": {
+    "@nuxt/module-builder": "0.6.0",
+    "unbuild": "2.0.0"
+  }
+}

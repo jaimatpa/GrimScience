@@ -1,0 +1,28 @@
+{
+    "name": "@types/topojson-specification",
+    "version": "1.0.5",
+    "description": "TypeScript definitions for topojson-specification",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/topojson-specification",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "denisname",
+            "githubUsername": "denisname",
+            "url": "https://github.com/denisname"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/topojson-specification"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/geojson": "*"
+    },
+    "typesPublisherContentHash": "aac09a156ec8a1f6638444666a57d9dc28f358a2f38de1aa81cfa052378351b0",
+    "typeScriptVersion": "4.5",
+    "nonNpm": true
+}

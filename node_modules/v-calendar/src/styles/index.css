@@ -1,0 +1,48 @@
+@import './transitions.css';
+@import './theme.css';
+
+.vc-container {
+  position: relative;
+  display: inline-flex;
+  width: max-content;
+  height: max-content;
+  font-family: var(--vc-font-family);
+  color: var(--vc-color);
+  background-color: var(--vc-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  &,
+  & * {
+    box-sizing: border-box;
+    &:focus {
+      outline: none;
+    }
+  }
+  /* Hides double border within popovers */
+  & .vc-container {
+    border: none;
+  }
+}
+
+.vc-bordered {
+  border: 1px solid;
+  border-color: var(--vc-border);
+  border-radius: var(--vc-rounded-lg);
+}
+
+.vc-expanded {
+  min-width: 100%;
+}
+
+.vc-transparent {
+  background-color: transparent;
+}
+
+.vc-date-picker-content {
+  padding: 0;
+  background-color: var(--vc-bg);
+  .vc-container {
+    border: 0;
+  }
+}

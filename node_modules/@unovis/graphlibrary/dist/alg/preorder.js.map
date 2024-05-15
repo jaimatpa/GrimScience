@@ -1,0 +1,1 @@
+{"version":3,"file":"preorder.js","sources":["../../lib/alg/preorder.js"],"sourcesContent":["import dfs from './dfs'\nexport default preorder\n\nfunction preorder (g, vs) {\n  return dfs(g, vs, 'pre')\n}\n"],"names":[],"mappings":";;AAGA,SAAS,QAAQ,EAAE,CAAC,EAAE,EAAE,EAAE;AAC1B,EAAE,OAAO,GAAG,CAAC,CAAC,EAAE,EAAE,EAAE,KAAK,CAAC;AAC1B;;;;"}

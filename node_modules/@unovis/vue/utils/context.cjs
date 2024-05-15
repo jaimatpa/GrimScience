@@ -1,0 +1,2 @@
+"use strict";Object.defineProperty(exports,Symbol.toStringTag,{value:"Module"});const o=Symbol("componentAccessorKey"),s=Symbol("tooltipAccessorKey"),c=Symbol("crosshairAccessorKey"),e=Symbol("axisAccessorKey"),t=Symbol("annotationsAccessorKey");exports.annotationsAccessorKey=t;exports.axisAccessorKey=e;exports.componentAccessorKey=o;exports.crosshairAccessorKey=c;exports.tooltipAccessorKey=s;
+//# sourceMappingURL=context.cjs.map

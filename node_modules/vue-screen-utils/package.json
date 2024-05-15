@@ -1,0 +1,32 @@
+{
+  "name": "vue-screen-utils",
+  "version": "1.0.0-beta.13",
+  "description": "A dependency-free collection of screen utility functions in Vue 3.",
+  "author": "Nathan Reyes <nathanreyes@me.com>",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/*"
+  ],
+  "scripts": {
+    "compile": "tsc",
+    "bundle": "rollup -c",
+    "build": "rimraf dist out-tsc && tsc && rollup -c && rimraf out-tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "peerDependencies": {
+    "vue": "^3.2.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^8.3.2",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.74.1",
+    "rollup-plugin-dts": "^4.2.2",
+    "tslib": "^2.4.0",
+    "typescript": "^4.6.4",
+    "vue": "^3.2.36"
+  }
+}

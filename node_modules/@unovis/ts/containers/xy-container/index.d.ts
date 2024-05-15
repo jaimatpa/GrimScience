@@ -1,0 +1,37 @@
+import { Selection } from 'd3-selection';
+import "../../styles/index";
+import { ContainerCore } from "../../core/container";
+import { XYComponentCore } from "../../core/xy-component";
+import { XYComponentConfigInterface } from "../../core/xy-component/config";
+import { CoreDataModel } from "../../data-models/core";
+import { XYContainerConfigInterface } from './config';
+import { AreaConfigInterface, BrushConfigInterface, LineConfigInterface, ScatterConfigInterface, StackedBarConfigInterface, TimelineConfigInterface } from '../../components';
+export declare type XYConfigInterface<Datum> = XYComponentConfigInterface<Datum> | StackedBarConfigInterface<Datum> | LineConfigInterface<Datum> | ScatterConfigInterface<Datum> | BrushConfigInterface<Datum> | TimelineConfigInterface<Datum> | AreaConfigInterface<Datum>;
+export declare class XYContainer<Datum> extends ContainerCore {
+    protected _defaultConfig: XYContainerConfigInterface<Datum>;
+    protected _svgDefs: Selection<SVGDefsElement, unknown, null, undefined>;
+    datamodel: CoreDataModel<Datum[]>;
+    config: XYContainerConfigInterface<Datum>;
+    private _clipPath;
+    private _clipPathId;
+    private _axisMargin;
+    private _firstRender;
+    constructor(element: HTMLElement, config?: XYContainerConfigInterface<Datum>, data?: Datum[]);
+    get components(): XYComponentCore<Datum>[];
+    get width(): number;
+    get height(): number;
+    setData(data: Datum[], preventRender?: boolean): void;
+    updateContainer(containerConfig: XYContainerConfigInterface<Datum>, preventRender?: boolean): void;
+    updateComponents(componentConfigs: XYConfigInterface<Datum>[], preventRender?: boolean): void;
+    update(containerConfig: XYContainerConfigInterface<Datum>, componentConfigs?: XYComponentConfigInterface<Datum>[], data?: Datum[]): void;
+    protected _preRender(): void;
+    protected _render(customDuration?: number): void;
+    private _updateScales;
+    private _setScales;
+    private _updateScalesDomain;
+    private _updateScalesRange;
+    private _renderAxes;
+    private _setAutoMargin;
+    private _getMargin;
+    destroy(): void;
+}

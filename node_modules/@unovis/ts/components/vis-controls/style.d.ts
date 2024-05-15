@@ -1,0 +1,11 @@
+export declare const root: string;
+export declare const variables: void;
+export declare const items: string;
+export declare const horizontalItems: string;
+export declare const item: string;
+export declare const itemButton: string;
+export declare const borderLeft: string;
+export declare const borderTop: string;
+export declare const borderRight: string;
+export declare const borderBottom: string;
+export declare const disabled: string;

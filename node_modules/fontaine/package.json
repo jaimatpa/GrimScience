@@ -1,0 +1,86 @@
+{
+  "name": "fontaine",
+  "type": "module",
+  "version": "0.5.0",
+  "packageManager": "pnpm@8.15.4",
+  "description": "Automatic font fallback based on font metrics",
+  "author": {
+    "name": "Daniel Roe <daniel@roe.dev>",
+    "url": "https://github.com/danielroe"
+  },
+  "license": "MIT",
+  "repository": "unjs/fontaine",
+  "keywords": [
+    "fonts",
+    "cls",
+    "web-vitals",
+    "performance"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "vitest",
+    "demo": "vite dev playground",
+    "demo:dev": "pnpm demo --config test/vite.config.mjs",
+    "lint": "eslint --fix .",
+    "prepare": "simple-git-hooks install && pnpm build",
+    "prepublishOnly": "pnpm lint && pnpm test",
+    "release": "pnpm test && bumpp && npm publish",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@capsizecss/metrics": "^2.1.1",
+    "@capsizecss/unpack": "^2.0.1",
+    "magic-regexp": "^0.8.0",
+    "magic-string": "^0.30.8",
+    "pathe": "^1.1.2",
+    "ufo": "^1.4.0",
+    "unplugin": "^1.8.3"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^2.8.0",
+    "@nuxtjs/eslint-config-typescript": "latest",
+    "@types/node": "20.11.25",
+    "@types/serve-handler": "6.1.4",
+    "@typescript-eslint/eslint-plugin": "7.1.1",
+    "@typescript-eslint/parser": "7.1.1",
+    "@vitest/coverage-v8": "1.3.1",
+    "bumpp": "9.4.0",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-prettier": "latest",
+    "execa": "8.0.1",
+    "get-port-please": "3.1.2",
+    "lint-staged": "15.2.2",
+    "prettier": "latest",
+    "serve-handler": "6.1.5",
+    "simple-git-hooks": "^2.10.0",
+    "typescript": "5.4.2",
+    "unbuild": "latest",
+    "vite": "5.1.5",
+    "vitest": "1.3.1"
+  },
+  "resolutions": {
+    "fontaine": "link:."
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,ts,mjs,cjs,json,.*rc}": [
+      "pnpm eslint --fix"
+    ]
+  }
+}

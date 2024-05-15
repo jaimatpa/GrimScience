@@ -1,0 +1,14 @@
+export declare const panels: string;
+export declare const variables: void;
+export declare const gPanel: string;
+export declare const panel: string;
+export declare const label: string;
+export declare const background: string;
+export declare const labelText: string;
+export declare const panelSelectionActive: string;
+export declare const panelSelection: string;
+export declare const greyout: string;
+export declare const sideIconGroup: string;
+export declare const sideIconShape: string;
+export declare const customSideIcon: string;
+export declare const sideIconSymbol: string;

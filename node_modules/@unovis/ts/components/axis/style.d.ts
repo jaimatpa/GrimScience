@@ -1,0 +1,9 @@
+export declare const root: string;
+export declare const globalStyles: void;
+export declare const hideTickLine: string;
+export declare const hideDomain: string;
+export declare const axis: string;
+export declare const grid: string;
+export declare const tick: string;
+export declare const label: string;
+export declare const tickLabel: string;

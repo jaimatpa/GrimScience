@@ -1,0 +1,40 @@
+var layers = [
+	{
+		id: "background",
+		layout: {
+			visibility: "visible"
+		},
+		paint: {
+			"background-color": "#5C627A"
+		},
+		type: "background"
+	},
+	{
+		filter: [
+			"all",
+			[
+				"!=",
+				"intermittent",
+				1
+			]
+		],
+		id: "water",
+		layout: {
+			visibility: "visible"
+		},
+		metadata: {
+		},
+		paint: {
+			"fill-color": "#2A2D39"
+		},
+		source: "openmaptiles",
+		"source-layer": "water",
+		type: "fill"
+	}
+];
+var mapLibreDarkTheme = {
+	layers: layers
+};
+
+export { mapLibreDarkTheme as default, layers };
+//# sourceMappingURL=mapboxgl-dark-theme.json.js.map

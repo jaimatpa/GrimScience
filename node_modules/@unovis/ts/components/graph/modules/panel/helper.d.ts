@@ -1,0 +1,18 @@
+import { Selection } from 'd3-selection';
+import { NumericAccessor, BooleanAccessor } from "../../../../types/accessor";
+import { GraphInputLink, GraphInputNode } from "../../../../types/graph";
+import { Spacing } from "../../../../types/spacing";
+import { GraphNode, GraphPanel, GraphPanelConfig } from '../../types';
+import { GraphConfigInterface } from '../../config';
+export declare const DEFAULT_PADDING = 15;
+export declare const DEFAULT_LABEL_MARGIN = 16;
+export declare const OUTLINE_SELECTION_PADDING = 5;
+export declare const DEFAULT_SIDE_LABEL_SIZE = 25;
+export declare function getPanelPadding(padding: number | Spacing | undefined): Spacing;
+export declare function initPanels(panelsConfig: GraphPanelConfig[] | undefined): GraphPanel[];
+export declare function setPanelForNodes<N extends GraphInputNode, L extends GraphInputLink>(panels: GraphPanel[], nodes: GraphNode<N, L>[], config: GraphConfigInterface<N, L>): void;
+export declare function setPanelBBox<N extends GraphInputNode, L extends GraphInputLink>(panelConfig: GraphPanel, panelNodes: Selection<SVGGElement, GraphNode<N, L>, SVGGElement, unknown>, nodeSizeAccessor: NumericAccessor<N>, nodeDisabledAccessor: BooleanAccessor<N>): void;
+export declare function setPanelNumNodes<N extends GraphInputNode, L extends GraphInputLink>(panelConfig: GraphPanel, panelNodes: Selection<SVGGElement, GraphNode<N, L>, SVGGElement, unknown>): void;
+export declare function updatePanelBBoxSize<N extends GraphInputNode, L extends GraphInputLink>(nodesSelection: Selection<SVGGElement, GraphNode<N, L>, SVGGElement, unknown>, panels: GraphPanel[], config: GraphConfigInterface<N, L>): void;
+export declare function updatePanelNumNodes<N extends GraphInputNode, L extends GraphInputLink>(nodesSelection: Selection<SVGGElement, GraphNode<N, L>, SVGGElement, unknown>, panels: GraphPanel[], config: GraphConfigInterface<N, L>): void;
+export declare function getLabelTranslateTransform<N extends GraphInputNode, L extends GraphInputLink>(panel: GraphPanel): string;

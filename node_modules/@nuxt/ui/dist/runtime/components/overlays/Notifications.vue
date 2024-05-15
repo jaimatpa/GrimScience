@@ -1,0 +1,69 @@
+<template>
+  <Teleport to="body">
+    <div :class="wrapperClass" role="region" v-bind="attrs">
+      <div v-if="notifications.length" :class="ui.container">
+        <div v-for="notification of notifications" :key="notification.id">
+          <UNotification
+            v-bind="notification"
+            :class="notification.click && 'cursor-pointer'"
+            @click="notification.click && notification.click(notification)"
+            @close="toast.remove(notification.id)"
+          >
+            <template v-for="(_, name) in $slots" #[name]="slotData">
+              <slot :name="name" v-bind="slotData" />
+            </template>
+          </UNotification>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+</template>
+
+<script>
+import { computed, toRef, defineComponent } from "vue";
+import { twMerge, twJoin } from "tailwind-merge";
+import UNotification from "./Notification.vue";
+import { useUI } from "../../composables/useUI";
+import { useToast } from "../../composables/useToast";
+import { mergeConfig } from "../../utils";
+import { useState } from "#imports";
+import appConfig from "#build/app.config";
+import { notifications } from "#ui/ui.config";
+const config = mergeConfig(appConfig.ui.strategy, appConfig.ui.notifications, notifications);
+export default defineComponent({
+  components: {
+    UNotification
+  },
+  inheritAttrs: false,
+  props: {
+    class: {
+      type: [String, Object, Array],
+      default: () => ""
+    },
+    ui: {
+      type: Object,
+      default: () => ({})
+    }
+  },
+  setup(props) {
+    const { ui, attrs } = useUI("notifications", toRef(props, "ui"), config);
+    const toast = useToast();
+    const notifications2 = useState("notifications", () => []);
+    const wrapperClass = computed(() => {
+      return twMerge(twJoin(
+        ui.value.wrapper,
+        ui.value.position,
+        ui.value.width
+      ), props.class);
+    });
+    return {
+      // eslint-disable-next-line vue/no-dupe-keys
+      ui,
+      attrs,
+      toast,
+      notifications: notifications2,
+      wrapperClass
+    };
+  }
+});
+</script>

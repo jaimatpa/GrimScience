@@ -1,0 +1,19 @@
+export default {
+  familyName: 'Caesar Dressing',
+  category: 'display',
+  capHeight: 773,
+  ascent: 1017,
+  descent: -226,
+  lineGap: 0,
+  unitsPerEm: 1024,
+  xHeight: 772,
+  xWidthAvg: 455,
+  subsets: {
+    latin: {
+      xWidthAvg: 455
+    },
+    thai: {
+      xWidthAvg: 358
+    }
+  }
+};
