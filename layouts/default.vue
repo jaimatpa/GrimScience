@@ -13,6 +13,24 @@ const links = [{
     shortcuts: ['G', 'H']
   }
 }, {
+  id: 'login',
+  label: 'Login',
+  icon: 'i-heroicons-inbox',
+  to: '/login',
+  tooltip: {
+    text: 'LogIn',
+    shortcuts: ['G', 'L']
+  }
+}, {
+  id: 'signup',
+  label: 'Signup',
+  icon: 'i-heroicons-inbox',
+  to: '/signup',
+  tooltip: {
+    text: 'SignUp',
+    shortcuts: ['G', 'S']
+  }
+}, {
   id: 'inbox',
   label: 'Inbox',
   icon: 'i-heroicons-inbox',
