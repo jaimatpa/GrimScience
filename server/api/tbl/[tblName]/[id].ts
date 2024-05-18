@@ -1,24 +1,26 @@
-import { getTableList } from "~/server/controller/cop";
+import { getTableDetail } from "~/server/controller/CommonCRUD";
 
 export default eventHandler(async (event) => {
   try {
     const tblName = event.context.params.tblName;
+    const id = event.context.params.id;
     const method = event._method;
 
     let statusCode;
     let response;
 
-    switch (method.toUpperCase()) {
+    switch(method.toUpperCase()){
       case 'GET':
-        const list = await getTableList({ tblName });
+        const detail = await getTableDetail({ tblName, id });
         statusCode = 200;
         response = {
           statusCode,
-          body: list
+          body: detail
         };
         break;
-      case 'POST':
-        // Add POST method logic here
+      case 'PUT':
+        break;
+      case 'DELETE':
         break;
       default:
         statusCode = 404;
@@ -36,4 +38,4 @@ export default eventHandler(async (event) => {
       body: JSON.stringify({ error: error.message })
     };
   }
-});
+})

@@ -1,0 +1,24 @@
+import { DataTypes } from 'sequelize';
+import sequelize from "../database/databse";
+
+const tblZipLocations = sequelize.define('tblZipLocations', {
+   UniqueID: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      allowNull: false,
+      primaryKey: true,
+   },
+   Zipcode: {
+      type: DataTypes.STRING,
+   },
+   Longitude: {
+      type: DataTypes.STRING,
+   },
+   Latitude: {
+      type: DataTypes.STRING,
+   },
+}, {
+   timestamps: false
+});
+
+export default tblZipLocations;
