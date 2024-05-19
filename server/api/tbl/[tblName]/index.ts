@@ -5,15 +5,13 @@ export default eventHandler(async (event) => {
     const tblName = event.context.params.tblName;
     const method = event._method;
 
-    let statusCode;
     let response;
 
     switch (method.toUpperCase()) {
       case 'GET':
         const list = await getTableList({ tblName });
-        statusCode = 200;
         response = {
-          statusCode,
+          statusCode : 200,
           body: list
         };
         break;
@@ -21,9 +19,8 @@ export default eventHandler(async (event) => {
         // Add POST method logic here
         break;
       default:
-        statusCode = 404;
         response = {
-          statusCode,
+          statusCode: 404,
           body: JSON.stringify({ error: 'Method Not Allowed' })
         };
         break;

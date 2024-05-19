@@ -126,7 +126,8 @@ const tblEmployee = sequelize.define('tblEmployee', {
       type: DataTypes.STRING,
    },
 }, {
-   timestamps: false
+   timestamps: false,
+   tableName: 'tblEmployee',
 });
 
 export default tblEmployee;

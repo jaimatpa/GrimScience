@@ -6,15 +6,13 @@ export default eventHandler(async (event) => {
     const id = event.context.params.id;
     const method = event._method;
 
-    let statusCode;
     let response;
 
     switch(method.toUpperCase()){
       case 'GET':
         const detail = await getTableDetail({ tblName, id });
-        statusCode = 200;
         response = {
-          statusCode,
+          statusCode: 200,
           body: detail
         };
         break;
@@ -23,9 +21,8 @@ export default eventHandler(async (event) => {
       case 'DELETE':
         break;
       default:
-        statusCode = 404;
         response = {
-          statusCode,
+          statusCode: 404,
           body: JSON.stringify({ error: 'Method Not Allowed' })
         };
         break;
