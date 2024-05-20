@@ -13,18 +13,6 @@ useSeoMeta({
   title: 'Login'
 })
 
-// const fields = [{
-//   name: 'email',
-//   type: 'text',
-//   label: 'Email',
-//   placeholder: 'Enter your email'
-// }, {
-//   name: 'password',
-//   label: 'Password',
-//   type: 'password',
-//   placeholder: 'Enter your password'
-// }]
-
 const fields = [{
   name: 'user',
   type: 'text',
@@ -36,14 +24,6 @@ const fields = [{
   type: 'password',
   placeholder: 'Enter your password'
 }]
-
-// email mode
-// const validate = (state: any) => {
-//   const errors = []
-//   if (!state.email) errors.push({ path: 'email', message: 'Email is required' })
-//   if (!state.password) errors.push({ path: 'password', message: 'Password is required' })
-//   return errors
-// }
 
 // username mode
 const validate = (state: any) => {
@@ -63,15 +43,12 @@ const providers = [{
 }]
 
 const onSubmit = async (data: any) => {
-  console.log('Submitted', data)
-  const res = await $api('/api/auth/login', { method: 'POST', body: JSON.stringify(data) });
-  console.log("Client side Login Result", res);
-  if (res.statusCode === 200) {
-    // Cookie 
+  const res:any = await $api('/api/auth/login', { method: 'POST', body: JSON.stringify(data) });
+  if (res) {
     token.value = res.token;
     router.push("/");
   } else {
-    console.log("Client Login fail Message", res.body);
+    console.log("Client Login fail Message", res.error);
   }
 }
 </script>

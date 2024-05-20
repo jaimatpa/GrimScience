@@ -6,7 +6,10 @@ export default defineEventHandler((event) => {
     console.log("--API PATH--", path);
 
     const excludeLinks = [
-      '/api/auth/login'
+      '/api/auth/login',
+      '/',
+      '/login',
+      '/signup',
     ];
 
     if (!excludeLinks.includes(path)) {
