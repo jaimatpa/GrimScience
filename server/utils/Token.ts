@@ -20,7 +20,8 @@ export const generateToken = (tokenData: tokenDataProps): string | null => {
       throw new Error('JWT Secret Key is not a valid string.');
     }
 
-    const token = jwt.sign(tokenData, process.env.JWT_SECRETKEY);
+    const expiration = Math.floor(Date.now() / 1000) + (60 * 60 * 24);
+    const token = jwt.sign({ ...tokenData, exp: expiration }, process.env.JWT_SECRETKEY);
     return token;
   } catch (error) {
     console.error('Token generation error:', error);
