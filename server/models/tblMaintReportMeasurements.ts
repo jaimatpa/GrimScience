@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import sequelize from "../database/databse";
+import sequelize from "../utils/databse";
 
 const tblMaintReportMeasurements = sequelize.define('tblMaintReportMeasurements', {
    uniqueID: {

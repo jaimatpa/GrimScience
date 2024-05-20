@@ -1,7 +1,21 @@
 <script setup lang="ts">
 const route = useRoute()
+const router = useRouter()
 const appConfig = useAppConfig()
 const { isHelpSlideoverOpen } = useDashboard()
+const token = useCookie<string>('token');
+
+// token Validation
+if(!token.value){
+  router.push('/login');
+} else {
+  console.log("In default.Vue, You should make a request for confirmToken");
+  const res = await $fetch('/api/auth/confirmTK', { method: 'GET', headers: {"Authorization": "Bearer " + token.value} });
+  // const res = await $api('/api/auth/confirmTK', { method: 'GET' })
+  console.log("default.vue response", res);
+  if(res.statusCode !== 200)
+    router.push("/login"); 
+}
 
 const links = [{
   id: 'home',
@@ -156,4 +170,5 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
       <LazyUDashboardSearch :groups="groups" />
     </ClientOnly>
   </UDashboardLayout>
+  <NuxtSnackbar />
 </template>

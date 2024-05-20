@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import sequelize from "../database/databse";
+import sequelize from "../utils/databse";
 
 const tblEmployee = sequelize.define('tblEmployee', {
    UniqueID: {
@@ -126,7 +126,8 @@ const tblEmployee = sequelize.define('tblEmployee', {
       type: DataTypes.STRING,
    },
 }, {
-   timestamps: false
+   timestamps: false,
+   tableName: 'tblEmployee',
 });
 
 export default tblEmployee;
