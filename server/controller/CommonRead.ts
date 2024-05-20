@@ -1,4 +1,4 @@
-import sequelize from "../database/databse"
+import sequelize from "../utils/databse"
 import * as models from "../models";
 
 interface getTableListProps {

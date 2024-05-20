@@ -1,58 +1,44 @@
-import jwt from 'jsonwebtoken';
+import { verifyToken } from '../utils/Token';  // Assuming the file path is correct
 
 export default defineEventHandler((event) => {
   try {
-    // Get token from Header Authorization
-    const path = event._path
-    console.log("--------Server middleware path----------", path);
+    const path = event._path;
+    console.log("--API PATH--", path);
+
     const excludeLinks = [
       '/api/auth/login'
-    ]
+    ];
+
     if (!excludeLinks.includes(path)) {
-      const token: string = getHeader(event, 'Authorization').split(' ')[1];
-      jwt.verify(token, process.env.JWT_SECRETKEY, (err, decoded) => {
-        if(err) {
-          console.log("Server middleware jwt verify error", err.message)
-          setResponseStatus(event, 404)
-          // event.context.tokenValidation = false
-        } else {
-          console.log("Server middleware jwt decoded", decoded)
-          // event.context.tokenValidation = true
-        }
-      })
-    } else {
-      console.log("**************")
-      setResponseStatus(event, 404)
-      return {}
-    }
-    
-   } catch (error) {
-      event.context.tokenValidation = false
-   }
-})
-// import jwt from 'jsonwebtoken';
-// export default function (req, res, next) {
-//   try {
-//     const path = req._path;
-//     const excludeLinks = [
-//       '/api/auth/login',
-//       '/api/auth/signup'
-//     ]
-//     console.log("***************************", path, getHeader(req, 'Authorization'))
-//     if (!excludeLinks.includes(path)) {
-//       // Get token from Header Authorization
-//       const token: string = getHeader(req, 'Authorization').split(' ')[1];
-//       jwt.verify(token, process.env.JWT_SECRETKEY, (err, decoded) => {
-//         if(err) {
-//           throw err;
-//         } else {
-//           next();
-//         }
-//       })
-//     } else {
-//       next();
-//     }
-//     } catch (error) {
-//       console.log("server middleware error", error)
-//     }
-// }
+      const authHeader = getHeader(event, 'Authorization');
+
+      if (!authHeader) {
+        console.error('Missing Authorization header');
+        setResponseStatus(event, 401);
+        return { error: "Unauthorized" };
+      }
+
+      const token: string = authHeader.split(' ')[1];
+
+      if (!token) {
+        console.error('Token missing in Authorization header');
+        setResponseStatus(event, 401);
+        return { error: "Unauthorized" };
+      }
+
+      const verifyResult: false | object = verifyToken(token);
+
+      if (verifyResult === false) {
+        console.error('Invalid token');
+        setResponseStatus(event, 401);
+        return { error: "Unauthorized" };
+      }
+
+      console.log(verifyResult);
+    } 
+  } catch (error) {
+    console.error('Error: ', error);
+    setResponseStatus(event, 401);
+    return { error: "Internal Server Error" };
+  }
+});
