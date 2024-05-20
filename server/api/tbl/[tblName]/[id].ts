@@ -1,4 +1,4 @@
-import { getTableDetail } from "~/server/controller/CommonCRUD";
+import { getTableDetail } from "~/server/controller/CommonRead";
 
 export default eventHandler(async (event) => {
   try {

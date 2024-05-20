@@ -2,6 +2,9 @@
 import { useRouter } from '#vue-router';
 
 const router = useRouter();
+// const snackbar = useSnackbar();
+const isLoggedIn = useCookie<boolean>('isLoggedIn');
+const token = useCookie<string>('token');
 definePageMeta({
   layout: 'auth'
 })
@@ -10,11 +13,23 @@ useSeoMeta({
   title: 'Login'
 })
 
+// const fields = [{
+//   name: 'email',
+//   type: 'text',
+//   label: 'Email',
+//   placeholder: 'Enter your email'
+// }, {
+//   name: 'password',
+//   label: 'Password',
+//   type: 'password',
+//   placeholder: 'Enter your password'
+// }]
+
 const fields = [{
-  name: 'email',
+  name: 'user',
   type: 'text',
-  label: 'Email',
-  placeholder: 'Enter your email'
+  label: 'Username',
+  placeholder: 'Enter your username'
 }, {
   name: 'password',
   label: 'Password',
@@ -22,9 +37,18 @@ const fields = [{
   placeholder: 'Enter your password'
 }]
 
+// email mode
+// const validate = (state: any) => {
+//   const errors = []
+//   if (!state.email) errors.push({ path: 'email', message: 'Email is required' })
+//   if (!state.password) errors.push({ path: 'password', message: 'Password is required' })
+//   return errors
+// }
+
+// username mode
 const validate = (state: any) => {
   const errors = []
-  if (!state.email) errors.push({ path: 'email', message: 'Email is required' })
+  if (!state.user) errors.push({ path: 'user', message: 'Email is required' })
   if (!state.password) errors.push({ path: 'password', message: 'Password is required' })
   return errors
 }
@@ -38,9 +62,18 @@ const providers = [{
   }
 }]
 
-function onSubmit(data: any) {
+const onSubmit = async (data: any) => {
   console.log('Submitted', data)
-  router.push('/')
+  const res = await $fetch('/api/auth/login', { method: 'POST', body: JSON.stringify(data) });
+  console.log("Client side Login Result", res);
+  if (res.statusCode === 200) {
+    // Cookie 
+    isLoggedIn.value = true;
+    token.value = res.token;
+    router.push("/");
+  } else {
+    console.log("Client Login fail Message", res.body);
+  }
 }
 </script>
 

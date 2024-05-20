@@ -1,4 +1,5 @@
-import { getTableRowWhere } from "~/server/controller/CommonCRUD";
+import { getTableRowWhere } from "~/server/controller/CommonRead";
+import jwt from 'jsonwebtoken';
 
 export default eventHandler(async (event) => {
  try {
@@ -27,9 +28,19 @@ export default eventHandler(async (event) => {
          body:{ error: "Incorrect password. Please re-enter your password." }
        };
      } else {
+        const authData = {
+          fname: userData.fname, 
+          lname: userData.lname, 
+          password: userData.SECURITYCODE,
+          exp: Math.floor(Date.now() / 1000) + (60 * 60)
+        };
+        const privateKey = 'Grimm';
+       const token = jwt.sign(authData, privateKey);
+       
        response = {
          statusCode: 200,
-         body: userData
+         body: userData,
+         token: token
        };
      }
    }

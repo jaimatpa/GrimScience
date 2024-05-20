@@ -1,8 +1,13 @@
 <script setup lang="ts">
 const route = useRoute()
+const router = useRouter()
 const appConfig = useAppConfig()
 const { isHelpSlideoverOpen } = useDashboard()
+const isLoggedIn = useCookie<boolean>('isLoggedIn');
+const token = useCookie<string>('token');
 
+if(!isLoggedIn.value)
+  router.push('/login');
 const links = [{
   id: 'home',
   label: 'Home',
@@ -156,4 +161,5 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
       <LazyUDashboardSearch :groups="groups" />
     </ClientOnly>
   </UDashboardLayout>
+  <NuxtSnackbar />
 </template>
