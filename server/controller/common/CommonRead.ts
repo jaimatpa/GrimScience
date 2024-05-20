@@ -1,5 +1,4 @@
-import sequelize from "../utils/databse"
-import * as models from "../models";
+import * as models from "../../models";
 
 interface getTableListProps {
   tblName: string;

@@ -33,8 +33,6 @@ export default defineEventHandler((event) => {
         setResponseStatus(event, 401);
         return { error: "Unauthorized" };
       }
-
-      console.log(verifyResult);
     } 
   } catch (error) {
     console.error('Error: ', error);

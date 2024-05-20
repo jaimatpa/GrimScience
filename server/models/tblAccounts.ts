@@ -10,6 +10,7 @@ const tblAccounts = sequelize.define('tblAccounts', {
    },
    AcctNumber: {
       type: DataTypes.STRING,
+      unique: true,
    },
    Description: {
       type: DataTypes.STRING,
