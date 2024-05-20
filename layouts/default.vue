@@ -3,11 +3,20 @@ const route = useRoute()
 const router = useRouter()
 const appConfig = useAppConfig()
 const { isHelpSlideoverOpen } = useDashboard()
-const isLoggedIn = useCookie<boolean>('isLoggedIn');
 const token = useCookie<string>('token');
 
-if(!isLoggedIn.value)
+// token Validation
+if(!token.value){
   router.push('/login');
+} else {
+  console.log("In default.Vue, You should make a request for confirmToken");
+  const res = await $fetch('/api/auth/confirmTK', { method: 'GET', headers: {"Authorization": "Bearer " + token.value} });
+  // const res = await $api('/api/auth/confirmTK', { method: 'GET' })
+  console.log("default.vue response", res);
+  if(res.statusCode !== 200)
+    router.push("/login"); 
+}
+
 const links = [{
   id: 'home',
   label: 'Home',

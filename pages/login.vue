@@ -64,11 +64,10 @@ const providers = [{
 
 const onSubmit = async (data: any) => {
   console.log('Submitted', data)
-  const res = await $fetch('/api/auth/login', { method: 'POST', body: JSON.stringify(data) });
+  const res = await $api('/api/auth/login', { method: 'POST', body: JSON.stringify(data) });
   console.log("Client side Login Result", res);
   if (res.statusCode === 200) {
     // Cookie 
-    isLoggedIn.value = true;
     token.value = res.token;
     router.push("/");
   } else {
@@ -84,7 +83,6 @@ const onSubmit = async (data: any) => {
     <UAuthForm
       :fields="fields"
       :validate="validate"
-      :providers="providers"
       title="Welcome back"
       align="top"
       icon="i-heroicons-lock-closed"

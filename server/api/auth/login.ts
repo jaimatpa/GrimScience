@@ -2,6 +2,7 @@ import { getTableRowWhere } from "~/server/controller/CommonRead";
 import jwt from 'jsonwebtoken';
 
 export default eventHandler(async (event) => {
+  console.log("server login tokenValidation", event.context.tokenValidation)
  try {
    const body = await readBody(event);
    const name = body.user.split(' ');
@@ -17,6 +18,7 @@ export default eventHandler(async (event) => {
    const userData = await getTableRowWhere({tblName:'tblEmployee', where});
 
    if (!userData) {
+    setResponseStatus(event, 404)
      response = {
        statusCode: 404,
        body: { error: "Username not found. Please check your username and try again." }
@@ -34,9 +36,7 @@ export default eventHandler(async (event) => {
           password: userData.SECURITYCODE,
           exp: Math.floor(Date.now() / 1000) + (60 * 60)
         };
-        const privateKey = 'Grimm';
-       const token = jwt.sign(authData, privateKey);
-       
+       const token = jwt.sign(authData, process.env.JWT_SECRETKEY);
        response = {
          statusCode: 200,
          body: userData,
