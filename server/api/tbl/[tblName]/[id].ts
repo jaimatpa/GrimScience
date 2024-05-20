@@ -1,4 +1,4 @@
-import { getTableDetail } from "~/server/controller/CommonRead";
+import { getTableDetail } from "~/server/controller/common/CommonRead";
 
 export default eventHandler(async (event) => {
   try {
@@ -15,11 +15,16 @@ export default eventHandler(async (event) => {
       // case 'DELETE':
       //   break;
       default:
-        setResponseStatus(event, 404);
+        setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
   } catch (error) {
-    setResponseStatus(event, 500);
-    return { error: error.message };
+    if (error.message.endsWith('not defined')) {
+      setResponseStatus(event, 404);
+      return { error: error.message };
+    } else {
+      setResponseStatus(event, 500);
+      return { error: error.message };
+    }
   }
 })

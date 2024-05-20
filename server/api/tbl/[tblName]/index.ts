@@ -1,4 +1,5 @@
-import { getTableList } from "~/server/controller/CommonRead";
+import { createTableRow } from "~/server/controller/common/CommonCreate";
+import { getTableList } from "~/server/controller/common/CommonRead";
 
 export default eventHandler(async (event) => {
   try {
@@ -9,14 +10,23 @@ export default eventHandler(async (event) => {
       case 'GET':
         const list = await getTableList({ tblName });
         return { body: list };
-      // case 'POST':
-      //   break;
+      case 'POST':
+        const data = await readBody(event);
+        const newRecord = await createTableRow({ tblName, data });
+        setResponseStatus(event, 201);
+        return { body: newRecord };
       default:
-        setResponseStatus(event, 404);
+        setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
   } catch (error) {
     setResponseStatus(event, 500);
-    return { error: error.message };
+    if (error.message.endsWith('not defined')) {
+      setResponseStatus(event, 404);
+      return { error: error.message };
+    } else {
+      setResponseStatus(event, 500);
+      return { error: error.message };
+    }
   }
 });

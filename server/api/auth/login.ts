@@ -1,7 +1,12 @@
-import { getTableRowWhere } from "~/server/controller/CommonRead";
+import { getTableRowWhere } from "~/server/controller/common/CommonRead";
 import { generateToken, type tokenDataProps } from "~/server/utils/Token";
 
 export default eventHandler(async (event) => {
+  if (event._method !== 'POST') {
+    setResponseStatus(event, 405);
+    return { error: "Method not allowed" };
+  }
+  
   try {
     const body = await readBody(event);
     const name = body.user.split(' ');
