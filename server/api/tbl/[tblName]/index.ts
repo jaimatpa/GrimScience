@@ -20,13 +20,13 @@ export default eventHandler(async (event) => {
         return { error: 'Method Not Allowed' };
     }
   } catch (error) {
-    setResponseStatus(event, 500);
     if (error.message.endsWith('not defined')) {
       setResponseStatus(event, 404);
-      return { error: error.message };
+    } else if(error.message.includes('already exists')){
+      setResponseStatus(event, 400);
     } else {
       setResponseStatus(event, 500);
-      return { error: error.message };
     }
+    return { error: error.message };
   }
 });
