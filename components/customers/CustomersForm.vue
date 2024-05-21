@@ -5,39 +5,34 @@ const emit = defineEmits(['close', 'save'])
 const props = defineProps({
   selectedCustomer: {
     type: [Object],
-    default: null
+    required: true
   }
 })
 
-// const customer = computed({
-//   get: () => props.selectedCustomer,
-//   set: (value) => {
-//     emit('update:model-value', value)
-//     emit('close')
-//   }
-// })
+const { selectedCustomer } = props
 
 const state = reactive({
-  fname: undefined,
-  md: undefined,
-  lname: undefined,
-  title: undefined,
-  position: undefined,
-  company1: undefined,
-  company2: undefined,
-  coutry: undefined,
-  address: undefined,
-  city: undefined,
-  state: undefined,
-  zip: undefined,
-  fax: undefined,
-  email: undefined,
-  website: undefined,
-  homephone: undefined,
-  workphone: undefined,
-  cellphone: undefined,
-  ext: undefined,
-  comment: undefined
+  UniqueID: selectedCustomer.UniqueID,
+  fname: selectedCustomer.fname,
+  md: selectedCustomer.md,
+  lname: selectedCustomer.lname,
+  title: selectedCustomer.title,
+  position: selectedCustomer.position,
+  company1: selectedCustomer.company1,
+  company2: selectedCustomer.company2,
+  coutry: selectedCustomer.country,
+  address: selectedCustomer.address,
+  city: selectedCustomer.city,
+  state: selectedCustomer.state,
+  zip: selectedCustomer.zip,
+  fax: selectedCustomer.fax,
+  email: selectedCustomer.email,
+  website: selectedCustomer.website,
+  homephone: selectedCustomer.homephone,
+  workphone: selectedCustomer.workphone,
+  cellphone: selectedCustomer.cellphone,
+  ext: selectedCustomer.ext,
+  comment: selectedCustomer.comment
 })
 
 // https://ui.nuxt.com/components/form
