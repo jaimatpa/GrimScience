@@ -29,7 +29,9 @@ const state = reactive({
 // https://ui.nuxt.com/components/form
 const validate = (state: any): FormError[] => {
   const errors = []
-  if (!state.name) errors.push({ path: 'name', message: 'Please enter a name.' })
+  console.log(state.fname, state.lames)
+  if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
+  if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
   if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
   return errors
 }
@@ -55,7 +57,7 @@ async function onSubmit(event: FormSubmitEvent<any>) {
         <div class="basis-1/3">
           <UFormGroup
             label="Frist"
-            name="first name"
+            name="fname"
           >
             <UInput
               v-model="state.fname"
@@ -67,7 +69,7 @@ async function onSubmit(event: FormSubmitEvent<any>) {
         <div class="basis-1/3">
           <UFormGroup
             label="Middle"
-            name="first name"
+            name="md"
           >
             <UInput
               v-model="state.md"
@@ -78,10 +80,10 @@ async function onSubmit(event: FormSubmitEvent<any>) {
         <div class="basis-1/3">
           <UFormGroup
             label="Last"
-            name="first name"
+            name="lname"
           >
             <UInput
-              v-model="state.fname"
+              v-model="state.lname"
               placeholder="Doe"
             />
           </UFormGroup>

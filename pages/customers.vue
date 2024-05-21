@@ -48,6 +48,9 @@ const defaultColumns = [{
     label: 'Zip',
     sortable: true
   },
+  {
+    key: 'actions'
+  }
 ]
 
 const q = ref('')
@@ -80,7 +83,7 @@ const customers = [
   },
   {
     UniqueID: 2,
-    fname: 'Lindsay',
+    fname: 'asdf',
     lname: 'Walton',
     company: 'Grimm',
     homephone: '2342-23424',
@@ -93,12 +96,22 @@ const customers = [
 ]
 
 function onSelect(row: User) {
+  console.log(selected)
   const index = selected.value.findIndex(item => item.id === row.id)
   if (index === -1) {
     selected.value.push(row)
   } else {
     selected.value.splice(index, 1)
   }
+}
+
+const onEdit = (event) => {
+  event.preventDefault();
+  console.log("Edit clicked!")
+}
+
+const onDelete = () => {
+  console.log("Delete clicked!")
 }
 
 defineShortcuts({
@@ -131,7 +144,7 @@ defineShortcuts({
           </UInput>
 
           <UButton
-            label="New user"
+            label="New customer"
             trailing-icon="i-heroicons-plus"
             color="gray"
             @click="isNewCustomerModalOpen = true"
@@ -157,7 +170,7 @@ defineShortcuts({
 
       <UDashboardModal
         v-model="isNewCustomerModalOpen"
-        title="New user"
+        title="New customer"
         description="Add a new customer to your database"
         :ui="{ width: 'max-w-xl' }"
       >
@@ -174,23 +187,12 @@ defineShortcuts({
         sort-mode="manual"
         class="w-full"
         :ui="{ divide: 'divide-gray-200 dark:divide-gray-800' }"
-        @select="onSelect"
+        :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+
       >
-        <template #name-data="{ row }">
-          <div class="flex items-center gap-3">
-            <UAvatar
-              v-bind="row.avatar"
-              :alt="row.name"
-              size="xs"
-            />
-
-            <span class="text-gray-900 dark:text-white font-medium">{{ row.name }}</span>
-          </div>
-        </template>
-
         <template #actions-data="{ row }">
-          <UButton color="gray" variant="ghost" icon="i-heroicons-ellipsis-horizontal-20-solid">asdfasd</UButton>
-          <UButton color="gray" variant="ghost" icon="i-heroicons-ellipsis-horizontal-20-solid" />
+          <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square-20-solid" @click="onEdit"/>
+          <UButton color="gray" variant="ghost" icon="i-heroicons-trash-20-solid" @click="onDelete"/>
         </template>
       </UTable>
     </UDashboardPanel>
