@@ -60,10 +60,9 @@ const selectedStatuses = ref([])
 const selectedLocations = ref([])
 const sort = ref({ column: 'id', direction: 'asc' as const })
 const input = ref<{ input: HTMLInputElement }>()
-const isNewCustomerModalOpen = ref(false)
-const isEditCustomerModalOpen = ref(false)
+const isCustomerModalOpen = ref(false)
 const customers = ref([])
-const selectedCustomer = ref({})
+const selectedCustomer: any = ref({})
 
 const columns = computed(() => defaultColumns.filter(column => selectedColumns.value.includes(column)))
 
@@ -84,9 +83,14 @@ function onSelect(row: User) {
   }
 }
 
+const onCreate = () => {
+  selectedCustomer.value = {}
+  isCustomerModalOpen.value = true
+}
+
 const onEdit = (row) => {
   selectedCustomer.value = row
-  isEditCustomerModalOpen.value = true
+  isCustomerModalOpen.value = true
 }
 
 const onDelete = async (row: any) => {
@@ -109,17 +113,31 @@ const onDelete = async (row: any) => {
 }
 
 const handleModalClose = () => {
-  isNewCustomerModalOpen.value = false
+  isCustomerModalOpen.value = false
 }
 
 const handleModalSave = async (data) => {
-  const res = await customAxios({
-    method: 'POST',
-    url: '/api/tbl/tblEmployee/',
-    data: data
-  })
-  console.log(res)
-  customers.value = [...customers.value, res.data.body] 
+  if(Object.keys(selectedCustomer.value).length === 0) {
+    const res = await customAxios({
+      method: 'POST',
+      url: '/api/tbl/tblEmployee/',
+      data: data
+    })
+    customers.value = [...customers.value, res.data.body]
+  } else {
+    const res = await customAxios({
+      method: 'PUT',
+      url: `/api/tbl/tblEmployee/${toRaw(data).UniqueID}`,
+      data: data
+    })
+    if(res.status === 204){
+      const { data } = await customAxios({
+        method: 'GET', 
+        url: '/api/tbl/tblEmployee/'
+      })
+      customers.value = data.body;
+    }
+  }
 }
 
 defineShortcuts({
@@ -134,7 +152,7 @@ defineShortcuts({
     <UDashboardPanel grow>
       <UDashboardNavbar
         title="customers"
-        :badge="customers.length"
+        :badge="customers?.length"
       >
         <template #right>
           <UInput
@@ -155,7 +173,7 @@ defineShortcuts({
             label="New customer"
             trailing-icon="i-heroicons-plus"
             color="gray"
-            @click="isNewCustomerModalOpen = true"
+            @click="onCreate()"
           />
         </template>
       </UDashboardNavbar>
@@ -178,13 +196,13 @@ defineShortcuts({
 
       <!-- Create Customer Modal -->
       <UDashboardModal
-        v-model="isNewCustomerModalOpen"
+        v-model="isCustomerModalOpen"
         title="New customer"
         description="Add a new customer to your database"
         :ui="{ width: 'max-w-xl' }"
       >
         <!-- ~/components/customers/customersForm.vue -->
-        <CustomersCreateForm @close="handleModalClose" @save="handleModalSave" v-model="selectedCustomer"/>
+        <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="selectedCustomer"/>
       </UDashboardModal>
 
       <UTable
