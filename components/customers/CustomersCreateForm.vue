@@ -1,7 +1,21 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '#ui/types'
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'save'])
+const props = defineProps({
+  selectedCustomer: {
+    type: [Object],
+    default: null
+  }
+})
+
+// const customer = computed({
+//   get: () => props.selectedCustomer,
+//   set: (value) => {
+//     emit('update:model-value', value)
+//     emit('close')
+//   }
+// })
 
 const state = reactive({
   fname: undefined,
@@ -29,7 +43,6 @@ const state = reactive({
 // https://ui.nuxt.com/components/form
 const validate = (state: any): FormError[] => {
   const errors = []
-  console.log(state.fname, state.lames)
   if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
   if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
   if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
@@ -37,9 +50,7 @@ const validate = (state: any): FormError[] => {
 }
 
 async function onSubmit(event: FormSubmitEvent<any>) {
-  // Do something with data
-  console.log(event.data)
-
+  emit('save', event.data)
   emit('close')
 }
 </script>

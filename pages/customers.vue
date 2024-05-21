@@ -14,7 +14,7 @@ const defaultColumns = [{
     sortable: true
   }, 
   {
-    key: 'company',
+    key: 'department',
     label: 'Company',
     sortable: true
   }, 
@@ -61,39 +61,18 @@ const selectedLocations = ref([])
 const sort = ref({ column: 'id', direction: 'asc' as const })
 const input = ref<{ input: HTMLInputElement }>()
 const isNewCustomerModalOpen = ref(false)
+const isEditCustomerModalOpen = ref(false)
+const customers = ref([])
+const selectedCustomer = ref({})
 
 const columns = computed(() => defaultColumns.filter(column => selectedColumns.value.includes(column)))
 
-const query = computed(() => ({ q: q.value, statuses: selectedStatuses.value, locations: selectedLocations.value, sort: sort.value.column, order: sort.value.direction }))
-
-// const { data: customers, pending } = await useFetch<User[]>('/api/customers', { query, default: () => [] })
+const { data } = await customAxios({
+  method: 'GET', 
+  url: '/api/tbl/tblEmployee/'
+})
+customers.value = data.body;
 const pending = false
-const customers = [
-  {
-    UniqueID: 1,
-    fname: 'Lindsay',
-    lname: 'Walton',
-    company: 'Grimm',
-    homephone: '2342-23424',
-    workphone: '2342-342',
-    city: 'Dallas',
-    state: 'Texas',
-    zip: '3242',
-    email: 'lindsay.walton@example.com',
-  },
-  {
-    UniqueID: 2,
-    fname: 'asdf',
-    lname: 'Walton',
-    company: 'Grimm',
-    homephone: '2342-23424',
-    workphone: '2342-342',
-    city: 'Dallas',
-    state: 'Texas',
-    zip: '3242',
-    email: 'lindsay.walton@example.com',
-  },
-]
 
 function onSelect(row: User) {
   console.log(selected)
@@ -105,13 +84,42 @@ function onSelect(row: User) {
   }
 }
 
-const onEdit = (event) => {
-  event.preventDefault();
-  console.log("Edit clicked!")
+const onEdit = (row) => {
+  selectedCustomer.value = row
+  isEditCustomerModalOpen.value = true
 }
 
-const onDelete = () => {
-  console.log("Delete clicked!")
+const onDelete = async (row: any) => {
+  const res = await customAxios({
+    method: 'DELETE',
+    url: '/api/tbl/tblEmployee/',
+    data: {
+      UniqueID: row?.UniqueID
+    }
+  })
+  if (res.status === 200) {
+    const leftCustomers = customers.value.filter((item: any) => {
+      if(item.UniqueID !== row.UniqueID){
+        console.log(item)
+        return item
+      }
+    })
+    customers.value = leftCustomers;
+  }
+}
+
+const handleModalClose = () => {
+  isNewCustomerModalOpen.value = false
+}
+
+const handleModalSave = async (data) => {
+  const res = await customAxios({
+    method: 'POST',
+    url: '/api/tbl/tblEmployee/',
+    data: data
+  })
+  console.log(res)
+  customers.value = [...customers.value, res.data.body] 
 }
 
 defineShortcuts({
@@ -168,6 +176,7 @@ defineShortcuts({
         </template>
       </UDashboardToolbar>
 
+      <!-- Create Customer Modal -->
       <UDashboardModal
         v-model="isNewCustomerModalOpen"
         title="New customer"
@@ -175,7 +184,7 @@ defineShortcuts({
         :ui="{ width: 'max-w-xl' }"
       >
         <!-- ~/components/customers/customersForm.vue -->
-        <CustomersForm @close="isNewCustomerModalOpen = false" />
+        <CustomersCreateForm @close="handleModalClose" @save="handleModalSave" v-model="selectedCustomer"/>
       </UDashboardModal>
 
       <UTable
@@ -191,8 +200,8 @@ defineShortcuts({
 
       >
         <template #actions-data="{ row }">
-          <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square-20-solid" @click="onEdit"/>
-          <UButton color="gray" variant="ghost" icon="i-heroicons-trash-20-solid" @click="onDelete"/>
+          <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square-20-solid" @click="onEdit(row)"/>
+          <UButton color="gray" variant="ghost" icon="i-heroicons-trash-20-solid" @click="onDelete(row)"/>
         </template>
       </UTable>
     </UDashboardPanel>
