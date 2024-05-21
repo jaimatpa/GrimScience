@@ -41,13 +41,17 @@ const providers = [{
 }]
 
 const onSubmit = async (data: any) => {
-  const res:any = await $fetch('/api/auth/login', { method: 'POST', body: JSON.stringify(data) });
-  if (res) {
-    token.value = res.token;
-    // setCookie(res, 'token', res.token);
+  const res = await customAxios({
+    method: 'POST',
+    url: '/api/auth/login',
+    data: data
+  })
+  if (res.status == 200) {
+    console.log(res);
+    token.value = res.data.token;
     router.push("/");
   } else {
-    console.log("Client Login fail Message", res.error);
+    console.log("Client Login fail Message", res.data.error);
   }
 }
 </script>

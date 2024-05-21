@@ -25,6 +25,15 @@ const links = [{
     shortcuts: ['G', 'I']
   }
 }, {
+  id: 'customers',
+  label: 'Customers',
+  icon: 'i-heroicons-inbox',
+  to: '/customers',
+  tooltip: {
+    text: 'Customers',
+    shortcuts: ['G', 'C']
+  }
+}, {
   id: 'users',
   label: 'Users',
   icon: 'i-heroicons-user-group',

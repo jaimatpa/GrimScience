@@ -5,26 +5,34 @@ export default defineEventHandler(async (event) => {
     const path = event._path;
     const headers = getHeaders(event);
 
-    if(headers['user-agent'] && headers['user-agent'].startsWith('Mozilla')){
-      console.log("--PAGE PATH--", path);
+    const excludePages = [
+      '/login',
+      '/signup',
+    ];
 
-      const excludePages = [
-        '/login',
-        '/signup',
-      ];
+    const excludeAPIs = [
+      '/api/auth/login',
+    ];
 
-      if (!excludePages.includes(path)) {
+    if(headers['sec-fetch-mode'] != 'cors' && headers['user-agent'] && headers['user-agent'].startsWith('Mozilla')){
+      console.log("--Mozilla PATH--", path);
+
+      if (!excludePages.includes(path) && !excludeAPIs.includes(path)) {
         const cookies = parseCookies(event);
         console.log(cookies.token);
-        if(!cookies.token || verifyToken(cookies.token) === false) await sendRedirect(event, '/login', 302)
+        if(!cookies.token || verifyToken(cookies.token) === false){
+          const response = new Response(null, {
+            status: 302,
+            headers: {
+              'Location': '/login'
+            }
+          });
+          return response;
+        } 
       }
       
     }else{
       console.log("--API PATH--", path);
-
-      const excludeAPIs = [
-        '/api/auth/login',
-      ];
   
       if (!excludeAPIs.includes(path)) {
         const authHeader = getHeader(event, 'Authorization');
