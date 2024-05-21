@@ -144,5 +144,4 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
       <LazyUDashboardSearch :groups="groups" />
     </ClientOnly>
   </UDashboardLayout>
-  <NuxtSnackbar />
 </template>

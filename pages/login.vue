@@ -43,12 +43,16 @@ const providers = [{
 }]
 
 const onSubmit = async (data: any) => {
-  const res:any = await $api('/api/auth/login', { method: 'POST', body: JSON.stringify(data) });
-  if (res) {
-    token.value = res.token;
+  const res = await customAxios({
+    method: 'POST',
+    url: '/api/auth/login',
+    data: data
+  })
+  if (res.status) {
+    token.value = res.data.token;
     router.push("/");
   } else {
-    console.log("Client Login fail Message", res.error);
+    console.log("Client Login fail Message", res.data.error);
   }
 }
 </script>
