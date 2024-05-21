@@ -2,8 +2,6 @@
 import { useRouter } from '#vue-router';
 
 const router = useRouter();
-// const snackbar = useSnackbar();
-const isLoggedIn = useCookie<boolean>('isLoggedIn');
 const token = useCookie<string>('token');
 definePageMeta({
   layout: 'auth'
@@ -43,9 +41,10 @@ const providers = [{
 }]
 
 const onSubmit = async (data: any) => {
-  const res:any = await $api('/api/auth/login', { method: 'POST', body: JSON.stringify(data) });
+  const res:any = await $fetch('/api/auth/login', { method: 'POST', body: JSON.stringify(data) });
   if (res) {
     token.value = res.token;
+    // setCookie(res, 'token', res.token);
     router.push("/");
   } else {
     console.log("Client Login fail Message", res.error);
