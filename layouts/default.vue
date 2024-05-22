@@ -5,10 +5,6 @@ const appConfig = useAppConfig()
 const { isHelpSlideoverOpen } = useDashboard()
 const token = useCookie<string>('token');
 
-if(!token.value){
-  router.push('/login');
-}
-
 const links = [{
   id: 'home',
   label: 'Home',
@@ -27,6 +23,15 @@ const links = [{
   tooltip: {
     text: 'Inbox',
     shortcuts: ['G', 'I']
+  }
+}, {
+  id: 'customers',
+  label: 'Customers',
+  icon: 'i-heroicons-inbox',
+  to: '/customers',
+  tooltip: {
+    text: 'Customers',
+    shortcuts: ['G', 'C']
   }
 }, {
   id: 'users',
@@ -144,5 +149,4 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
       <LazyUDashboardSearch :groups="groups" />
     </ClientOnly>
   </UDashboardLayout>
-  <NuxtSnackbar />
 </template>
