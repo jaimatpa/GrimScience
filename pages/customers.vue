@@ -61,6 +61,7 @@ const selectedLocations = ref([])
 const sort = ref({ column: 'id', direction: 'asc' as const })
 const input = ref<{ input: HTMLInputElement }>()
 const isCustomerModalOpen = ref(false)
+const modalTitle = ref("New Customer")
 const customers = ref([])
 const selectedCustomer: any = ref({})
 
@@ -84,11 +85,13 @@ function onSelect(row: User) {
 }
 
 const onCreate = () => {
+  modalTitle.value = "New Customer";
   selectedCustomer.value = {}
   isCustomerModalOpen.value = true
 }
 
 const onEdit = (row) => {
+  modalTitle.value = "Update Customer";
   selectedCustomer.value = row
   isCustomerModalOpen.value = true
 }
@@ -197,7 +200,7 @@ defineShortcuts({
       <!-- Create Customer Modal -->
       <UDashboardModal
         v-model="isCustomerModalOpen"
-        title="New customer"
+        :title=modalTitle
         description="Add a new customer to your database"
         :ui="{ width: 'max-w-xl' }"
       >
