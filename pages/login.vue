@@ -60,8 +60,6 @@ const onSubmit = async (data: any) => {
 init();
 </script>
 
-<!-- eslint-disable vue/multiline-html-element-content-newline -->
-<!-- eslint-disable vue/singleline-html-element-content-newline -->
 <template>
   <UCard class="max-w-sm w-full bg-white/75 dark:bg-white/5 backdrop-blur">
     <UAuthForm

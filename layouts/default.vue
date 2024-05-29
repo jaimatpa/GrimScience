@@ -1,9 +1,221 @@
 <script setup lang="ts">
 const route = useRoute()
-const router = useRouter()
 const appConfig = useAppConfig()
 const { isHelpSlideoverOpen } = useDashboard()
-const token = useCookie<string>('token');
+
+const customersItems = [
+  [{
+    label: 'List',
+    to: '/customers/list',
+    exact: true
+  }, {
+    label: 'Service Orders',
+    to: '/customers/orders'
+  }, {
+    label: 'Message',
+    to: '/customers/message'
+  }, {
+    label: 'Quote',
+    to: '/customers/quote'
+  }, {
+    label: 'Invoice',
+    to: '/customers/invoice'
+  }, {
+    label: 'Site Visit',
+    to: '/customers/visit'
+  }]
+]
+const serviceItems = [
+  [{
+    label: 'Cust List',
+    to: '/service/list',
+    exact: true
+  }, {
+    label: 'Service Order',
+    to: '/service/order'
+  }, {
+    label: 'Schedule',
+    to: '/service/schedule'
+  }, {
+    label: 'Calendar',
+    to: '/service/calendar'
+  }]
+]
+const marketingItems = [
+  [{
+    label: 'Products',
+    to: '/marketing/list',
+    exact: true
+  }, {
+    label: 'Job Cost',
+    to: '/marketing/cost'
+  }, {
+    label: 'Report',
+    to: '/marketing/report'
+  }, {
+    label: 'Field Sales & Service',
+    to: '/marketing/sales'
+  }, {
+    label: 'Territories',
+    to: '/marketing/territories'
+  }, {
+    label: 'Projects',
+    to: '/marketing/projects'
+  }]
+]
+const employeesItems = [
+  [{
+    label: 'List',
+    to: '/employees/list',
+    exact: true
+  }, {
+    label: 'Organization',
+    to: '/employees/organization'
+  }]
+]
+const accountingItems = [
+  [{
+    label: 'Payables',
+    to: '/accounting/payables',
+    exact: true
+  }, {
+    label: 'Receivables',
+    to: '/accounting/receivables'
+  }]
+]
+const ITItems = [
+  [{
+    label: 'Corian Parts Monitor',
+    to: '/it/monitor',
+    exact: true
+  }]
+]
+const engineeringItems = [
+  [{
+    label: 'Change Orders',
+    to: '/engineering/orders',
+    exact: true
+  }, {
+    label: 'Non-Conformance',
+    to: '/engineering/nonconformance'
+  }, {
+    label: 'Investigation',
+    to: '/engineering/investigation'
+  }, {
+    label: 'CAPA',
+    to: '/engineering/capa'
+  }, {
+    label: 'Approvals',
+    to: '/engineering/approvals'
+  }, {
+    label: 'KQI',
+    to: '/engineering/kqi'
+  }, {
+    label: 'Projects',
+    to: '/engineering/projects'
+  }]
+]
+const materialsItems = [
+  [{
+    label: 'Parts',
+    to: '/materials/parts',
+    exact: true
+  }, {
+    label: 'Purchases',
+    to: '/materials/purchases'
+  }, {
+    label: 'Vendors',
+    to: '/materials/vendors'
+  }, {
+    label: 'Requisitions',
+    to: '/materials/requisitions'
+  }, {
+    label: 'Serials',
+    to: '/materials/serials'
+  }, {
+    label: 'MRP',
+    to: '/materials/mrp'
+  }, {
+    label: 'Transactions',
+    to: '/materials/transactions'
+  }, {
+    label: 'Journal',
+    to: '/materials/journal'
+  }, {
+    label: 'Report',
+    to: '/materials/report'
+  }]
+]
+const manufacturingItems = [
+  [{
+    label: 'Jobs',
+    to: '/manufacturing/jobs',
+    exact: true
+  }, {
+    label: 'Schedule',
+    to: '/manufacturing/schedule'
+  }, {
+    label: 'Labor Report',
+    to: '/manufacturing/labor'
+  }, {
+    label: 'Projects',
+    to: '/manufacturing/projects'
+  }]
+]
+const maintenanceItems = [
+  [{
+    label: 'Equipment',
+    to: '/maintenance/equipment',
+    exact: true
+  }, {
+    label: 'Calibration',
+    to: '/maintenance/calibration'
+  }, {
+    label: 'Workstations',
+    to: '/maintenance/workstations'
+  }]
+]
+const utilitiesItems = [
+  [{
+    label: 'Shipping Rates',
+    to: '/utilities/rates',
+    exact: true
+  }, {
+    label: 'Label - Parts',
+    to: '/utilities/parts'
+  }, {
+    label: 'Label - Folders',
+    to: '/utilities/folders'
+  }, {
+    label: 'Settings',
+    to: '/utilities/settings'
+  }, {
+    label: 'App Projects',
+    to: '/utilities/projects'
+  }, {
+    label: 'Permissions',
+    to: '/utilities/permissions'
+  }]
+]
+const helpItems = [
+  [{
+    label: 'Help',
+    to: '/help/help',
+    exact: true
+  }, {
+    label: 'About',
+    to: '/help/about'
+  }, {
+    label: 'Operational',
+    to: '/help/operational'
+  }, {
+    label: 'Create',
+    to: '/help/create'
+  }, {
+    label: 'Update',
+    to: '/help/update'
+  }]
+]
 
 const links = [{
   id: 'home',
@@ -23,15 +235,6 @@ const links = [{
   tooltip: {
     text: 'Inbox',
     shortcuts: ['G', 'I']
-  }
-}, {
-  id: 'customers',
-  label: 'Customers',
-  icon: 'i-heroicons-users',
-  to: '/customers',
-  tooltip: {
-    text: 'Customers',
-    shortcuts: ['G', 'C']
   }
 }, {
   id: 'users',
@@ -102,32 +305,127 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
       :resizable="{ min: 200, max: 300 }"
       collapsible
     >
-      <UDashboardNavbar
+      <!-- <UDashboardNavbar
         class="!border-transparent"
         :ui="{ left: 'flex-1' }"
       >
         <template #left>
           <TeamsDropdown />
         </template>
-      </UDashboardNavbar>
+      </UDashboardNavbar> -->
 
       <UDashboardSidebar>
         <template #header>
           <UDashboardSearchButton />
         </template>
 
-        <UDashboardSidebarLinks :links="links" />
-
+        <!-- <UDashboardSidebarLinks :links="links" /> -->
+        <div class="w-full">
+          <MenuItem 
+            :select-items="customersItems"
+            label="Customer"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
+        <div class="w-full">
+          <MenuItem 
+            :select-items="serviceItems"
+            label="Service"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
+        <div class="w-full">
+          <MenuItem 
+            :select-items="marketingItems"
+            label="Marketing"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
+        <div class="w-full">
+          <MenuItem 
+            :select-items="employeesItems"
+            label="Employees"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
+        <div class="w-full">
+          <MenuItem 
+            :select-items="accountingItems"
+            label="Accounting"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
+        <div class="w-full">
+          <MenuItem 
+            :select-items="ITItems"
+            label="IT"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
+        <div class="w-full">
+          <MenuItem 
+            :select-items="engineeringItems"
+            label="Engineering"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
+        <div class="w-full">
+          <MenuItem 
+            :select-items="materialsItems"
+            label="Materials"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
+        <div class="w-full">
+          <MenuItem 
+            :select-items="manufacturingItems"
+            label="Manufacturing"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
+        <div class="w-full">
+          <MenuItem 
+            :select-items="maintenanceItems"
+            label="Maintenance"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
+        <div class="w-full">
+          <MenuItem 
+            :select-items="utilitiesItems"
+            label="Utilities"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
+        <div class="w-full">
+          <MenuItem 
+            :select-items="helpItems"
+            label="Help"
+            icon="i-heroicons-users"
+          >
+          </MenuItem>
+        </div>
         <UDivider />
 
-        <UDashboardSidebarLinks
+        <!-- <UDashboardSidebarLinks
           :links="[{ label: 'Colors', draggable: true, children: colors }]"
           @update:links="colors => defaultColors = colors"
-        />
+        /> -->
 
         <div class="flex-1" />
 
-        <UDashboardSidebarLinks :links="footerLinks" />
+        <!-- <UDashboardSidebarLinks :links="footerLinks" /> -->
 
         <UDivider class="sticky bottom-0" />
 
