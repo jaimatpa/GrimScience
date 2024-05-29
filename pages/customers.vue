@@ -5,6 +5,12 @@ useSeoMeta({
   title: 'Grimm-Customers'
 })
 
+defineShortcuts({
+  '/': () => {
+    input.value?.input?.focus()
+  }
+})
+
 const defaultColumns = [{
     key: 'number',
     label: 'Number',
@@ -89,7 +95,7 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
 const columns = computed(() => defaultColumns.filter(column => selectedColumns.value.includes(column)))
 
-const getCustomers = async (method: 'GET' | 'POST' | 'PUT' | 'DELETE', url: string, params?: any, data?: any) => {
+const getCustomers = async (method, url: string) => {
   pending.value = true
   // loadingOverlay.value = true
   const res = await customAxios({
@@ -101,10 +107,6 @@ const getCustomers = async (method: 'GET' | 'POST' | 'PUT' | 'DELETE', url: stri
       sortBy: sort.value.column,
       sortOrder: sort.value.direction,
       ...filters.value,
-      ...params
-    },
-    data: {
-      ...data
     }
   })
   pending.value = false
@@ -182,8 +184,7 @@ const handleModalSave = async (data) => {
         color: 'red'
       })
     }
-  } else { // Update Customer
-    // const res = await getCustomers('PUT', '/api/customers', { UniqueID: data?.UniqueID }, data)
+  } else {
     const res = await customAxios({
       method: 'PUT',
       url: `/api/customers/${selectedCustomer.value}`,
@@ -265,12 +266,6 @@ const excelExport = async () => {
   location.href = `/api/customers/export?${paramsString}`
   exportPending.value = false
 }
-
-defineShortcuts({
-  '/': () => {
-    input.value?.input?.focus()
-  }
-})
 
 init()
 </script>
