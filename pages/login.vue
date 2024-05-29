@@ -53,7 +53,8 @@ const onSubmit = async (data: any) => {
   if (res?.status == 200) {
     token.value = res.data.token;
     userInfo.value = res.data.body
-    router.push("/");
+    // router.push("/");
+    navigateTo("/")
   } else {
     toast.add({title: 'Fail'})
   }

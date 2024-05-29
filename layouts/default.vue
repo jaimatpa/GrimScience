@@ -218,54 +218,326 @@ const helpItems = [
 ]
 
 const links = [{
-  id: 'home',
-  label: 'Home',
-  icon: 'i-heroicons-home',
-  to: '/',
-  tooltip: {
-    text: 'Home',
-    shortcuts: ['G', 'H']
-  }
-}, {
-  id: 'inbox',
-  label: 'Inbox',
-  icon: 'i-heroicons-inbox',
-  to: '/inbox',
-  badge: '4',
-  tooltip: {
-    text: 'Inbox',
-    shortcuts: ['G', 'I']
-  }
-}, {
-  id: 'users',
-  label: 'Users',
+  id: 'customers',
+  label: 'Customers',
   icon: 'i-heroicons-user-group',
-  to: '/users',
+  to: '/customers',
+  defaultOpen: route.path.startsWith('/customers'),
   tooltip: {
-    text: 'Users',
+    text: 'customers',
     shortcuts: ['G', 'U']
-  }
-}, {
-  id: 'settings',
-  label: 'Settings',
-  to: '/settings',
-  icon: 'i-heroicons-cog-8-tooth',
+  }, 
   children: [{
-    label: 'General',
-    to: '/settings',
+    label: 'List',
+    to: '/customers/list',
     exact: true
   }, {
-    label: 'Members',
-    to: '/settings/members'
+    label: 'Service Orders',
+    to: '/customers/orders'
   }, {
-    label: 'Notifications',
-    to: '/settings/notifications'
-  }],
+    label: 'Message',
+    to: '/customers/message'
+  }, {
+    label: 'Quote',
+    to: '/customers/quote'
+  }, {
+    label: 'Invoice',
+    to: '/customers/invoice'
+  }, {
+    label: 'Site Visit',
+    to: '/customers/visit'
+  }]
+}, {
+  id: 'service',
+  label: 'Service',
+  icon: 'i-heroicons-user-group',
+  to: '/service',
+  defaultOpen: route.path.startsWith('/service'),
   tooltip: {
-    text: 'Settings',
-    shortcuts: ['G', 'S']
-  }
-}]
+    text: 'customers',
+    shortcuts: ['G', 'U']
+  }, 
+  children: [{
+    label: 'Cust List',
+    to: '/service/list',
+    exact: true
+  }, {
+    label: 'Service Order',
+    to: '/service/order'
+  }, {
+    label: 'Schedule',
+    to: '/service/schedule'
+  }, {
+    label: 'Calendar',
+    to: '/service/calendar'
+  }]
+}, 
+{
+  id: 'marketing',
+  label: 'Marketing',
+  icon: 'i-heroicons-user-group',
+  to: '/marketing',
+  defaultOpen: route.path.startsWith('/marketing'),
+  tooltip: {
+    text: 'customers',
+    shortcuts: ['G', 'U']
+  }, 
+  children: [{
+    label: 'Products',
+    to: '/marketing/list',
+    exact: true
+  }, {
+    label: 'Job Cost',
+    to: '/marketing/cost'
+  }, {
+    label: 'Report',
+    to: '/marketing/report'
+  }, {
+    label: 'Field Sales & Service',
+    to: '/marketing/sales'
+  }, {
+    label: 'Territories',
+    to: '/marketing/territories'
+  }, {
+    label: 'Projects',
+    to: '/marketing/projects'
+  }]
+},
+{
+  id: 'employees',
+  label: 'Employees',
+  icon: 'i-heroicons-user-group',
+  to: '/employees',
+  defaultOpen: route.path.startsWith('/employees'),
+  tooltip: {
+    text: 'employees',
+    shortcuts: ['G', 'U']
+  }, 
+  children: [{
+    label: 'List',
+    to: '/employees/list',
+    exact: true
+  }, {
+    label: 'Organization',
+    to: '/employees/organization'
+  }]
+},
+{
+  id: 'accounting',
+  label: 'Accounting',
+  icon: 'i-heroicons-user-group',
+  to: '/accounting',
+  defaultOpen: route.path.startsWith('/accounting'),
+  tooltip: {
+    text: 'accounting',
+    shortcuts: ['G', 'U']
+  }, 
+  children: [{
+    label: 'Payables',
+    to: '/accounting/payables',
+    exact: true
+  }, {
+    label: 'Receivables',
+    to: '/accounting/receivables'
+  }]
+},
+{
+  id: 'it',
+  label: 'IT',
+  icon: 'i-heroicons-user-group',
+  to: '/it',
+  defaultOpen: route.path.startsWith('/it'),
+  tooltip: {
+    text: 'IT',
+    shortcuts: ['G', 'U']
+  }, 
+  children: [{
+    label: 'Corian Parts Monitor',
+    to: '/it/monitor',
+    exact: true
+  }]
+},
+{
+  id: 'engineering',
+  label: 'Engineering',
+  icon: 'i-heroicons-user-group',
+  to: '/engineering',
+  defaultOpen: route.path.startsWith('/engineering'),
+  tooltip: {
+    text: 'engineering',
+    shortcuts: ['G', 'U']
+  }, 
+  children: [{
+    label: 'Change Orders',
+    to: '/engineering/orders',
+    exact: true
+  }, {
+    label: 'Non-Conformance',
+    to: '/engineering/nonconformance'
+  }, {
+    label: 'Investigation',
+    to: '/engineering/investigation'
+  }, {
+    label: 'CAPA',
+    to: '/engineering/capa'
+  }, {
+    label: 'Approvals',
+    to: '/engineering/approvals'
+  }, {
+    label: 'KQI',
+    to: '/engineering/kqi'
+  }, {
+    label: 'Projects',
+    to: '/engineering/projects'
+  }]
+},
+{
+  id: 'materials',
+  label: 'Materials',
+  icon: 'i-heroicons-user-group',
+  to: '/materials',
+  defaultOpen: route.path.startsWith('/materials'),
+  tooltip: {
+    text: 'materials',
+    shortcuts: ['G', 'A']
+  }, 
+  children: [{
+    label: 'Parts',
+    to: '/materials/parts',
+    exact: true
+  }, {
+    label: 'Purchases',
+    to: '/materials/purchases'
+  }, {
+    label: 'Vendors',
+    to: '/materials/vendors'
+  }, {
+    label: 'Requisitions',
+    to: '/materials/requisitions'
+  }, {
+    label: 'Serials',
+    to: '/materials/serials'
+  }, {
+    label: 'MRP',
+    to: '/materials/mrp'
+  }, {
+    label: 'Transactions',
+    to: '/materials/transactions'
+  }, {
+    label: 'Journal',
+    to: '/materials/journal'
+  }, {
+    label: 'Report',
+    to: '/materials/report'
+  }]
+},
+{
+  id: 'manufacturing',
+  label: 'Manufacturing',
+  icon: 'i-heroicons-user-group',
+  to: '/manufacturing',
+  defaultOpen: route.path.startsWith('/manufacturing'),
+  tooltip: {
+    text: 'manufacturing',
+    shortcuts: ['G', 'U']
+  }, 
+  children: [{
+    label: 'Jobs',
+    to: '/manufacturing/jobs',
+    exact: true
+  }, {
+    label: 'Schedule',
+    to: '/manufacturing/schedule'
+  }, {
+    label: 'Labor Report',
+    to: '/manufacturing/labor'
+  }, {
+    label: 'Projects',
+    to: '/manufacturing/projects'
+  }]
+},
+{
+  id: 'maintenance',
+  label: 'Maintenance',
+  icon: 'i-heroicons-user-group',
+  to: '/maintenance',
+  defaultOpen: route.path.startsWith('/maintenance'),
+  tooltip: {
+    text: 'maintenance',
+    shortcuts: ['G', 'U']
+  }, 
+  children: [{
+    label: 'Equipment',
+    to: '/maintenance/equipment',
+    exact: true
+  }, {
+    label: 'Calibration',
+    to: '/maintenance/calibration'
+  }, {
+    label: 'Workstations',
+    to: '/maintenance/workstations'
+  }]
+},
+{
+  id: 'utilities',
+  label: 'Utilities',
+  icon: 'i-heroicons-user-group',
+  to: '/utilities',
+  defaultOpen: route.path.startsWith('/utilities'),
+  tooltip: {
+    text: 'utilities',
+    shortcuts: ['G', 'U']
+  }, 
+  children: [{
+    label: 'Shipping Rates',
+    to: '/utilities/rates',
+    exact: true
+  }, {
+    label: 'Label - Parts',
+    to: '/utilities/parts'
+  }, {
+    label: 'Label - Folders',
+    to: '/utilities/folders'
+  }, {
+    label: 'Settings',
+    to: '/utilities/settings'
+  }, {
+    label: 'App Projects',
+    to: '/utilities/projects'
+  }, {
+    label: 'Permissions',
+    to: '/utilities/permissions'
+  }]
+},
+{
+  id: 'help',
+  label: 'Help',
+  icon: 'i-heroicons-user-group',
+  to: '/help',
+  defaultOpen: route.path.startsWith('/help'),
+  tooltip: {
+    text: 'help',
+    shortcuts: ['G', 'U']
+  }, 
+  children: [{
+    label: 'Help',
+    to: '/help/help',
+    exact: true
+  }, {
+    label: 'About',
+    to: '/help/about'
+  }, {
+    label: 'Operational',
+    to: '/help/operational'
+  }, {
+    label: 'Create',
+    to: '/help/create'
+  }, {
+    label: 'Update',
+    to: '/help/update'
+  }]
+}
+]
 
 const footerLinks = [{
   label: 'Invite people',
@@ -326,8 +598,8 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
           <UDashboardSearchButton />
         </template>
 
-        <!-- <UDashboardSidebarLinks :links="links" /> -->
-        <div class="w-full">
+        <UDashboardSidebarLinks :links="links" />
+        <!-- <div class="w-full">
           <MenuItem 
             :select-items="customersItems"
             label="Customer"
@@ -422,7 +694,7 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
             icon="i-heroicons-users"
           >
           </MenuItem>
-        </div>
+        </div> -->
         <UDivider />
 
         <!-- <UDashboardSidebarLinks

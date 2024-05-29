@@ -54,11 +54,6 @@ const defaultColumns = [{
     label: 'Actions'
   }
 ]
-
-const markets = [null, 'Referee', 'market1', 'market2', 'market3']
-const professions = [null, 'Football Official', 'Softball Official', 'Lacrosse Official', 'Head Athletic Trainer', 'Owner']
-const categories = [null, 'Category1', 'Category2', 'Category3', 'Category4', 'Category5']
-const conferences = [null, 'Conference1', 'Conference2', 'Conference3', 'Conference4', 'Conference5']
 const states = [
   null, 'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
   'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
@@ -102,8 +97,12 @@ const filters = ref({
   state: null,
   zip: null
 })
-const pending = ref(false)
 const exportPending = ref(false)
+const pending = ref(false)
+const markets = ref([])
+const professions = ref([])
+const categories = ref([])
+const conferences = ref([])
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
 const descIcon = "i-heroicons-bars-arrow-down-20-solid"
@@ -134,6 +133,34 @@ const init = async () => {
   const { data } = await getCustomers('GET', '/api/customers')
   customers.value = data.body.list
   numberOfCustomers.value = data.body.numberOfCustomers | 0
+  const marketsRes = await customAxios({
+    method: 'GET',
+    url: '/api/customers/markets'
+  })
+  if(marketsRes.status === 200) {
+    markets.value = [null, ...marketsRes.data.body];
+  }
+  const conferencesRes = await customAxios({
+    method: 'GET',
+    url: '/api/customers/conferences'
+  })
+  if(conferencesRes.status === 200) {
+    conferences.value = [null, ...conferencesRes.data.body];
+  }
+  const categoriesRes = await customAxios({
+    method: 'GET',
+    url: '/api/customers/categories'
+  })
+  if(categoriesRes.status === 200) {
+    categories.value = [null, ...categoriesRes.data.body];
+  }
+  const professionsRes = await customAxios({
+    method: 'GET',
+    url: '/api/customers/professions'
+  })
+  if(professionsRes.status === 200) {
+    professions.value = [null, ...professionsRes.data.body];
+  }
 }
 
 const onCreate = () => {
@@ -290,14 +317,14 @@ init()
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar
-        title="Customers"
+        title="List"
       >
       </UDashboardNavbar>
 
       <UDashboardToolbar>
         <template #left>
           <div class="flex flex-row space-x-3">
-            <div class="basis-1/7">
+            <div class="basis-1/7 max-w-[200px]">
               <UFormGroup
                 label="Market"
                 name="market"
@@ -309,7 +336,7 @@ init()
               />
               </UFormGroup>
             </div>
-            <div class="basis-1/7">
+            <div class="basis-1/7 max-w-[200px]">
               <UFormGroup
                 label="Profession"
                 name="profession"
@@ -321,7 +348,7 @@ init()
               />
               </UFormGroup>
             </div>
-            <div class="basis-1/7">
+            <div class="basis-1/7 max-w-[200px]">
               <UFormGroup
                 label="Category"
                 name="category"
@@ -333,7 +360,7 @@ init()
               />
               </UFormGroup>
             </div>
-            <div class="basis-1/7">
+            <div class="basis-1/7 max-w-[200px]">
               <UFormGroup
                 label="Conference"
                 name="conference"
@@ -346,7 +373,7 @@ init()
               />
               </UFormGroup>
             </div>
-            <div class="basis-1/7">
+            <div class="basis-1/7 max-w-[200px]">
               <UFormGroup
                 label="State"
                 name="state"
@@ -358,7 +385,7 @@ init()
               />
               </UFormGroup>
             </div>
-            <div class="basis-1/7">
+            <div class="basis-1/7 max-w-[200px]">
               <UFormGroup
                 label="Zip"
                 name="zip"
@@ -369,7 +396,7 @@ init()
               />
               </UFormGroup>
             </div>
-            <div class="basis-1/7">
+            <div class="basis-1/7 max-w-[200px]">
               <UFormGroup
                 label="Quantity"
                 name="Quantity"

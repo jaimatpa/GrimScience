@@ -87,3 +87,79 @@ export const deleteCustomer = async (id) => {
   await tblCustomers.destroy({where: { UniqueID: id }});
   return id;
 }
+
+export const getMarkets = async () => {
+  const result = await tblCustomers.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.fn('TRIM', Sequelize.col('market'))), 'market']
+    ],
+    where: {
+      [Op.and]: [
+        { market: { [Op.ne]: null } },
+        { market: { [Op.ne]: '' } }
+      ]
+    },
+    order: [['market', 'ASC']],
+    raw: true
+  });
+
+  const distinctMarkets = result.map((item: any) => item.market);
+  return distinctMarkets;
+}
+
+export const getProfessions = async () => {
+  const result = await tblCustomers.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.fn('TRIM', Sequelize.col('source'))), 'source']
+    ],
+    where: {
+      [Op.and]: [
+        { source: { [Op.ne]: null } },
+        { source: { [Op.ne]: '' } }
+      ]
+    },
+    order: [['source', 'ASC']],
+    raw: true
+  });
+
+  const distinctProfessions = result.map((item: any) => item.source);
+  return distinctProfessions;
+}
+
+export const getCategories = async () => {
+  const result = await tblCustomers.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.fn('TRIM', Sequelize.col('ParadynamixCatagory'))), 'ParadynamixCatagory']
+    ],
+    where: {
+      [Op.and]: [
+        { ParadynamixCatagory: { [Op.ne]: null } },
+        { ParadynamixCatagory: { [Op.ne]: '' } }
+      ]
+    },
+    order: [['ParadynamixCatagory', 'ASC']],
+    raw: true
+  });
+
+  const distinctCategories = result.map((item: any) => item.ParadynamixCatagory);
+  return distinctCategories;
+}
+
+export const getConferences = async () => {
+  const result = await tblCustomers.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.fn('TRIM', Sequelize.col('SourceConfrence'))), 'SourceConfrence']
+    ],
+    where: {
+      [Op.and]: [
+        { SourceConfrence: { [Op.ne]: null } },
+        { SourceConfrence: { [Op.ne]: '' } }
+      ]
+    },
+    order: [['SourceConfrence', 'ASC']],
+    raw: true
+  });
+
+  const distinctCategories = result.map((item: any) => item.SourceConfrence);
+  return distinctCategories;
+}
