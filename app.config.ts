@@ -6,6 +6,9 @@ export default defineAppConfig({
       default: {
         openDelay: 500
       }
+    },
+    notifications: {
+      position: 'top-0 bottom-auto'
     }
   }
 })

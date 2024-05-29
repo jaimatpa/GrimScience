@@ -1,9 +1,8 @@
-import { verifyToken } from '../utils/Token';  // Assuming the file path is correct
+import { verifyToken } from '../utils/Token';
 
 export default defineEventHandler(async (event) => {
   try {
     const path = event._path;
-    const headers = getHeaders(event);
 
     const excludePages = [
       '/login',
@@ -14,25 +13,8 @@ export default defineEventHandler(async (event) => {
       '/api/auth/login',
     ];
 
-    if(headers['sec-fetch-mode'] != 'cors' && headers['user-agent'] && headers['user-agent'].startsWith('Mozilla')){
-      console.log("--Mozilla PATH--", path);
-
-      if (!excludePages.includes(path) && !excludeAPIs.includes(path)) {
-        const cookies = parseCookies(event);
-        console.log(cookies.token);
-        if(!cookies.token || verifyToken(cookies.token) === false){
-          const response = new Response(null, {
-            status: 302,
-            headers: {
-              'Location': '/login'
-            }
-          });
-          return response;
-        } 
-      }
-      
-    }else{
-      console.log("--API PATH--", path);
+    if(path.startsWith('/api/')){
+      console.log("--API REQUEST--", path);
   
       if (!excludeAPIs.includes(path)) {
         const authHeader = getHeader(event, 'Authorization');
@@ -59,6 +41,22 @@ export default defineEventHandler(async (event) => {
           return { error: "Unauthorized" };
         }
       } 
+    }else{
+      console.log("--DOCUMENT REQUEST--", path);
+
+      if (!excludePages.includes(path) && !excludeAPIs.includes(path)) {
+        const cookies = parseCookies(event);
+        console.log(cookies.token);
+        if(!cookies.token || verifyToken(cookies.token) === false){
+          const response = new Response(null, {
+            status: 302,
+            headers: {
+              'Location': '/login'
+            }
+          });
+          return response;
+        } 
+      }
     }
   } catch (error) {
     console.error('Error: ', error);
