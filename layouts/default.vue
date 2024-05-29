@@ -27,7 +27,7 @@ const links = [{
 }, {
   id: 'customers',
   label: 'Customers',
-  icon: 'i-heroicons-inbox',
+  icon: 'i-heroicons-users',
   to: '/customers',
   tooltip: {
     text: 'Customers',

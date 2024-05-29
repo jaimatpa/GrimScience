@@ -2,7 +2,7 @@
 const teams = [{
   label: 'Nuxt',
   avatar: {
-    src: 'https://avatars.githubusercontent.com/u/23360933?s=200&v=4'
+    src: './grimm.ico'
   },
   click: () => {
     team.value = teams[0]

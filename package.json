@@ -21,12 +21,14 @@
     "@vueuse/nuxt": "^10.9.0",
     "axios": "^1.7.1",
     "date-fns": "^3.6.0",
+    "exceljs": "^4.4.0",
     "jsonwebtoken": "^9.0.2",
     "msnodesqlv8": "^4.2.1",
     "nuxt": "^3.11.2",
     "sequelize": "^6.37.3",
     "tedious": "^18.2.0",
-    "v-calendar": "^3.1.2"
+    "v-calendar": "^3.1.2",
+    "vue-loading-overlay": "^6.0.4"
   },
   "devDependencies": {
     "@nuxt/eslint": "^0.3.10",

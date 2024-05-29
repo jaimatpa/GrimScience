@@ -39,12 +39,7 @@ const config = ():Options => {
     }
   }
 
-  // console.log("@@@@@@@@@@@@")
-  // console.log(config1)
-  // console.log(config2)
-  // console.log(process.env.DB_MODE === '1' ? config1 : config2)
-  
-  return process.env.DB_MODE === '1' ? config1 : config2;
+  return (!process.env.DB_MODE || process.env.DB_MODE !== '2') ? config1 : config2;
 }
 
 const sequelize = new Sequelize(config());

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from '#vue-router';
+import axios, { isAxiosError } from 'axios';
 
 const router = useRouter();
 const token = useCookie<string>('token');
@@ -23,7 +24,6 @@ const fields = [{
   placeholder: 'Enter your password'
 }]
 
-// username mode
 const validate = (state: any) => {
   const errors = []
   if (!state.user) errors.push({ path: 'user', message: 'Email is required' })
@@ -50,8 +50,6 @@ const onSubmit = async (data: any) => {
     console.log(res);
     token.value = res.data.token;
     router.push("/");
-  } else {
-    console.log("Client Login fail Message", res.data.error);
   }
 }
 </script>
