@@ -55,6 +55,18 @@ const defaultColumns = [{
   }
 ]
 
+const markets = [null, 'Referee', 'market1', 'market2', 'market3']
+const professions = [null, 'Football Official', 'Softball Official', 'Lacrosse Official', 'Head Athletic Trainer', 'Owner']
+const categories = [null, 'Category1', 'Category2', 'Category3', 'Category4', 'Category5']
+const conferences = [null, 'Conference1', 'Conference2', 'Conference3', 'Conference4', 'Conference5']
+const states = [
+  null, 'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
+  'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
+  'AZ', 'CO', 'AL', 'SC', 'LA', 'KY', 'OR', 'OK', 'CT', 'IA',
+  'MS', 'AR', 'UT', 'NV', 'WV', 'ID', 'NM', 'NE', 'WY', 'ME',
+  'HI', 'NH', 'VT', 'ND', 'SD', 'AK', 'DE', 'MT', 'RI'
+];
+
 const selectedColumns = ref(defaultColumns)
 const sort = ref({ column: 'UniqueID', direction: 'asc' })
 const input = ref<{ input: HTMLInputElement }>()
@@ -77,6 +89,10 @@ const sortButtons = ref({
   zip: {direction: 'none', key: 'zip'}
 })
 const filters = ref({
+  market: null,
+  source: null,
+  ParadynamixCatagory: null,
+  SourceConfrence: null,
   number: null,
   fname: null,
   lname: null,
@@ -274,10 +290,109 @@ init()
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar
-        title="customers"
-        :badge="numberOfCustomers | 0"
+        title="Customers"
       >
+      </UDashboardNavbar>
+
+      <UDashboardToolbar>
+        <template #left>
+          <div class="flex flex-row space-x-3">
+            <div class="basis-1/7">
+              <UFormGroup
+                label="Market"
+                name="market"
+              >
+              <USelect
+                v-model="filters.market"
+                :options="markets"
+                @change="init()"
+              />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/7">
+              <UFormGroup
+                label="Profession"
+                name="profession"
+              >
+              <USelect
+                v-model="filters.source"
+                :options="professions"
+                @change="init()"
+              />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/7">
+              <UFormGroup
+                label="Category"
+                name="category"
+              >
+              <USelect
+                v-model="filters.ParadynamixCatagory"
+                :options="categories"
+                @change="init()"
+              />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/7">
+              <UFormGroup
+                label="Conference"
+                name="conference"
+                @change="init()"
+              >
+              <USelect
+                v-model="filters.SourceConfrence"
+                :options="conferences"
+                @change="init()"
+              />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/7">
+              <UFormGroup
+                label="State"
+                name="state"
+              >
+              <USelect
+                v-model="filters.state"
+                :options="states"
+                @change="init()"
+              />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/7">
+              <UFormGroup
+                label="Zip"
+                name="zip"
+              >
+              <UInput
+                v-model="filters.zip"
+                @change="init()"
+              />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/7">
+              <UFormGroup
+                label="Quantity"
+                name="Quantity"
+              >
+              <div class="text-center text-bold">
+                {{ numberOfCustomers }}
+              </div>
+              </UFormGroup>
+            </div>
+          </div>
+        </template>
         <template #right>
+          <!-- <USelectMenu
+            v-model="selectedColumns"
+            icon="i-heroicons-adjustments-horizontal-solid"
+            :options="defaultColumns"
+            multiple
+            class="hidden lg:block"
+          >
+            <template #label>
+              Display
+            </template>
+          </USelectMenu> -->
           <UButton 
             :loading="exportPending"
             label="Export to Excel" 
@@ -294,22 +409,6 @@ init()
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
-        </template>
-      </UDashboardNavbar>
-
-      <UDashboardToolbar>
-        <template #right>
-          <USelectMenu
-            v-model="selectedColumns"
-            icon="i-heroicons-adjustments-horizontal-solid"
-            :options="defaultColumns"
-            multiple
-            class="hidden lg:block"
-          >
-            <template #label>
-              Display
-            </template>
-          </USelectMenu>
         </template>
       </UDashboardToolbar>
       

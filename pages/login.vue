@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from '#vue-router';
+const { userInfo } = useDashboard()
 
 definePageMeta({
   layout: 'auth'
@@ -51,6 +52,7 @@ const onSubmit = async (data: any) => {
   })
   if (res?.status == 200) {
     token.value = res.data.token;
+    userInfo.value = res.data.body
     router.push("/");
   } else {
     toast.add({title: 'Fail'})

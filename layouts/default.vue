@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const appConfig = useAppConfig()
-const { isHelpSlideoverOpen } = useDashboard()
+const { isHelpSlideoverOpen, userInfo } = useDashboard()
 
 const customersItems = [
   [{
@@ -305,17 +305,24 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
       :resizable="{ min: 200, max: 300 }"
       collapsible
     >
-      <!-- <UDashboardNavbar
+      <UDashboardNavbar
         class="!border-transparent"
         :ui="{ left: 'flex-1' }"
       >
         <template #left>
-          <TeamsDropdown />
+          <!-- <TeamsDropdown /> -->
+          <div class="w-full p-3 mt-2">
+            <img src="../public/grimm_logo_menu.png" alt="Grimm Avatar"/>
+          </div>
+          
         </template>
-      </UDashboardNavbar> -->
+      </UDashboardNavbar>
 
       <UDashboardSidebar>
         <template #header>
+          <div class="text-center text-white">
+            <!-- {{userInfo.fname + " " + userInfo.lname}} -->
+          </div>
           <UDashboardSearchButton />
         </template>
 

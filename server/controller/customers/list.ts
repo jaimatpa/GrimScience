@@ -2,7 +2,7 @@ import { Op, Sequelize } from 'sequelize';
 import { tblCustomers } from "~/server/models";
 
 const applyFilters = (params) => {
-  const filterParams = ['number', 'fname', 'lname', 'company1', 'homephone', 'workphone', 'state', 'zip'];
+  const filterParams = ['number', 'fname', 'lname', 'company1', 'homephone', 'workphone', 'state', 'zip', 'market', 'source', 'SourceConfrence', 'ParadynamixCatagory'];
   const whereClause = {};
 
   filterParams.forEach(param => {
