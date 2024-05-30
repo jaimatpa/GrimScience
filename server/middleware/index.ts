@@ -11,7 +11,6 @@ export default defineEventHandler(async (event) => {
 
     const excludeAPIs = [
       '/api/auth/login',
-      '/api/auth/employees'
     ];
 
     if(path.startsWith('/api/')){

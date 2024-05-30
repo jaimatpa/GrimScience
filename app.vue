@@ -10,7 +10,7 @@ useHead({
     { key: 'theme-color', name: 'theme-color', content: color }
   ],
   link: [
-    { rel: 'icon', href: '/pin_grimm_bl.ico' }
+    { rel: 'icon', href: '/grimm.ico' }
   ],
   htmlAttrs: {
     lang: 'en'

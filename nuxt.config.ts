@@ -11,9 +11,6 @@ export default defineNuxtConfig({
     icons: ['heroicons', 'simple-icons'],
     safelistColors: ['primary', 'red', 'orange', 'green']
   },
-  colorMode: {
-    preference: 'light',
-  },
   devtools: {
     enabled: true
   },
