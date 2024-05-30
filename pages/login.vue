@@ -1,88 +1,100 @@
 <script setup lang="ts">
-import { tr } from 'date-fns/locale';
+  import { object, string, type InferType } from 'yup'
+  import type { FormSubmitEvent } from '#ui/types' 
+  import Loading from 'vue-loading-overlay'
+  import 'vue-loading-overlay/dist/css/index.css';
 
-const { userInfo } = useDashboard()
-
-definePageMeta({
-  layout: 'auth'
-})
-
-useSeoMeta({
-  title: 'Login'
-})
-
-const token = useCookie<string>('token');
-const toast = useToast()
-
-const loading = ref(false);
-let fields = ref([{
-  name: 'user',
-  type: 'select',
-  label: 'Username',
-  placeholder: 'Select your username',
-  options: []
-}, {
-  name: 'password',
-  label: 'Password',
-  type: 'password',
-  placeholder: 'Enter your password'
-}])
-
-const init = () => {
-  loading.value = true;
-  customAxios({
-    method: 'GET',
-    url: '/api/auth/employees'
-  }).then((res)=>{
-    if(res.status == 200){
-      loading.value = false
-      fields.value[0].options = res.data.body
-    }
+  definePageMeta({
+    layout: 'auth'
   })
-}
 
-const validate = (state: any) => {
-  console.log(state);
-  const errors = []
-  if (!state.user) errors.push({ path: 'user', message: 'Username is required' })
-  else if (!state.password) errors.push({ path: 'password', message: 'Password is required' })
-  return errors
-}
+  useSeoMeta({
+    title: 'Login'
+  })
 
-const onSubmit = async (data: any) => {
-  // const errors = validate(data);
-  // if (errors.length === 0) {
+  const token = useCookie<string>('token');
+  const toast = useToast()
+
+  const users = ref([])
+  const loadingOverlay = ref(false);
+  const schema = object({
+    user: string().required('Username is required!'),
+    password: string()
+      .required('Password is required!')
+  })
+
+  type FormDataSchema = InferType<typeof schema>
+
+  const formData = ref({
+    user: null,
+    password: null
+  })
+
+  const init = () => {
+    loadingOverlay.value = true;
+    customAxios({
+      method: 'GET',
+      url: '/api/auth/employees'
+    }).then((res)=>{
+      if(res.status == 200){
+        loadingOverlay.value = false
+        users.value = res.data.body
+      }
+    })
+  }
+
+  const onSubmit = async (event: FormSubmitEvent<FormDataSchema>) => {
     const res = await customAxios({
       method: 'POST',
       url: '/api/auth/login',
-      data: data
-    }).then(res=>{
-      if (res?.status == 200) {
-        token.value = res.data.token;
-        userInfo.value = res.data.body;
-        navigateTo("/")
-      }
+      data: event.data
     })
-  // }
-}
+    if (res?.status == 200) {
+      token.value = res.data.token;
+      await navigateTo("/")
+    }
+  }
 
-init();
+  init();
 </script>
 
 <template>
-  <ULandingCard 
+  <div class="vl-parent">
+    <loading
+      v-model:active="loadingOverlay"
+      :is-full-page="true"
+      color="#000000"
+      backgroundColor="#1B2533"
+      loader="dots"
+    />
+  </div>
+  <UCard 
     class="max-w-sm w-full bg-white/75 dark:bg-white/5 backdrop-blur"
-  >
-    <UAuthForm
-      :fields="fields"
-      :validate="validate"
-      title="Welcome"
-      align="top"
-      icon="i-heroicons-lock-closed"
-      :ui="{ base: 'text-center', footer: 'text-center' }"
-      :submit-button="{ trailingIcon: 'i-heroicons-arrow-right-20-solid' }"
-      @submit="onSubmit"
-    >
-    </UAuthForm>
-  </ULandingCard>
+  > 
+    <div class="text-center text-2xl font-[1000] w-full">
+      Welcome
+    </div>
+    <UForm :schema="schema" :state="formData" class="space-y-4" @submit="onSubmit">
+      <UFormGroup label="Username" name="user">
+        <UInputMenu  
+          v-model="formData.user" 
+          v-model:query="formData.user"
+          :options="users"
+        />
+      </UFormGroup>
+
+      <UFormGroup label="Password" name="password">
+        <UInput v-model="formData.password" type="password" />
+      </UFormGroup>
+
+      <div class=" text-center w-full">
+        <UButton 
+          type="submit" 
+          trailingIcon="i-heroicons-arrow-right-20-solid"
+        >
+          Submit
+        </UButton>
+      </div>
+    </UForm>
+  </UCard>
 </template>
