@@ -11,6 +11,10 @@ const props = defineProps({
   }
 })
 
+const markets = ['Referee', 'market1', 'market2', 'market3']
+const professions = ['Football Official', 'Softball Official', 'Lacrosse Official', 'Head Athletic Trainer', 'Owner']
+const categories = ['Category1', 'Category2', 'Category3', 'Category4', 'Category5']
+const conferences = ['Conference1', 'Conference2', 'Conference3', 'Conference4', 'Conference5']
 const states = [
   'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
   'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
@@ -20,13 +24,10 @@ const states = [
 ];
 
 const loadingOverlay = ref(false)
-const markets = ref([])
-const professions = ref([])
-const categories = ref([])
-const conferences = ref([])
+
 const state = reactive({
   UniqueID: null,
-  market: null,
+  market: markets[0],
   number: null,
   source: professions[0],
   sourcedescription: null,
@@ -67,9 +68,9 @@ const state = reactive({
   ExtensionBill: null,
 })
 
-const editInit = async () => {
+if (props.selectedCustomer !== null) {
   loadingOverlay.value = true
-  await customAxios({
+  customAxios({
     method: 'GET',
     url: `/api/tbl/tblCustomers/${props.selectedCustomer}`
   }).then(res => {
@@ -81,42 +82,17 @@ const editInit = async () => {
       }
     }
   })
-  await propertiesInit()
-  loadingOverlay.value = false
+} else {
+
 }
 
-const propertiesInit = async () => {
-  loadingOverlay.value = true
-  const marketsRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/markets'
-  })
-  if(marketsRes.status === 200) {
-    markets.value = marketsRes.data.body;
-  }
-  const conferencesRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/conferences'
-  })
-  if(conferencesRes.status === 200) {
-    conferences.value = conferencesRes.data.body;
-  }
-  const categoriesRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/categories'
-  })
-  if(categoriesRes.status === 200) {
-    categories.value = categoriesRes.data.body;
-  }
-  const professionsRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/professions'
-  })
-  if(professionsRes.status === 200) {
-    professions.value = professionsRes.data.body;
-  }
-  loadingOverlay.value = false
-}
+const tabItems = [{
+  key: 'shipping',
+  label: 'Shipping Information'
+}, {
+  key: 'billing',
+  label: 'Billing Information'
+}]
 
 const validate = (state: any): FormError[] => {
   const errors = []
@@ -130,10 +106,6 @@ async function onSubmit(event: FormSubmitEvent<any>) {
   emit('save', event.data)
   emit('close')
 }
-if(props.selectedCustomer !== null) 
-  editInit()
-else 
-  propertiesInit()
 </script>
 
 <template>
@@ -162,6 +134,7 @@ else
           <UInput
             v-model="state.fname"
             placeholder="John"
+            autofocus
           />
         </UFormGroup>
       </div>
@@ -217,9 +190,8 @@ else
           label="Market"
           name="market"
         >
-          <UInputMenu
+          <USelect
             v-model="state.market"
-            v-model:query="state.market"
             :options="markets"
           />
         </UFormGroup>
@@ -240,9 +212,8 @@ else
           label="Profession"
           name="profession"
         >
-          <UInputMenu
+          <USelect
             v-model="state.source"
-            v-model:query="state.source"
             :options="professions"
           />
         </UFormGroup>
@@ -252,9 +223,8 @@ else
           label="Categories"
           name="categories"
         >
-          <UInputMenu
+          <USelect
             v-model="state.ParadynamixCatagory"
-            v-model:query="state.ParadynamixCatagory"
             :options="categories"
           />
         </UFormGroup>
@@ -264,9 +234,8 @@ else
           label="Conferences"
           name="conferences"
         >
-          <UInputMenu
+          <USelect
             v-model="state.SourceConfrence"
-            v-model:query="state.SourceConfrence"
             :options="conferences"
           />
         </UFormGroup>

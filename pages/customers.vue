@@ -5,12 +5,6 @@ useSeoMeta({
   title: 'Grimm-Customers'
 })
 
-defineShortcuts({
-  '/': () => {
-    input.value?.input?.focus()
-  }
-})
-
 const defaultColumns = [{
     key: 'number',
     label: 'Number',
@@ -54,13 +48,6 @@ const defaultColumns = [{
     label: 'Actions'
   }
 ]
-const states = [
-  null, 'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
-  'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
-  'AZ', 'CO', 'AL', 'SC', 'LA', 'KY', 'OR', 'OK', 'CT', 'IA',
-  'MS', 'AR', 'UT', 'NV', 'WV', 'ID', 'NM', 'NE', 'WY', 'ME',
-  'HI', 'NH', 'VT', 'ND', 'SD', 'AK', 'DE', 'MT', 'RI'
-];
 
 const selectedColumns = ref(defaultColumns)
 const sort = ref({ column: 'UniqueID', direction: 'asc' })
@@ -84,10 +71,6 @@ const sortButtons = ref({
   zip: {direction: 'none', key: 'zip'}
 })
 const filters = ref({
-  market: null,
-  source: null,
-  ParadynamixCatagory: null,
-  SourceConfrence: null,
   number: null,
   fname: null,
   lname: null,
@@ -97,12 +80,8 @@ const filters = ref({
   state: null,
   zip: null
 })
-const exportPending = ref(false)
 const pending = ref(false)
-const markets = ref([])
-const professions = ref([])
-const categories = ref([])
-const conferences = ref([])
+const exportPending = ref(false)
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
 const descIcon = "i-heroicons-bars-arrow-down-20-solid"
@@ -110,7 +89,7 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
 const columns = computed(() => defaultColumns.filter(column => selectedColumns.value.includes(column)))
 
-const getCustomers = async (method, url: string) => {
+const getCustomers = async (method: 'GET' | 'POST' | 'PUT' | 'DELETE', url: string, params?: any, data?: any) => {
   pending.value = true
   // loadingOverlay.value = true
   const res = await customAxios({
@@ -122,6 +101,10 @@ const getCustomers = async (method, url: string) => {
       sortBy: sort.value.column,
       sortOrder: sort.value.direction,
       ...filters.value,
+      ...params
+    },
+    data: {
+      ...data
     }
   })
   pending.value = false
@@ -133,34 +116,6 @@ const init = async () => {
   const { data } = await getCustomers('GET', '/api/customers')
   customers.value = data.body.list
   numberOfCustomers.value = data.body.numberOfCustomers | 0
-  const marketsRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/markets'
-  })
-  if(marketsRes.status === 200) {
-    markets.value = [null, ...marketsRes.data.body];
-  }
-  const conferencesRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/conferences'
-  })
-  if(conferencesRes.status === 200) {
-    conferences.value = [null, ...conferencesRes.data.body];
-  }
-  const categoriesRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/categories'
-  })
-  if(categoriesRes.status === 200) {
-    categories.value = [null, ...categoriesRes.data.body];
-  }
-  const professionsRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/professions'
-  })
-  if(professionsRes.status === 200) {
-    professions.value = [null, ...professionsRes.data.body];
-  }
 }
 
 const onCreate = () => {
@@ -227,7 +182,8 @@ const handleModalSave = async (data) => {
         color: 'red'
       })
     }
-  } else {
+  } else { // Update Customer
+    // const res = await getCustomers('PUT', '/api/customers', { UniqueID: data?.UniqueID }, data)
     const res = await customAxios({
       method: 'PUT',
       url: `/api/customers/${selectedCustomer.value}`,
@@ -310,6 +266,12 @@ const excelExport = async () => {
   exportPending.value = false
 }
 
+defineShortcuts({
+  '/': () => {
+    input.value?.input?.focus()
+  }
+})
+
 init()
 </script>
 
@@ -317,109 +279,10 @@ init()
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar
-        title="List"
+        title="customers"
+        :badge="numberOfCustomers | 0"
       >
-      </UDashboardNavbar>
-
-      <UDashboardToolbar>
-        <template #left>
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Market"
-                name="market"
-              >
-              <USelect
-                v-model="filters.market"
-                :options="markets"
-                @change="init()"
-              />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Profession"
-                name="profession"
-              >
-              <USelect
-                v-model="filters.source"
-                :options="professions"
-                @change="init()"
-              />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Category"
-                name="category"
-              >
-              <USelect
-                v-model="filters.ParadynamixCatagory"
-                :options="categories"
-                @change="init()"
-              />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Conference"
-                name="conference"
-                @change="init()"
-              >
-              <USelect
-                v-model="filters.SourceConfrence"
-                :options="conferences"
-                @change="init()"
-              />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="State"
-                name="state"
-              >
-              <USelect
-                v-model="filters.state"
-                :options="states"
-                @change="init()"
-              />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Zip"
-                name="zip"
-              >
-              <UInput
-                v-model="filters.zip"
-                @change="init()"
-              />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Quantity"
-                name="Quantity"
-              >
-              <div class="text-center text-bold">
-                {{ numberOfCustomers }}
-              </div>
-              </UFormGroup>
-            </div>
-          </div>
-        </template>
         <template #right>
-          <!-- <USelectMenu
-            v-model="selectedColumns"
-            icon="i-heroicons-adjustments-horizontal-solid"
-            :options="defaultColumns"
-            multiple
-            class="hidden lg:block"
-          >
-            <template #label>
-              Display
-            </template>
-          </USelectMenu> -->
           <UButton 
             :loading="exportPending"
             label="Export to Excel" 
@@ -436,6 +299,22 @@ init()
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
+        </template>
+      </UDashboardNavbar>
+
+      <UDashboardToolbar>
+        <template #right>
+          <USelectMenu
+            v-model="selectedColumns"
+            icon="i-heroicons-adjustments-horizontal-solid"
+            :options="defaultColumns"
+            multiple
+            class="hidden lg:block"
+          >
+            <template #label>
+              Display
+            </template>
+          </USelectMenu>
         </template>
       </UDashboardToolbar>
       
