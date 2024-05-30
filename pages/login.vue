@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useRouter } from '#vue-router';
+import { tr } from 'date-fns/locale';
+
 const { userInfo } = useDashboard()
 
 definePageMeta({
@@ -10,15 +11,15 @@ useSeoMeta({
   title: 'Login'
 })
 
-const router = useRouter();
 const token = useCookie<string>('token');
 const toast = useToast()
 
+const loading = ref(false);
 let fields = ref([{
   name: 'user',
   type: 'select',
   label: 'Username',
-  placeholder: 'Enter your username',
+  placeholder: 'Select your username',
   options: []
 }, {
   name: 'password',
@@ -27,44 +28,51 @@ let fields = ref([{
   placeholder: 'Enter your password'
 }])
 
-const init = async () => {
-  const res = await customAxios({
+const init = () => {
+  loading.value = true;
+  customAxios({
     method: 'GET',
     url: '/api/auth/employees'
+  }).then((res)=>{
+    if(res.status == 200){
+      loading.value = false
+      fields.value[0].options = res.data.body
+    }
   })
-  if(res.status == 200){
-    fields.value[0].options = res.data.body
-  }
 }
 
 const validate = (state: any) => {
+  console.log(state);
   const errors = []
   if (!state.user) errors.push({ path: 'user', message: 'Username is required' })
-  if (!state.password) errors.push({ path: 'password', message: 'Password is required' })
+  else if (!state.password) errors.push({ path: 'password', message: 'Password is required' })
   return errors
 }
 
 const onSubmit = async (data: any) => {
-  const res = await customAxios({
-    method: 'POST',
-    url: '/api/auth/login',
-    data: data
-  })
-  if (res?.status == 200) {
-    token.value = res.data.token;
-    userInfo.value = res.data.body
-    // router.push("/");
-    navigateTo("/")
-  } else {
-    toast.add({title: 'Fail'})
-  }
+  // const errors = validate(data);
+  // if (errors.length === 0) {
+    const res = await customAxios({
+      method: 'POST',
+      url: '/api/auth/login',
+      data: data
+    }).then(res=>{
+      if (res?.status == 200) {
+        token.value = res.data.token;
+        userInfo.value = res.data.body;
+        navigateTo("/")
+      }
+    })
+  // }
 }
 
 init();
 </script>
 
 <template>
-  <UCard class="max-w-sm w-full bg-white/75 dark:bg-white/5 backdrop-blur">
+  <ULandingCard 
+    class="max-w-sm w-full bg-white/75 dark:bg-white/5 backdrop-blur"
+  >
     <UAuthForm
       :fields="fields"
       :validate="validate"
@@ -75,7 +83,6 @@ init();
       :submit-button="{ trailingIcon: 'i-heroicons-arrow-right-20-solid' }"
       @submit="onSubmit"
     >
-    
     </UAuthForm>
-  </UCard>
+  </ULandingCard>
 </template>

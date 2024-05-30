@@ -3,7 +3,8 @@ import { verifyToken } from '../utils/Token';
 export default defineEventHandler(async (event) => {
   try {
     const path = event._path;
-
+    const headers = getHeaders(event);
+    
     const excludePages = [
       '/login',
       '/signup',
@@ -42,7 +43,7 @@ export default defineEventHandler(async (event) => {
           return { error: "Unauthorized" };
         }
       } 
-    }else{
+    }else if(headers['accept'].includes('text/html')){
       console.log("--DOCUMENT REQUEST--", path);
 
       if (!excludePages.includes(path) && !excludeAPIs.includes(path)) {

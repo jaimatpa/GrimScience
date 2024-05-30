@@ -14,7 +14,7 @@ export const customAxios = async (options: AxiosRequestConfig): Promise<AxiosRes
     return response;
   } catch (error) {
     if(axios.isAxiosError(error)){
-      if(error.response.status == 401){
+      if(error?.response?.status == 401){
         navigateTo('/login')
       }
       toast.add({
