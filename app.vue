@@ -10,14 +10,14 @@ useHead({
     { key: 'theme-color', name: 'theme-color', content: color }
   ],
   link: [
-    { rel: 'icon', href: '/favicon.ico' }
+    { rel: 'icon', href: '/pin_grimm_bl.ico' }
   ],
   htmlAttrs: {
     lang: 'en'
   }
 })
 
-const title = 'Nuxt UI Pro - Dashboard template'
+const title = 'Grimm Scientific'
 const description = 'Nuxt UI Pro is a collection of premium Vue components built on top of Nuxt UI to create beautiful & responsive Nuxt applications in minutes.'
 
 useSeoMeta({

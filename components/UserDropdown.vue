@@ -41,7 +41,12 @@ const items = computed(() => [
     target: '_blank'
   }], [{
     label: 'Sign out',
-    icon: 'i-heroicons-arrow-left-on-rectangle'
+    icon: 'i-heroicons-arrow-left-on-rectangle',
+    click: () => {
+      const token = useCookie('token')
+      token.value = null
+      navigateTo('/login')
+    }
   }]
 ])
 </script>
