@@ -110,7 +110,7 @@ export const getMarkets = async () => {
 export const getProfessions = async () => {
   const result = await tblCustomers.findAll({
     attributes: [
-      [Sequelize.fn('DISTINCT', Sequelize.fn('TRIM', Sequelize.col('source'))), 'source']
+      [Sequelize.fn('DISTINCT', Sequelize.col('source')), 'source']
     ],
     where: {
       [Op.and]: [
@@ -129,7 +129,7 @@ export const getProfessions = async () => {
 export const getCategories = async () => {
   const result = await tblCustomers.findAll({
     attributes: [
-      [Sequelize.fn('DISTINCT', Sequelize.fn('TRIM', Sequelize.col('ParadynamixCatagory'))), 'ParadynamixCatagory']
+      [Sequelize.fn('DISTINCT', Sequelize.col('ParadynamixCatagory')), 'ParadynamixCatagory']
     ],
     where: {
       [Op.and]: [
@@ -148,7 +148,7 @@ export const getCategories = async () => {
 export const getConferences = async () => {
   const result = await tblCustomers.findAll({
     attributes: [
-      [Sequelize.fn('DISTINCT', Sequelize.fn('TRIM', Sequelize.col('SourceConfrence'))), 'SourceConfrence']
+      [Sequelize.fn('DISTINCT', Sequelize.col('SourceConfrence')), 'SourceConfrence']
     ],
     where: {
       [Op.and]: [

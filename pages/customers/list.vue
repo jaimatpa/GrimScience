@@ -110,12 +110,28 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
 const columns = computed(() => defaultColumns.filter(column => selectedColumns.value.includes(column)))
 
-const getCustomers = async (method, url: string) => {
+const init = async () => {
   pending.value = true
-  // loadingOverlay.value = true
-  const res = await customAxios({
-    method: method, 
-    url: url,
+  const { data } = await customAxios({
+    method: 'GET',
+    url: '/api/customers/numbers',
+    params: {
+      ...filters.value
+    }
+  })
+  numberOfCustomers.value = data.body | 0
+  if(numberOfCustomers.value === 0){
+    customers.value = []
+    numberOfCustomers.value = 0
+    pending.value = false
+    return;
+  }
+  if(page.value * pageSize.value > numberOfCustomers.value) {
+    page.value = Math.ceil(numberOfCustomers.value / pageSize.value) | 1
+  }
+  customAxios({
+    method: 'GET',
+    url: '/api/customers/list',
     params: {
       page: page.value,
       pageSize: pageSize.value, 
@@ -123,16 +139,10 @@ const getCustomers = async (method, url: string) => {
       sortOrder: sort.value.direction,
       ...filters.value,
     }
+  }).then(res => {
+    customers.value = res.data.body;
+    pending.value = false
   })
-  pending.value = false
-  // loadingOverlay.value = false
-  return res
-}
-
-const init = async () => {
-  const { data } = await getCustomers('GET', '/api/customers')
-  customers.value = data.body.list
-  numberOfCustomers.value = data.body.numberOfCustomers | 0
   const marketsRes = await customAxios({
     method: 'GET',
     url: '/api/customers/markets'
