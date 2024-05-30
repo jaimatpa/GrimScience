@@ -536,8 +536,28 @@ const links = [{
     label: 'Update',
     to: '/help/update'
   }]
-}
-]
+}, {
+  id: 'settings',
+  label: 'Settings',
+  to: '/settings',
+  icon: 'i-heroicons-cog-8-tooth',
+  defaultOpen: route.path.startsWith('/settings'),
+  children: [{
+    label: 'General',
+    to: '/settings',
+    exact: true
+  }, {
+    label: 'Members',
+    to: '/settings/members'
+  }, {
+    label: 'Notifications',
+    to: '/settings/notifications'
+  }],
+  tooltip: {
+    text: 'Settings',
+    shortcuts: ['G', 'S']
+  }
+}]
 
 const footerLinks = [{
   label: 'Invite people',

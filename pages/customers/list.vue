@@ -266,7 +266,13 @@ const handlePageChange = async () => {
   init()
 }
 
+const handleFilterChange = () => {
+  page.value = 1
+  init()
+}
+
 const handleSortingButton = async (btnName: string) => {
+  page.value = 1
   for(const [btn, btnProp] of Object.entries(sortButtons.value)) {
     if(btnName === btn) {
       switch(btnProp.direction) {
@@ -294,6 +300,7 @@ const handleSortingButton = async (btnName: string) => {
 }
 
 const handleFilterInputChange = async (event, name) => {
+  page.value = 1
   if (filters.value.hasOwnProperty(name)) {
     filters.value[name] = event;
   } else {
@@ -342,7 +349,7 @@ init()
               <USelect
                 v-model="filters.market"
                 :options="markets"
-                @change="init()"
+                @change="handleFilterChange()"
               />
               </UFormGroup>
             </div>
@@ -354,7 +361,7 @@ init()
               <USelect
                 v-model="filters.source"
                 :options="professions"
-                @change="init()"
+                @change="handleFilterChange()"
               />
               </UFormGroup>
             </div>
@@ -366,7 +373,7 @@ init()
               <USelect
                 v-model="filters.ParadynamixCatagory"
                 :options="categories"
-                @change="init()"
+                @change="handleFilterChange()"
               />
               </UFormGroup>
             </div>
@@ -374,12 +381,12 @@ init()
               <UFormGroup
                 label="Conference"
                 name="conference"
-                @change="init()"
+                @change="handleFilterChange()"
               >
               <USelect
                 v-model="filters.SourceConfrence"
                 :options="conferences"
-                @change="init()"
+                @change="handleFilterChange()"
               />
               </UFormGroup>
             </div>
@@ -391,7 +398,7 @@ init()
               <USelect
                 v-model="filters.state"
                 :options="states"
-                @change="init()"
+                @change="handleFilterChange()"
               />
               </UFormGroup>
             </div>
@@ -402,7 +409,7 @@ init()
               >
               <UInput
                 v-model="filters.zip"
-                @change="init()"
+                @update:model-value="handleFilterChange()"
               />
               </UFormGroup>
             </div>
@@ -571,8 +578,10 @@ init()
         </template>
       </UTable>
         <!-- </div> -->
-      <div class="flex flex-row justify-end mr-20">
-        <UPagination :max="7" :page-count="pageSize" :total="numberOfCustomers | 0" v-model="page" @update:model-value="handlePageChange()"/>
+      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+        <div class="flex flex-row justify-end mr-20 mt-1" >
+          <UPagination :max="7" :page-count="pageSize" :total="numberOfCustomers | 0" v-model="page" @update:model-value="handlePageChange()"/>
+        </div>
       </div>
     </UDashboardPanel>
   </UDashboardPage>

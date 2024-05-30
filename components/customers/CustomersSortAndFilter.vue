@@ -33,7 +33,7 @@ const props = defineProps({
   </div>
   <div>
     <UInput
-      @change="event => emit('handleInputChange', event, props.filterKey)"
+      @update:model-value="event => emit('handleInputChange', event, props.filterKey)"
     />
   </div>
 </template>
