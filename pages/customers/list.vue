@@ -1,340 +1,340 @@
 <script lang="ts" setup>
-const toast = useToast()
+  const toast = useToast()
 
-useSeoMeta({
-  title: 'Grimm-Customers'
-})
+  useSeoMeta({
+    title: 'Grimm-Customers'
+  })
 
-defineShortcuts({
-  '/': () => {
-    input.value?.input?.focus()
-  }
-})
-
-const defaultColumns = [{
-    key: 'number',
-    label: 'Number',
-    sortable: true,
-  }, {
-    key: 'fname',
-    label: 'First',
-    sortable: true
-  }, {
-    key: 'lname',
-    label: 'Last',
-    sortable: true
-  }, 
-  {
-    key: 'company1',
-    label: 'Company',
-    sortable: true
-  }, 
-  {
-    key: 'homephone',
-    label: 'HomePhone',
-    sortable: true
-  }, 
-  {
-    key: 'workphone',
-    label: 'WorkPhone',
-    sortable: true
-  }, 
-  {
-    key: 'state',
-    label: 'State',
-    sortable: true
-  },
-  {
-    key: 'zip',
-    label: 'Zip',
-    sortable: true
-  },
-  {
-    key: 'actions',
-    label: 'Actions'
-  }
-]
-const states = [
-  null, 'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
-  'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
-  'AZ', 'CO', 'AL', 'SC', 'LA', 'KY', 'OR', 'OK', 'CT', 'IA',
-  'MS', 'AR', 'UT', 'NV', 'WV', 'ID', 'NM', 'NE', 'WY', 'ME',
-  'HI', 'NH', 'VT', 'ND', 'SD', 'AK', 'DE', 'MT', 'RI'
-];
-
-const selectedColumns = ref(defaultColumns)
-const sort = ref({ column: 'UniqueID', direction: 'asc' })
-const input = ref<{ input: HTMLInputElement }>()
-const isCustomerModalOpen = ref(false)
-const modalTitle = ref("New Customer")
-const modalDescription = ref("Add a new customer to your database")
-const customers = ref([])
-const selectedCustomer: any = ref(null)
-const page = ref(1)
-const pageSize = ref(50)
-const numberOfCustomers = ref(0)
-const sortButtons = ref({
-  number: {direction: 'none', key: 'number'},
-  fname: {direction: 'none', key: 'fname'},
-  lname: {direction: 'none', key: 'lname'},
-  company1: {direction: 'none', key: 'company1'},
-  homephone: {direction: 'none', key: 'homephone'},
-  workphone: {direction: 'none', key: 'workphone'},
-  state: {direction: 'none', key: 'state'},
-  zip: {direction: 'none', key: 'zip'}
-})
-const filters = ref({
-  market: null,
-  source: null,
-  ParadynamixCatagory: null,
-  SourceConfrence: null,
-  number: null,
-  fname: null,
-  lname: null,
-  company1: null,
-  homephone: null,
-  workphone: null,
-  state: null,
-  zip: null
-})
-const exportPending = ref(false)
-const pending = ref(false)
-const markets = ref([])
-const professions = ref([])
-const categories = ref([])
-const conferences = ref([])
-
-const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
-const descIcon = "i-heroicons-bars-arrow-down-20-solid"
-const noneIcon = "i-heroicons-arrows-up-down-20-solid"
-
-const columns = computed(() => defaultColumns.filter(column => selectedColumns.value.includes(column)))
-
-const init = async () => {
-  pending.value = true
-  const { data } = await customAxios({
-    method: 'GET',
-    url: '/api/customers/numbers',
-    params: {
-      ...filters.value
+  defineShortcuts({
+    '/': () => {
+      input.value?.input?.focus()
     }
   })
-  numberOfCustomers.value = data.body | 0
-  if(numberOfCustomers.value === 0){
-    customers.value = []
-    numberOfCustomers.value = 0
-    pending.value = false
-    return;
-  }
-  if(page.value * pageSize.value > numberOfCustomers.value) {
-    page.value = Math.ceil(numberOfCustomers.value / pageSize.value) | 1
-  }
-  customAxios({
-    method: 'GET',
-    url: '/api/customers/list',
-    params: {
-      page: page.value,
-      pageSize: pageSize.value, 
-      sortBy: sort.value.column,
-      sortOrder: sort.value.direction,
-      ...filters.value,
+
+  const defaultColumns = [{
+      key: 'number',
+      label: 'Number',
+      sortable: true,
+    }, {
+      key: 'fname',
+      label: 'First',
+      sortable: true
+    }, {
+      key: 'lname',
+      label: 'Last',
+      sortable: true
+    }, 
+    {
+      key: 'company1',
+      label: 'Company',
+      sortable: true
+    }, 
+    {
+      key: 'homephone',
+      label: 'HomePhone',
+      sortable: true
+    }, 
+    {
+      key: 'workphone',
+      label: 'WorkPhone',
+      sortable: true
+    }, 
+    {
+      key: 'state',
+      label: 'State',
+      sortable: true
+    },
+    {
+      key: 'zip',
+      label: 'Zip',
+      sortable: true
+    },
+    {
+      key: 'actions',
+      label: 'Actions'
     }
-  }).then(res => {
-    customers.value = res.data.body;
-    pending.value = false
-  })
-  const marketsRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/markets'
-  })
-  if(marketsRes.status === 200) {
-    markets.value = [null, ...marketsRes.data.body];
-  }
-  const conferencesRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/conferences'
-  })
-  if(conferencesRes.status === 200) {
-    conferences.value = [null, ...conferencesRes.data.body];
-  }
-  const categoriesRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/categories'
-  })
-  if(categoriesRes.status === 200) {
-    categories.value = [null, ...categoriesRes.data.body];
-  }
-  const professionsRes = await customAxios({
-    method: 'GET',
-    url: '/api/customers/professions'
-  })
-  if(professionsRes.status === 200) {
-    professions.value = [null, ...professionsRes.data.body];
-  }
-}
+  ]
+  const states = [
+    null, 'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
+    'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
+    'AZ', 'CO', 'AL', 'SC', 'LA', 'KY', 'OR', 'OK', 'CT', 'IA',
+    'MS', 'AR', 'UT', 'NV', 'WV', 'ID', 'NM', 'NE', 'WY', 'ME',
+    'HI', 'NH', 'VT', 'ND', 'SD', 'AK', 'DE', 'MT', 'RI'
+  ];
 
-const onCreate = () => {
-  modalTitle.value = "New Customer";
-  modalDescription.value = "Add a new customer to your database"
-  selectedCustomer.value = null
-  isCustomerModalOpen.value = true
-}
-
-const onEdit = (row) => {
-  modalTitle.value = "Edit";
-  modalDescription.value = "Edit customer information"
-  selectedCustomer.value = row?.UniqueID
-  isCustomerModalOpen.value = true
-}
-
-const onDelete = async (row: any) => {
-  const res = await customAxios({
-    method: 'DELETE', 
-    url: `/api/customers/${row?.UniqueID}`
+  const selectedColumns = ref(defaultColumns)
+  const sort = ref({ column: 'UniqueID', direction: 'asc' })
+  const input = ref<{ input: HTMLInputElement }>()
+  const isCustomerModalOpen = ref(false)
+  const modalTitle = ref("New Customer")
+  const modalDescription = ref("Add a new customer to your database")
+  const customers = ref([])
+  const selectedCustomer: any = ref(null)
+  const page = ref(1)
+  const pageSize = ref(50)
+  const numberOfCustomers = ref(0)
+  const sortButtons = ref({
+    number: {direction: 'none', key: 'number'},
+    fname: {direction: 'none', key: 'fname'},
+    lname: {direction: 'none', key: 'lname'},
+    company1: {direction: 'none', key: 'company1'},
+    homephone: {direction: 'none', key: 'homephone'},
+    workphone: {direction: 'none', key: 'workphone'},
+    state: {direction: 'none', key: 'state'},
+    zip: {direction: 'none', key: 'zip'}
   })
-  if (res.status === 200) {
-    toast.add({
-      title: "Success",
-      description: res.data.message,
-      icon: 'i-heroicons-trash-solid',
-      color: 'green'
+  const filters = ref({
+    market: null,
+    source: null,
+    ParadynamixCatagory: null,
+    SourceConfrence: null,
+    number: null,
+    fname: null,
+    lname: null,
+    company1: null,
+    homephone: null,
+    workphone: null,
+    state: null,
+    zip: null
+  })
+  const exportPending = ref(false)
+  const pending = ref(false)
+  const markets = ref([])
+  const professions = ref([])
+  const categories = ref([])
+  const conferences = ref([])
+
+  const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
+  const descIcon = "i-heroicons-bars-arrow-down-20-solid"
+  const noneIcon = "i-heroicons-arrows-up-down-20-solid"
+
+  const columns = computed(() => defaultColumns.filter(column => selectedColumns.value.includes(column)))
+
+  const init = async () => {
+    pending.value = true
+    const { data } = await customAxios({
+      method: 'GET',
+      url: '/api/customers/numbers',
+      params: {
+        ...filters.value
+      }
     })
+    numberOfCustomers.value = data.body | 0
+    if(numberOfCustomers.value === 0){
+      customers.value = []
+      numberOfCustomers.value = 0
+      pending.value = false
+      return;
+    }
+    if(page.value * pageSize.value > numberOfCustomers.value) {
+      page.value = Math.ceil(numberOfCustomers.value / pageSize.value) | 1
+    }
+    customAxios({
+      method: 'GET',
+      url: '/api/customers/list',
+      params: {
+        page: page.value,
+        pageSize: pageSize.value, 
+        sortBy: sort.value.column,
+        sortOrder: sort.value.direction,
+        ...filters.value,
+      }
+    }).then(res => {
+      customers.value = res.data.body;
+      pending.value = false
+    })
+    const marketsRes = await customAxios({
+      method: 'GET',
+      url: '/api/customers/markets'
+    })
+    if(marketsRes.status === 200) {
+      markets.value = [null, ...marketsRes.data.body];
+    }
+    const conferencesRes = await customAxios({
+      method: 'GET',
+      url: '/api/customers/conferences'
+    })
+    if(conferencesRes.status === 200) {
+      conferences.value = [null, ...conferencesRes.data.body];
+    }
+    const categoriesRes = await customAxios({
+      method: 'GET',
+      url: '/api/customers/categories'
+    })
+    if(categoriesRes.status === 200) {
+      categories.value = [null, ...categoriesRes.data.body];
+    }
+    const professionsRes = await customAxios({
+      method: 'GET',
+      url: '/api/customers/professions'
+    })
+    if(professionsRes.status === 200) {
+      professions.value = [null, ...professionsRes.data.body];
+    }
+  }
+
+  const onCreate = () => {
+    modalTitle.value = "New Customer";
+    modalDescription.value = "Add a new customer to your database"
+    selectedCustomer.value = null
+    isCustomerModalOpen.value = true
+  }
+
+  const onEdit = (row) => {
+    modalTitle.value = "Edit";
+    modalDescription.value = "Edit customer information"
+    selectedCustomer.value = row?.UniqueID
+    isCustomerModalOpen.value = true
+  }
+
+  const onDelete = async (row: any) => {
+    const res = await customAxios({
+      method: 'DELETE', 
+      url: `/api/customers/${row?.UniqueID}`
+    })
+    if (res.status === 200) {
+      toast.add({
+        title: "Success",
+        description: res.data.message,
+        icon: 'i-heroicons-trash-solid',
+        color: 'green'
+      })
+      init()
+    } else {
+      toast.add({
+        title: "Fail",
+        description: res.data.error,
+        icon: 'i-heroicons-exclamation-circle',
+        color: 'red'
+      })
+    }
+  }
+
+  const handleModalClose = () => {
+    isCustomerModalOpen.value = false
+  }
+
+  const handleModalSave = async (data) => {
+    if(selectedCustomer.value === null) { // Create Customer
+      const res = await customAxios({
+        method: 'POST',
+        url: '/api/customers',
+        data: data
+      })
+      if (res.status === 200) {
+        toast.add({
+          title: "Success",
+          description: res.data.message,
+          icon: 'i-heroicons-check-circle',
+          color: 'green'
+        })
+        init()
+      } else {
+        toast.add({
+          title: "Fail",
+          description: res.data.error,
+          icon: 'i-heroicons-exclamation-circle',
+          color: 'red'
+        })
+      }
+    } else {
+      const res = await customAxios({
+        method: 'PUT',
+        url: `/api/customers/${selectedCustomer.value}`,
+        data: data
+      })
+      if (res.status === 200) {
+        toast.add({
+          title: "Success",
+          description: res.data.message,
+          icon: 'i-heroicons-check-circle',
+          color: 'green'
+        })
+        init()
+      } else {
+        toast.add({
+          title: "Fail",
+          description: res.data.error,
+          icon: 'i-heroicons-exclamation-circle',
+          color: 'red'
+        })
+      }
+    }
+  }
+
+  const handlePageChange = async () => {
     init()
-  } else {
-    toast.add({
-      title: "Fail",
-      description: res.data.error,
-      icon: 'i-heroicons-exclamation-circle',
-      color: 'red'
-    })
   }
-}
 
-const handleModalClose = () => {
-  isCustomerModalOpen.value = false
-}
+  const handleFilterChange = () => {
+    page.value = 1
+    init()
+  }
 
-const handleModalSave = async (data) => {
-  if(selectedCustomer.value === null) { // Create Customer
-    const res = await customAxios({
-      method: 'POST',
-      url: '/api/customers',
-      data: data
-    })
-    if (res.status === 200) {
-      toast.add({
-        title: "Success",
-        description: res.data.message,
-        icon: 'i-heroicons-check-circle',
-        color: 'green'
-      })
-      init()
+  const handleSortingButton = async (btnName: string) => {
+    page.value = 1
+    for(const [btn, btnProp] of Object.entries(sortButtons.value)) {
+      if(btnName === btn) {
+        switch(btnProp.direction) {
+          case 'none':
+            btnProp.direction = 'asc'
+            sort.value.column = btnName
+            sort.value.direction = 'asc'
+            break
+          case 'asc':
+            btnProp.direction = 'desc'
+            sort.value.column = btnName
+            sort.value.direction = 'desc'
+            break
+          default:
+            btnProp.direction = 'none'
+            sort.value.column = 'UniqueID'
+            sort.value.direction = 'asc'
+            break
+        } 
+      } else {
+        btnProp.direction = 'none'
+      }
+    }
+    init()
+  }
+
+  const handleFilterInputChange = async (event, name) => {
+    page.value = 1
+    if (filters.value.hasOwnProperty(name)) {
+      filters.value[name] = event;
     } else {
-      toast.add({
-        title: "Fail",
-        description: res.data.error,
-        icon: 'i-heroicons-exclamation-circle',
-        color: 'red'
-      })
+      console.error(`Filter does not have property: ${name}`);
     }
-  } else {
-    const res = await customAxios({
-      method: 'PUT',
-      url: `/api/customers/${selectedCustomer.value}`,
-      data: data
-    })
-    if (res.status === 200) {
-      toast.add({
-        title: "Success",
-        description: res.data.message,
-        icon: 'i-heroicons-check-circle',
-        color: 'green'
-      })
-      init()
-    } else {
-      toast.add({
-        title: "Fail",
-        description: res.data.error,
-        icon: 'i-heroicons-exclamation-circle',
-        color: 'red'
-      })
-    }
+    init()
   }
-}
 
-const handlePageChange = async () => {
-  init()
-}
-
-const handleFilterChange = () => {
-  page.value = 1
-  init()
-}
-
-const handleSortingButton = async (btnName: string) => {
-  page.value = 1
-  for(const [btn, btnProp] of Object.entries(sortButtons.value)) {
-    if(btnName === btn) {
-      switch(btnProp.direction) {
-        case 'none':
-          btnProp.direction = 'asc'
-          sort.value.column = btnName
-          sort.value.direction = 'asc'
-          break
-        case 'asc':
-          btnProp.direction = 'desc'
-          sort.value.column = btnName
-          sort.value.direction = 'desc'
-          break
-        default:
-          btnProp.direction = 'none'
-          sort.value.column = 'UniqueID'
-          sort.value.direction = 'asc'
-          break
-      } 
-    } else {
-      btnProp.direction = 'none'
-    }
+  const excelExport = async () => {
+    exportPending.value = true
+    const params = {
+        sortBy: sort.value.column,
+        sortOrder: sort.value.direction,
+        ...filters.value,
+      }
+    
+    const paramsString = Object.entries(params)
+      .map(([key, value]) => {
+        if(value !== null)
+          return `${key}=${value}`
+      })
+      .join("&") 
+    location.href = `/api/customers/export?${paramsString}`
+    exportPending.value = false
   }
+
   init()
-}
-
-const handleFilterInputChange = async (event, name) => {
-  page.value = 1
-  if (filters.value.hasOwnProperty(name)) {
-    filters.value[name] = event;
-  } else {
-    console.error(`Filter does not have property: ${name}`);
-  }
-  init()
-}
-
-const excelExport = async () => {
-  exportPending.value = true
-  const params = {
-      sortBy: sort.value.column,
-      sortOrder: sort.value.direction,
-      ...filters.value,
-    }
-  
-  const paramsString = Object.entries(params)
-    .map(([key, value]) => {
-      if(value !== null)
-        return `${key}=${value}`
-    })
-    .join("&") 
-  location.href = `/api/customers/export?${paramsString}`
-  exportPending.value = false
-}
-
-init()
 </script>
 
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar
-        title="List"
+        title="Customer List"
       >
       </UDashboardNavbar>
 

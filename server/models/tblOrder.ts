@@ -165,7 +165,8 @@ const tblOrder = sequelize.define('tblOrder', {
       type: DataTypes.STRING,
    },
 }, {
-   timestamps: false
+   timestamps: false,
+   tableName: 'tblOrder'
 });
 
 export default tblOrder;
