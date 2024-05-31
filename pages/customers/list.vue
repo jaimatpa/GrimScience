@@ -1,16 +1,19 @@
 <script lang="ts" setup>
-  const toast = useToast()
-
+  onMounted(() => {
+    init()
+  })
+  
   useSeoMeta({
     title: 'Grimm-Customers'
   })
-
+  
   defineShortcuts({
     '/': () => {
       input.value?.input?.focus()
     }
   })
-
+  
+  const toast = useToast()
   const defaultColumns = [{
       key: 'number',
       label: 'Number',
@@ -112,14 +115,17 @@
 
   const init = async () => {
     pending.value = true
-    const { data } = await customAxios({
+    await useApiFetch('/api/customers/numbers', {
       method: 'GET',
-      url: '/api/customers/numbers',
       params: {
         ...filters.value
+      }, 
+      onResponse({ response }) {
+        if(response.status === 200) {
+          numberOfCustomers.value = response._data.body
+        }
       }
     })
-    numberOfCustomers.value = data.body | 0
     if(numberOfCustomers.value === 0){
       customers.value = []
       numberOfCustomers.value = 0
@@ -129,48 +135,54 @@
     if(page.value * pageSize.value > numberOfCustomers.value) {
       page.value = Math.ceil(numberOfCustomers.value / pageSize.value) | 1
     }
-    customAxios({
+    await useApiFetch('/api/customers/list', {
       method: 'GET',
-      url: '/api/customers/list',
       params: {
         page: page.value,
         pageSize: pageSize.value, 
         sortBy: sort.value.column,
         sortOrder: sort.value.direction,
         ...filters.value,
+      }, 
+      onResponse({ response }) {
+        if(response.status === 200) {
+          customers.value = response._data.body
+        }
+        pending.value = false
       }
-    }).then(res => {
-      customers.value = res.data.body;
-      pending.value = false
     })
-    const marketsRes = await customAxios({
+    await useApiFetch('/api/customers/markets', {
       method: 'GET',
-      url: '/api/customers/markets'
+      onResponse({ response }) {
+        if(response.status === 200) {
+          markets.value = [null, ...response._data.body];
+        }
+      }
     })
-    if(marketsRes.status === 200) {
-      markets.value = [null, ...marketsRes.data.body];
-    }
-    const conferencesRes = await customAxios({
+    await useApiFetch('/api/customers/conferences', {
       method: 'GET',
-      url: '/api/customers/conferences'
+      onResponse({ response }) {
+        if(response.status === 200) {
+          conferences.value = [null, ...response._data.body];
+        }
+      }
     })
-    if(conferencesRes.status === 200) {
-      conferences.value = [null, ...conferencesRes.data.body];
-    }
-    const categoriesRes = await customAxios({
+    await useApiFetch('/api/customers/categories', {
       method: 'GET',
-      url: '/api/customers/categories'
+      onResponse({ response }) {
+        if(response.status === 200) {
+          categories.value = [null, ...response._data.body];
+        }
+      }
     })
-    if(categoriesRes.status === 200) {
-      categories.value = [null, ...categoriesRes.data.body];
-    }
-    const professionsRes = await customAxios({
+    await useApiFetch('/api/customers/professions', {
       method: 'GET',
-      url: '/api/customers/professions'
+      onResponse({ response }) {
+        if(response.status === 200) {
+          professions.value = [null, ...response._data.body];
+        }
+      }
     })
-    if(professionsRes.status === 200) {
-      professions.value = [null, ...professionsRes.data.body];
-    }
   }
 
   const onCreate = () => {
@@ -179,98 +191,73 @@
     selectedCustomer.value = null
     isCustomerModalOpen.value = true
   }
-
   const onEdit = (row) => {
     modalTitle.value = "Edit";
     modalDescription.value = "Edit customer information"
     selectedCustomer.value = row?.UniqueID
     isCustomerModalOpen.value = true
   }
-
   const onDelete = async (row: any) => {
-    const res = await customAxios({
+    await useApiFetch(`/api/customers/${row?.UniqueID}`, {
       method: 'DELETE', 
-      url: `/api/customers/${row?.UniqueID}`
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-trash-solid',
+            color: 'green'
+          })
+          init()
+        }
+      }
     })
-    if (res.status === 200) {
-      toast.add({
-        title: "Success",
-        description: res.data.message,
-        icon: 'i-heroicons-trash-solid',
-        color: 'green'
-      })
-      init()
-    } else {
-      toast.add({
-        title: "Fail",
-        description: res.data.error,
-        icon: 'i-heroicons-exclamation-circle',
-        color: 'red'
-      })
-    }
   }
-
   const handleModalClose = () => {
     isCustomerModalOpen.value = false
   }
-
   const handleModalSave = async (data) => {
     if(selectedCustomer.value === null) { // Create Customer
-      const res = await customAxios({
+      await useApiFetch('/api/customers', {
         method: 'POST',
-        url: '/api/customers',
-        data: data
+        body: data, 
+        onResponse({ response }) {
+          if(response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: 'i-heroicons-check-circle',
+              color: 'green'
+            })
+            init()
+          }
+        }
       })
-      if (res.status === 200) {
-        toast.add({
-          title: "Success",
-          description: res.data.message,
-          icon: 'i-heroicons-check-circle',
-          color: 'green'
-        })
-        init()
-      } else {
-        toast.add({
-          title: "Fail",
-          description: res.data.error,
-          icon: 'i-heroicons-exclamation-circle',
-          color: 'red'
-        })
-      }
-    } else {
-      const res = await customAxios({
+    } else { // Update Customer
+      await useApiFetch(`/api/customers/${selectedCustomer.value}`, {
         method: 'PUT',
-        url: `/api/customers/${selectedCustomer.value}`,
-        data: data
+        body: data, 
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: 'i-heroicons-check-circle',
+              color: 'green'
+            })
+            init()
+          }
+        }
       })
-      if (res.status === 200) {
-        toast.add({
-          title: "Success",
-          description: res.data.message,
-          icon: 'i-heroicons-check-circle',
-          color: 'green'
-        })
-        init()
-      } else {
-        toast.add({
-          title: "Fail",
-          description: res.data.error,
-          icon: 'i-heroicons-exclamation-circle',
-          color: 'red'
-        })
-      }
     }
   }
-
   const handlePageChange = async () => {
     init()
   }
-
   const handleFilterChange = () => {
     page.value = 1
     init()
   }
-
   const handleSortingButton = async (btnName: string) => {
     page.value = 1
     for(const [btn, btnProp] of Object.entries(sortButtons.value)) {
@@ -298,7 +285,6 @@
     }
     init()
   }
-
   const handleFilterInputChange = async (event, name) => {
     page.value = 1
     if (filters.value.hasOwnProperty(name)) {
@@ -308,7 +294,6 @@
     }
     init()
   }
-
   const excelExport = async () => {
     exportPending.value = true
     const params = {
@@ -327,7 +312,7 @@
     exportPending.value = false
   }
 
-  init()
+  // init()
 </script>
 
 <template>

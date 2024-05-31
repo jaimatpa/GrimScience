@@ -1,144 +1,112 @@
 <script setup lang="ts">
-import type { FormError, FormSubmitEvent } from '#ui/types'
-import Loading from 'vue-loading-overlay'
-import 'vue-loading-overlay/dist/css/index.css';
+  import type { FormError, FormSubmitEvent } from '#ui/types'
+  import Loading from 'vue-loading-overlay'
+  import 'vue-loading-overlay/dist/css/index.css';
 
-const emit = defineEmits(['close', 'save'])
-const props = defineProps({
-  selectedCustomer: {
-    type: [Number, null],
-    required: true
-  }
-})
+  const emit = defineEmits(['close', 'save'])
+  const props = defineProps({
+    selectedCustomer: {
+      type: [Number, null],
+      required: true
+    }
+  })
 
-const states = [
-  'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
-  'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
-  'AZ', 'CO', 'AL', 'SC', 'LA', 'KY', 'OR', 'OK', 'CT', 'IA',
-  'MS', 'AR', 'UT', 'NV', 'WV', 'ID', 'NM', 'NE', 'WY', 'ME',
-  'HI', 'NH', 'VT', 'ND', 'SD', 'AK', 'DE', 'MT', 'RI'
-];
+  const states = [
+    'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
+    'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
+    'AZ', 'CO', 'AL', 'SC', 'LA', 'KY', 'OR', 'OK', 'CT', 'IA',
+    'MS', 'AR', 'UT', 'NV', 'WV', 'ID', 'NM', 'NE', 'WY', 'ME',
+    'HI', 'NH', 'VT', 'ND', 'SD', 'AK', 'DE', 'MT', 'RI'
+  ];
 
-const loadingOverlay = ref(false)
-const markets = ref([])
-const professions = ref([])
-const categories = ref([])
-const conferences = ref([])
-const state = reactive({
-  UniqueID: null,
-  market: null,
-  number: null,
-  source: professions[0],
-  sourcedescription: null,
-  SourceConfrence: null,
-  fname: null,
-  mi: null,
-  lname: null,
-  title: null,
-  position: null,
-  company1: null,
-  company2: null,
-  country: null,
-  address: null,
-  city: null,
-  state: null,
-  zip: null,
-  workphone: null,
-  homephone: null,
-  cellphone: null,
-  fax: null,
-  email: null,
-  website: null,
-  notes: null,
-  billcompany1: null,
-  billcompany2: null,
-  billcountry: null,
-  billaddress: null,
-  billcity: null,
-  billstate: null,
-  billzip: null,
-  billphone: null,
-  billfax: null,
-  attn: null,
-  adddate: null,
-  ParadynamixCatagory: null,
-  fullname: null,
-  Extension: null,
-  ExtensionBill: null,
-})
+  const loadingOverlay = ref(false)
+  const markets = ref([])
+  const professions = ref([])
+  const categories = ref([])
+  const conferences = ref([])
+  const state = reactive({
+    UniqueID: null,
+    market: null,
+    number: null,
+    source: professions[0],
+    sourcedescription: null,
+    SourceConfrence: null,
+    fname: null,
+    mi: null,
+    lname: null,
+    title: null,
+    position: null,
+    company1: null,
+    company2: null,
+    country: null,
+    address: null,
+    city: null,
+    state: null,
+    zip: null,
+    workphone: null,
+    homephone: null,
+    cellphone: null,
+    fax: null,
+    email: null,
+    website: null,
+    notes: null,
+    billcompany1: null,
+    billcompany2: null,
+    billcountry: null,
+    billaddress: null,
+    billcity: null,
+    billstate: null,
+    billzip: null,
+    billphone: null,
+    billfax: null,
+    attn: null,
+    adddate: null,
+    ParadynamixCatagory: null,
+    fullname: null,
+    Extension: null,
+    ExtensionBill: null,
+  })
 
-const editInit = async () => {
-  loadingOverlay.value = true
-  await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
-    method: 'GET',
-    onResponse({ response }) {
-      if(response.status === 200) {
-        loadingOverlay.value = false
-        for (const key in response._data.body) {
-          if (response._data.body[key] !== undefined) {
-            state[key] = response._data.body[key]
+  const editInit = async () => {
+    loadingOverlay.value = true
+    await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          loadingOverlay.value = false
+          for (const key in response._data.body) {
+            if (response._data.body[key] !== undefined) {
+              state[key] = response._data.body[key]
+            }
           }
         }
       }
-    }
-  })
-  propertiesInit()
-  loadingOverlay.value = false
-}
+    })
+    await propertiesInit()
+    loadingOverlay.value = false
+  }
 
-const propertiesInit = async () => {
-  loadingOverlay.value = true
-  await useApiFetch('/api/customers/markets', {
-    method: 'GET',
-    onResponse({ response }) {
-      if(response.status === 200) {
-        markets.value = response._data.body;
-      }
-    }
-  })
-  await useApiFetch('/api/customers/conferences', {
-    method: 'GET',
-    onResponse({ response }) {
-      if(response.status === 200) {
-        conferences.value = response._data.body;
-      }
-    }
-  })
-  await useApiFetch('/api/customers/categories', {
-    method: 'GET',
-    onResponse({ response }) {
-      if(response.status === 200) {
-        categories.value = response._data.body;
-      }
-    }
-  })
-  await useApiFetch('/api/customers/professions', {
-    method: 'GET',
-    onResponse({ response }) {
-      if(response.status === 200) {
-        professions.value = response._data.body;
-      }
-    }
-  })
-  loadingOverlay.value = false
-}
+  const propertiesInit = async () => {
+    loadingOverlay.value = true
+    loadingOverlay.value = false
+  }
 
-const validate = (state: any): FormError[] => {
-  const errors = []
-  if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
-  if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
-  if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
-  return errors
-}
+  const validate = (state: any): FormError[] => {
+    const errors = []
+    if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
+    if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
+    if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
+    return errors
+  }
 
-async function onSubmit(event: FormSubmitEvent<any>) {
-  emit('save', event.data)
-  emit('close')
-}
-if(props.selectedCustomer !== null) 
-  editInit()
-else 
-  propertiesInit()
+  async function onSubmit(event: FormSubmitEvent<any>) {
+    emit('save', event.data)
+    emit('close')
+  }
+  if(props.selectedCustomer !== null) 
+    editInit()
+  else 
+    propertiesInit()
 </script>
 
 <template>

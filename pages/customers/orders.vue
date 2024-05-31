@@ -58,7 +58,6 @@
     injury: null,
     warranty: null,
     complaint: null,
-    limit: null
   });
   const sortButtons = ref({
     UniqueID: {direction: 'none', key: 'number'},
@@ -71,6 +70,13 @@
     warranty: {direction: 'none', key: 'state'},
     complaint: {direction: 'none', key: 'zip'}
   })
+  const checkboxes = ref({
+    open: true,
+    cryotherm: false,
+    nonMedical: false,
+    complaints: false,
+    injury: false
+  })
   const sort = ref({ column: 'UniqueID', direction: 'asc' })
   const orders = ref([])
   const page = ref(1)
@@ -81,27 +87,29 @@
   const percent = ref(1)
   const pending = ref(false)
   const exportPending = ref(false)
+  const isCustomersOrderModalOpen = ref(false)
+  const selectedOrder = ref(null)
 
   const init = () => {
     pending.value = true
-    customAxios({
+    useApiFetch('/api/customers/orders', {
       method: 'GET',
-      url: '/api/customers/orders',
       params: {
         page: page.value,
         pageSize: pageSize.value,
         sortBy: sort.value.column,
         sortOrder: sort.value.direction,
         ...filters.value
-      }
-    }).then((res) => {
-      if(res.status === 200) {
-        pending.value = false
-        orders.value = res.data.body;
+      }, 
+      onResponse({ response }) {
+        if(response.status === 200) {
+          pending.value = false
+          orders.value = response._data.body;
+        }
       }
     })
   }
-
+  
   const handleFilterChange = () => {
     init()
   }
@@ -129,8 +137,8 @@
         btnProp.direction = 'none'
       }
     }
+    init()
   }
-
   const handleFilterInputChange = async (event, name) => {
     page.value = 1
     if (filters.value.hasOwnProperty(name)) {
@@ -140,6 +148,15 @@
   }
   const handlePageChange = () => {
     init()
+  }
+  const handleTableRowSelect = (row) => {
+    isCustomersOrderModalOpen.value = true
+  }
+  const handleModalClose = () => {
+    isCustomersOrderModalOpen.value = false
+  }
+  const handleModalSave = () => {
+  
   }
   const excelExport = () => {
 
@@ -201,17 +218,6 @@
                 </div>
               </UFormGroup>
             </div>
-            <!-- <div class="basis-1/5 min-w-[150px]">
-              <UFormGroup
-                label="Number of Search Items To Return"
-                name="limit"
-              >
-                <UInput
-                  v-model="filters.limit"
-                  @change="handleFilterChange()"
-                />
-              </UFormGroup>
-            </div> -->
           </div>
         </template>
         <template #right>
@@ -228,8 +234,49 @@
         </template>
       </UDashboardToolbar>
       
-      <!-- New Modal -->
+      <UDashboardModal
+        v-model="isCustomersOrderModalOpen"
+        title="Service Order List"
+        description="Service Order List"
+        :ui="{width: 'w-[1000px] sm:max-w-7xl', height: 'h-[680px] sm:h-[680px]'}"
+      >
+        <CustomersOrder @close="handleModalClose" @save="handleModalSave" :selected-customer="selectedOrder"/>
+      </UDashboardModal>
 
+
+
+      <div class="flex flex-row px-10 mt-4">
+        <div class="basis-1/5">
+          <UCheckbox
+            v-model="checkboxes.open"
+            label="Open"
+          />
+        </div>
+        <div class="basis-1/5">
+          <UCheckbox
+            v-model="checkboxes.cryotherm"
+            label="CRYOTherm Checkup"
+          />
+        </div>
+        <div class="basis-1/5">
+          <UCheckbox
+            v-model="checkboxes.nonMedical"
+            label="Non-Medical Device"
+          />
+        </div>
+        <div class="basis-1/5">
+          <UCheckbox
+            v-model="checkboxes.complaints"
+            label="Complaints"
+          />
+        </div>
+        <div class="basis-1/5">
+          <UCheckbox
+            v-model="checkboxes.injury"
+            label="Injury Reports"
+          />
+        </div>
+      </div>
       <UTable
         :rows="orders"
         :columns="defaultColumns"
@@ -242,10 +289,11 @@
             color: 'bg-white dark:text-gray dark:bg-[#111827]',
           }, 
           td: {
-            padding: 'py-1'
+            padding: 'py-2'
           }
         }"
         :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+        @select="handleTableRowSelect"
       >
         <template #UniqueID-header="{ column }">
           <CustomersSortAndFilter 
