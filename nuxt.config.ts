@@ -27,5 +27,8 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
+  }, 
+  routeRules: {
+    '/login': {ssr: false}
   }
 })

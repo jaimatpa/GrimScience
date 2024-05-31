@@ -65,14 +65,15 @@ const state = reactive({
 })
 
 if (props.selectedCustomer !== null) {
-  customAxios({
+  await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
     method: 'GET',
-    url: `/api/tbl/tblCustomers/${props.selectedCustomer}`
-  }).then(res => {
-    const { data } = res
-    for (const key in data.body) {
-      if (data.body[key] !== undefined) {
-        state[key] = data.body[key]
+    onResponse({ response }) {
+      if(response.status === 200) {
+        for (const key in response._data.body) {
+          if (response._data.body[key] !== undefined) {
+            state[key] = response._data.body[key]
+          }
+        }
       }
     }
   })
