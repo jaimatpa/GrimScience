@@ -13,7 +13,7 @@ before_script:
 #    - .yarn
 
 stages:
-#  - build
+  - build
   - deploy
 
 
