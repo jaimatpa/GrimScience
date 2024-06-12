@@ -6,24 +6,25 @@ import 'vue-loading-overlay/dist/css/index.css';
 const emit = defineEmits(['close', 'save'])
 const props = defineProps({
   selectedCustomer: {
-    type: [Number, null],
+    type: [String, Number, null],
     required: true
+  }, 
+  isModal: {
+    type: [Boolean]
   }
 })
 
-const states = [
-  'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
-  'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
-  'AZ', 'CO', 'AL', 'SC', 'LA', 'KY', 'OR', 'OK', 'CT', 'IA',
-  'MS', 'AR', 'UT', 'NV', 'WV', 'ID', 'NM', 'NE', 'WY', 'ME',
-  'HI', 'NH', 'VT', 'ND', 'SD', 'AK', 'DE', 'MT', 'RI'
-];
+const toast = useToast()
+const router = useRouter()
+const customersFormInstance = getCurrentInstance();
 
 const loadingOverlay = ref(false)
+const customerExist = ref(true)
 const markets = ref([])
 const professions = ref([])
 const categories = ref([])
 const conferences = ref([])
+const usstates = ref([])
 const state = reactive({
   UniqueID: null,
   market: null,
@@ -69,23 +70,26 @@ const state = reactive({
 
 const editInit = async () => {
   loadingOverlay.value = true
-  await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
+  await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
     method: 'GET',
     onResponse({ response }) {
       if(response.status === 200) {
         loadingOverlay.value = false
+        customerExist.value = true
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
             state[key] = response._data.body[key]
           }
         }
       }
+    }, 
+    onResponseError({}) {
+      customerExist.value = false
     }
   })
   propertiesInit()
   loadingOverlay.value = false
 }
-
 const propertiesInit = async () => {
   loadingOverlay.value = true
   await useApiFetch('/api/customers/markets', {
@@ -120,9 +124,16 @@ const propertiesInit = async () => {
       }
     }
   })
+  await useApiFetch('/api/common/usstates',  {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        usstates.value = response._data.body;
+      }
+    }
+  })
   loadingOverlay.value = false
 }
-
 const validate = (state: any): FormError[] => {
   const errors = []
   if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
@@ -130,11 +141,48 @@ const validate = (state: any): FormError[] => {
   if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
   return errors
 }
-
-async function onSubmit(event: FormSubmitEvent<any>) {
-  emit('save', event.data)
-  emit('close')
+const handleClose = async () => {
+  if(customersFormInstance?.vnode?.props.onClose) {
+    emit('close')
+  } else {
+    router.go(-1)
+  }
 }
+const onSubmit = async (event: FormSubmitEvent<any>) => {
+  if(props.selectedCustomer === null) { // Create Customer
+    await useApiFetch('/api/customers', {
+      method: 'POST',
+      body: event.data, 
+      onResponse({ response }) {
+        if(response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-check-circle',
+            color: 'green'
+          })
+        }
+      }
+    })
+  } else { // Update Customer
+    await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
+      method: 'PUT',
+      body: event.data, 
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-check-circle',
+            color: 'green'
+          })
+        }
+      }
+    })
+  }
+  emit('save')
+}
+
 if(props.selectedCustomer !== null) 
   editInit()
 else 
@@ -151,486 +199,495 @@ else
       loader="dots"
     />
   </div>
-  <UForm
-    :validate="validate"
-    :validate-on="['submit']"
-    :state="state"
-    class="space-y-4"
-    @submit="onSubmit"
-  >
-    <div class="flex flex-row space-x-3">
-      <div class="basis-1/5">
-        <UFormGroup
-          label="Frist"
-          name="fname"
-        >
-          <UInput
-            v-model="state.fname"
-            placeholder="John"
-          />
-        </UFormGroup>
+  <template v-if="!props.isModal && !customerExist">
+    <CommonNotFound
+      :name="'Customer not found'"
+      :message="'The customer you are looking for does not exist'"
+      :to="'/customers/list'"
+    />
+  </template>
+  <template v-else>
+    <UForm
+      :validate="validate"
+      :validate-on="['submit']"
+      :state="state"
+      class="space-y-4"
+      @submit="onSubmit"
+    >
+      <div class="flex flex-row space-x-3">
+        <div class="basis-1/5">
+          <UFormGroup
+            label="Frist"
+            name="fname"
+          >
+            <UInput
+              v-model="state.fname"
+              placeholder="John"
+            />
+          </UFormGroup>
+        </div>
+        <div class="basis-1/5">
+          <UFormGroup
+            label="Middle"
+            name="md"
+          >
+            <UInput
+              v-model="state.mi"
+              placeholder="John"
+            />
+          </UFormGroup>
+        </div>
+        <div class="basis-1/5">
+          <UFormGroup
+            label="Last"
+            name="lname"
+          >
+            <UInput
+              v-model="state.lname"
+              placeholder="Doe"
+            />
+          </UFormGroup>
+        </div>
+        <div class="basis-1/5">
+          <UFormGroup
+            label="Title"
+            name="title"
+          >
+            <UInput
+              v-model="state.title"
+              placeholder="Full-Stack Developer"
+            />
+          </UFormGroup>
+        </div>
+        <div class="basis-1/5">
+          <UFormGroup
+            label="Position"
+            name="position"
+          >
+            <UInput
+              v-model="state.position"
+              placeholder="CTO"
+            />
+          </UFormGroup>
+        </div>
       </div>
-      <div class="basis-1/5">
-        <UFormGroup
-          label="Middle"
-          name="md"
-        >
-          <UInput
-            v-model="state.mi"
-            placeholder="John"
-          />
-        </UFormGroup>
+  
+      <div class="flex flex-row space-x-3">
+        <div class="basis-1/5">
+          <UFormGroup
+            label="Market"
+            name="market"
+          >
+            <UInputMenu
+              v-model="state.market"
+              v-model:query="state.market"
+              :options="markets"
+            />
+          </UFormGroup>
+        </div>
+        <div class="basis-1/5">
+          <UFormGroup
+            label="Number"
+            name="number"
+          >
+            <UInput
+              v-model="state.number"
+              placeholder=""
+            />
+          </UFormGroup>
+        </div>
+        <div class="basis-1/5">
+          <UFormGroup
+            label="Profession"
+            name="profession"
+          >
+            <UInputMenu
+              v-model="state.source"
+              v-model:query="state.source"
+              :options="professions"
+            />
+          </UFormGroup>
+        </div>
+        <div class="basis-1/5">
+          <UFormGroup
+            label="Categories"
+            name="categories"
+          >
+            <UInputMenu
+              v-model="state.ParadynamixCatagory"
+              v-model:query="state.ParadynamixCatagory"
+              :options="categories"
+            />
+          </UFormGroup>
+        </div>
+        <div class="basis-1/5">
+          <UFormGroup
+            label="Conferences"
+            name="conferences"
+          >
+            <UInputMenu
+              v-model="state.SourceConfrence"
+              v-model:query="state.SourceConfrence"
+              :options="conferences"
+            />
+          </UFormGroup>
+        </div>
       </div>
-      <div class="basis-1/5">
-        <UFormGroup
-          label="Last"
-          name="lname"
-        >
-          <UInput
-            v-model="state.lname"
-            placeholder="Doe"
-          />
-        </UFormGroup>
+  
+      <div class="flex flex-row">
+        <div class="basis-1/2 text-center">
+          Shipping Information
+        </div>
+        <div class="basis-1/2 text-center">
+          Billing Information
+        </div>
       </div>
-      <div class="basis-1/5">
-        <UFormGroup
-          label="Title"
-          name="title"
-        >
-          <UInput
-            v-model="state.title"
-            placeholder="Full-Stack Developer"
-          />
-        </UFormGroup>
-      </div>
-      <div class="basis-1/5">
-        <UFormGroup
-          label="Position"
-          name="position"
-        >
-          <UInput
-            v-model="state.position"
-            placeholder="CTO"
-          />
-        </UFormGroup>
-      </div>
-    </div>
-
-    <div class="flex flex-row space-x-3">
-      <div class="basis-1/5">
-        <UFormGroup
-          label="Market"
-          name="market"
-        >
-          <UInputMenu
-            v-model="state.market"
-            v-model:query="state.market"
-            :options="markets"
-          />
-        </UFormGroup>
-      </div>
-      <div class="basis-1/5">
-        <UFormGroup
-          label="Number"
-          name="number"
-        >
-          <UInput
-            v-model="state.number"
-            placeholder=""
-          />
-        </UFormGroup>
-      </div>
-      <div class="basis-1/5">
-        <UFormGroup
-          label="Profession"
-          name="profession"
-        >
-          <UInputMenu
-            v-model="state.source"
-            v-model:query="state.source"
-            :options="professions"
-          />
-        </UFormGroup>
-      </div>
-      <div class="basis-1/5">
-        <UFormGroup
-          label="Categories"
-          name="categories"
-        >
-          <UInputMenu
-            v-model="state.ParadynamixCatagory"
-            v-model:query="state.ParadynamixCatagory"
-            :options="categories"
-          />
-        </UFormGroup>
-      </div>
-      <div class="basis-1/5">
-        <UFormGroup
-          label="Conferences"
-          name="conferences"
-        >
-          <UInputMenu
-            v-model="state.SourceConfrence"
-            v-model:query="state.SourceConfrence"
-            :options="conferences"
-          />
-        </UFormGroup>
-      </div>
-    </div>
-
-    <div class="flex flex-row">
-      <div class="basis-1/2 text-center">
-        Shipping Information
-      </div>
-      <div class="basis-1/2 text-center">
-        Billing Information
-      </div>
-    </div>
-
-    <div class="flex flex-row space-x-5">
-      <div class="basis-1/2">
-        <!-- Shipping Information -->
-        <div class="flex flex-col space-y-2">
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/2">
-              <UFormGroup
-                label="Company1"
-                name="company1"
-              >
-                <UInput
-                  v-model="state.company1"
-                  placeholder="Company1"
-                />
-              </UFormGroup>
+  
+      <div class="flex flex-row space-x-5">
+        <div class="basis-1/2">
+          <!-- Shipping Information -->
+          <div class="flex flex-col space-y-2">
+            <div class="flex flex-row space-x-3">
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="Company1"
+                  name="company1"
+                >
+                  <UInput
+                    v-model="state.company1"
+                    placeholder="Company1"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="Company2"
+                  name="company2"
+                >
+                  <UInput
+                    v-model="state.company2"
+                    placeholder="Company2"
+                  />
+                </UFormGroup>
+              </div>
             </div>
-            <div class="basis-1/2">
-              <UFormGroup
-                label="Company2"
-                name="company2"
-              >
-                <UInput
-                  v-model="state.company2"
-                  placeholder="Company2"
-                />
-              </UFormGroup>
+            <div class="flex flex-row space-x-3">
+              <div class="w-full">
+                <UFormGroup
+                  label="Country"
+                  name="country"
+                >
+                  <UInput
+                    v-model="state.country"
+                    placeholder="Country"
+                  />
+                </UFormGroup>
+              </div>
+            </div>
+            <div class="flex flex-row space-x-3">
+              <div class="w-full">
+                <UFormGroup
+                  label="Address"
+                  name="address"
+                >
+                  <UInput
+                    v-model="state.address"
+                    placeholder="Address"
+                  />
+                </UFormGroup>
+              </div>
+            </div>
+            <div class="flex flex-row space-x-3">
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="City"
+                  name="city"
+                >
+                  <UInput
+                    v-model="state.city"
+                    placeholder="Dallas"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/4">
+                <UFormGroup
+                  label="State"
+                  name="state"
+                >
+                  <USelect
+                    v-model="state.state"
+                    :options="usstates"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/4">
+                <UFormGroup
+                  label="Zip"
+                  name="zip"
+                >
+                  <UInput
+                    v-model="state.zip"
+                    placeholder="65254"
+                  />
+                </UFormGroup>
+              </div>
+            </div>
+            <div class="flex flex-row space-x-3">
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="Fax"
+                  name="fax"
+                >
+                  <UInput
+                    v-model="state.fax"
+                    placeholder="Fax"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="Homephone"
+                  name="homephone"
+                >
+                  <UInput
+                    v-model="state.homephone"
+                    placeholder="(564)-324-2342"
+                  />
+                </UFormGroup>
+              </div>
+            </div>
+            <div class="flex flex-row space-x-3">
+              <div class="basis-6/12">
+                <UFormGroup
+                  label="Email"
+                  name="email"
+                >
+                  <UInput
+                    v-model="state.email"
+                    type="email"
+                    placeholder="email"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-5/12">
+                <UFormGroup
+                  label="Workphone"
+                  name="workphone"
+                >
+                  <UInput
+                    v-model="state.workphone"
+                    placeholder="(564)-324-2342"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/12">
+                <UFormGroup
+                  label="Ext"
+                  name="ext"
+                >
+                  <UInput
+                    v-model="state.Extension"
+                    placeholder="1"
+                  />
+                </UFormGroup>
+              </div>
+            </div>
+            <div class="flex flex-row space-x-3">
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="Website"
+                  name="website"
+                >
+                  <UInput
+                    v-model="state.website"
+                    placeholder="website"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="Cellphone"
+                  name="cellphone"
+                >
+                  <UInput
+                    v-model="state.cellphone"
+                    placeholder="(564)-324-2342"
+                  />
+                </UFormGroup>
+              </div>
+            </div>
+            <div class="flex flex-row space-x-3">
+              <div class="w-full">
+                <UFormGroup
+                  label="Comment"
+                  name="comment"
+                >
+                  <UTextarea
+                    v-model="state.notes"
+                    :rows="3"
+                    type="text"
+                    placeholder=""
+                  />
+                </UFormGroup>
+              </div>
             </div>
           </div>
-          <div class="flex flex-row space-x-3">
-            <div class="w-full">
-              <UFormGroup
-                label="Country"
-                name="country"
-              >
-                <UInput
-                  v-model="state.country"
-                  placeholder="Country"
-                />
-              </UFormGroup>
+        </div>
+        <div class="basis-1/2"> 
+          <!-- Billing Information -->
+          <div class="flex flex-col space-y-2">
+            <div class="flex flex-row space-x-3">
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="Company1"
+                  name="billcompany1"
+                >
+                  <UInput
+                    v-model="state.billcompany1"
+                    placeholder="Bill Company1"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="Company2"
+                  name="billcompany2"
+                >
+                  <UInput
+                    v-model="state.billcompany2"
+                    placeholder="Bill Company2"
+                  />
+                </UFormGroup>
+              </div>
             </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="w-full">
-              <UFormGroup
-                label="Address"
-                name="address"
-              >
-                <UInput
-                  v-model="state.address"
-                  placeholder="Address"
-                />
-              </UFormGroup>
+            <div class="flex flex-row space-x-3">
+              <div class="w-full">
+                <UFormGroup
+                  label="Country"
+                  name="country"
+                >
+                  <UInput
+                    v-model="state.billcountry"
+                    placeholder="Bill Country"
+                  />
+                </UFormGroup>
+              </div>
             </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/2">
-              <UFormGroup
-                label="City"
-                name="city"
-              >
-                <UInput
-                  v-model="state.city"
-                  placeholder="Dallas"
-                />
-              </UFormGroup>
+            <div class="flex flex-row space-x-3">
+              <div class="w-full">
+                <UFormGroup
+                  label="Address"
+                  name="address"
+                >
+                  <UInput
+                    v-model="state.billaddress"
+                    placeholder="Bill Address"
+                  />
+                </UFormGroup>
+              </div>
             </div>
-            <div class="basis-1/4">
-              <UFormGroup
-                label="State"
-                name="state"
-              >
-                <USelect
-                  v-model="state.state"
-                  :options="states"
-                />
-              </UFormGroup>
+            <div class="flex flex-row space-x-3">
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="City"
+                  name="billcity"
+                >
+                  <UInput
+                    v-model="state.billcity"
+                    placeholder="Dallas"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/4">
+                <UFormGroup
+                  label="State"
+                  name="billstate"
+                >
+                  <USelect
+                    v-model="state.billstate"
+                    :options="usstates"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/4">
+                <UFormGroup
+                  label="Zip"
+                  name="billzip"
+                >
+                  <UInput
+                    v-model="state.billzip"
+                    placeholder="65254"
+                  />
+                </UFormGroup>
+              </div>
             </div>
-            <div class="basis-1/4">
-              <UFormGroup
-                label="Zip"
-                name="zip"
-              >
-                <UInput
-                  v-model="state.zip"
-                  placeholder="65254"
-                />
-              </UFormGroup>
+            <div class="flex flex-row space-x-3">
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="Fax"
+                  name="billfax"
+                >
+                  <UInput
+                    v-model="state.billfax"
+                    placeholder="Fax"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/2">
+                <UFormGroup
+                  label="Phone"
+                  name="billphone"
+                >
+                  <UInput
+                    v-model="state.billphone"
+                    placeholder="(564)-324-2342"
+                  />
+                </UFormGroup>
+              </div>
             </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/2">
-              <UFormGroup
-                label="Fax"
-                name="fax"
-              >
-                <UInput
-                  v-model="state.fax"
-                  placeholder="Fax"
-                />
-              </UFormGroup>
+            <div class="flex flex-row space-x-3">
+              <div class="w-full">
+                <UFormGroup
+                  label="Ext"
+                  name="ExtensionBill"
+                >
+                  <UInput
+                    v-model="state.ExtensionBill"
+                    placeholder=""
+                  />
+                </UFormGroup>
+              </div>
             </div>
-            <div class="basis-1/2">
-              <UFormGroup
-                label="Homephone"
-                name="homephone"
-              >
-                <UInput
-                  v-model="state.homephone"
-                  placeholder="(564)-324-2342"
-                />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="basis-6/12">
-              <UFormGroup
-                label="Email"
-                name="email"
-              >
-                <UInput
-                  v-model="state.email"
-                  type="email"
-                  placeholder="email"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-5/12">
-              <UFormGroup
-                label="Workphone"
-                name="workphone"
-              >
-                <UInput
-                  v-model="state.workphone"
-                  placeholder="(564)-324-2342"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/12">
-              <UFormGroup
-                label="Ext"
-                name="ext"
-              >
-                <UInput
-                  v-model="state.Extension"
-                  placeholder="1"
-                />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/2">
-              <UFormGroup
-                label="Website"
-                name="website"
-              >
-                <UInput
-                  v-model="state.website"
-                  placeholder="website"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/2">
-              <UFormGroup
-                label="Cellphone"
-                name="cellphone"
-              >
-                <UInput
-                  v-model="state.cellphone"
-                  placeholder="(564)-324-2342"
-                />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="w-full">
-              <UFormGroup
-                label="Comment"
-                name="comment"
-              >
-                <UTextarea
-                  v-model="state.notes"
-                  :rows="3"
-                  type="text"
-                  placeholder=""
-                />
-              </UFormGroup>
+            <div class="flex flex-row space-x-3">
+              <div class="w-full">
+                <UFormGroup
+                  label="Attn"
+                  name="attn"
+                >
+                  <UInput
+                    v-model="state.attn"
+                    placeholder="Attn"
+                  />
+                </UFormGroup>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="basis-1/2"> 
-        <!-- Billing Information -->
-        <div class="flex flex-col space-y-2">
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/2">
-              <UFormGroup
-                label="Company1"
-                name="billcompany1"
-              >
-                <UInput
-                  v-model="state.billcompany1"
-                  placeholder="Bill Company1"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/2">
-              <UFormGroup
-                label="Company2"
-                name="billcompany2"
-              >
-                <UInput
-                  v-model="state.billcompany2"
-                  placeholder="Bill Company2"
-                />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="w-full">
-              <UFormGroup
-                label="Country"
-                name="country"
-              >
-                <UInput
-                  v-model="state.billcountry"
-                  placeholder="Bill Country"
-                />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="w-full">
-              <UFormGroup
-                label="Address"
-                name="address"
-              >
-                <UInput
-                  v-model="state.billaddress"
-                  placeholder="Bill Address"
-                />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/2">
-              <UFormGroup
-                label="City"
-                name="billcity"
-              >
-                <UInput
-                  v-model="state.billcity"
-                  placeholder="Dallas"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/4">
-              <UFormGroup
-                label="State"
-                name="billstate"
-              >
-                <USelect
-                  v-model="state.billstate"
-                  :options="states"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/4">
-              <UFormGroup
-                label="Zip"
-                name="billzip"
-              >
-                <UInput
-                  v-model="state.billzip"
-                  placeholder="65254"
-                />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/2">
-              <UFormGroup
-                label="Fax"
-                name="billfax"
-              >
-                <UInput
-                  v-model="state.billfax"
-                  placeholder="Fax"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/2">
-              <UFormGroup
-                label="Phone"
-                name="billphone"
-              >
-                <UInput
-                  v-model="state.billphone"
-                  placeholder="(564)-324-2342"
-                />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="w-full">
-              <UFormGroup
-                label="Ext"
-                name="ExtensionBill"
-              >
-                <UInput
-                  v-model="state.ExtensionBill"
-                  placeholder=""
-                />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="w-full">
-              <UFormGroup
-                label="Attn"
-                name="attn"
-              >
-                <UInput
-                  v-model="state.attn"
-                  placeholder="Attn"
-                />
-              </UFormGroup>
-            </div>
-          </div>
-        </div>
+  
+      <div class="flex justify-end gap-3">
+        <UButton
+          :label="!isModal ? 'Go back': 'Cancel'"
+          color="gray"
+          variant="ghost"
+          @click="handleClose"
+        />
+        <UButton
+          type="submit"
+          label="Save"
+          color="black"
+        />
       </div>
-    </div>
-
-    <div class="flex justify-end gap-3">
-      <UButton
-        label="Cancel"
-        color="gray"
-        variant="ghost"
-        @click="emit('close')"
-      />
-      <UButton
-        type="submit"
-        label="Save"
-        color="black"
-      />
-    </div>
-  </UForm>
+    </UForm>
+  </template>
 </template>

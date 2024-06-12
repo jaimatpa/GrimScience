@@ -18,6 +18,7 @@ const tblState = sequelize.define('tblState', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName: 'tblState',
    timestamps: false
 });
 

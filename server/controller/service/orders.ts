@@ -24,7 +24,7 @@ const applyFilters = (params) => {
 //     return false;
 // }
 
-export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams) => {
+export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filterParams) => {
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
 
@@ -36,6 +36,28 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
     offset,
     limit
+  });
+  const formattedList = list.map(item => {
+    const formattedItem = item.toJSON();
+    const orderDate = new Date(formattedItem.orderdate);
+    formattedItem.orderdate = orderDate.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    });
+  
+    return formattedItem;
+  });
+  return formattedList;
+}
+
+export const getAllServiceOrders = async (sortBy, sortOrder, filterParams) => {
+  const whereClause = applyFilters(filterParams);
+
+  const list = await tblOrder.findAll({
+    attributes: ['UniqueID', 'orderdate', 'status', 'warranty'],
+    where: whereClause,
+    order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
   });
   const formattedList = list.map(item => {
     const formattedItem = item.toJSON(); // Convert to a plain object

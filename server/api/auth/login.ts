@@ -45,7 +45,7 @@ export default eventHandler(async (event) => {
         return { error: "Incorrect password. Please re-enter your password." };
       } else {
         const tokenData:tokenDataProps = {
-          uniqueID: userData.UniqueID,
+          UniqueID: userData.UniqueID,
           fname: userData.fname, 
           lname: userData.lname,
         };

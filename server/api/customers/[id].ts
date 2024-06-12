@@ -13,24 +13,24 @@ export default eventHandler(async (event) => {
           return { body: detail, message: '' };
         } else {
           setResponseStatus(event, 404);
-          return { error: 'The customer is not existed!' }
+          return { error: 'The customer does not exist' }
         }
       case 'PUT':
         if (idExist) {
           const reqData = await readBody(event);
           const updatedID = await updateCustomer(id, reqData)
-          return { body: { updatedID }, message: 'Customer updated successfully!' };
+          return { body: { updatedID }, message: 'Customer updated successfully' };
         } else {
           setResponseStatus(event, 404);
-          return { error: 'The customer is not existed!' }
+          return { error: 'The customer does not exist' }
         }
       case 'DELETE':
         if (idExist) {
           const deletedID = await deleteCustomer(id);
-          return { body: { deletedID }, message: 'Customer deleted successfully!' }
+          return { body: { deletedID }, message: 'Customer deleted successfully' }
         } else {
           setResponseStatus(event, 404);
-          return { error: 'The customer is not existed!' }
+          return { error: 'The customer does not exist' }
         }
       default:
         setResponseStatus(event, 405);

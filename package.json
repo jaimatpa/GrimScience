@@ -12,6 +12,7 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
+    "@iconify-json/f7": "^1.1.0",
     "@iconify-json/heroicons": "^1.1.21",
     "@iconify-json/simple-icons": "^1.1.101",
     "@nuxt/fonts": "^0.7.0",

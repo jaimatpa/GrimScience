@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const appConfig = useAppConfig()
-const { isHelpSlideoverOpen, userInfo } = useDashboard()
+const { isHelpSlideoverOpen } = useDashboard()
 
 const customersItems = [
   [{
@@ -10,7 +10,7 @@ const customersItems = [
     exact: true
   }, {
     label: 'Service Orders',
-    to: '/customers/orders'
+    to: '/service/orders/list'
   }, {
     label: 'Message',
     to: '/customers/message'
@@ -32,7 +32,7 @@ const serviceItems = [
     exact: true
   }, {
     label: 'Service Order',
-    to: '/service/order'
+    to: '/service/orders/list'
   }, {
     label: 'Schedule',
     to: '/service/schedule'
@@ -233,7 +233,7 @@ const links = [{
     exact: true
   }, {
     label: 'Service Orders',
-    to: '/customers/orders'
+    to: '/service/orders/list'
   }, {
     label: 'Message',
     to: '/customers/message'
@@ -252,7 +252,7 @@ const links = [{
   label: 'Service',
   icon: 'i-heroicons-user-group',
   to: '/service',
-  defaultOpen: route.path.startsWith('/service'),
+  defaultOpen: route.path.startsWith('/service') && !route.path.match('/service/orders'),
   tooltip: {
     text: 'customers',
     shortcuts: ['G', 'U']
@@ -263,7 +263,7 @@ const links = [{
     exact: true
   }, {
     label: 'Service Order',
-    to: '/service/order'
+    to: '/service/orders/list'
   }, {
     label: 'Schedule',
     to: '/service/schedule'
@@ -546,12 +546,6 @@ const links = [{
     label: 'General',
     to: '/settings',
     exact: true
-  }, {
-    label: 'Members',
-    to: '/settings/members'
-  }, {
-    label: 'Notifications',
-    to: '/settings/notifications'
   }],
   tooltip: {
     text: 'Settings',
@@ -573,18 +567,20 @@ const groups = [{
   key: 'links',
   label: 'Go to',
   commands: links.map(link => ({ ...link, shortcuts: link.tooltip?.shortcuts }))
-}, {
-  key: 'code',
-  label: 'Code',
-  commands: [{
-    id: 'source',
-    label: 'View page source',
-    icon: 'i-simple-icons-github',
-    click: () => {
-      window.open(`https://github.com/nuxt-ui-pro/dashboard/blob/main/pages${route.path === '/' ? '/index' : route.path}.vue`, '_blank')
-    }
-  }]
-}]
+}, 
+// {
+//   key: 'code',
+//   label: 'Code',
+//   commands: [{
+//     id: 'source',
+//     label: 'View page source',
+//     icon: 'i-simple-icons-github',
+//     click: () => {
+//       window.open(`https://github.com/nuxt-ui-pro/dashboard/blob/main/pages${route.path === '/' ? '/index' : route.path}.vue`, '_blank')
+//     }
+//   }]
+// }
+]
 
 const defaultColors = ref(['green', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet'].map(color => ({ label: color, chip: color, click: () => appConfig.ui.primary = color })))
 const colors = computed(() => defaultColors.value.map(color => ({ ...color, active: appConfig.ui.primary === color.label })))
@@ -602,7 +598,6 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
         :ui="{ left: 'flex-1' }"
       >
         <template #left>
-          <!-- <TeamsDropdown /> -->
           <div class="w-full p-3 mt-2">
             <img src="../public/grimm_logo_menu.png" alt="Grimm Avatar"/>
           </div>
@@ -619,102 +614,7 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
         </template>
 
         <UDashboardSidebarLinks :links="links" />
-        <!-- <div class="w-full">
-          <MenuItem 
-            :select-items="customersItems"
-            label="Customer"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div>
-        <div class="w-full">
-          <MenuItem 
-            :select-items="serviceItems"
-            label="Service"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div>
-        <div class="w-full">
-          <MenuItem 
-            :select-items="marketingItems"
-            label="Marketing"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div>
-        <div class="w-full">
-          <MenuItem 
-            :select-items="employeesItems"
-            label="Employees"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div>
-        <div class="w-full">
-          <MenuItem 
-            :select-items="accountingItems"
-            label="Accounting"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div>
-        <div class="w-full">
-          <MenuItem 
-            :select-items="ITItems"
-            label="IT"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div>
-        <div class="w-full">
-          <MenuItem 
-            :select-items="engineeringItems"
-            label="Engineering"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div>
-        <div class="w-full">
-          <MenuItem 
-            :select-items="materialsItems"
-            label="Materials"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div>
-        <div class="w-full">
-          <MenuItem 
-            :select-items="manufacturingItems"
-            label="Manufacturing"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div>
-        <div class="w-full">
-          <MenuItem 
-            :select-items="maintenanceItems"
-            label="Maintenance"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div>
-        <div class="w-full">
-          <MenuItem 
-            :select-items="utilitiesItems"
-            label="Utilities"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div>
-        <div class="w-full">
-          <MenuItem 
-            :select-items="helpItems"
-            label="Help"
-            icon="i-heroicons-users"
-          >
-          </MenuItem>
-        </div> -->
+
         <UDivider />
 
         <!-- <UDashboardSidebarLinks
@@ -736,11 +636,6 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
     </UDashboardPanel>
 
     <slot />
-
-    <!-- ~/components/HelpSlideover.vue -->
-    <HelpSlideover />
-    <!-- ~/components/NotificationsSlideover.vue -->
-    <NotificationsSlideover />
 
     <ClientOnly>
       <LazyUDashboardSearch :groups="groups" />

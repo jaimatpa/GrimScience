@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt'
   ],
   ui: {
-    icons: ['heroicons', 'simple-icons'],
+    icons: ['heroicons', 'simple-icons', 'f7'],
     safelistColors: ['primary', 'red', 'orange', 'green']
   },
   colorMode: {
@@ -29,6 +29,8 @@ export default defineNuxtConfig({
     }
   }, 
   routeRules: {
-    '/login': {ssr: false}
+    '/login': {ssr: false},
+    '/customers/:id': {ssr: false}, 
+    'service/orders/:id': {ssr: false}
   }
 })

@@ -4,7 +4,6 @@ export default defineEventHandler(async (event) => {
   try {
     const path = event._path;
     const headers = getHeaders(event);
-    
     const excludePages = [
       '/login',
       '/signup',
@@ -12,13 +11,15 @@ export default defineEventHandler(async (event) => {
 
     const excludeAPIs = [
       '/api/auth/login',
-      '/api/auth/employees'
+      '/api/auth/employees', 
+      '/api/customers/exportlist',
+      '/api/customers/exportorder'
     ];
 
     if(path.startsWith('/api/')){
       console.log("--API REQUEST--", path);
-  
-      if (!excludeAPIs.includes(path)) {
+
+      if (!excludeAPIs.includes(path) && !excludeAPIs.includes(path.split('?')[0])) {
         const authHeader = getHeader(event, 'Authorization');
   
         if (!authHeader) {
@@ -43,7 +44,7 @@ export default defineEventHandler(async (event) => {
           return { error: "Unauthorized" };
         }
       } 
-    }else if(headers['accept'].includes('text/html')){
+    }else if(headers['accept']?.includes('text/html')){
       console.log("--DOCUMENT REQUEST--", path);
 
       if (!excludePages.includes(path) && !excludeAPIs.includes(path)) {

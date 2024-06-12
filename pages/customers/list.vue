@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+  import type { UTableColumn } from '~/types';
+
   onMounted(() => {
     init()
   })
@@ -6,87 +8,113 @@
   useSeoMeta({
     title: 'Grimm-Customers'
   })
-  
-  defineShortcuts({
-    '/': () => {
-      input.value?.input?.focus()
-    }
-  })
-  
-  const toast = useToast()
-  const defaultColumns = [{
-      key: 'number',
-      label: 'Number',
-      sortable: true,
-    }, {
-      key: 'fname',
-      label: 'First',
-      sortable: true
-    }, {
-      key: 'lname',
-      label: 'Last',
-      sortable: true
-    }, 
-    {
-      key: 'company1',
-      label: 'Company',
-      sortable: true
-    }, 
-    {
-      key: 'homephone',
-      label: 'HomePhone',
-      sortable: true
-    }, 
-    {
-      key: 'workphone',
-      label: 'WorkPhone',
-      sortable: true
-    }, 
-    {
-      key: 'state',
-      label: 'State',
-      sortable: true
-    },
-    {
-      key: 'zip',
-      label: 'Zip',
-      sortable: true
-    },
-    {
-      key: 'actions',
-      label: 'Actions'
-    }
-  ]
-  const states = [
-    null, 'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
-    'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
-    'AZ', 'CO', 'AL', 'SC', 'LA', 'KY', 'OR', 'OK', 'CT', 'IA',
-    'MS', 'AR', 'UT', 'NV', 'WV', 'ID', 'NM', 'NE', 'WY', 'ME',
-    'HI', 'NH', 'VT', 'ND', 'SD', 'AK', 'DE', 'MT', 'RI'
-  ];
 
-  const selectedColumns = ref(defaultColumns)
-  const sort = ref({ column: 'UniqueID', direction: 'asc' })
-  const input = ref<{ input: HTMLInputElement }>()
-  const isCustomerModalOpen = ref(false)
-  const modalTitle = ref("New Customer")
-  const modalDescription = ref("Add a new customer to your database")
-  const customers = ref([])
-  const selectedCustomer: any = ref(null)
-  const page = ref(1)
-  const pageSize = ref(50)
-  const numberOfCustomers = ref(0)
-  const sortButtons = ref({
-    number: {direction: 'none', key: 'number'},
-    fname: {direction: 'none', key: 'fname'},
-    lname: {direction: 'none', key: 'lname'},
-    company1: {direction: 'none', key: 'company1'},
-    homephone: {direction: 'none', key: 'homephone'},
-    workphone: {direction: 'none', key: 'workphone'},
-    state: {direction: 'none', key: 'state'},
-    zip: {direction: 'none', key: 'zip'}
+  const route = useRoute()
+  const toast = useToast()
+
+  const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
+  const descIcon = "i-heroicons-bars-arrow-down-20-solid"
+  const noneIcon = "i-heroicons-arrows-up-down-20-solid"
+
+  const headerFilters = ref({
+    markets: {
+      label: 'Market',
+      filter: 'market',
+      options: []
+    }, 
+    professions: {
+      label: 'Profession', 
+      filter: 'source',
+      options: []
+    }, 
+    categories: {
+      label: 'Category', 
+      filter: 'ParadynamixCatagory', 
+      options: []
+    }, 
+    conferences: {
+      label: 'Conference', 
+      filter: 'SourceConfrence',
+      options: []
+    }, 
+    usstates: {
+      label: 'State', 
+      filter: 'state',
+      api: '/api/common/usstates',
+      options: []
+    }
   })
-  const filters = ref({
+  const gridMeta = ref({
+    defaultColumns: <UTableColumn[]>[{
+        key: 'number',
+        label: 'Number',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
+        key: 'fname',
+        label: 'First',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
+        key: 'lname',
+        label: 'Last',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
+        key: 'company1',
+        label: 'Company',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
+        key: 'homephone',
+        label: 'HomePhone',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
+        key: 'workphone',
+        label: 'WorkPhone',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
+        key: 'state',
+        label: 'State',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
+        key: 'zip',
+        label: 'Zip',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
+        key: 'actions',
+        label: 'Actions',
+      }
+    ],
+    page: 1,
+    pageSize: 50,
+    numberOfCustomers: 0, 
+    customers: [],
+    selectedCustomerId: null,
+    sort: {
+      column: 'UniqueID', 
+      direction: 'asc'
+    }, 
+    isLoading: false
+  })
+  const modalMeta = ref({
+    isCustomerModalOpen: false,
+    modalTitle: "New Customer",
+    modalDescription: "Add a new customer to your database"
+  })
+  const filterValues = ref({
     market: null,
     source: null,
     ParadynamixCatagory: null,
@@ -100,102 +128,91 @@
     state: null,
     zip: null
   })
-  const exportPending = ref(false)
-  const pending = ref(false)
-  const markets = ref([])
-  const professions = ref([])
-  const categories = ref([])
-  const conferences = ref([])
+  const selectedColumns = ref(gridMeta.value.defaultColumns)
+  const exportIsLoading = ref(false)
 
-  const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
-  const descIcon = "i-heroicons-bars-arrow-down-20-solid"
-  const noneIcon = "i-heroicons-arrows-up-down-20-solid"
-
-  const columns = computed(() => defaultColumns.filter(column => selectedColumns.value.includes(column)))
+  const columns = computed(() => gridMeta.value.defaultColumns.filter(column => selectedColumns.value.includes(column)))
+  Object.entries(route.query).forEach(([key, value]) => {
+    switch(key.toLowerCase()) {
+      case 'page':
+        gridMeta.value.page = Number(value);
+        break;
+      case 'pagesize':
+        gridMeta.value.pageSize = Number(value);
+        break;
+      case 'sortby':
+        gridMeta.value.sort.column = value as unknown as string;
+        break;
+      case 'sortorder':
+        gridMeta.value.sort.direction = value as unknown as string;
+        break;
+    }
+  })
 
   const init = async () => {
-    pending.value = true
+    fetchGridData()
+    for(const key in headerFilters.value) {
+      const apiURL = headerFilters.value[key]?.api?? `/api/customers/${key}`;
+      await useApiFetch(apiURL, {
+        method: 'GET',
+        onResponse({ response }) {
+          if(response.status === 200) {
+            headerFilters.value[key].options = [null, ...response._data.body];
+          }
+        }
+      })
+    }
+  }
+  const fetchGridData = async () => {
+    gridMeta.value.isLoading = true
     await useApiFetch('/api/customers/numbers', {
       method: 'GET',
       params: {
-        ...filters.value
+        ...filterValues.value
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
-          numberOfCustomers.value = response._data.body
+          gridMeta.value.numberOfCustomers = response._data.body
         }
       }
     })
-    if(numberOfCustomers.value === 0){
-      customers.value = []
-      numberOfCustomers.value = 0
-      pending.value = false
+    if(gridMeta.value.numberOfCustomers === 0){
+      gridMeta.value.customers = []
+      gridMeta.value.numberOfCustomers = 0
+      gridMeta.value.isLoading = false
       return;
     }
-    if(page.value * pageSize.value > numberOfCustomers.value) {
-      page.value = Math.ceil(numberOfCustomers.value / pageSize.value) | 1
+    if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfCustomers) {
+      gridMeta.value.page = Math.ceil(gridMeta.value.numberOfCustomers / gridMeta.value.pageSize) | 1
     }
     await useApiFetch('/api/customers/list', {
       method: 'GET',
       params: {
-        page: page.value,
-        pageSize: pageSize.value, 
-        sortBy: sort.value.column,
-        sortOrder: sort.value.direction,
-        ...filters.value,
+        page: gridMeta.value.page,
+        pageSize: gridMeta.value.pageSize, 
+        sortBy: gridMeta.value.sort.column,
+        sortOrder: gridMeta.value.sort.direction,
+        ...filterValues.value,
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
-          customers.value = response._data.body
+          gridMeta.value.customers = response._data.body
         }
-        pending.value = false
+        gridMeta.value.isLoading = false
       }
-    })
-    await useApiFetch('/api/customers/markets', {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          markets.value = [null, ...response._data.body];
-        }
-      }
-    })
-    await useApiFetch('/api/customers/conferences', {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          conferences.value = [null, ...response._data.body];
-        }
-      }
-    })
-    await useApiFetch('/api/customers/categories', {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          categories.value = [null, ...response._data.body];
-        }
-      }
-    })
-    await useApiFetch('/api/customers/professions', {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          professions.value = [null, ...response._data.body];
-        }
-      }
-    })
+    });
   }
-
   const onCreate = () => {
-    modalTitle.value = "New Customer";
-    modalDescription.value = "Add a new customer to your database"
-    selectedCustomer.value = null
-    isCustomerModalOpen.value = true
+    gridMeta.value.selectedCustomerId = null
+    modalMeta.value.modalTitle = "New Customer";
+    modalMeta.value.modalDescription = "Add a new customer to your database"
+    modalMeta.value.isCustomerModalOpen = true
   }
   const onEdit = (row) => {
-    modalTitle.value = "Edit";
-    modalDescription.value = "Edit customer information"
-    selectedCustomer.value = row?.UniqueID
-    isCustomerModalOpen.value = true
+    gridMeta.value.selectedCustomerId = row?.UniqueID
+    modalMeta.value.modalTitle = "Edit";
+    modalMeta.value.modalDescription = "Edit customer information"
+    modalMeta.value.isCustomerModalOpen = true
   }
   const onDelete = async (row: any) => {
     await useApiFetch(`/api/customers/${row?.UniqueID}`, {
@@ -208,111 +225,90 @@
             icon: 'i-heroicons-trash-solid',
             color: 'green'
           })
-          init()
+          fetchGridData()
         }
       }
     })
   }
   const handleModalClose = () => {
-    isCustomerModalOpen.value = false
+    modalMeta.value.isCustomerModalOpen = false
   }
-  const handleModalSave = async (data) => {
-    if(selectedCustomer.value === null) { // Create Customer
-      await useApiFetch('/api/customers', {
-        method: 'POST',
-        body: data, 
-        onResponse({ response }) {
-          if(response.status === 200) {
-            toast.add({
-              title: "Success",
-              description: response._data.message,
-              icon: 'i-heroicons-check-circle',
-              color: 'green'
-            })
-            init()
-          }
-        }
-      })
-    } else { // Update Customer
-      await useApiFetch(`/api/customers/${selectedCustomer.value}`, {
-        method: 'PUT',
-        body: data, 
-        onResponse({ response }) {
-          if (response.status === 200) {
-            toast.add({
-              title: "Success",
-              description: response._data.message,
-              icon: 'i-heroicons-check-circle',
-              color: 'green'
-            })
-            init()
-          }
-        }
-      })
-    }
+  const handleModalSave = async () => {
+    handleModalClose()
+    fetchGridData()
   }
   const handlePageChange = async () => {
-    init()
+    fetchGridData()
   }
   const handleFilterChange = () => {
-    page.value = 1
-    init()
+    gridMeta.value.page = 1
+    fetchGridData()
   }
   const handleSortingButton = async (btnName: string) => {
-    page.value = 1
-    for(const [btn, btnProp] of Object.entries(sortButtons.value)) {
-      if(btnName === btn) {
-        switch(btnProp.direction) {
-          case 'none':
-            btnProp.direction = 'asc'
-            sort.value.column = btnName
-            sort.value.direction = 'asc'
-            break
-          case 'asc':
-            btnProp.direction = 'desc'
-            sort.value.column = btnName
-            sort.value.direction = 'desc'
-            break
-          default:
-            btnProp.direction = 'none'
-            sort.value.column = 'UniqueID'
-            sort.value.direction = 'asc'
-            break
-        } 
-      } else {
-        btnProp.direction = 'none'
+    gridMeta.value.page = 1
+    for(const column of columns.value) {
+      if(column.sortable) {
+        if (column.key === btnName) {
+          switch(column.sortDirection) {
+            case 'none':
+              column.sortDirection = 'asc';
+              gridMeta.value.sort.column = btnName;
+              gridMeta.value.sort.direction = 'asc';
+              break;
+            case 'asc':
+              column.sortDirection = 'desc';
+              gridMeta.value.sort.column = btnName;
+              gridMeta.value.sort.direction = 'desc';
+              break;
+            default:
+              column.sortDirection = 'none';
+              gridMeta.value.sort.column = 'UniqueID';
+              gridMeta.value.sort.direction = 'asc';
+              break;
+          }
+        } else {
+          column.sortDirection = 'none';
+        }
       }
     }
-    init()
+    fetchGridData()
   }
   const handleFilterInputChange = async (event, name) => {
-    page.value = 1
-    if (filters.value.hasOwnProperty(name)) {
-      filters.value[name] = event;
+    gridMeta.value.page = 1
+    if (filterValues.value.hasOwnProperty(name)) {
+      filterValues.value[name] = event;
     } else {
       console.error(`Filter does not have property: ${name}`);
     }
-    init()
+    fetchGridData()
   }
   const excelExport = async () => {
-    exportPending.value = true
+    exportIsLoading.value = true
     const params = {
-        sortBy: sort.value.column,
-        sortOrder: sort.value.direction,
-        ...filters.value,
+        sortBy: gridMeta.value.sort.column,
+        sortOrder: gridMeta.value.sort.direction,
+        ...filterValues.value,
       }
-    
     const paramsString = Object.entries(params)
+      .filter(([_, value]) => value !== null)
       .map(([key, value]) => {
         if(value !== null)
-          return `${key}=${value}`
+        return `${key}=${value}`
       })
       .join("&") 
-    location.href = `/api/customers/export?${paramsString}`
-    exportPending.value = false
+    location.href = `/api/customers/exportlist?${paramsString}`
+    exportIsLoading.value = false
   }
-
-  // init()
+  const onSelect = async (row) => {
+    gridMeta.value.selectedCustomerId = row?.UniqueID;
+  }
+  const onDblClick = async () =>{
+    if(gridMeta.value.selectedCustomerId){
+      modalMeta.value.modalTitle = "Edit";
+      modalMeta.value.modalDescription = "Edit customer information"
+      modalMeta.value.isCustomerModalOpen = true
+    }
+  }
 </script>
 
 <template>
@@ -326,76 +322,29 @@
       <UDashboardToolbar>
         <template #left>
           <div class="flex flex-row space-x-3">
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Market"
-                name="market"
-              >
-              <USelect
-                v-model="filters.market"
-                :options="markets"
-                @change="handleFilterChange()"
-              />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Profession"
-                name="profession"
-              >
-              <USelect
-                v-model="filters.source"
-                :options="professions"
-                @change="handleFilterChange()"
-              />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Category"
-                name="category"
-              >
-              <USelect
-                v-model="filters.ParadynamixCatagory"
-                :options="categories"
-                @change="handleFilterChange()"
-              />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Conference"
-                name="conference"
-                @change="handleFilterChange()"
-              >
-              <USelect
-                v-model="filters.SourceConfrence"
-                :options="conferences"
-                @change="handleFilterChange()"
-              />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="State"
-                name="state"
-              >
-              <USelect
-                v-model="filters.state"
-                :options="states"
-                @change="handleFilterChange()"
-              />
-              </UFormGroup>
-            </div>
+            <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
+              <div class="basis-1/7 max-w-[200px]">
+                <UFormGroup
+                  :label="value.label"
+                  :name="key"
+                >
+                  <USelect
+                    v-model="filterValues[`${value.filter}`]"
+                    :options="value.options"
+                    @change="handleFilterChange()"
+                  />
+                </UFormGroup>
+              </div>
+            </template>
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup
                 label="Zip"
                 name="zip"
               >
-              <UInput
-                v-model="filters.zip"
-                @update:model-value="handleFilterChange()"
-              />
+                <UInput
+                  v-model="filterValues.zip"
+                  @update:model-value="handleFilterChange()"
+                />
               </UFormGroup>
             </div>
             <div class="basis-1/7 max-w-[200px]">
@@ -403,9 +352,9 @@
                 label="Quantity"
                 name="Quantity"
               >
-              <div class="text-center text-bold">
-                {{ numberOfCustomers }}
-              </div>
+                <div class="text-center text-bold">
+                  {{ gridMeta.numberOfCustomers }}
+                </div>
               </UFormGroup>
             </div>
           </div>
@@ -414,7 +363,7 @@
           <!-- <USelectMenu
             v-model="selectedColumns"
             icon="i-heroicons-adjustments-horizontal-solid"
-            :options="defaultColumns"
+            :options="gridMeta.defaultColumns"
             multiple
             class="hidden lg:block"
           >
@@ -423,7 +372,7 @@
             </template>
           </USelectMenu> -->
           <UButton 
-            :loading="exportPending"
+            :loading="exportIsLoading"
             label="Export to Excel" 
             color="gray"
             @click="excelExport"
@@ -443,27 +392,27 @@
       
       <!-- New Modal -->
       <UDashboardModal
-        v-model="isCustomerModalOpen"
-        :title=modalTitle
-        :description="modalDescription"
+        v-model="modalMeta.isCustomerModalOpen"
+        :title="modalMeta.modalTitle"
+        :description="modalMeta.modalDescription"
         :ui="{width: 'w-[1000px] sm:max-w-7xl'}"
       >
-        <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="selectedCustomer"/>
+        <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId" :is-modal="true"/>
       </UDashboardModal>
 
       <!-- Old Modal -->
       <!-- <UDashboardModal
-        v-model="isCustomerModalOpen"
-        :title=modalTitle
-        :description="modalDescription"
+        v-model="modalMeta.isCustomerModalOpen"
+        :title="modalMeta.modalTitle"
+        :description="modalMeta.modalDescription"
         :ui="{width: 'w-[1000px] sm:max-w-7xl', height: 'h-[680px] sm:h-[680px]'}"
       >
-        <CustomersFormOld @close="handleModalClose" @save="handleModalSave" :selected-customer="selectedCustomer"/>
+        <CustomersFormOld @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
       </UDashboardModal> -->
       <UTable
-        :rows="customers"
+        :rows="gridMeta.customers"
         :columns="columns"
-        :loading="pending"
+        :loading="gridMeta.isLoading"
         class="w-full"
         :ui="{
           divide: 'divide-gray-200 dark:divide-gray-800', 
@@ -476,84 +425,18 @@
           }
         }"
         :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+        @select="onSelect"
+        @dblclick="onDblClick"
       >
-        <template #number-header="{ column }">
-          <CustomersSortAndFilter 
+        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+          <CommonSortAndInputFilter 
             @handle-sorting-button="handleSortingButton" 
             @handle-input-change="handleFilterInputChange"
+            :label="column.label"
+            :sortable="column.sortable"
             :sort-key="column.key" 
-            :sort-label="column.label" 
-            :sort-icon="sortButtons.number.direction === 'none' ? noneIcon : sortButtons.number.direction === 'asc' ? ascIcon : descIcon"
-            :filter-key="column.key"
-          />
-        </template>
-        <template #fname-header="{ column }">
-          <CustomersSortAndFilter 
-            @handle-sorting-button="handleSortingButton" 
-            @handle-input-change="handleFilterInputChange"
-            :sort-key="column.key" 
-            :sort-label="column.label" 
-            :sort-icon="sortButtons.fname.direction === 'none' ? noneIcon : sortButtons.fname.direction === 'asc' ? ascIcon : descIcon"
-            :filter-key="column.key"
-          />
-        </template>
-        <template #lname-header="{ column }">
-          <CustomersSortAndFilter 
-            @handle-sorting-button="handleSortingButton"
-            @handle-input-change="handleFilterInputChange" 
-            :sort-key="column.key" 
-            :sort-label="column.label" 
-            :sort-icon="sortButtons.lname.direction === 'none' ? noneIcon : sortButtons.lname.direction === 'asc' ? ascIcon : descIcon"
-            :filter-key="column.key"
-          />
-        </template>
-        <template #company1-header="{ column }">
-          <CustomersSortAndFilter 
-            @handle-sorting-button="handleSortingButton" 
-            @handle-input-change="handleFilterInputChange"
-            :sort-key="column.key" 
-            :sort-label="column.label" 
-            :sort-icon="sortButtons.company1.direction === 'none' ? noneIcon : sortButtons.company1.direction === 'asc' ? ascIcon : descIcon"
-            :filter-key="column.key"
-          />
-        </template>
-        <template #homephone-header="{ column }">
-          <CustomersSortAndFilter 
-            @handle-sorting-button="handleSortingButton" 
-            @handle-input-change="handleFilterInputChange"
-            :sort-key="column.key" 
-            :sort-label="column.label" 
-            :sort-icon="sortButtons.homephone.direction === 'none' ? noneIcon : sortButtons.homephone.direction === 'asc' ? ascIcon : descIcon"
-            :filter-key="column.key"
-          />
-        </template>
-        <template #workphone-header="{ column }">
-          <CustomersSortAndFilter 
-            @handle-sorting-button="handleSortingButton" 
-            @handle-input-change="handleFilterInputChange"
-            :sort-key="column.key" 
-            :sort-label="column.label" 
-            :sort-icon="sortButtons.workphone.direction === 'none' ? noneIcon : sortButtons.workphone.direction === 'asc' ? ascIcon : descIcon"
-            :filter-key="column.key"
-          />
-        </template>
-        <template #state-header="{ column }">
-          <CustomersSortAndFilter 
-            @handle-sorting-button="handleSortingButton" 
-            @handle-input-change="handleFilterInputChange"
-            :sort-key="column.key" 
-            :sort-label="column.label" 
-            :sort-icon="sortButtons.state.direction === 'none' ? noneIcon : sortButtons.state.direction === 'asc' ? ascIcon : descIcon"
-            :filter-key="column.key"
-          />
-        </template>
-        <template #zip-header="{ column }">
-          <CustomersSortAndFilter 
-            @handle-sorting-button="handleSortingButton"
-            @handle-input-change="handleFilterInputChange"
-            :sort-key="column.key" 
-            :sort-label="column.label" 
-            :sort-icon="sortButtons.zip.direction === 'none' ? noneIcon : sortButtons.zip.direction === 'asc' ? ascIcon : descIcon"
+            :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
+            :filterable="column.filterable"
             :filter-key="column.key"
           />
         </template>
@@ -562,10 +445,9 @@
           <UButton color="gray" variant="ghost" icon="i-heroicons-trash-20-solid" class="ml-2" @click="onDelete(row)"/>
         </template>
       </UTable>
-        <!-- </div> -->
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1" >
-          <UPagination :max="7" :page-count="pageSize" :total="numberOfCustomers | 0" v-model="page" @update:model-value="handlePageChange()"/>
+          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfCustomers | 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
         </div>
       </div>
     </UDashboardPanel>
