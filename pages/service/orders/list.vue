@@ -209,7 +209,7 @@
   }
   const onDblClick = async () =>{
     if(gridMeta.value.selectedOrderId){
-      modalMeta.value.isServiceOrderModalOpen = true
+      // modalMeta.value.isServiceOrderModalOpen = true
     }
   }
 </script>

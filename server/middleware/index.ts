@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
           return { error: "Unauthorized" };
         }
       } 
-    }else if(headers['accept'].includes('text/html')){
+    }else if(headers['accept']?.includes('text/html')){
       console.log("--DOCUMENT REQUEST--", path);
 
       if (!excludePages.includes(path) && !excludeAPIs.includes(path)) {
