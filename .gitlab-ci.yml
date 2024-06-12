@@ -17,15 +17,14 @@ stages:
   - deploy
 
 
-#build dev:
-#  stage: build
-#  only:
-#    - dev
-#  script:
-#    - cd bba-client
-#    - yarn
-#    - yarn generate
-#    - ls -la
+build dev:
+  stage: build
+  only:
+    - dev
+  script:
+    - echo 'NUXT_UI_PRO_LICENSE=DE96572D-DF69-4CE2-8359-220121662EBA' > .env
+    - yarn
+    - yarn generate
 
 deploy development:
   stage: deploy
@@ -36,6 +35,7 @@ deploy development:
 #    - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" components/paradym/Navigation.vue
 #    - yarn
 #    - yarn generate
+    - echo 'NUXT_UI_PRO_LICENSE=DE96572D-DF69-4CE2-8359-220121662EBA' > .env
     - rsync -azh --rsh="ssh -o StrictHostKeyChecking=no -l ubuntu" ./../** ubuntu@3.132.84.177:/var/www/gms/grimm-management-system-web
     - ssh -o StrictHostKeyChecking=no ubuntu@3.132.84.177 "pm2 restart all"
 
