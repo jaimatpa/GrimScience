@@ -2,7 +2,7 @@ image: node:lts
 
 before_script:  
   - apt-get update -qq && apt-get install
-  - apt install -y rsync
+  - apt install -y rsync unixodbc-common unixodbc-dev libodbc2 libodbccr2 libodbcinst2           
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
   - eval $(ssh-agent -s)
   - cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
