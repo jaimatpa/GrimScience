@@ -251,7 +251,7 @@
     if(gridMeta.value.selectedMessageId){
       modalMeta.value.modalTitle = "Edit";
       modalMeta.value.modalDescription = "Edit message"
-      modalMeta.value.isCustomerModalOpen = true
+      // modalMeta.value.isCustomerModalOpen = true
     }
   }
 </script>
