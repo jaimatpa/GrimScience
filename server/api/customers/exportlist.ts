@@ -1,36 +1,12 @@
-import { Op } from 'sequelize';
-import { tblCustomers } from "~/server/models";
+import { getAllCustomers } from '~/server/controller/customers/list';
 import ExcelJS from 'exceljs'
 
 const workbook = new ExcelJS.Workbook();
 
-const applyFilters = (params) => {
-  const filterParams = ['number', 'fname', 'lname', 'company1', 'homephone', 'workphone', 'state', 'zip'];
-  const whereClause = {};
-
-  filterParams.forEach(param => {
-    if (params[param]) {
-      whereClause[param] = {
-        [Op.like]: `%${params[param]}%`
-      };
-    }
-  });
-
-  return whereClause;
-};
-
 export default eventHandler(async (event) => {
   try {
     const { sortBy, sortOrder, ...filterParams } = getQuery(event);
-    let list: any;
-
-    const whereClause = applyFilters(filterParams);
-
-    list = await tblCustomers.findAll({
-      attributes: ['UniqueID', 'number', 'fname', 'lname', 'company1', 'homephone', 'workphone', 'state', 'zip'],
-      where: whereClause,
-      order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
-    });
+    const list = await getAllCustomers(sortBy, sortOrder, filterParams)
 
     workbook.removeWorksheet('My sheet')
     const worksheet = workbook.addWorksheet('My sheet')

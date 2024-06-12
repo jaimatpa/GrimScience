@@ -1,13 +1,13 @@
-import { getOrders } from '~/server/controller/customers/orders';
+import { getMessages } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {
     const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;
-
+    
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getOrders(page, pageSize, sortBy, sortOrder, filterParams);
+        const list = await getMessages(page, pageSize, sortBy, sortOrder, filterParams);
         return { body: list, message: '' }
       default:
         setResponseStatus(event, 405);

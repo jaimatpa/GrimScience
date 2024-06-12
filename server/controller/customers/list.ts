@@ -40,6 +40,17 @@ export const getCustomers = async (page, pageSize, sortBy, sortOrder, filterPara
   return list;
 }
 
+export const getAllCustomers = async (sortBy, sortOrder, filterParams) => {
+  const whereClause = applyFilters(filterParams);
+
+  const list = await tblCustomers.findAll({
+    attributes: ['UniqueID', 'number', 'fname', 'lname', 'company1', 'homephone', 'workphone', 'state', 'zip'],
+    where: whereClause,
+    order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
+  });
+  return list;
+}
+
 export const getNumberOfCustomers = async (filterParams) => {
   const whereClause = applyFilters(filterParams);
   const numberOfCustomers = await tblCustomers.count({

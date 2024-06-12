@@ -1,0 +1,550 @@
+<script setup lang="ts">
+  import type { FormError, FormSubmitEvent } from '#ui/types'
+  import Loading from 'vue-loading-overlay'
+  import 'vue-loading-overlay/dist/css/index.css';   
+  import { format } from 'date-fns'
+
+  const emit = defineEmits(['close', 'save'])
+  const props = defineProps({
+    selectedOrder: {
+      type: [Number, String, null],
+      required: true
+    }
+  })
+
+  const states = [
+    'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
+    'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
+    'AZ', 'CO', 'AL', 'SC', 'LA', 'KY', 'OR', 'OK', 'CT', 'IA',
+    'MS', 'AR', 'UT', 'NV', 'WV', 'ID', 'NM', 'NE', 'WY', 'ME',
+    'HI', 'NH', 'VT', 'ND', 'SD', 'AK', 'DE', 'MT', 'RI'
+  ];
+  const serialColumns = ref([{
+    key: 'serial',
+    label: 'Serial',
+  }])
+  const orderColumns = ref([{
+    key: 'order',
+    label: 'Order'
+  }, {
+    key: 'UniqueID',
+    label: '#'
+  }])
+  const invoiceColumns = ref([{
+    key: 'orderdate',
+    label: 'Date',
+  }, {
+    key: 'invoice', 
+    label: 'Invoice#'
+  }, {
+    key: 'terms',
+    label: 'Terms'
+  }])
+  const reportColumns = ref([{
+    key: 'date',
+    label: 'Date',
+  }, {
+    key: 'type', 
+    label: 'Type'
+  }, {
+    key: 'by',
+    label: 'By'
+  }])
+  const investigationColumns = ref([{
+    key: 'date',
+    label: 'Date',
+  }, {
+    key: 'description',
+    label: 'Description'
+  }
+  ])
+  const loadingOverlay = ref(false)
+  const markets = ref([])
+  const professions = ref([])
+  const categories = ref([])
+  const conferences = ref([])
+  const state = reactive({
+    UniqueID: null,
+    market: null,
+    number: null,
+    source: professions[0],
+    sourcedescription: null,
+    SourceConfrence: null,
+    fname: null,
+    mi: null,
+    lname: null,
+    title: null,
+    position: null,
+    company1: null,
+    company2: null,
+    country: null,
+    address: null,
+    city: null,
+    state: null,
+    zip: null,
+    workphone: null,
+    homephone: null,
+    cellphone: null,
+    fax: null,
+    email: null,
+    website: null,
+    notes: null,
+    billcompany1: null,
+    billcompany2: null,
+    billcountry: null,
+    billaddress: null,
+    billcity: null,
+    billstate: null,
+    billzip: null,
+    billphone: null,
+    billfax: null,
+    attn: null,
+    adddate: null,
+    ParadynamixCatagory: null,
+    fullname: null,
+    Extension: null,
+    ExtensionBill: null,
+  })
+  const date = ref(new Date())
+  const orderers = ref([])
+  const orderer = ref([])
+  const statusGroup = ref([
+    {value: 'open', label: 'Open'}, 
+    {value: 'close', label: 'Close'}
+  ])
+  const selectedStatus = ref('open')
+  const description = ref('Warm Tank fill valve not closing')
+  const riskStatusGroup = ref([
+    {value: 'no', label: 'No'}, 
+    {value: 'yes', label: 'Yes'}
+  ])
+  const selectedRiskStatus = ref('no')
+  const receivedDate = ref(null)
+  const nc = ref(null)
+  const accessories = ref(null)
+  const service = ref(null)
+  const serviceList = ref([])
+  const failure = ref(null)
+
+  const editInit = async () => {
+    loadingOverlay.value = true
+    await useApiFetch(`/api/tbl/tblCustomers/${props.selectedOrder}`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          loadingOverlay.value = false
+          for (const key in response._data.body) {
+            if (response._data.body[key] !== undefined) {
+              state[key] = response._data.body[key]
+            }
+          }
+        }
+      }
+    })
+    await propertiesInit()
+    loadingOverlay.value = false
+  }
+
+  const propertiesInit = async () => {
+    loadingOverlay.value = true
+    loadingOverlay.value = false
+  }
+
+  const validate = (state: any): FormError[] => {
+    const errors = []
+    if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
+    if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
+    if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
+    return errors
+  }
+
+  async function onSubmit(event: FormSubmitEvent<any>) {
+    emit('save', event.data)
+    emit('close')
+  }
+  if(props.selectedOrder !== null) 
+    editInit()
+  else 
+    propertiesInit()
+</script>
+
+<template>
+  <!-- <div class="vl-parent">
+    <loading
+      v-model:active="loadingOverlay"
+      :is-full-page="true"
+      color="#000000"
+      backgroundColor="#1B2533"
+      loader="dots"
+    />
+  </div> -->
+  <UForm
+    :validate="validate"
+    :validate-on="['submit']"
+    :state="state"
+    @submit="onSubmit"
+  >
+    <div class="w-full px-3 py-1 bg-slate-400 border-2 border-slate-600 border-l-0 border-b-0 border-r-0">
+      Customer Information
+    </div>
+
+    <div class="!my-0 flex flex-row space-x-8 p-3">
+      <div class="basis-1/2">
+        <div class="flex justify-between">
+          <div>
+            Customer# 1135
+          </div>
+          <div>
+            <UCheckbox name="fix" label="Fix Serial Record Mode" />
+          </div>
+        </div>
+        <div class="flex flex-row space-x-3">
+          <div class="basis-1/2">
+            <div class="font-bold border-b-2 border-black">
+              Shipping Information
+            </div>
+            <div>
+              Shipping
+            </div>
+          </div>
+          <div class="basis-1/2">
+            <div class="font-bold border-b-2 border-black">
+              Billing Information
+            </div>
+            <div>
+              Billing
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="basis-1/2">
+        <div class="flex flex-row space-x-1">
+          <div class="basis-1/6">
+            <UFormGroup
+              label="Select Serial"
+              name="serial"
+            >
+              <UTable
+                :columns="serialColumns"
+                :rows="[]"
+                :ui="{
+                  wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                }"
+              >
+                <template #empty-state>
+                  <div></div>
+                </template>
+              </UTable>
+            </UFormGroup>
+          </div>
+          <div class="basis-2/6">
+            <UFormGroup
+              label="View Orders"
+              name="orders"
+            >
+              <UTable
+                :columns="orderColumns"
+                :ui="{
+                  wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                }"
+              >
+                <template #empty-state>
+                  <div></div>
+                </template>
+              </UTable>
+            </UFormGroup>
+          </div>
+          <div class="basis-1/2">
+            <div class="flex flex-col">
+              <div>
+                <UFormGroup
+                  label="View Invoice"
+                  name="invoice"
+                >
+                  <UTable
+                    :columns="invoiceColumns"
+                    :ui="{
+                      wrapper: 'h-[100px] border-2 border-gray-300 dark:border-gray-700',
+                    }"
+                  >
+                  <template #empty-state>
+                    <div></div>
+                  </template>
+                  </UTable>
+                </UFormGroup>
+              </div>
+              <div class="flex flex-row space-x-1 mt-1">
+                <div class="basis-1/3 w-full">
+                  <UButton icon="i-heroicons-plus-20-solid" label="New" variant="outline" color="green" block/>
+                </div>
+                <div class="basis-1/3 w-full">
+                  <UButton icon="i-heroicons-plus-20-solid" label="Link" variant="outline" color="green" block/>
+                </div>
+                <div class="basis-1/3 w-full">
+                  <UButton icon="i-heroicons-minus-circle-20-solid" label="Unlink" variant="outline" color="red" block/>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="mt-2">
+          <div class="pl-3 bg-slate-400">
+            Service Reports
+          </div>
+          <div class="flex flex-row p-3 bg-slate-200 space-x-4">
+            <div class="basis-3/5">
+              <UTable
+                :columns="reportColumns"
+                :ui="{
+                  wrapper: 'h-24 border-2 border-gray-300 dark:border-gray-700'
+                }"
+              >
+                <template #empty-state>
+                  <div></div>
+                </template>
+              </UTable>
+              <div class="flex flex-row space-x-3 mt-3">
+                <div class="basis-1/2">
+                  <UButton 
+                    icon="i-heroicons-plus-20-solid"
+                    label="Create Service Report"
+                    variant="outline"
+                    color="green"
+                    block
+                  />
+                </div>
+                <div class="basis-1/2">
+                  <UButton 
+                    icon="i-f7-rays"
+                    label="Clear Selection"
+                    variant="outline"
+                    color="red"
+                    block
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="basis-2/5 space-y-1">
+              <div>
+                <UCheckbox name="warranty" label="Warranty Service" />
+              </div>
+              <div>
+                This Warranty Cost: $0.00
+              </div>
+              <div>
+                Total Serial Warranty: $2984.30
+              </div>
+              <div>
+                Ship Date: 4/1/2007
+              </div>
+              <div>
+                <div class="">
+                  <UButton 
+                    icon="i-heroicons-check-badge-20-solid"
+                    label="View Inventory Transaction"
+                    variant="outline"
+                    block
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>  
+    </div>
+
+    <div class="!my-0 flex flex-row">
+      <div class="basis-1/2 border-2 border-slate-600 border-l-0 border-b-0">
+        <div class="w-full bg-slate-400 px-3 py-1">
+          Service Order
+        </div>
+        <div class="flex flex-row px-3 py-2">
+          <div class="basis-5/12">
+            <div># 6659</div>
+            <div>#4100 CRYOTherm, Dual Console</div>
+            <div>Serial 4100008</div>
+          </div>
+          <div class="basis-4/12">
+            <div class="flex flex-row">
+              <div class="flex mr-2 items-center w-[35px]">Date</div>
+              <UPopover :popper="{ placement: 'bottom-start' }">
+                <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'd MMM, yyy')" variant="outline" :ui="{base: 'w-[125px]'}"/>
+                <template #panel="{ close }">
+                  <DatePicker v-model="date" is-required @close="close" />
+                </template>
+              </UPopover>
+            </div>
+            <div class="flex flex-row mt-3">
+              <div class="flex mr-2 items-center w-[35px]">By</div>
+              <USelectMenu 
+                v-model="orderer"
+                :options="orderers"
+                :ui="{base: 'w-[125px]'}"
+              />
+            </div>
+          </div>
+          <div class="basis-3/12">
+            <div class="flex flex-row space-x-5">
+              <URadio 
+                v-for="status of statusGroup"
+                :key = 'status.value'
+                v-model="selectedStatus"
+                v-bind="status"
+              />
+            </div>
+            <div class="mt-3">
+              Warranty Period
+            </div>
+          </div>
+        </div>
+        <div class="px-3 py-0">
+          <UFormGroup
+            label="Desicripton"
+            name="description"
+          >
+            <UTextarea
+              :model-value="description"
+            />
+          </UFormGroup>
+        </div>
+        <div class="px-3 py-0 mt-1">
+          <div class="flex flex-row border border-gray rounded-md">
+            <div class="basis-5/12 flex items-center ml-2">
+              Death, Serious Injury, or Risk of Either?
+            </div>
+            <div class="basis-3/12 flex flex-row space-x-5 items-center">
+              <URadio 
+                v-for="riskStatus of riskStatusGroup"
+                :key = 'riskStatus.value'
+                v-model="selectedRiskStatus"
+                v-bind="riskStatus"
+              />
+            </div>
+            <div class="basis-4/12 flex flex-row space-x-4">
+              <UButton 
+                label="VIEW#1"
+              />
+              <UButton 
+                label="VIEW#2"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="px-3 py-0 mt-1">
+          <div class="flex flex-row space-x-3 border border-gray rounded-md px-2">
+            <div class="basis-3/12">
+              <UFormGroup
+                label="Received"
+                name="received"
+              >
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'd MMM, yyy')" variant="outline" :ui="{base: 'w-[125px]'}"/>
+                  <template #panel="{ close }">
+                    <DatePicker v-model="receivedDate" is-required @close="close" />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+            </div>
+            <div class="basis-2/12">
+              <UFormGroup
+                label="NC#"
+                name="nc"
+              >
+                <UInput 
+                  v-model="nc"
+                />
+              </UFormGroup>
+            </div>
+            <div class="basis-5/12">
+              <UFormGroup
+                label="Accessories Received"
+                name="accessories received"
+              >
+                <UInput 
+                  v-model="accessories"
+                />
+              </UFormGroup>
+            </div>
+            <div class="basis-2/12 flex items-center">
+              <UButton 
+                icon="i-heroicons-plus-20-solid"
+                label="Receive"
+              />
+            </div>
+          </div>
+          <div class="flex flex-row space-x-3 px-4 mt-2">
+            <div class="basis-1/4">
+              <UButton icon="i-heroicons-document-text-20-solid" label="Save" color="green" variant="outline" block/>
+            </div>
+            <div class="basis-1/4">
+              <UButton icon="i-heroicons-eye-20-solid" label="Preview Order" variant="outline" block/>
+            </div>
+            <div class="basis-1/4">
+              <UButton icon="i-heroicons-eye-20-solid" label="Preview Label" variant="outline" block/>
+            </div>
+            <div class="basis-1/4">
+              <UButton icon="i-f7-rays" label="Clear Form" color="red" variant="outline" block/>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="basis-1/2 border-2 border-slate-600 border-l-0 border-b-0 border-r-0">
+        <div class="w-full bg-slate-400 px-3 py-1">
+          Type of Services
+        </div>
+        <div class="flex flex-row space-x-5 p-5">
+          <div class="w-1/2">
+            <UFormGroup
+              label="Select"
+              name="select"
+            >
+              <USelect 
+                v-model="service"
+                :options="serviceList"
+              />
+            </UFormGroup>
+          </div>
+          <div class="w-1/2">
+            <UFormGroup
+              label="Failure Comment"
+              name="failure"
+            >
+              <UInput 
+                v-model="failure"
+              />
+            </UFormGroup>
+          </div>
+        </div>
+        <div class="flex flex-row space-x-5 p-5">
+          <div class="w-full p-3 border border-gray">
+            <UFormGroup
+              label="Investigation Required"
+              name="investigation"
+            >
+              <UTable
+                :columns="investigationColumns"
+                :rows="[]"
+                :ui="{
+                  wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                }"
+              >
+                <template #empty-state>
+                  <div></div>
+                </template>
+              </UTable>
+            </UFormGroup>
+            <div class="flex flex-row justify-end mt-2">
+              <div class="w-[120px]">
+                <UButton icon="i-heroicons-plus-20-solid" variant="outline" label="Add"/>
+              </div>
+              <div class="w-[120px]">
+                <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red" label="Remove"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </UForm>
+</template>

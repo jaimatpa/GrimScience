@@ -880,6 +880,13 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/retry/-/retry-0.2.4.tgz#4f3059423823bd8176132ceea9447dee101dfac1"
   integrity sha512-Ttl/jHpxfS3st5sxwICYfk4pOH0WrLI1SpW283GgQL7sCWU7EHIOhX4b4fkIxr3tkfzwg8+FNojtzsIEE7Ecgg==
 
+"@iconify-json/f7@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@iconify-json/f7/-/f7-1.1.0.tgz#2d1dcd4eae485a4a5b804ec06fd59f840295c90c"
+  integrity sha512-CSY3ZVPkCGBdx1FjAi/VDV3is68CMM1E8qVWUQwy3rGJeHHsfdo0M10sY4I65gC8DvcUdr+uqnRQ64R3eHC69g==
+  dependencies:
+    "@iconify/types" "*"
+
 "@iconify-json/heroicons@^1.1.21":
   version "1.1.21"
   resolved "https://registry.yarnpkg.com/@iconify-json/heroicons/-/heroicons-1.1.21.tgz#66cecd08ecc57322c4bd8547f56a446944d03eb9"

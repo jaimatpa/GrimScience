@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 export interface tokenDataProps {
-  uniqueID: string;
+  UniqueID: string;
   fname: string;
   lname: string;
 }
@@ -12,7 +12,7 @@ export interface verifyTokenProps {
 
 export const generateToken = (tokenData: tokenDataProps): string | null => {
   try {
-    if (!tokenData || !tokenData.uniqueID || !tokenData.fname || !tokenData.lname) {
+    if (!tokenData || !tokenData.UniqueID || !tokenData.fname || !tokenData.lname) {
       throw new Error('Invalid token data');
     }
 
