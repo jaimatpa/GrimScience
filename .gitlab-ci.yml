@@ -24,7 +24,7 @@ build dev:
   script:
     - echo 'NUXT_UI_PRO_LICENSE=DE96572D-DF69-4CE2-8359-220121662EBA' > .env
     - yarn
-    - yarn generate
+    - yarn build
 
 deploy development:
   stage: deploy
