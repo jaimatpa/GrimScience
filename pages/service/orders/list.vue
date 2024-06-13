@@ -21,6 +21,7 @@
     productLines: {
       label: 'Product Line',
       filter: 'productLine',
+      api: '/api/service/orders/productlines',
       options: []
     }
   })
@@ -116,24 +117,58 @@
 
   const columns = computed(() => gridMeta.value.defaultColumns.filter(column => selectedColumns.value.includes(column)))
 
-  const init = () => {
+  const init = async () => {
     gridMeta.value.isLoading = true
-    useApiFetch('/api/service/orders', {
+    for(const key in headerFilters.value) {
+      const apiURL = headerFilters.value[key]?.api?? `/api/service/orders/${key}`;
+      await useApiFetch(apiURL, {
+        method: 'GET',
+        onResponse({ response }) {
+          if(response.status === 200) {
+            headerFilters.value[key].options = [null, ...response._data.body];
+          }
+        }
+      })
+    }
+  }
+  const fetchGridData = async () => {
+    gridMeta.value.isLoading = true
+    await useApiFetch('/api/customers/numbers', {
       method: 'GET',
       params: {
-        page: gridMeta.value.page,
-        pageSize: gridMeta.value.pageSize,
-        sortBy: gridMeta.value.sort.column,
-        sortOrder: gridMeta.value.sort.direction,
         ...filterValues.value
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
-          gridMeta.value.isLoading = false
-          gridMeta.value.orders = response._data.body;
+          gridMeta.value.numberOfOrders = response._data.body
         }
       }
     })
+    if(gridMeta.value.numberOfOrders === 0){
+      gridMeta.value.orders = []
+      gridMeta.value.numberOfOrders = 0
+      gridMeta.value.isLoading = false
+      return;
+    }
+    if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfOrders) {
+      gridMeta.value.page = Math.ceil(gridMeta.value.numberOfOrders / gridMeta.value.pageSize) | 1
+    }
+    await useApiFetch('/api/service/orders', {
+      method: 'GET',
+      params: {
+        page: gridMeta.value.page,
+        pageSize: gridMeta.value.pageSize, 
+        sortBy: gridMeta.value.sort.column,
+        sortOrder: gridMeta.value.sort.direction,
+        ...filterValues.value,
+      }, 
+      onResponse({ response }) {
+        if(response.status === 200) {
+          gridMeta.value.orders = response._data.body
+        }
+        gridMeta.value.isLoading = false
+      }
+    });
   }
   const handleModalClose = () => {
     modalMeta.value.isServiceOrderModalOpen = false

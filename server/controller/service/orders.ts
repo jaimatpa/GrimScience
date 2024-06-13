@@ -1,5 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblOrder } from "~/server/models";
+import { tblOrder, tblBP } from "~/server/models";
 
 const applyFilters = (params) => {
   const filterParams = ['UniqueID', 'orderdate', 'status'];
@@ -16,13 +16,13 @@ const applyFilters = (params) => {
   return whereClause;
 };
 
-// export const customerExistByID = async (id: number | string) => {
-//   const tableDetail = await tblOrder.findByPk(id);
-//   if(tableDetail)
-//     return true;
-//   else
-//     return false;
-// }
+export const orderExistByID = async (id: number | string) => {
+  const tableDetail = await tblOrder.findByPk(id);
+  if(tableDetail)
+    return true;
+  else
+    return false;
+}
 
 export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filterParams) => {
   const limit = parseInt(pageSize as string, 10) || 10;
@@ -75,13 +75,33 @@ export const getAllServiceOrders = async (sortBy, sortOrder, filterParams) => {
   return formattedList;
 }
 
-// export const getNumberOfCustomers = async (filterParams) => {
-//   const whereClause = applyFilters(filterParams);
-//   const numberOfCustomers = await tblOrder.count({
-//     where: whereClause
-//   });
-//   return numberOfCustomers;
-// }
+export const getNumberOfOrders = async (filterParams) => {
+  const whereClause = applyFilters(filterParams);
+  const numberOfCustomers = await tblOrder.count({
+    where: whereClause
+  });
+  return numberOfCustomers;
+}
+
+export const getProductLines = async (filterParams) => {
+  const distinctProductLines = await tblBP.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('PRODUCTLINE')), 'PRODUCTLINE']
+    ],
+    where: {
+      PRODUCTLINE: {
+        [Op.not]: ''
+      },
+    },
+    order: [
+      ['PRODUCTLINE', 'ASC'],
+    ]
+  });
+
+  const productLineValues = distinctProductLines.map(result => result.get('PRODUCTLINE'));
+
+  return productLineValues;
+}
 
 // export const getCustomerDetail = async (id) => {
 //   const tableDetail = await tblOrder.findByPk(id);
