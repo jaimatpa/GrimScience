@@ -95,5 +95,8 @@
         </UButton>
       </UForm>
     </UCard>
+    <div>
+      Commit ID {COMMIT}
+    </div>
   </div>
 </template>
