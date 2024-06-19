@@ -6,19 +6,14 @@
 
   const emit = defineEmits(['close', 'save'])
   const props = defineProps({
-    selectedOrder: {
+    selectedCustomer: {
       type: [Number, String, null],
       required: true
+    },
+    selectedOrder: {
+      type: [Number, String, null]
     }
   })
-
-  const states = [
-    'CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'MI', 'GA', 'NC',
-    'NJ', 'VA', 'WA', 'MA', 'IN', 'TN', 'MO', 'MD', 'WI', 'MN',
-    'AZ', 'CO', 'AL', 'SC', 'LA', 'KY', 'OR', 'OK', 'CT', 'IA',
-    'MS', 'AR', 'UT', 'NV', 'WV', 'ID', 'NM', 'NE', 'WY', 'ME',
-    'HI', 'NH', 'VT', 'ND', 'SD', 'AK', 'DE', 'MT', 'RI'
-  ];
   const serialColumns = ref([{
     key: 'serial',
     label: 'Serial',
@@ -59,15 +54,11 @@
   }
   ])
   const loadingOverlay = ref(false)
-  const markets = ref([])
-  const professions = ref([])
-  const categories = ref([])
-  const conferences = ref([])
-  const state = reactive({
-    UniqueID: null,
+  const formData = reactive({
+    customerID: props.selectedCustomer,
     market: null,
     number: null,
-    source: professions[0],
+    source: null,
     sourcedescription: null,
     SourceConfrence: null,
     fname: null,
@@ -128,25 +119,38 @@
 
   const editInit = async () => {
     loadingOverlay.value = true
-    await useApiFetch(`/api/tbl/tblCustomers/${props.selectedOrder}`, {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          loadingOverlay.value = false
-          for (const key in response._data.body) {
-            if (response._data.body[key] !== undefined) {
-              state[key] = response._data.body[key]
-            }
-          }
-        }
-      }
-    })
+    // await useApiFetch(`/api/tbl/tblCustomers/${props.selectedOrder}`, {
+    //   method: 'GET',
+    //   onResponse({ response }) {
+    //     if(response.status === 200) {
+    //       loadingOverlay.value = false
+    //       for (const key in response._data.body) {
+    //         if (response._data.body[key] !== undefined) {
+    //           formData[key] = response._data.body[key]
+    //         }
+    //       }
+    //     }
+    //   }
+    // })
     await propertiesInit()
     loadingOverlay.value = false
   }
 
   const propertiesInit = async () => {
     loadingOverlay.value = true
+    await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          loadingOverlay.value = false
+          for (const key in response._data.body) {
+            if (response._data.body[key]) {
+              formData[key] = response._data.body[key]
+            }
+          }
+        }
+      }
+    })
     loadingOverlay.value = false
   }
 
@@ -162,7 +166,7 @@
     emit('save', event.data)
     emit('close')
   }
-  if(props.selectedOrder !== null) 
+  if(props.selectedOrder) 
     editInit()
   else 
     propertiesInit()
@@ -181,7 +185,7 @@
   <UForm
     :validate="validate"
     :validate-on="['submit']"
-    :state="state"
+    :state="formData"
     @submit="onSubmit"
   >
     <div class="w-full px-3 py-1 bg-slate-400 border-2 border-slate-600 border-l-0 border-b-0 border-r-0">
@@ -192,7 +196,7 @@
       <div class="basis-1/2">
         <div class="flex justify-between">
           <div>
-            Customer# 1135
+            Customer# {{ formData.number }}
           </div>
           <div>
             <UCheckbox name="fix" label="Fix Serial Record Mode" />
@@ -203,16 +207,58 @@
             <div class="font-bold border-b-2 border-black">
               Shipping Information
             </div>
-            <div>
-              Shipping
+            <div class="flex flex-col mt-4 space-y-3">
+              <div>
+                {{ formData.fname + " " + formData.lname }}
+              </div>
+              <div>
+                {{ formData.company1 }}
+              </div>
+              <div>
+                {{ formData.company2 }}
+              </div>
+              <div>
+                {{ formData.address }}
+              </div>
+              <div>
+                {{ formData.city + ', ' + formData.state + ', ' + formData.zip }}
+              </div>
+              <div class="flex flex-row">
+                <div class="basis-1/2">
+                  H: {{ formData.homephone }}
+                </div>
+                <div class="basis-1/2">
+                  W: {{ formData.workphone }}
+                </div>
+              </div>
+              <div>
+                C: {{ formData.cellphone }}
+              </div>
             </div>
           </div>
           <div class="basis-1/2">
             <div class="font-bold border-b-2 border-black">
               Billing Information
             </div>
-            <div>
-              Billing
+            <div class="flex flex-col mt-4 space-y-3">
+              <div>
+                {{ ' ' }}
+              </div>
+              <div>
+                {{ formData.billcompany1 }}
+              </div>
+              <div>
+                {{ formData.billcompany2 }}
+              </div>
+              <div>
+                {{ formData.billaddress }}
+              </div>
+              <div>
+                {{ formData.billcity + ', ' + formData.billstate + ', ' + formData.billzip }}
+              </div>
+              <div>
+                {{ formData.billphone ? `P: ${formData.billphone}` : '' }}
+              </div>
             </div>
           </div>
         </div>

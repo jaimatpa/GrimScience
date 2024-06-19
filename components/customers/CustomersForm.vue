@@ -25,7 +25,7 @@ const professions = ref([])
 const categories = ref([])
 const conferences = ref([])
 const usstates = ref([])
-const state = reactive({
+const formData = reactive({
   UniqueID: null,
   market: null,
   number: null,
@@ -78,7 +78,7 @@ const editInit = async () => {
         customerExist.value = true
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
-            state[key] = response._data.body[key]
+            formData[key] = response._data.body[key]
           }
         }
       }
@@ -231,7 +231,7 @@ else
     <UForm
       :validate="validate"
       :validate-on="['submit']"
-      :state="state"
+      :state="formData"
       class="space-y-4"
       @submit="onSubmit"
     >
@@ -242,7 +242,7 @@ else
             name="fname"
           >
             <UInput
-              v-model="state.fname"
+              v-model="formData.fname"
               placeholder="John"
             />
           </UFormGroup>
@@ -253,7 +253,7 @@ else
             name="md"
           >
             <UInput
-              v-model="state.mi"
+              v-model="formData.mi"
               placeholder="John"
             />
           </UFormGroup>
@@ -264,7 +264,7 @@ else
             name="lname"
           >
             <UInput
-              v-model="state.lname"
+              v-model="formData.lname"
               placeholder="Doe"
             />
           </UFormGroup>
@@ -275,7 +275,7 @@ else
             name="title"
           >
             <UInput
-              v-model="state.title"
+              v-model="formData.title"
               placeholder="Full-Stack Developer"
             />
           </UFormGroup>
@@ -286,7 +286,7 @@ else
             name="position"
           >
             <UInput
-              v-model="state.position"
+              v-model="formData.position"
               placeholder="CTO"
             />
           </UFormGroup>
@@ -300,8 +300,8 @@ else
             name="market"
           >
             <UInputMenu
-              v-model="state.market"
-              v-model:query="state.market"
+              v-model="formData.market"
+              v-model:query="formData.market"
               :options="markets"
             />
           </UFormGroup>
@@ -312,7 +312,7 @@ else
             name="number"
           >
             <UInput
-              v-model="state.number"
+              v-model="formData.number"
               placeholder=""
             />
           </UFormGroup>
@@ -323,8 +323,8 @@ else
             name="profession"
           >
             <UInputMenu
-              v-model="state.source"
-              v-model:query="state.source"
+              v-model="formData.source"
+              v-model:query="formData.source"
               :options="professions"
             />
           </UFormGroup>
@@ -335,8 +335,8 @@ else
             name="categories"
           >
             <UInputMenu
-              v-model="state.ParadynamixCatagory"
-              v-model:query="state.ParadynamixCatagory"
+              v-model="formData.ParadynamixCatagory"
+              v-model:query="formData.ParadynamixCatagory"
               :options="categories"
             />
           </UFormGroup>
@@ -347,8 +347,8 @@ else
             name="conferences"
           >
             <UInputMenu
-              v-model="state.SourceConfrence"
-              v-model:query="state.SourceConfrence"
+              v-model="formData.SourceConfrence"
+              v-model:query="formData.SourceConfrence"
               :options="conferences"
             />
           </UFormGroup>
@@ -375,7 +375,7 @@ else
                   name="company1"
                 >
                   <UInput
-                    v-model="state.company1"
+                    v-model="formData.company1"
                     placeholder="Company1"
                   />
                 </UFormGroup>
@@ -386,7 +386,7 @@ else
                   name="company2"
                 >
                   <UInput
-                    v-model="state.company2"
+                    v-model="formData.company2"
                     placeholder="Company2"
                   />
                 </UFormGroup>
@@ -399,7 +399,7 @@ else
                   name="country"
                 >
                   <UInput
-                    v-model="state.country"
+                    v-model="formData.country"
                     placeholder="Country"
                   />
                 </UFormGroup>
@@ -412,7 +412,7 @@ else
                   name="address"
                 >
                   <UInput
-                    v-model="state.address"
+                    v-model="formData.address"
                     placeholder="Address"
                   />
                 </UFormGroup>
@@ -425,7 +425,7 @@ else
                   name="city"
                 >
                   <UInput
-                    v-model="state.city"
+                    v-model="formData.city"
                     placeholder="Dallas"
                   />
                 </UFormGroup>
@@ -436,7 +436,7 @@ else
                   name="state"
                 >
                   <UInputMenu
-                    v-model="state.state"
+                    v-model="formData.state"
                     :options="usstates"
                   />
                 </UFormGroup>
@@ -447,7 +447,7 @@ else
                   name="zip"
                 >
                   <UInput
-                    v-model="state.zip"
+                    v-model="formData.zip"
                     placeholder="65254"
                   />
                 </UFormGroup>
@@ -460,7 +460,7 @@ else
                   name="fax"
                 >
                   <UInput
-                    v-model="state.fax"
+                    v-model="formData.fax"
                     placeholder="Fax"
                   />
                 </UFormGroup>
@@ -471,7 +471,7 @@ else
                   name="homephone"
                 >
                   <UInput
-                    v-model="state.homephone"
+                    v-model="formData.homephone"
                     placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
@@ -484,7 +484,7 @@ else
                   name="email"
                 >
                   <UInput
-                    v-model="state.email"
+                    v-model="formData.email"
                     type="email"
                     placeholder="email"
                   />
@@ -496,7 +496,7 @@ else
                   name="workphone"
                 >
                   <UInput
-                    v-model="state.workphone"
+                    v-model="formData.workphone"
                     placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
@@ -507,7 +507,7 @@ else
                   name="ext"
                 >
                   <UInput
-                    v-model="state.Extension"
+                    v-model="formData.Extension"
                     placeholder="1"
                   />
                 </UFormGroup>
@@ -520,7 +520,7 @@ else
                   name="website"
                 >
                   <UInput
-                    v-model="state.website"
+                    v-model="formData.website"
                     placeholder="website"
                   />
                 </UFormGroup>
@@ -531,7 +531,7 @@ else
                   name="cellphone"
                 >
                   <UInput
-                    v-model="state.cellphone"
+                    v-model="formData.cellphone"
                     placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
@@ -544,7 +544,7 @@ else
                   name="comment"
                 >
                   <UTextarea
-                    v-model="state.notes"
+                    v-model="formData.notes"
                     :rows="3"
                     type="text"
                     placeholder=""
@@ -564,7 +564,7 @@ else
                   name="billcompany1"
                 >
                   <UInput
-                    v-model="state.billcompany1"
+                    v-model="formData.billcompany1"
                     placeholder="Bill Company1"
                   />
                 </UFormGroup>
@@ -575,7 +575,7 @@ else
                   name="billcompany2"
                 >
                   <UInput
-                    v-model="state.billcompany2"
+                    v-model="formData.billcompany2"
                     placeholder="Bill Company2"
                   />
                 </UFormGroup>
@@ -588,7 +588,7 @@ else
                   name="country"
                 >
                   <UInput
-                    v-model="state.billcountry"
+                    v-model="formData.billcountry"
                     placeholder="Bill Country"
                   />
                 </UFormGroup>
@@ -601,7 +601,7 @@ else
                   name="address"
                 >
                   <UInput
-                    v-model="state.billaddress"
+                    v-model="formData.billaddress"
                     placeholder="Bill Address"
                   />
                 </UFormGroup>
@@ -614,7 +614,7 @@ else
                   name="billcity"
                 >
                   <UInput
-                    v-model="state.billcity"
+                    v-model="formData.billcity"
                     placeholder="Dallas"
                   />
                 </UFormGroup>
@@ -625,7 +625,7 @@ else
                   name="billstate"
                 >
                   <UInputMenu
-                    v-model="state.billstate"
+                    v-model="formData.billstate"
                     :options="usstates"
                   />
                 </UFormGroup>
@@ -636,7 +636,7 @@ else
                   name="billzip"
                 >
                   <UInput
-                    v-model="state.billzip"
+                    v-model="formData.billzip"
                     placeholder="65254"
                   />
                 </UFormGroup>
@@ -649,7 +649,7 @@ else
                   name="billfax"
                 >
                   <UInput
-                    v-model="state.billfax"
+                    v-model="formData.billfax"
                     placeholder="Fax"
                   />
                 </UFormGroup>
@@ -660,7 +660,7 @@ else
                   name="billphone"
                 >
                   <UInput
-                    v-model="state.billphone"
+                    v-model="formData.billphone"
                     placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
@@ -673,7 +673,7 @@ else
                   name="ExtensionBill"
                 >
                   <UInput
-                    v-model="state.ExtensionBill"
+                    v-model="formData.ExtensionBill"
                     placeholder=""
                   />
                 </UFormGroup>
@@ -686,7 +686,7 @@ else
                   name="attn"
                 >
                   <UInput
-                    v-model="state.attn"
+                    v-model="formData.attn"
                     placeholder="Attn"
                   />
                 </UFormGroup>
