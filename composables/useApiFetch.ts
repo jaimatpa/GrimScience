@@ -15,7 +15,7 @@ export const useApiFetch = async (url: string, opts: UseFetchOptions<any>) => {
       onResponseError({ response }) {
         toast.add({
           title: 'Error',
-          description: response?._data?.message??'Some error happened!',
+          description: response?._data?.message??response?._data?.error??'Some error happened!',
           icon: 'i-heroicons-exclamation-circle',
           color: 'red'
         })

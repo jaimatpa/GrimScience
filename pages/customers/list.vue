@@ -94,8 +94,33 @@
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'actions',
-        label: 'Actions',
+        key: 'label',
+        label: 'Label',
+        kind: 'actions'
+      }, {
+        key: 'order',
+        label: 'Order',
+        kind: 'actions'
+      }, {
+        key: 'quote',
+        label: 'Quote',
+        kind: 'actions'
+      }, {
+        key: 'serviceOrder',
+        label: 'Service Order',
+        kind: 'actions'
+      }, {
+        key: 'siteVisit',
+        label: 'Site Visit',
+        kind: 'actions'
+      }, {
+        key: 'edit',
+        label: 'Edit',
+        kind: 'actions'
+      }, {
+        key: 'delete',
+        label: 'Delete',
+        kind: 'actions'
       }
     ],
     page: 1,
@@ -111,6 +136,8 @@
   })
   const modalMeta = ref({
     isCustomerModalOpen: false,
+    isServiceOrderDetailModalOpen: false,
+    isQuoteDetailModalOpen: false,
     modalTitle: "New Customer",
     modalDescription: "Add a new customer to your database"
   })
@@ -213,6 +240,14 @@
     modalMeta.value.modalTitle = "Edit";
     modalMeta.value.modalDescription = "Edit customer information"
     modalMeta.value.isCustomerModalOpen = true
+  }
+  const onCreateServiceOrder = (row) => {
+    gridMeta.value.selectedCustomerId = row?.UniqueID
+    modalMeta.value.isServiceOrderDetailModalOpen = true
+  }
+  const onCreateQuote = (row) => {
+    gridMeta.value.selectedCustomerId = row?.UniqueID
+    modalMeta.value.isQuoteDetailModalOpen = true
   }
   const onDelete = async (row: any) => {
     await useApiFetch(`/api/customers/${row?.UniqueID}`, {
@@ -392,7 +427,7 @@
         </template>
       </UDashboardToolbar>
       
-      <!-- New Modal -->
+      <!-- New Customer Detail Modal -->
       <UDashboardModal
         v-model="modalMeta.isCustomerModalOpen"
         :title="modalMeta.modalTitle"
@@ -411,6 +446,24 @@
       >
         <CustomersFormOld @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
       </UDashboardModal> -->
+      <!-- Service Order Modal -->
+      <UDashboardModal
+        v-model="modalMeta.isServiceOrderDetailModalOpen"
+        title="Service Order"
+        :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
+      >
+        <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId"/>
+      </UDashboardModal>
+      <!-- Quote Modal -->
+      <UDashboardModal
+        v-model="modalMeta.isQuoteDetailModalOpen"
+        title="Service Order List"
+        :ui="{width: 'w-[1000px] sm:max-w-7xl'}"
+      >
+        <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId"/>
+      </UDashboardModal>
+
+
       <UTable
         :rows="gridMeta.customers"
         :columns="columns"
@@ -421,6 +474,7 @@
           th: { 
             base: 'sticky top-0 z-10',
             color: 'bg-white dark:text-gray dark:bg-[#111827]',
+            padding: 'p-0'
           }, 
           td: {
             padding: 'py-1'
@@ -431,20 +485,60 @@
         @dblclick="onDblClick"
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-          <CommonSortAndInputFilter 
-            @handle-sorting-button="handleSortingButton" 
-            @handle-input-change="handleFilterInputChange"
-            :label="column.label"
-            :sortable="column.sortable"
-            :sort-key="column.key" 
-            :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-            :filterable="column.filterable"
-            :filter-key="column.key"
-          />
+          <template v-if="column.kind !== 'actions'">
+            <div class="px-4 py-3.5">
+              <CommonSortAndInputFilter 
+                @handle-sorting-button="handleSortingButton" 
+                @handle-input-change="handleFilterInputChange"
+                :label="column.label"
+                :sortable="column.sortable"
+                :sort-key="column.key" 
+                :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
+                :filterable="column.filterable"
+                :filter-key="column.key"
+              />
+            </div>
+            </template>
+            <template v-else class='bg-slate-400'>
+              <div class="flex justify-center text-center w-[53px]">
+                {{ column.label }}
+              </div>
+            </template>
         </template>
-        <template #actions-data="{row}">
-          <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square-20-solid" @click="onEdit(row)"/>
-          <UButton color="gray" variant="ghost" icon="i-heroicons-trash-20-solid" class="ml-2" @click="onDelete(row)"/>
+        <template #label-data="{row}">
+          <UTooltip text="Label" class="flex justify-center">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-tag" @click=""/>
+          </UTooltip>
+        </template>
+        <template #order-data="{row}">
+          <UTooltip text="Order" class="flex justify-center">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-shopping-cart" @click=""/>
+          </UTooltip>
+        </template>
+        <template #quote-data="{row}">
+          <UTooltip text="Quote" class="flex justify-center">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-currency-dollar" @click="onCreateQuote(row)"/>
+          </UTooltip>
+        </template>
+        <template #serviceOrder-data="{row}">
+          <UTooltip text="Service Order" class="flex justify-center">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-chat-bubble-left-ellipsis" @click="onCreateServiceOrder(row)"/>
+          </UTooltip>
+        </template>
+        <template #siteVisit-data="{row}">
+          <UTooltip text="Site Visit" class="flex justify-center">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-clipboard-document-list" @click=""/>
+          </UTooltip>
+        </template>
+        <template #edit-data="{row}">
+          <UTooltip text="Edit" class="flex justify-center">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)"/>
+          </UTooltip>
+        </template>
+        <template #delete-data="{row}">
+          <UTooltip text="Delete" class="flex justify-center">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)"/>
+          </UTooltip>
         </template>
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">

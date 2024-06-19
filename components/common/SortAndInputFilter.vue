@@ -24,7 +24,7 @@ const props = defineProps({
 </script>
 <template>
   <template v-if="props.sortable">
-    <div>
+    <div class="flex justify-center">
       <UButton variant="ghost" color="gray" @click="emit('handleSortingButton', props.sortKey)">
         {{ props.label }}
         <template #trailing>
@@ -37,10 +37,12 @@ const props = defineProps({
     </div>
   </template>
   <template v-else>
-    {{ props.label }}
+    <div class="flex justify-center text-center">
+      {{ props.label }}
+    </div>
   </template>
   <template v-if="props.filterable">
-    <div>
+    <div class="flex justify-center">
       <UInput
         @update:model-value="event => emit('handleInputChange', event, props.filterKey)"
       />
