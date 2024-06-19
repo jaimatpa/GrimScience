@@ -26,7 +26,7 @@ build dev:
   only:
     - dev
   script:
-    - echo -n $ENV_FILE | base64 -d > .env
+    - echo -n $ENV_FILE
     - cat .env
 #    - yarn
 #    - yarn build
