@@ -49,19 +49,25 @@
   })
   const gridMeta = ref({
     defaultColumns: <UTableColumn[]>[{
-        key: 'UniqueID',
+        key: 'complaintNumber',
         label: 'SO#',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'serialid',
+        key: 'serial',
         label: 'Serial#',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'failure',
+        key: 'date',
+        label: 'Date',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
+        key: 'failinvest',
         label: 'Failure Comment',
         sortable: true,
         sortDirection: 'none',
@@ -119,6 +125,7 @@
 
   const init = async () => {
     gridMeta.value.isLoading = true
+    fetchGridData()
     for(const key in headerFilters.value) {
       const apiURL = headerFilters.value[key]?.api?? `/api/service/orders/${key}`;
       await useApiFetch(apiURL, {
@@ -133,27 +140,27 @@
   }
   const fetchGridData = async () => {
     gridMeta.value.isLoading = true
-    await useApiFetch('/api/customers/numbers', {
-      method: 'GET',
-      params: {
-        ...filterValues.value
-      }, 
-      onResponse({ response }) {
-        if(response.status === 200) {
-          gridMeta.value.numberOfOrders = response._data.body
-        }
-      }
-    })
-    if(gridMeta.value.numberOfOrders === 0){
-      gridMeta.value.orders = []
-      gridMeta.value.numberOfOrders = 0
-      gridMeta.value.isLoading = false
-      return;
-    }
-    if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfOrders) {
-      gridMeta.value.page = Math.ceil(gridMeta.value.numberOfOrders / gridMeta.value.pageSize) | 1
-    }
-    await useApiFetch('/api/service/orders', {
+    // await useApiFetch('/api/service/orders/list', {
+    //   method: 'GET',
+    //   // params: {
+    //   //   ...filterValues.value
+    //   // }, 
+    //   onResponse({ response }) {
+    //     if(response.status === 200) {
+    //       gridMeta.value.numberOfOrders = response._data.body
+    //     }
+    //   }
+    // })
+    // if(gridMeta.value.numberOfOrders === 0){
+    //   gridMeta.value.orders = []
+    //   gridMeta.value.numberOfOrders = 0
+    //   gridMeta.value.isLoading = false
+    //   return;
+    // }
+    // if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfOrders) {
+    //   gridMeta.value.page = Math.ceil(gridMeta.value.numberOfOrders / gridMeta.value.pageSize) | 1
+    // }
+    await useApiFetch('/api/service/orders/list', {
       method: 'GET',
       params: {
         page: gridMeta.value.page,
@@ -244,7 +251,7 @@
   }
   const onDblClick = async () =>{
     if(gridMeta.value.selectedOrderId){
-      // modalMeta.value.isServiceOrderModalOpen = true
+      modalMeta.value.isServiceOrderModalOpen = true
     }
   }
 </script>

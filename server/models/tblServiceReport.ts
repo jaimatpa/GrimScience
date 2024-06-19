@@ -123,6 +123,7 @@ const tblServiceReport = sequelize.define('tblServiceReport', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName: 'tblServiceReport',
    timestamps: false
 });
 

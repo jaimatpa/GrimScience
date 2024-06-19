@@ -98,6 +98,9 @@ const propertiesInit = async () => {
       if(response.status === 200) {
         markets.value = response._data.body;
       }
+    }, 
+    onResponseError() {
+      markets.value = []
     }
   })
   await useApiFetch('/api/customers/conferences', {
@@ -106,6 +109,9 @@ const propertiesInit = async () => {
       if(response.status === 200) {
         conferences.value = response._data.body;
       }
+    }, 
+    onResponseError() {
+      conferences.value = []
     }
   })
   await useApiFetch('/api/customers/categories', {
@@ -114,6 +120,9 @@ const propertiesInit = async () => {
       if(response.status === 200) {
         categories.value = response._data.body;
       }
+    },
+    onResponseError() {
+      categories.value = []
     }
   })
   await useApiFetch('/api/customers/professions', {
@@ -122,6 +131,9 @@ const propertiesInit = async () => {
       if(response.status === 200) {
         professions.value = response._data.body;
       }
+    },
+    onResponseError() {
+      professions.value = []
     }
   })
   await useApiFetch('/api/common/usstates',  {
@@ -130,6 +142,15 @@ const propertiesInit = async () => {
       if(response.status === 200) {
         usstates.value = response._data.body;
       }
+    },
+    onResponseError() {
+      usstates.value = [
+        "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", 
+        "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
+        "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", 
+        "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", 
+        "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+      ];
     }
   })
   loadingOverlay.value = false
@@ -414,7 +435,7 @@ else
                   label="State"
                   name="state"
                 >
-                  <USelect
+                  <UInputMenu
                     v-model="state.state"
                     :options="usstates"
                   />
@@ -603,7 +624,7 @@ else
                   label="State"
                   name="billstate"
                 >
-                  <USelect
+                  <UInputMenu
                     v-model="state.billstate"
                     :options="usstates"
                   />

@@ -323,18 +323,20 @@
         <template #left>
           <div class="flex flex-row space-x-3">
             <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
-              <div class="basis-1/7 max-w-[200px]">
-                <UFormGroup
-                  :label="value.label"
-                  :name="key"
-                >
-                  <USelect
-                    v-model="filterValues[`${value.filter}`]"
-                    :options="value.options"
-                    @change="handleFilterChange()"
-                  />
-                </UFormGroup>
-              </div>
+              <template v-if="value.options.length > 1">
+                <div class="basis-1/7 max-w-[200px]">
+                  <UFormGroup
+                    :label="value.label"
+                    :name="key"
+                  >
+                    <USelect
+                      v-model="filterValues[`${value.filter}`]"
+                      :options="value.options"
+                      @change="handleFilterChange()"
+                    />
+                  </UFormGroup>
+                </div>
+              </template>
             </template>
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup
