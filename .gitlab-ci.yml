@@ -27,8 +27,9 @@ build dev:
     - dev
   script:
     - echo -n $ENV_FILE | base64 -d > .env
-    - yarn
-    - yarn build
+    - cat .env
+#    - yarn
+#    - yarn build
 
 deploy development_test:
   stage: deploy
