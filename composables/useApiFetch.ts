@@ -6,6 +6,7 @@ export const useApiFetch = async (url: string, opts: UseFetchOptions<any>) => {
   try {
     const apiFetch = $fetch.create({
       onRequest({ options }) {
+        options.retry = false
         options.headers = {
           ...options.headers, 
           Authorization: token.value ? `Bearer ${token.value}` : ''
@@ -14,7 +15,7 @@ export const useApiFetch = async (url: string, opts: UseFetchOptions<any>) => {
       onResponseError({ response }) {
         toast.add({
           title: 'Error',
-          description: response?._data?.error??'Some error happened!',
+          description: response?._data?.message??'Some error happened!',
           icon: 'i-heroicons-exclamation-circle',
           color: 'red'
         })

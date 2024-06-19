@@ -75,7 +75,7 @@ const tblEmployee = sequelize.define('tblEmployee', {
       type: DataTypes.STRING,
    },
    ACTIVE: {
-      type: DataTypes.DATE,
+      type: DataTypes.BOOLEAN,
    },
    DOTERMINATION: {
       type: DataTypes.STRING,

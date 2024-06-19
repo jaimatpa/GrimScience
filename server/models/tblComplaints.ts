@@ -270,6 +270,7 @@ const tblComplaints = sequelize.define('tblComplaints', {
       type: DataTypes.INTEGER,
    },
 }, {
+   tableName: 'tblComplaints',
    timestamps: false
 });
 

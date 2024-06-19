@@ -36,6 +36,7 @@ const tblOrderDetail = sequelize.define('tblOrderDetail', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName: 'tblOrderDetail',
    timestamps: false
 });
 

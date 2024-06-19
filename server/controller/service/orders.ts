@@ -1,5 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblOrder } from "~/server/models";
+import { tblOrder, tblOrderDetail, tblCustomers, tblComplaints, tblServiceReport, tblBP } from "~/server/models";
 
 const applyFilters = (params) => {
   const filterParams = ['UniqueID', 'orderdate', 'status'];
@@ -16,13 +16,13 @@ const applyFilters = (params) => {
   return whereClause;
 };
 
-// export const customerExistByID = async (id: number | string) => {
-//   const tableDetail = await tblOrder.findByPk(id);
-//   if(tableDetail)
-//     return true;
-//   else
-//     return false;
-// }
+export const orderExistByID = async (id: number | string) => {
+  const tableDetail = await tblOrder.findByPk(id);
+  if(tableDetail)
+    return true;
+  else
+    return false;
+}
 
 export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filterParams) => {
   const limit = parseInt(pageSize as string, 10) || 10;
@@ -30,25 +30,76 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
 
   const whereClause = applyFilters(filterParams);
 
+  tblOrder.hasOne(tblOrderDetail, { foreignKey: 'orderid', sourceKey: 'UniqueID' })
+  // tblCustomers.hasMany(tblOrder, { foreignKey: 'customerid', sourceKey: 'UniqueID' })
+  tblOrder.belongsTo(tblCustomers, { foreignKey: 'customerid', targetKey: 'UniqueID' })
+  tblOrderDetail.belongsTo(tblComplaints, { foreignKey: 'serial', targetKey: 'SERIALNO' })
+  tblComplaints.hasOne(tblServiceReport, { foreignKey: 'COMPLAINTID', sourceKey: 'uniqueID' })
+
   const list = await tblOrder.findAll({
-    attributes: ['UniqueID', 'orderdate', 'status', 'warranty'],
+    attributes: [
+      ['UniqueID', 'orderID'], 
+      'warranty', 
+      'status',
+      [Sequelize.col('tblOrderDetail.serial'), 'serial'],
+      [Sequelize.col('tblOrderDetail.tblComplaint.uniqueID'), 'complaintID'], 
+      [Sequelize.col('tblOrderDetail.tblComplaint.complaintnumber'), 'complaintNumber'], 
+      [Sequelize.col('tblOrderDetail.tblComplaint.failinvest'), 'failinvest'], 
+      [Sequelize.col('tblOrderDetail.tblComplaint.COMPLAINT'), 'complaint'], 
+      [Sequelize.col('tblOrderDetail.tblComplaint.tblServiceReport.REPAIRDATE'), 'date'], 
+      [Sequelize.col('tblCustomer.company1'), 'company'], 
+      [Sequelize.col('tblCustomer.UniqueID'), 'customerID'], 
+    ], 
+    include: [
+      {
+        model: tblOrderDetail,
+        attributes: ['serial'],
+        required: true, // INNER JOIN equivalent,
+        include: [
+          {
+            model: tblComplaints,
+            attributes: ['uniqueID', 'complaintnumber', 'failinvest', 'COMPLAINT'],
+            required: true,
+            include: [
+              {
+                model: tblServiceReport,
+                attributes: ['REPAIRDATE', 'ServiceStatus']
+              }
+            ]
+          }
+        ]
+      }, 
+      {
+        model: tblCustomers,
+        attributes: ['UniqueID', 'company1'],
+        required: true
+      }, 
+    ],
+    order: [[Sequelize.col('tblOrderDetail.tblComplaint.complaintnumber'), 'DESC']],
     where: whereClause,
-    order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
     offset,
-    limit
+    limit,
+    raw: true
   });
-  const formattedList = list.map(item => {
-    const formattedItem = item.toJSON();
-    const orderDate = new Date(formattedItem.orderdate);
-    formattedItem.orderdate = orderDate.toLocaleDateString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric'
-    });
-  
-    return formattedItem;
+  const result = list.map((obj: any) => {
+    const parsedDate = new Date(obj.date);
+    let formattedDate = `${(parsedDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedDate.getDate().toString().padStart(2, '0')}/${parsedDate.getFullYear()}`;
+    // formattedDate = formattedDate.replace(/\n/g, '');
+    return {
+      orderID: obj.orderID,
+      customerID: obj.customerID,
+      warranty: obj.warranty,
+      status: obj.status,
+      serial: obj.serial,
+      complaintID: obj.complaintID,
+      complaintNumber: obj.complaintNumber,
+      failinvest: obj.failinvest,
+      COMPLAINT: obj.COMPLAINT,
+      date: formattedDate,
+      company: obj.company
+    };
   });
-  return formattedList;
+  return result;
 }
 
 export const getAllServiceOrders = async (sortBy, sortOrder, filterParams) => {
@@ -75,13 +126,33 @@ export const getAllServiceOrders = async (sortBy, sortOrder, filterParams) => {
   return formattedList;
 }
 
-// export const getNumberOfCustomers = async (filterParams) => {
-//   const whereClause = applyFilters(filterParams);
-//   const numberOfCustomers = await tblOrder.count({
-//     where: whereClause
-//   });
-//   return numberOfCustomers;
-// }
+export const getNumberOfOrders = async (filterParams) => {
+  const whereClause = applyFilters(filterParams);
+  const numberOfCustomers = await tblOrder.count({
+    where: whereClause
+  });
+  return numberOfCustomers;
+}
+
+export const getProductLines = async (filterParams) => {
+  const distinctProductLines = await tblBP.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('PRODUCTLINE')), 'PRODUCTLINE']
+    ],
+    where: {
+      PRODUCTLINE: {
+        [Op.not]: ''
+      },
+    },
+    order: [
+      ['PRODUCTLINE', 'ASC'],
+    ]
+  });
+
+  const productLineValues = distinctProductLines.map(result => result.get('PRODUCTLINE'));
+
+  return productLineValues;
+}
 
 // export const getCustomerDetail = async (id) => {
 //   const tableDetail = await tblOrder.findByPk(id);

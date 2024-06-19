@@ -408,6 +408,7 @@ const tblBP = sequelize.define('tblBP', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName: 'tblBp',
    timestamps: false
 });
 

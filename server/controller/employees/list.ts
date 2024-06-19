@@ -7,6 +7,9 @@ export const getEmployeeFullNames = async () => {
       attributes: [
         [Sequelize.literal("CONCAT(fname, ' ', lname)"), 'fullName'],
       ],
+      where: {
+        ACTIVE: true
+      }
     });
     return list.map(employee => employee.get('fullName'));
   } catch(err) {
