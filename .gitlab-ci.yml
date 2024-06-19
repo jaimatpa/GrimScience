@@ -7,10 +7,9 @@ before_script:
   - eval $(ssh-agent -s)
   - cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
 
-#cache:
-#  paths:
-#    - node_modules/
-#    - .yarn
+cache:
+  paths:
+    - node_modules/
 
 stages:
   - build
@@ -19,6 +18,11 @@ stages:
 
 build dev:
   stage: build
+  artifacts:
+    untracked: false
+    when: on_success
+    access: all
+    expire_in: 30 days
   only:
     - dev
   script:
@@ -26,17 +30,21 @@ build dev:
     - yarn
     - yarn build
 
-deploy development:
+deploy development_test:
   stage: deploy
-  only:
-    - dev
   script:
-#    - cd bba-client
-    - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" pages/login.vue
-#    - yarn
+    - ls -la
+#deploy development:
+#  stage: deploy
+#  only:
+#    - dev
+#  script:
+##    - cd bba-client
+#    - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" pages/login.vue
+##    - yarn
 #    - yarn generate
-    - echo 'NUXT_UI_PRO_LICENSE=DE96572D-DF69-4CE2-8359-220121662EBA' > .env
-    - rsync -azh --rsh="ssh -o StrictHostKeyChecking=no -l ubuntu" ./** ubuntu@3.132.84.177:/var/www/gms/grimm-management-system-web
-    - ssh -o StrictHostKeyChecking=no ubuntu@3.132.84.177 "pm2 restart all"
+#    - echo 'NUXT_UI_PRO_LICENSE=DE96572D-DF69-4CE2-8359-220121662EBA' > .env
+#    - rsync -azh --rsh="ssh -o StrictHostKeyChecking=no -l ubuntu" ./** ubuntu@3.132.84.177:/var/www/gms/grimm-management-system-web
+#    - ssh -o StrictHostKeyChecking=no ubuntu@3.132.84.177 "pm2 restart all"
 
 
