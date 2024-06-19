@@ -7,6 +7,13 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     '@vueuse/nuxt'
   ],
+  app: {
+    head: {
+      bodyAttrs: {
+        style: 'font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;',
+      }
+    }
+  },
   ui: {
     icons: ['heroicons', 'simple-icons', 'f7'],
     safelistColors: ['primary', 'red', 'orange', 'green']

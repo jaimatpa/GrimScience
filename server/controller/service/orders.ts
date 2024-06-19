@@ -99,7 +99,7 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
       company: obj.company
     };
   });
-  return list;
+  return result;
 }
 
 export const getAllServiceOrders = async (sortBy, sortOrder, filterParams) => {
