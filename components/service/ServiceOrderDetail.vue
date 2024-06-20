@@ -96,6 +96,7 @@
     Extension: null,
     ExtensionBill: null,
   })
+  const serials = ref([])
   const date = ref(new Date())
   const orderers = ref([])
   const orderer = ref([])
@@ -151,6 +152,7 @@
         }
       }
     })
+    
     loadingOverlay.value = false
   }
 
@@ -173,7 +175,7 @@
 </script>
 
 <template>
-  <!-- <div class="vl-parent">
+  <div class="vl-parent">
     <loading
       v-model:active="loadingOverlay"
       :is-full-page="true"
@@ -181,7 +183,7 @@
       backgroundColor="#1B2533"
       loader="dots"
     />
-  </div> -->
+  </div>
   <UForm
     :validate="validate"
     :validate-on="['submit']"
@@ -209,30 +211,30 @@
             </div>
             <div class="flex flex-col mt-4 space-y-3">
               <div>
-                {{ formData.fname + " " + formData.lname }}
+                {{ formData.fname?formData.fname:'' }} {{ formData.lname?formData.lname:'' }}
               </div>
               <div>
-                {{ formData.company1 }}
+                {{ formData.company1?formData.company1:'' }}
               </div>
               <div>
-                {{ formData.company2 }}
+                {{ formData.company2?formData.company2:'' }}
               </div>
               <div>
-                {{ formData.address }}
+                {{ formData.address?formData.address:'' }}
               </div>
               <div>
-                {{ formData.city + ', ' + formData.state + ', ' + formData.zip }}
+                {{ formData.city?formData.city:'' }} {{ formData.state?`, ${formData.state}`:'' }} {{ formData.zip?`, ${formData.zip}`:'' }}
               </div>
               <div class="flex flex-row">
                 <div class="basis-1/2">
-                  H: {{ formData.homephone }}
+                  {{ formData.homephone?`H: ${formData.homephone}`:'' }}
                 </div>
                 <div class="basis-1/2">
-                  W: {{ formData.workphone }}
+                  {{ formData.workphone?`W: ${formData.workphone}`:'' }}
                 </div>
               </div>
               <div>
-                C: {{ formData.cellphone }}
+                 {{ formData.cellphone?`C: ${formData.cellphone}`:'' }}
               </div>
             </div>
           </div>
@@ -242,19 +244,19 @@
             </div>
             <div class="flex flex-col mt-4 space-y-3">
               <div>
-                {{ ' ' }}
+                {{ '' }}
               </div>
               <div>
-                {{ formData.billcompany1 }}
+                {{ formData.billcompany1?formData.billcompany1:'' }}
               </div>
               <div>
-                {{ formData.billcompany2 }}
+                {{ formData.billcompany2?formData.billcompany2:'' }}
               </div>
               <div>
-                {{ formData.billaddress }}
+                {{ formData.billaddress?formData.billaddress:'' }}
               </div>
               <div>
-                {{ formData.billcity + ', ' + formData.billstate + ', ' + formData.billzip }}
+                {{ formData.billcity?formData.billcity:'' }}  {{ formData.billstate?`, ${formData.billstate}`:'' }} {{formData.billzip?`,  ${formData.billzip}`:'' }}
               </div>
               <div>
                 {{ formData.billphone ? `P: ${formData.billphone}` : '' }}
@@ -275,6 +277,11 @@
                 :rows="[]"
                 :ui="{
                   wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                  th:{ 
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-1' 
+                  }
                 }"
               >
                 <template #empty-state>
@@ -292,6 +299,11 @@
                 :columns="orderColumns"
                 :ui="{
                   wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                  th:{ 
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-1' 
+                  }
                 }"
               >
                 <template #empty-state>
@@ -311,6 +323,11 @@
                     :columns="invoiceColumns"
                     :ui="{
                       wrapper: 'h-[100px] border-2 border-gray-300 dark:border-gray-700',
+                      th:{ 
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                        padding: 'p-1' 
+                      }
                     }"
                   >
                   <template #empty-state>
@@ -321,13 +338,13 @@
               </div>
               <div class="flex flex-row space-x-1 mt-1">
                 <div class="basis-1/3 w-full">
-                  <UButton icon="i-heroicons-plus-20-solid" label="New" variant="outline" color="green" block/>
+                  <UButton icon="i-heroicons-plus-20-solid" label="New" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                 </div>
                 <div class="basis-1/3 w-full">
-                  <UButton icon="i-heroicons-plus-20-solid" label="Link" variant="outline" color="green" block/>
+                  <UButton icon="i-heroicons-plus-20-solid" label="Link" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                 </div>
                 <div class="basis-1/3 w-full">
-                  <UButton icon="i-heroicons-minus-circle-20-solid" label="Unlink" variant="outline" color="red" block/>
+                  <UButton icon="i-heroicons-minus-circle-20-solid" label="Unlink" variant="outline" color="red" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                 </div>
               </div>
             </div>
@@ -343,7 +360,12 @@
               <UTable
                 :columns="reportColumns"
                 :ui="{
-                  wrapper: 'h-24 border-2 border-gray-300 dark:border-gray-700'
+                  wrapper: 'h-24 border-2 border-gray-300 dark:border-gray-700',
+                  th:{ 
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-1' 
+                  }
                 }"
               >
                 <template #empty-state>
@@ -357,7 +379,7 @@
                     label="Create Service Report"
                     variant="outline"
                     color="green"
-                    block
+                    :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
                   />
                 </div>
                 <div class="basis-1/2">
@@ -366,7 +388,7 @@
                     label="Clear Selection"
                     variant="outline"
                     color="red"
-                    block
+                    :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
                   />
                 </div>
               </div>
@@ -390,7 +412,7 @@
                     icon="i-heroicons-check-badge-20-solid"
                     label="View Inventory Transaction"
                     variant="outline"
-                    block
+                    :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
                   />
                 </div>
               </div>
@@ -415,7 +437,7 @@
             <div class="flex flex-row">
               <div class="flex mr-2 items-center w-[35px]">Date</div>
               <UPopover :popper="{ placement: 'bottom-start' }">
-                <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'd MMM, yyy')" variant="outline" :ui="{base: 'w-[125px]'}"/>
+                <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'd MMM, yyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                 <template #panel="{ close }">
                   <DatePicker v-model="date" is-required @close="close" />
                 </template>
@@ -485,7 +507,7 @@
                 name="received"
               >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'd MMM, yyy')" variant="outline" :ui="{base: 'w-[125px]'}"/>
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'd MMM, yyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
                     <DatePicker v-model="receivedDate" is-required @close="close" />
                   </template>
@@ -512,25 +534,26 @@
                 />
               </UFormGroup>
             </div>
-            <div class="basis-2/12 flex items-center">
+            <div class="basis-2/12 flex items-end">
               <UButton 
                 icon="i-heroicons-plus-20-solid"
                 label="Receive"
+                :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
               />
             </div>
           </div>
           <div class="flex flex-row space-x-3 px-4 mt-2">
             <div class="basis-1/4">
-              <UButton icon="i-heroicons-document-text-20-solid" label="Save" color="green" variant="outline" block/>
+              <UButton icon="i-heroicons-document-text-20-solid" label="Save" color="green" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/4">
-              <UButton icon="i-heroicons-eye-20-solid" label="Preview Order" variant="outline" block/>
+              <UButton icon="i-heroicons-eye-20-solid" label="Preview Order" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/4">
-              <UButton icon="i-heroicons-eye-20-solid" label="Preview Label" variant="outline" block/>
+              <UButton icon="i-heroicons-eye-20-solid" label="Preview Label" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/4">
-              <UButton icon="i-f7-rays" label="Clear Form" color="red" variant="outline" block/>
+              <UButton icon="i-f7-rays" label="Clear Form" color="red" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
           </div>
         </div>
@@ -573,6 +596,11 @@
                 :rows="[]"
                 :ui="{
                   wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                  th:{ 
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-1' 
+                  }
                 }"
               >
                 <template #empty-state>
@@ -580,12 +608,12 @@
                 </template>
               </UTable>
             </UFormGroup>
-            <div class="flex flex-row justify-end mt-2">
+            <div class="flex flex-row space-x-4 justify-end mt-2">
               <div class="w-[120px]">
-                <UButton icon="i-heroicons-plus-20-solid" variant="outline" label="Add"/>
+                <UButton icon="i-heroicons-plus-20-solid" variant="outline" label="Add" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
               </div>
               <div class="w-[120px]">
-                <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red" label="Remove"/>
+                <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red" label="Remove" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
               </div>
             </div>
           </div>

@@ -40,12 +40,14 @@ const props = defineProps({
     </div>
   </template>
   <template v-else>
-    {{ props.label }}
+    <div class="flex justify-center text-center px-[10px] py-[6px]">
+      {{ props.label }}
+    </div>
   </template>
   <template v-if="props.filterable">
     <div>
       <USelect
-        :options="filterOptions"
+        :options="props.filterOptions"
         @update:model-value="event => emit('handleSelectChange', event, props.filterKey)"
       />
     </div>

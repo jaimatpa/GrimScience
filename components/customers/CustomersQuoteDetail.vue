@@ -53,6 +53,32 @@
     label: 'Description'
   }
   ])
+  const quotedColumns = ref([{
+    key: 'productline',
+    label: 'Product Line',
+  }, {
+    key: 'number',
+    label: 'Number'
+  }, {
+    key: 'description',
+    label: 'Description'
+  }, {
+    key: 'price',
+    label: 'Price'
+  }])
+  const quotedQuantityColumns = ref([{
+    key: 'quantity',
+    label: 'Quantity',
+  }, {
+    key: 'number',
+    label: 'Number'
+  }, {
+    key: 'description',
+    label: 'Description'
+  }, {
+    key: 'price',
+    label: 'Price'
+  }])
   const loadingOverlay = ref(false)
   const formData = reactive({
     customerID: props.selectedCustomer,
@@ -174,7 +200,7 @@
 </script>
 
 <template>
-  <!-- <div class="vl-parent">
+  <div class="vl-parent">
     <loading
       v-model:active="loadingOverlay"
       :is-full-page="true"
@@ -182,7 +208,7 @@
       backgroundColor="#1B2533"
       loader="dots"
     />
-  </div> -->
+  </div>
   <UForm
     :validate="validate"
     :validate-on="['submit']"
@@ -298,65 +324,65 @@
             Customer# 3
           </div>
           <div class="flex flex-row space-x-3">
-          <div class="basis-1/2">
-            <div class="font-bold border-b-2 border-black">
-              Shipping Information
+            <div class="basis-1/2">
+              <div class="font-bold border-b-2 border-black">
+                Shipping Information
+              </div>
+              <div class="flex flex-col mt-4 space-y-3">
+                <div>
+                  {{ formData.fname?formData.fname:'' }} {{ formData.lname?formData.lname:'' }}
+                </div>
+                <div>
+                  {{ formData.company1?formData.company1:'' }}
+                </div>
+                <div>
+                  {{ formData.company2?formData.company2:'' }}
+                </div>
+                <div>
+                  {{ formData.address?formData.address:'' }}
+                </div>
+                <div>
+                  {{ formData.city?formData.city:'' }} {{ formData.state?`, ${formData.state}`:'' }} {{ formData.zip?`, ${formData.zip}`:'' }}
+                </div>
+                <div class="flex flex-row">
+                  <div class="basis-1/2">
+                    {{ formData.homephone?`H: ${formData.homephone}`:'' }}
+                  </div>
+                  <div class="basis-1/2">
+                    {{ formData.workphone?`W: ${formData.workphone}`:'' }}
+                  </div>
+                </div>
+                <div>
+                  {{ formData.cellphone?`C: ${formData.cellphone}`:'' }}
+                </div>
+              </div>
             </div>
-            <div class="flex flex-col mt-4 space-y-3">
-              <div>
-                {{ formData.fname + " " + formData.lname }}
+            <div class="basis-1/2">
+              <div class="font-bold border-b-2 border-black">
+                Billing Information
               </div>
-              <div>
-                {{ formData.company1 }}
-              </div>
-              <div>
-                {{ formData.company2 }}
-              </div>
-              <div>
-                {{ formData.address }}
-              </div>
-              <div>
-                {{ formData.city + ', ' + formData.state + ', ' + formData.zip }}
-              </div>
-              <div class="flex flex-row">
-                <div class="basis-1/2">
-                  H: {{ formData.homephone }}
+              <div class="flex flex-col mt-4 space-y-3">
+                <div>
+                  {{ '' }}
                 </div>
-                <div class="basis-1/2">
-                  W: {{ formData.workphone }}
+                <div>
+                  {{ formData.billcompany1?formData.billcompany1:'' }}
                 </div>
-              </div>
-              <div>
-                C: {{ formData.cellphone }}
+                <div>
+                  {{ formData.billcompany2?formData.billcompany2:'' }}
+                </div>
+                <div>
+                  {{ formData.billaddress?formData.billaddress:'' }}
+                </div>
+                <div>
+                  {{ formData.billcity?formData.billcity:'' }}  {{ formData.billstate?`, ${formData.billstate}`:'' }} {{formData.billzip?`,  ${formData.billzip}`:'' }}
+                </div>
+                <div>
+                  {{ formData.billphone ? `P: ${formData.billphone}` : '' }}
+                </div>
               </div>
             </div>
           </div>
-          <div class="basis-1/2">
-            <div class="font-bold border-b-2 border-black">
-              Billing Information
-            </div>
-            <div class="flex flex-col mt-4 space-y-3">
-              <div>
-                {{ ' ' }}
-              </div>
-              <div>
-                {{ formData.billcompany1 }}
-              </div>
-              <div>
-                {{ formData.billcompany2 }}
-              </div>
-              <div>
-                {{ formData.billaddress }}
-              </div>
-              <div>
-                {{ formData.billcity + ', ' + formData.billstate + ', ' + formData.billzip }}
-              </div>
-              <div>
-                {{ formData.billphone ? `P: ${formData.billphone}` : '' }}
-              </div>
-            </div>
-          </div>
-        </div>
         </div>
       </div>
     </div>
@@ -401,7 +427,7 @@
       Items Quoted
     </div>
     <div class="w-full p-3">
-      <div class="flex flex-col">
+      <div class="flex flex-col space-y-1">
         <div class="flex justify-between">
           <div class="flex flex-row space-x-3">
             <UFormGroup
@@ -422,13 +448,65 @@
               />
             </UFormGroup>          
           </div>
-          <div class="flex justify-between align-middle">
+          <div class="flex justify-between items-center space-x-3">
             <div>
               Show Only Available  Inventory
             </div>
             <div>
               <UCheckbox name="fix"/>
             </div>
+          </div>
+        </div>
+        <div>
+          <UTable 
+            :columns="quotedColumns"
+            :rows="[]" 
+            :ui="{
+              wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+              th:{ 
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                padding: 'p-1',
+               }
+            }"
+          />
+        </div>
+        <div class="flex justify-between">
+          <div class="flex flex-row space-x-3 items-center">
+            <div>Qty</div>
+            <UInput
+              v-model="formData.ParadynamixCatagory"
+            /> 
+            <div>Serial</div>      
+          </div>
+          <div class="flex justify-between items-center space-x-3">
+            <div>
+              <UButton label="ADD" :ui="{base: 'min-w-[125px] justify-center'}"/>
+            </div>
+          </div>
+        </div>
+        <div>
+          <UTable 
+            :columns="quotedQuantityColumns"
+            :rows="[]" 
+            :ui="{
+              wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+              th:{
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]', 
+                padding: 'p-1' 
+              }
+            }"
+          />
+        </div>
+        <div class="flex justify-between">
+          <div>
+            <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline" :ui="{base: 'min-w-[200px]', truncate: 'flex justify-center w-full'}" truncate/>
+          </div>
+          <div class="flex flex-row space-x-3">
+            <UButton icon="i-heroicons-printer" label="Print Folder Label" variant="outline" :ui="{base: 'min-w-[200px]', truncate: 'flex justify-center w-full'}" truncate/>
+            <UButton icon="i-heroicons-chat-bubble-oval-left-ellipsis" label="Preview Report" color="green" variant="outline" :ui="{base: 'min-w-[200px]', truncate: 'flex justify-center w-full'}" truncate/>
+            <UButton icon="i-heroicons-minus-circle" label="Remove" color="red" variant="outline" :ui="{base: 'min-w-[200px]', truncate: 'flex justify-center w-full'}" truncate/>
           </div>
         </div>
       </div>
