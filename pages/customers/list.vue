@@ -136,8 +136,10 @@
   })
   const modalMeta = ref({
     isCustomerModalOpen: false,
-    isServiceOrderDetailModalOpen: false,
+    isOrderDetailModalOpen: false,
     isQuoteDetailModalOpen: false,
+    isServiceOrderDetailModalOpen: false,
+    isSiteVisitModalOpen: false,
     modalTitle: "New Customer",
     modalDescription: "Add a new customer to your database"
   })
@@ -241,13 +243,21 @@
     modalMeta.value.modalDescription = "Edit customer information"
     modalMeta.value.isCustomerModalOpen = true
   }
-  const onCreateServiceOrder = (row) => {
+  const onOrderDetail = (row) => {
+    gridMeta.value.selectedCustomerId = row?.UniqueID
+    modalMeta.value.isOrderDetailModalOpen = true
+  }
+  const onQuoteDetail = (row) => {
+    gridMeta.value.selectedCustomerId = row?.UniqueID
+    modalMeta.value.isQuoteDetailModalOpen = true
+  }
+  const onServiceOrderDetail = (row) => {
     gridMeta.value.selectedCustomerId = row?.UniqueID
     modalMeta.value.isServiceOrderDetailModalOpen = true
   }
-  const onCreateQuote = (row) => {
+  const onSiteVisitDetail = (row) => {
     gridMeta.value.selectedCustomerId = row?.UniqueID
-    modalMeta.value.isQuoteDetailModalOpen = true
+    modalMeta.value.isSiteVisitModalOpen = true
   }
   const onDelete = async (row: any) => {
     await useApiFetch(`/api/customers/${row?.UniqueID}`, {
@@ -446,6 +456,22 @@
       >
         <CustomersFormOld @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
       </UDashboardModal> -->
+      <!-- Order Modal -->
+      <UDashboardModal
+        v-model="modalMeta.isOrderDetailModalOpen"
+        title="Order"
+        :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
+      >
+        <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId"/>
+      </UDashboardModal>      
+      <!-- Quote Modal -->
+      <UDashboardModal
+        v-model="modalMeta.isQuoteDetailModalOpen"
+        title="Quote"
+        :ui="{width: 'w-[1000px] sm:max-w-7xl', body: {padding: 'py-0 sm:pt-0'}}"
+      >
+        <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId"/>
+      </UDashboardModal>
       <!-- Service Order Modal -->
       <UDashboardModal
         v-model="modalMeta.isServiceOrderDetailModalOpen"
@@ -454,15 +480,14 @@
       >
         <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId"/>
       </UDashboardModal>
-      <!-- Quote Modal -->
+      <!-- Site Visit Modal -->
       <UDashboardModal
-        v-model="modalMeta.isQuoteDetailModalOpen"
-        title="Service Order List"
-        :ui="{width: 'w-[1000px] sm:max-w-7xl'}"
+        v-model="modalMeta.isSiteVisitModalOpen"
+        title="Site Visit"
+        :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
       >
-        <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId"/>
+        <CustomersSiteVisitDetail :selected-customer="gridMeta.selectedCustomerId"/>
       </UDashboardModal>
-
 
       <UTable
         :rows="gridMeta.customers"
@@ -512,22 +537,22 @@
         </template>
         <template #order-data="{row}">
           <UTooltip text="Order" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-shopping-cart" @click=""/>
+            <UButton color="gray" variant="ghost" icon="i-heroicons-shopping-cart" @click="onOrderDetail(row)"/>
           </UTooltip>
         </template>
         <template #quote-data="{row}">
           <UTooltip text="Quote" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-currency-dollar" @click="onCreateQuote(row)"/>
+            <UButton color="gray" variant="ghost" icon="i-heroicons-currency-dollar" @click="onQuoteDetail(row)"/>
           </UTooltip>
         </template>
         <template #serviceOrder-data="{row}">
           <UTooltip text="Service Order" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-chat-bubble-left-ellipsis" @click="onCreateServiceOrder(row)"/>
+            <UButton color="gray" variant="ghost" icon="i-heroicons-chat-bubble-left-ellipsis" @click="onServiceOrderDetail(row)"/>
           </UTooltip>
         </template>
         <template #siteVisit-data="{row}">
           <UTooltip text="Site Visit" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-clipboard-document-list" @click=""/>
+            <UButton color="gray" variant="ghost" icon="i-heroicons-clipboard-document-list" @click="onSiteVisitDetail(row)"/>
           </UTooltip>
         </template>
         <template #edit-data="{row}">
