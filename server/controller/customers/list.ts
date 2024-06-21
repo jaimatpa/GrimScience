@@ -1,5 +1,6 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblCustomers } from "~/server/models";
+import { tblCustomers, tblOrder, tblOrderDetail, tblSourceCodes } from "~/server/models";
+import sequelize from '../../utils/databse';
 
 const applyFilters = (params) => {
   const filterParams = ['number', 'fname', 'lname', 'company1', 'homephone', 'workphone', 'state', 'zip', 'market', 'source', 'SourceConfrence', 'ParadynamixCatagory'];
@@ -173,4 +174,79 @@ export const getConferences = async () => {
 
   const distinctCategories = result.map((item: any) => item.SourceConfrence);
   return distinctCategories;
+}
+
+export const getSerialsByID = async (id: Number | String) => {
+  tblOrderDetail.hasOne(tblOrder, { foreignKey: 'UniqueID', sourceKey: 'orderid' })
+  tblOrder.belongsTo(tblCustomers, { foreignKey: 'customerid', targetKey: 'UniqueID' })
+  const list = await tblOrderDetail.findAll({
+    attributes: [ 
+      'serial'
+    ], 
+    include: [
+      {
+        model: tblOrder,
+        attributes: ['UniqueID'],
+        required: true,
+        include: [
+          {          
+            model: tblCustomers,
+            attributes: ['UniqueID'],
+          }
+        ]
+      }, 
+    ],
+    where: {
+      '$tblOrder.tblCustomer.UniqueID$': id
+    },
+    order: [['serial', 'ASC']],
+    raw: true
+  });
+  const result = list.map((obj: any) => {
+    return {
+      serial: obj.serial
+    }
+  });
+  return result;
+}
+
+export const getLastCusomterID  = async () => {
+  const result = await tblOrder.max('UniqueID')
+  return result;
+}
+
+export const getSources = async () => {
+  const list = await tblSourceCodes.findAll({
+    attributes: [ 
+      [Sequelize.fn('DISTINCT', Sequelize.col('source')), 'source']
+    ], 
+    where: {
+      source: {
+        [Op.not]: null
+      }
+    }
+  })
+  const result = list.map((item: any) => {
+    return item.source
+  })
+  return result;
+}
+
+export const getSourceDescriptiosBySource = async (source: string | number) => {
+  const list = await tblSourceCodes.findAll({
+    attributes: [ 
+      [Sequelize.fn('DISTINCT', Sequelize.col('description')), 'description']
+    ], 
+    where: {
+      description: {
+        [Op.not]: null
+      },
+      source: source
+    },
+    order: [['description', 'ASC']]
+  })
+  const result = list.map((item: any) => {
+    return item.description
+  })
+  return result;
 }
