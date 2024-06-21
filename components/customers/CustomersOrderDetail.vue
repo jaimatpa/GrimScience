@@ -128,6 +128,15 @@
   const formData = reactive({
     source: null,
     sourceDescription: null,
+    po: null,
+    soldby: null,
+    productLine: null,
+    model: null,
+    category: null,
+    subcategory: null,
+    stock: null,
+    qty: null,
+    serial: null,
     zone: null,
     installationDate: null,
     installationBy: null,
@@ -148,8 +157,14 @@
     credit: null,
     newCustomerID: 0
   })
+  const sourceCodes = ref([])
   const sourceOptions = ref([])
   const sourceDesriptionOptions = ref([])
+  const soldByOptions = ref([])
+  const productInfos = ref([])
+  const productLineOptions = ref([])
+  const categoryOptions = ref([])
+  const subCategoryOptions = ref([])
   const quoteDate = ref(new Date())
   const expirationDate = ref(new Date(quoteDate.value.getFullYear(), quoteDate.value.getMonth() + 1, quoteDate.value.getDate()));
   const orderers = ref([])
@@ -197,7 +212,6 @@
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
-          loadingOverlay.value = false
           for (const key in response._data.body) {
             if (response._data.body[key]) {
               formData[key] = response._data.body[key]
@@ -215,27 +229,124 @@
         }
       }
     })
-    await useApiFetch(`/api/customers/sources`, {
+    await useApiFetch(`/api/tbl/tblSourceCodes`, {
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
-          loadingOverlay.value = false
-          sourceOptions.value = [null, ...response._data.body]
+          if(response._data?.body?.length){
+            sourceCodes.value = response._data.body;
+            sourceOptions.value = sourceCodes.value.map((item) => item.source).sort();
+            sourceOptions.value = sourceOptions.value.filter((item, index)=>sourceOptions.value.indexOf(item) === index && item != "" && item != null);
+            sourceOptions.value.unshift(null);
+          }else {
+            sourceOptions.value = []
+            sourceDesriptionOptions.value = []
+          }
+        }
+      }
+    })
+    await useApiFetch(`/api/tbl/tblEmployee?ACTIVE=1`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            soldByOptions.value = response._data.body.map(item=>`#${item.payrollnumber||'n/a'} ${item.fname||''} ${item.lname||''}`);
+            soldByOptions.value.unshift(null);
+          }else soldByOptions.value = [];
+        }
+      }
+    })
+    await useApiFetch(`/api/product/productlines`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            productLineOptions.value = response._data?.body
+            productLineOptions.value.unshift(null)
+          }else productLineOptions.value = [];
+        }
+      }
+    })
+    await useApiFetch(`/api/product/categories`, {
+      method: 'GET',
+      params: {
+        productline: formData.productLine
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            categoryOptions.value = response._data?.body
+            categoryOptions.value.unshift(null)
+          }else categoryOptions.value = [];
+        }
+      }
+    })
+    await useApiFetch(`/api/product/subcategories`, {
+      method: 'GET',
+      params: {
+        productline: formData.productLine,
+        category: formData.category
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            subCategoryOptions.value = response._data?.body
+            subCategoryOptions.value.unshift(null)
+          }else subCategoryOptions.value = [];
         }
       }
     })
     loadingOverlay.value = false
   }
-  const onSourceItemChange = async () => {
-    await useApiFetch(`/api/customers/sourcedescriptions`, {
+  const onSourceItemChange = async (optionStr) => {
+    sourceDesriptionOptions.value = sourceCodes.value
+      .filter(item=>item.source === optionStr && item.source != "" && item.source != null)
+      .map(item=>item.description);
+  }
+  const onProductLineChange= async () => {
+    await useApiFetch(`/api/product/categories`, {
       method: 'GET',
       params: {
-        source: formData.source
+        productline: formData.productLine
       },
       onResponse({ response }) {
         if(response.status === 200) {
-          loadingOverlay.value = false
-          sourceDesriptionOptions.value = [null, ...response._data.body]
+          if(response._data?.body?.length){
+            categoryOptions.value = response._data?.body
+            categoryOptions.value.unshift(null)
+          }else categoryOptions.value = [];
+        }
+      }
+    })
+    await useApiFetch(`/api/product/subcategories`, {
+      method: 'GET',
+      params: {
+        productline: formData.productLine,
+        category: formData.category
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            subCategoryOptions.value = response._data?.body
+            subCategoryOptions.value.unshift(null)
+          }else subCategoryOptions.value = [];
+        }
+      }
+    })
+  }
+  const onCategoryChange = async () => {
+    await useApiFetch(`/api/product/subcategories`, {
+      method: 'GET',
+      params: {
+        productline: formData.productLine,
+        category: formData.category
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            subCategoryOptions.value = response._data?.body
+            subCategoryOptions.value.unshift(null)
+          }else subCategoryOptions.value = [];
         }
       }
     })
@@ -314,7 +425,6 @@
                 >
                   <USelect
                     v-model="formData.source"
-                    v-model:query="formData.source"
                     :options="sourceOptions"
                     @change="onSourceItemChange"
                   />
@@ -326,8 +436,7 @@
                   name="sourceDescription"
                 >
                   <USelect
-                    v-model="customerData.sourcedescription"
-                    v-model:query="customerData.sourcedescription"
+                    v-model="formData.sourceDescription"
                     :options="sourceDesriptionOptions"
                   />
                 </UFormGroup>
@@ -338,7 +447,7 @@
                   name="po"
                 >
                   <UInput
-                    v-model="customerData.sourcedescription"
+                    v-model="formData.po"
                   />
                 </UFormGroup>
               </div>
@@ -347,10 +456,9 @@
                   label="Sold By"
                   name="soldby"
                 >
-                  <UInputMenu
-                    v-model="customerData.sourcedescription"
-                    v-model:query="customerData.sourcedescription"
-                    :options="[]"
+                  <USelect
+                    v-model="formData.soldby"
+                    :options="soldByOptions"
                   />
                 </UFormGroup>
               </div>
@@ -460,10 +568,10 @@
                   label="Product Line"
                   name="productLine"
                 >
-                  <UInputMenu
-                    v-model="customerData.market"
-                    v-model:query="customerData.market"
-                    :options="[]"
+                  <USelect
+                    v-model="formData.productLine"
+                    :options="productLineOptions"
+                    @change="onProductLineChange"
                   />
                 </UFormGroup>
               </div>
@@ -482,10 +590,10 @@
                   label="Category"
                   name="category"
                 >
-                  <UInputMenu
-                    v-model="customerData.market"
-                    v-model:query="customerData.market"
-                    :options="[]"
+                  <USelect
+                    v-model="formData.category"
+                    :options="categoryOptions"
+                    @change="onCategoryChange"
                   />
                 </UFormGroup>
               </div>
@@ -494,10 +602,9 @@
                   label="Sub-Category"
                   name="subCategory"
                 >
-                  <UInputMenu
-                    v-model="customerData.market"
-                    v-model:query="customerData.market"
-                    :options="[]"
+                  <USelect
+                    v-model="formData.subcategory"
+                    :options="subCategoryOptions"
                   />
                 </UFormGroup>
               </div>
@@ -506,7 +613,7 @@
                   label="Stock#"
                   name="stock"
                 >
-                  <UInputMenu
+                  <UInput
                     v-model="customerData.market"
                   />
                 </UFormGroup>

@@ -1,4 +1,4 @@
-import { createTableRow, getTableList } from "~/server/controller/common";
+import { createTableRow, getTableList, getTableWhere } from "~/server/controller/common";
 
 export default eventHandler(async (event) => {
   try {
@@ -7,7 +7,28 @@ export default eventHandler(async (event) => {
 
     switch (method.toUpperCase()) {
       case 'GET':
-        const list = await getTableList({ tblName });
+        const query = getQuery(event);
+        let list = [];
+        if(Object.keys(query).length > 0){
+          let orderby = null;
+          if(query.orderby){
+            orderby = query.orderby;
+            orderby = orderby.split(',');
+            delete query.orderby;
+          }
+          let orderdirection = null;
+          if(query.orderdirection){
+            orderdirection = query.orderdirection;
+            orderdirection = orderdirection.split(',');
+            orderby = orderby.map((item, index)=>{
+              return [item, orderdirection[index]||'ASC']
+            })
+            delete query.orderdirection;
+          }
+          console.log(query);
+          console.log(orderby);
+          list = await getTableWhere({tblName, where:query, orderby});
+        }else list = await getTableList({ tblName });
         return { body: list, message: "Table list retrieved successfully." };
       case 'POST':
         const data = await readBody(event);

@@ -1,13 +1,12 @@
-import { getSources } from '~/server/controller/customers';
+import { getProductInfos } from "~/server/controller/product";
 
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    
     switch(method.toUpperCase()){
       case 'GET':
-        const sources = await getSources()
-        return { body: sources, message: '' }
+        const list = await getProductInfos();
+        return { body: list, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

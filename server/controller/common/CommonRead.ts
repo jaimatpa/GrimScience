@@ -12,6 +12,7 @@ interface getTableDetailProps {
 interface getTableWhereProps {
   tblName: string;
   where: object;
+  orderby?: Array<any>;
 }
 
 interface getTableRowWhereProps {
@@ -50,14 +51,18 @@ export const getTableDetail = async ({ tblName, id }: getTableDetailProps) => {
   }
 }
 
-export const getTableWhere = async ({ tblName, where }: getTableWhereProps) => {
+export const getTableWhere = async ({ tblName, where, orderby }: getTableWhereProps) => {
   try {
     if (models[tblName]) {
-      const tableDetail = await models[tblName].findAll({where});
-      if(tableDetail) {
+      const queryOptions:any = { where };
+      if (orderby) {
+        queryOptions.order = orderby;
+      }
+      const tableDetail = await models[tblName].findAll(queryOptions);
+      if (tableDetail) {
         return tableDetail;
       } else {
-        throw new Error(`Record  not found in ${tblName}`);
+        throw new Error(`Record not found in ${tblName}`);
       }
     } else {
       throw new Error(`${tblName} is not defined`);

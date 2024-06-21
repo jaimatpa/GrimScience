@@ -1,5 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblCustomers, tblOrder, tblOrderDetail, tblSourceCodes } from "~/server/models";
+import { tblCustomers, tblOrder, tblOrderDetail, tblSourceCodes, tblEmployee } from "~/server/models";
 import sequelize from '../../utils/databse';
 
 const applyFilters = (params) => {
@@ -221,9 +221,10 @@ export const getSources = async () => {
       [Sequelize.fn('DISTINCT', Sequelize.col('source')), 'source']
     ], 
     where: {
-      source: {
-        [Op.not]: null
-      }
+      [Op.and]: [
+        { source: { [Op.ne]: null } },
+        { source: { [Op.ne]: '' } }
+      ]
     }
   })
   const result = list.map((item: any) => {
@@ -238,15 +239,34 @@ export const getSourceDescriptiosBySource = async (source: string | number) => {
       [Sequelize.fn('DISTINCT', Sequelize.col('description')), 'description']
     ], 
     where: {
-      description: {
-        [Op.not]: null
-      },
+      [Op.and]: [
+        { description: { [Op.ne]: null } },
+        { description: { [Op.ne]: '' } }
+      ],
       source: source
     },
     order: [['description', 'ASC']]
   })
   const result = list.map((item: any) => {
     return item.description
+  })
+  return result;
+}
+
+export const getEmployeesWithPayrollNumber = async () => {
+  const list = await tblEmployee.findAll({
+    attributes: [ 
+      'fname',
+      'lname',
+      'payrollnumber'
+    ], 
+    where: {
+      Active: true
+    },
+    order: [['payrollnumber', 'ASC']]
+  })
+  const result = list.map((item: any) => {
+    return `#${item.payrollnumber} ${item.fname} ${item.lname}`
   })
   return result;
 }

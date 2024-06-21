@@ -1,13 +1,13 @@
-import { getSourceDescriptiosBySource } from '~/server/controller/customers';
+import { getProductSubCategories } from "~/server/controller/product";
 
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    const { source } = getQuery(event)
+    const { productline, category } = getQuery(event)
     switch(method.toUpperCase()){
       case 'GET':
-        const sources = await getSourceDescriptiosBySource(source as string)
-        return { body: sources, message: '' }
+        const list = await getProductSubCategories(productline, category);
+        return { body: list, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
