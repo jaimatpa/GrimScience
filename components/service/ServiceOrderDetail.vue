@@ -152,6 +152,15 @@
         }
       }
     })
+    await useApiFetch(`/api/customers/serials/${props.selectedCustomer}`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          loadingOverlay.value = false
+          serials.value = response._data.body
+        }
+      }
+    })
     
     loadingOverlay.value = false
   }
@@ -274,7 +283,7 @@
             >
               <UTable
                 :columns="serialColumns"
-                :rows="[]"
+                :rows="serials"
                 :ui="{
                   wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
                   th:{ 

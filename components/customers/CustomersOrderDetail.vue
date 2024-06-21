@@ -83,7 +83,7 @@
     label: 'Serial Number'
   }])
   const loadingOverlay = ref(false)
-  const formData = reactive({
+  const customerData = reactive({
     customerID: props.selectedCustomer,
     market: null,
     number: null,
@@ -124,6 +124,19 @@
     fullname: null,
     Extension: null,
     ExtensionBill: null,
+  })
+  const formData = reactive({
+    source: null,
+    sourceDescription: null,
+    po: null,
+    soldby: null,
+    productLine: null,
+    model: null,
+    category: null,
+    subcategory: null,
+    stock: null,
+    qty: null,
+    serial: null,
     zone: null,
     installationDate: null,
     installationBy: null,
@@ -141,8 +154,17 @@
     total: 0.0,
     terms: null,
     check: null,
-    credit: null
+    credit: null,
+    newCustomerID: 0
   })
+  const sourceCodes = ref([])
+  const sourceOptions = ref([])
+  const sourceDesriptionOptions = ref([])
+  const soldByOptions = ref([])
+  const productInfos = ref([])
+  const productLineOptions = ref([])
+  const categoryOptions = ref([])
+  const subCategoryOptions = ref([])
   const quoteDate = ref(new Date())
   const expirationDate = ref(new Date(quoteDate.value.getFullYear(), quoteDate.value.getMonth() + 1, quoteDate.value.getDate()));
   const orderers = ref([])
@@ -190,7 +212,6 @@
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
-          loadingOverlay.value = false
           for (const key in response._data.body) {
             if (response._data.body[key]) {
               formData[key] = response._data.body[key]
@@ -199,9 +220,137 @@
         }
       }
     })
+    await useApiFetch(`/api/customers/lastorderid`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          loadingOverlay.value = false
+          formData.newCustomerID = response._data.body + 1
+        }
+      }
+    })
+    await useApiFetch(`/api/tbl/tblSourceCodes`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            sourceCodes.value = response._data.body;
+            sourceOptions.value = sourceCodes.value.map((item) => item.source).sort();
+            sourceOptions.value = sourceOptions.value.filter((item, index)=>sourceOptions.value.indexOf(item) === index && item != "" && item != null);
+            sourceOptions.value.unshift(null);
+          }else {
+            sourceOptions.value = []
+            sourceDesriptionOptions.value = []
+          }
+        }
+      }
+    })
+    await useApiFetch(`/api/tbl/tblEmployee?ACTIVE=1`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            soldByOptions.value = response._data.body.map(item=>`#${item.payrollnumber||'n/a'} ${item.fname||''} ${item.lname||''}`);
+            soldByOptions.value.unshift(null);
+          }else soldByOptions.value = [];
+        }
+      }
+    })
+    await useApiFetch(`/api/product/productlines`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            productLineOptions.value = response._data?.body
+            productLineOptions.value.unshift(null)
+          }else productLineOptions.value = [];
+        }
+      }
+    })
+    await useApiFetch(`/api/product/categories`, {
+      method: 'GET',
+      params: {
+        productline: formData.productLine
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            categoryOptions.value = response._data?.body
+            categoryOptions.value.unshift(null)
+          }else categoryOptions.value = [];
+        }
+      }
+    })
+    await useApiFetch(`/api/product/subcategories`, {
+      method: 'GET',
+      params: {
+        productline: formData.productLine,
+        category: formData.category
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            subCategoryOptions.value = response._data?.body
+            subCategoryOptions.value.unshift(null)
+          }else subCategoryOptions.value = [];
+        }
+      }
+    })
     loadingOverlay.value = false
   }
-
+  const onSourceItemChange = async (optionStr) => {
+    sourceDesriptionOptions.value = sourceCodes.value
+      .filter(item=>item.source === optionStr && item.source != "" && item.source != null)
+      .map(item=>item.description);
+  }
+  const onProductLineChange= async () => {
+    await useApiFetch(`/api/product/categories`, {
+      method: 'GET',
+      params: {
+        productline: formData.productLine
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            categoryOptions.value = response._data?.body
+            categoryOptions.value.unshift(null)
+          }else categoryOptions.value = [];
+        }
+      }
+    })
+    await useApiFetch(`/api/product/subcategories`, {
+      method: 'GET',
+      params: {
+        productline: formData.productLine,
+        category: formData.category
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            subCategoryOptions.value = response._data?.body
+            subCategoryOptions.value.unshift(null)
+          }else subCategoryOptions.value = [];
+        }
+      }
+    })
+  }
+  const onCategoryChange = async () => {
+    await useApiFetch(`/api/product/subcategories`, {
+      method: 'GET',
+      params: {
+        productline: formData.productLine,
+        category: formData.category
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data?.body?.length){
+            subCategoryOptions.value = response._data?.body
+            subCategoryOptions.value.unshift(null)
+          }else subCategoryOptions.value = [];
+        }
+      }
+    })
+  }
   const validate = (state: any): FormError[] => {
     const errors = []
     if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
@@ -250,8 +399,8 @@
                     label="Order #"
                     name="orderID"
                   >
-                    <div>
-                      2268172
+                    <div class="flex items-center">
+                      {{ formData.newCustomerID }}
                     </div>
                   </UFormGroup>
                  </div>
@@ -274,10 +423,10 @@
                   label="Source"
                   name="source"
                 >
-                  <UInputMenu
+                  <USelect
                     v-model="formData.source"
-                    v-model:query="formData.source"
-                    :options="[]"
+                    :options="sourceOptions"
+                    @change="onSourceItemChange"
                   />
                 </UFormGroup>
               </div>
@@ -286,10 +435,9 @@
                   label="Source Description"
                   name="sourceDescription"
                 >
-                  <UInputMenu
-                    v-model="formData.sourcedescription"
-                    v-model:query="formData.sourcedescription"
-                    :options="[]"
+                  <USelect
+                    v-model="formData.sourceDescription"
+                    :options="sourceDesriptionOptions"
                   />
                 </UFormGroup>
               </div>
@@ -299,7 +447,7 @@
                   name="po"
                 >
                   <UInput
-                    v-model="formData.sourcedescription"
+                    v-model="formData.po"
                   />
                 </UFormGroup>
               </div>
@@ -308,10 +456,9 @@
                   label="Sold By"
                   name="soldby"
                 >
-                  <UInputMenu
-                    v-model="formData.sourcedescription"
-                    v-model:query="formData.sourcedescription"
-                    :options="[]"
+                  <USelect
+                    v-model="formData.soldby"
+                    :options="soldByOptions"
                   />
                 </UFormGroup>
               </div>
@@ -321,8 +468,8 @@
                   name="po"
                 >
                   <UInputMenu
-                    v-model="formData.sourcedescription"
-                    v-model:query="formData.sourcedescription"
+                    v-model="customerData.sourcedescription"
+                    v-model:query="customerData.sourcedescription"
                     :options="[]"
                   />
                 </UFormGroup>
@@ -344,30 +491,30 @@
                   </div>
                   <div class="flex flex-col mt-4 space-y-3">
                     <div>
-                      {{ formData.fname?formData.fname:'' }} {{ formData.lname?formData.lname:'' }}
+                      {{ customerData.fname?customerData.fname:'' }} {{ customerData.lname?customerData.lname:'' }}
                     </div>
                     <div>
-                      {{ formData.company1?formData.company1:'' }}
+                      {{ customerData.company1?customerData.company1:'' }}
                     </div>
                     <div>
-                      {{ formData.company2?formData.company2:'' }}
+                      {{ customerData.company2?customerData.company2:'' }}
                     </div>
                     <div>
-                      {{ formData.address?formData.address:'' }}
+                      {{ customerData.address?customerData.address:'' }}
                     </div>
                     <div>
-                      {{ formData.city?formData.city:'' }} {{ formData.state?`, ${formData.state}`:'' }} {{ formData.zip?`, ${formData.zip}`:'' }}
+                      {{ customerData.city?customerData.city:'' }} {{ customerData.state?`, ${customerData.state}`:'' }} {{ customerData.zip?`, ${customerData.zip}`:'' }}
                     </div>
                     <div class="flex flex-row">
                       <div class="basis-1/2">
-                        {{ formData.homephone?`H: ${formData.homephone}`:'' }}
+                        {{ customerData.homephone?`H: ${customerData.homephone}`:'' }}
                       </div>
                       <div class="basis-1/2">
-                        {{ formData.workphone?`W: ${formData.workphone}`:'' }}
+                        {{ customerData.workphone?`W: ${customerData.workphone}`:'' }}
                       </div>
                     </div>
                     <div>
-                      {{ formData.cellphone?`C: ${formData.cellphone}`:'' }}
+                      {{ customerData.cellphone?`C: ${customerData.cellphone}`:'' }}
                     </div>
                   </div>
                 </div>
@@ -380,19 +527,19 @@
                       {{ '' }}
                     </div>
                     <div>
-                      {{ formData.billcompany1?formData.billcompany1:'' }}
+                      {{ customerData.billcompany1?customerData.billcompany1:'' }}
                     </div>
                     <div>
-                      {{ formData.billcompany2?formData.billcompany2:'' }}
+                      {{ customerData.billcompany2?customerData.billcompany2:'' }}
                     </div>
                     <div>
-                      {{ formData.billaddress?formData.billaddress:'' }}
+                      {{ customerData.billaddress?customerData.billaddress:'' }}
                     </div>
                     <div>
-                      {{ formData.billcity?formData.billcity:'' }}  {{ formData.billstate?`, ${formData.billstate}`:'' }} {{formData.billzip?`,  ${formData.billzip}`:'' }}
+                      {{ customerData.billcity?customerData.billcity:'' }}  {{ customerData.billstate?`, ${customerData.billstate}`:'' }} {{customerData.billzip?`,  ${customerData.billzip}`:'' }}
                     </div>
                     <div>
-                      {{ formData.billphone ? `P: ${formData.billphone}` : '' }}
+                      {{ customerData.billphone ? `P: ${customerData.billphone}` : '' }}
                     </div>
                   </div>
                 </div>
@@ -421,10 +568,10 @@
                   label="Product Line"
                   name="productLine"
                 >
-                  <UInputMenu
-                    v-model="formData.market"
-                    v-model:query="formData.market"
-                    :options="[]"
+                  <USelect
+                    v-model="formData.productLine"
+                    :options="productLineOptions"
+                    @change="onProductLineChange"
                   />
                 </UFormGroup>
               </div>
@@ -434,7 +581,7 @@
                   name="model"
                 >
                   <UInput
-                    v-model="formData.market"
+                    v-model="customerData.market"
                   />
                 </UFormGroup>
               </div>
@@ -443,10 +590,10 @@
                   label="Category"
                   name="category"
                 >
-                  <UInputMenu
-                    v-model="formData.market"
-                    v-model:query="formData.market"
-                    :options="[]"
+                  <USelect
+                    v-model="formData.category"
+                    :options="categoryOptions"
+                    @change="onCategoryChange"
                   />
                 </UFormGroup>
               </div>
@@ -455,10 +602,9 @@
                   label="Sub-Category"
                   name="subCategory"
                 >
-                  <UInputMenu
-                    v-model="formData.market"
-                    v-model:query="formData.market"
-                    :options="[]"
+                  <USelect
+                    v-model="formData.subcategory"
+                    :options="subCategoryOptions"
                   />
                 </UFormGroup>
               </div>
@@ -467,8 +613,8 @@
                   label="Stock#"
                   name="stock"
                 >
-                  <UInputMenu
-                    v-model="formData.market"
+                  <UInput
+                    v-model="customerData.market"
                   />
                 </UFormGroup>
               </div>
@@ -490,11 +636,11 @@
             <div class="flex flex-row space-x-3 items-center">
               <div>Qty:</div>
               <UInput
-                v-model="formData.ParadynamixCatagory"
+                v-model="customerData.ParadynamixCatagory"
               /> 
               <div class="ml-3">Serial</div>
               <UInput
-                v-model="formData.ParadynamixCatagory"
+                v-model="customerData.ParadynamixCatagory"
               />      
             </div>
             <div>
@@ -519,12 +665,12 @@
                 <div class="flex flex-row space-x-2 w-full">
                   <div class="basis-1/2">
                     <UInput
-                      v-model="formData.ParadynamixCatagory"
+                      v-model="customerData.ParadynamixCatagory"
                     />   
                   </div>
                   <div class="basis-1/2">
                     <UInput
-                      v-model="formData.ParadynamixCatagory"
+                      v-model="customerData.ParadynamixCatagory"
                     />   
                   </div>
                 </div>
@@ -550,8 +696,8 @@
                       name="method"
                     >
                       <UInputMenu
-                        v-model="formData.market"
-                        v-model:query="formData.market"
+                        v-model="customerData.market"
+                        v-model:query="customerData.market"
                         :options="[]"
                       />
                     </UFormGroup>
@@ -560,8 +706,8 @@
                       name="fob"
                     >
                       <UInputMenu
-                        v-model="formData.market"
-                        v-model:query="formData.market"
+                        v-model="customerData.market"
+                        v-model:query="customerData.market"
                         :options="[]"
                       />
                     </UFormGroup>
@@ -574,8 +720,8 @@
                       name="package"
                     >
                       <UInputMenu
-                        v-model="formData.market"
-                        v-model:query="formData.market"
+                        v-model="customerData.market"
+                        v-model:query="customerData.market"
                         :options="[]"
                       />
                     </UFormGroup>
@@ -605,7 +751,7 @@
               >
                 <UTextarea
                   :rows="4"
-                  v-model="formData.notes"
+                  v-model="customerData.notes"
                 />
               </UFormGroup>
             </div>
@@ -678,8 +824,8 @@
                   name="installationBy"
                 >
                   <UInputMenu
-                    v-model="formData.market"
-                    v-model:query="formData.market"
+                    v-model="customerData.market"
+                    v-model:query="customerData.market"
                     :options="[]"
                   />
                 </UFormGroup>

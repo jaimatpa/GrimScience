@@ -22,7 +22,7 @@ export default defineNuxtConfig({
     preference: 'light',
   },
   devtools: {
-    enabled: true
+    enabled: false
   },
   typescript: {
     strict: false
