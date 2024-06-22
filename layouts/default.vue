@@ -599,7 +599,7 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
       >
         <template #left>
           <div class="w-full p-3 mt-2">
-            <img src="../public/grimm_logo_menu.png" alt="Grimm Avatar"/>
+            <img src="../public/grimm_logo_menu_dropshadow_v2.png" alt="Grimm Avatar"/>
           </div>
           
         </template>
