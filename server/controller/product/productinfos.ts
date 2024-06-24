@@ -67,18 +67,34 @@ export const getProductSubCategories = async (productline, category) => {
   return productLineValues;
 }
 
-export const getProductInfos = async () => {
+export const getProductInfos = async (productline, category, subcategory, model, stock) => {
+  let whereClause = {
+    [Op.and]: [
+      { PRIMARYPRICE1: { [Op.ne]: null } },
+      { PRIMARYPRICE1: { [Op.ne]: '' } }
+    ]
+  };
+  if (productline) {
+    whereClause['PRODUCTLINE'] = productline
+  } else return []
+  if (category) {
+    whereClause['PARTTYPE'] = category
+  }
+  if (subcategory) {
+    whereClause['SUBCATEGOREY'] = subcategory
+  }
+  console.log(whereClause, !productline)
   const productInfos = await tblBP.findAll({
     attributes: [
+      'UniqueID',
       'PRODUCTLINE',
       'PARTTYPE',
       'SUBCATEGORY',
+      'PRIMARYPRICE1',
+      'DESCRIPTION'
     ],
-    where: {
-      PRODUCTLINE: {
-        [Op.not]: ''
-      },
-    },
+    where: whereClause,
+    limit: 50,
     order: [
       ['PRODUCTLINE', 'ASC'],
       ['PARTTYPE', 'ASC'],

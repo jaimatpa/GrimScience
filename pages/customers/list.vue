@@ -119,7 +119,7 @@
         kind: 'actions'
       }, {
         key: 'delete',
-        label: 'Delete',
+        label: 'Del',
         kind: 'actions'
       }
     ],

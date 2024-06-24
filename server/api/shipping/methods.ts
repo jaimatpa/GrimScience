@@ -1,13 +1,13 @@
-import { getProductInfos } from "~/server/controller/product";
+import { getShippingMethods } from "~/server/controller/shipping";
 
 export default eventHandler(async (event) => {
   try {
-    const { productline, category, subcategory, model, stock } = getQuery(event)
     const method = event._method;
+    
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getProductInfos(productline, category, subcategory, model, stock);
-        return { body: list, message: '' }
+        const shippingMethods = await getShippingMethods();
+        return { body: shippingMethods, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
