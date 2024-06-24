@@ -166,11 +166,8 @@
   const categoryOptions = ref([])
   const subCategoryOptions = ref([])
   const methodOptions = ref([])
-  const packageOptions = ref([])
-  const fobOptions = ref([])
   const productList = ref([])
   const selectedProduct = ref({})
-  const selectedProducts = ref([])
   const orderList = ref([])
   const selectedOrder = ref({})
   const selectedOrders = ref([])
@@ -345,39 +342,6 @@
   }
   const onProductSelect = (row) => {
     selectedProduct.value = row
-    const productListIndex = productList.value.findIndex((product) => product.UniqueID === row.UniqueID)
-    // Double Select
-    // const index = selectedProducts.value.findIndex((product) => product.UniqueID === row.UniqueID)
-    // if(index === -1) {
-    //   selectedProducts.value.push(row)
-    //   const updatedProduct = {...productList.value[productListIndex], class: 'bg-gray-200'}
-    //   productList.value.splice(productListIndex, 1, updatedProduct)
-    // } else {
-    //   let updatedProduct = {}
-    //   Object.keys(productList.value[productListIndex]).forEach(key => {
-    //     if (key !== 'class') {
-    //       updatedProduct[key] = productList.value[productListIndex][key]
-    //     }
-    //   });
-    //   selectedProducts.value.splice(index, 1)
-    //   productList.value.splice(productListIndex, 1, updatedProduct)
-    // }
-
-    // let updatedProduct = {};
-    // productList.value.forEach((product, index) => {
-    //   console.log(product, index, (product.UniqueID === row.UniqueID), product.hasOwnProperty('class'))
-    //   if((product.UniqueID === row.UniqueID) && !product.class) {
-    //     updatedProduct = {...product, class: 'bg-gray-50'}
-    //     productList.value[index] = updatedProduct
-    //   } else {
-    //     Object.keys(product).forEach(key => {
-    //       if (key !== 'class') {
-    //         updatedProduct[key] = product[key]
-    //       }
-    //     });
-    //     productList.value[index] = updatedProduct
-    //   }
-    // })
   }
   const onOrderSelect = (row) => {
     selectedOrder.value = row
@@ -399,20 +363,6 @@
     }
   }
   const handleAddBtnClick =  () => {
-    // if(selectedProducts.value.length && qty.value) {
-    //   selectedProducts.value.forEach((product) => {
-    //     const newOrder = {
-    //       quantity: qty.value,
-    //       ...product,
-    //     }
-    //     selectedOrders.value.push(newOrder)
-    //     orderList.value.push(newOrder)
-    //   })
-    //   itemsTotal.value = 0.0
-    //   orderList.value.forEach((order) => {
-    //     itemsTotal.value += (order?.quantity??0 as number) * (order?.PRIMARYPRICE1??0 as number)
-    //   }) 
-    // }
     if(selectedProduct.value && qty.value) {
         const newOrder = {
           quantity: qty.value,
@@ -435,7 +385,6 @@
     if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
     return errors
   }
-
   async function onSubmit(event: FormSubmitEvent<any>) {
     emit('save', event.data)
     emit('close')
