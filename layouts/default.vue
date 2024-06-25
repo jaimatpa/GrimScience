@@ -630,7 +630,7 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
 
         <template #footer>
           <!-- ~/components/UserDropdown.vue -->
-          <UserDropdown />
+          <CommonUserDropdown />
         </template>
       </UDashboardSidebar>
     </UDashboardPanel>
