@@ -15,6 +15,8 @@
     }
   })
   
+  const toast = useToast()
+  
   const productColumns = ref([{
     key: 'PRODUCTLINE',
     label: 'Product Line',
@@ -31,9 +33,6 @@
   const orderColumns = ref([{
     key: 'quantity',
     label: 'Quantity',
-  }, {
-    key: 'PRODUCTLINE',
-    label: 'Product Line',
   }, {
     key: 'UniqueID',
     label: 'Number'
@@ -91,7 +90,7 @@
     ExtensionBill: null,
   })
   const formData = reactive({
-    customerid: null,
+    customerid: props.selectedCustomer,
     orderdate: new Date(),
     orderid: null,
     shippingmethod: null,
@@ -109,18 +108,15 @@
     fob: '',
     source: null,
     sourcedescription: null,
-    po: null,
     soldby: null,
     serial: null,
-    method: null,
-    package: null,
     Notes: null,
     zone: null,
+    package: null,
     installationdate: new Date(),
-    installationBy: null,
     invoicedate: new Date(),
     shipdate: new Date(),
-    backOrder: null,
+    BackOrder: null,
     subtotal: 0.0,
     total: 0.0,
     lessdiscount: 0.0,
@@ -134,8 +130,8 @@
     TrackingNumbers: null,
     quotenumber: 0,
     weekstodelivery: '',
-    laborcost: 0.0,
-    materialcost: 0.0,
+    laborcost: null,
+    materialcost: null,
     warranty: '',
     acceptancedate: new Date(),
     expirationdate: new Date(),
@@ -165,15 +161,42 @@
   const productLineOptions = ref([])
   const categoryOptions = ref([])
   const subCategoryOptions = ref([])
-  const methodOptions = ref([])
+  const methodOptions = ref(["UPS Ground", "UPS 2nd Day", "UPS Next Day", "Priority Mail", 
+    "USPS Mail", "Field Service", "Deliver", "Pick Up", "Freight", "On-Site"])
+  const fobOptions = ref([null, 'Marietta, OH', 'PAW PAW, MI'])
+  const installationByOptions = ref([])
+  const backOrderOptions = ref([{
+    name: '',
+    value: null
+  }, {
+    name: 'Yes',
+    value: 1
+  }, {
+    name: 'No',
+    value: 0
+  }])
+  const termOptions = ref(["Prepaid", "Check", "Money Order", "Visa", "Master Card", 
+    "Discover", "American Express", "Net 30", "50% Down Net 30", "COD", 
+    "Capped Rental", "Loan/Gift", "Warranty", "Warranty Replacement"])
   const productList = ref([])
-  const selectedProduct = ref({})
+  const selectedProduct = ref(null)
   const orderList = ref([])
-  const selectedOrder = ref({})
+  const selectedOrder = ref(null)
   const selectedOrders = ref([])
-  const qty = ref(null)
+  const qty = ref(1)
   const itemsTotal = ref(0)
   const quoteDate = ref(new Date())
+  const qtyStyle = ref('outline-none')
+  const lessdiscountStyle = ref('outline-none')
+  const lessdownStyle = ref('outline-none')
+  const taxStyle = ref('outline-none')
+  const mdetStyle = ref('outline-none')
+  const codStyle = ref('outline-none')
+  const shippingStyle = ref('outline-none')
+
+  const isUpdatePriceModalOpen = ref(false)
+  const updatedPrice = ref(null)
+  const mdetChecked = ref(false)
 
   const editInit = async () => {
     loadingOverlay.value = true
@@ -211,7 +234,9 @@
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
-          formData.customerid = response._data.body + 1
+          // formData.UniqueID = response._data.body + 1
+          formData.orderid = response._data.body + 1
+          formData.invoicenumber = response._data.body + 1
           loadingOverlay.value = false
         }
       }
@@ -239,7 +264,10 @@
           if(response._data?.body?.length){
             soldByOptions.value = response._data.body.map(item=>`#${item.payrollnumber||'n/a'} ${item.fname||''} ${item.lname||''}`);
             soldByOptions.value.unshift(null);
-          }else soldByOptions.value = [];
+            installationByOptions.value = response._data.body.filter(item => [1, 65, 62, 18, 44].includes(item.UniqueID))
+            installationByOptions.value = installationByOptions.value.map(item => `#${item.payrollnumber||'n/a'} ${item.fname||''} ${item.lname||''}`).sort()
+            installationByOptions.value.unshift(null)
+          } else soldByOptions.value = [];
         }
       }
     })
@@ -251,17 +279,6 @@
             productLineOptions.value = response._data?.body
             productLineOptions.value.unshift(null)
           }else productLineOptions.value = [];
-        }
-      }
-    })
-    await useApiFetch(`/api/shipping/methods`, {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          if(response._data?.body?.length){
-            methodOptions.value = response._data?.body
-            methodOptions.value.unshift(null)
-          }else methodOptions.value = [];
         }
       }
     })
@@ -341,42 +358,109 @@
     fetchProductList()
   }
   const onProductSelect = (row) => {
-    selectedProduct.value = row
+    if(JSON.stringify({...selectedProduct.value, class:""})=== JSON.stringify({...row, class: ""})) selectedProduct.value = null;
+    else {
+      selectedProduct.value = {...row, class:""}
+    }
+
+    productList.value.forEach((product) => {
+      if(product.UniqueID === row.UniqueID && row.class != 'bg-gray-200') {
+        product.class = 'bg-gray-200'
+      }else{
+        delete product.class
+      }
+    })
   }
   const onOrderSelect = (row) => {
-    selectedOrder.value = row
-    const index = selectedOrders.value.findIndex((order) => order.UniqueID === row.UniqueID)
-    const orderListIndex = orderList.value.findIndex((order) => order.UniqueID === row.UniqueID)
-    if(index === -1) {
-      selectedOrders.value.push(row)
-      const updatedOrder = {...orderList.value[orderListIndex], class: 'bg-gray-200'}
-      orderList.value.splice(orderListIndex, 1, updatedOrder)
-    } else {
-      let updatedOrder = {}
-      Object.keys(orderList.value[orderListIndex]).forEach(key => {
-        if (key !== 'class') {
-          updatedOrder[key] = orderList.value[orderListIndex][key]
-        }
-      });
-      selectedOrders.value.splice(index, 1)
-      orderList.value.splice(orderListIndex, 1, updatedOrder)
-    }
+    if(selectedOrder.value == row) selectedOrder.value = null;
+    else selectedOrder.value = row
+
+    orderList.value.forEach((order) => {
+      if(order.UniqueID === row.UniqueID && order.created === row.created && row.class != 'bg-gray-200') {
+        order.class = 'bg-gray-200'
+      }else{
+        delete order.class
+      }
+    })
   }
-  const handleAddBtnClick =  () => {
+  const handleAddBtnClick = () => {
+    if(qty.value < 1 || !Number.isInteger(qty.value)) {
+      qtyStyle.value = 'outline outline-2 outline-[red]'
+      return;
+    } else qtyStyle.value = 'outline-none'
     if(selectedProduct.value && qty.value) {
-        const newOrder = {
-          quantity: qty.value,
-          ...selectedProduct.value,
-        }
-        selectedOrders.value.push(newOrder)
-        orderList.value.push(newOrder)
+      const newOrder = {
+        ...selectedProduct.value,
+        quantity: qty.value,
+        created: new Date().getTime()
+      }
+      orderList.value.push(newOrder)
     }
+    onCalculateInvoiceValues()
+  }
+  const handleRemoveBtnClick = () => {
+    if(selectedOrder.value){
+      const index = orderList.value.findIndex((order) => order.UniqueID === selectedOrder.value.UniqueID && order.created === selectedOrder.value.created)
+      if(index > -1) {
+        orderList.value.splice(index, 1)
+        selectedOrder.value = null
+      }
+    }
+    onCalculateInvoiceValues()
+  }
+  const handleUpdateBtnClick = () => {
+    if(selectedOrder.value) {
+      isUpdatePriceModalOpen.value = true
+      updatedPrice.value = selectedOrder.value.PRIMARYPRICE1
+    }
+    onCalculateInvoiceValues()
+  }
+  const onUpdatePrice = () => {
+    selectedOrder.value.PRIMARYPRICE1 = updatedPrice.value
+    const index = orderList.value.findIndex((item) => item.UniqueID === selectedOrder.value.UniqueID && item.created === selectedOrder.value.created)
+    orderList.value.splice(index, 1, {...orderList.value[index], PRIMARYPRICE1: updatedPrice.value})
+    onCalculateInvoiceValues()
+    isUpdatePriceModalOpen.value = false
   }
   const onCalculateInvoiceValues = () => {
+    let flag = 1;
+    if(!orderList.value.length) flag = 0;
+    if(formData.lessdiscount < 0) {
+      flag = 0
+      lessdiscountStyle.value = 'outline outline-2 outline-[red]'
+    } else lessdiscountStyle.value = 'outline-none'
+    if(formData.lessdown < 0) {
+      flag = 0
+      lessdownStyle.value = 'outline outline-2 outline-[red]'
+    } else lessdownStyle.value = 'outline-none'
+    if(formData.tax < 0) {
+      flag = 0
+      taxStyle.value = 'outline outline-2 outline-[red]'
+    } else taxStyle.value = 'outline-none'
+    if(formData.MDET < 0) {
+      flag = 0
+      mdetStyle.value = 'outline outline-2 outline-[red]'
+    } else mdetStyle.value = 'outline-none'
+    if(formData.cod < 0) {
+      flag = 0
+      codStyle.value = 'outline outline-2 outline-[red]'
+    } else codStyle.value = 'outline-none'
+    if(formData.shipping < 0) {
+      flag = 0
+      shippingStyle.value = 'outline outline-2 outline-[red]'
+    } else shippingStyle.value = 'outline-none'
+    if(!flag) return
+
     itemsTotal.value = 0.0
     orderList.value.forEach((order) => {
       itemsTotal.value += (order?.quantity??0 as number) * (order?.PRIMARYPRICE1??0 as number)
-    }) 
+    })
+
+    formData.subtotal = itemsTotal.value - formData.lessdiscount - formData.lessdown + formData.shipping
+    formData.total = formData.subtotal + (mdetChecked.value?formData.MDET:0)
+    itemsTotal.value = Math.round(itemsTotal.value * 100) / 100;
+    formData.subtotal = Math.round(formData.subtotal * 100) / 100;
+    formData.total = Math.round(formData.total * 100) / 100;
   }
   const validate = (state: any): FormError[] => {
     const errors = []
@@ -386,8 +470,23 @@
     return errors
   }
   async function onSubmit(event: FormSubmitEvent<any>) {
+    await useApiFetch('/api/customers/saveorder', {
+      method: 'POST',
+      body: {...formData, orderDetail: orderList.value},
+      onResponse({ response }) {
+        if(response.status === 201) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-shopping-cart',
+            color: 'green'
+          })
+          emit('close')
+        }
+      }
+    })
     emit('save', event.data)
-    emit('close')
+
   }
   if(props.selectedOrder) 
     editInit()
@@ -396,6 +495,31 @@
 </script>
 
 <template>
+  <UDashboardModal 
+    v-model="isUpdatePriceModalOpen"
+    :ui="{
+      header: { base: 'flex flex-row min-h-[0]', padding: 'p-0' },
+      body: { padding: 'p-0 sm:p-0 sm:px-6 sm:pb-2 sm:pt-2' },
+      width: 'w-[300px]'
+      }"
+  >
+    <div>
+      <div class="flex flex-row space-x-5">
+        <div class="flex items-center">Price: </div>
+        <div class="flex-1 mr-4">
+          <UInput type="number" v-model="updatedPrice"></UInput>
+        </div>
+      </div>
+      <div class="flex flex-row-reverse mt-2">
+        <div class="min-w-[60px]">
+          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onUpdatePrice"/>
+        </div>
+        <div class="min-w-[60px] mr-3">
+          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="isUpdatePriceModalOpen = false"/>
+        </div>
+      </div>
+    </div>
+  </UDashboardModal>
   <div class="vl-parent">
     <loading
       v-model:active="loadingOverlay"
@@ -426,7 +550,7 @@
                     name="orderID"
                   >
                     <div class="flex items-center min-h-[32px]">
-                      {{ formData.customerid }}
+                      {{ formData.orderid }}
                     </div>
                   </UFormGroup>
                  </div>
@@ -474,7 +598,7 @@
                 </div>
                 <div class="flex-1 pl-4">
                   <UInput
-                    v-model="formData.po"
+                    v-model="formData.purchaseordernumber"
                   />
                 </div>
               </div>
@@ -683,6 +807,10 @@
                     <div class="w-[80px]">
                       <UInput
                         v-model="qty"
+                        type="number"
+                        :ui="{
+                          base: qtyStyle
+                        }"
                       /> 
                     </div>
                   </div>
@@ -699,8 +827,8 @@
               </div>
               <div class="flex flex-row space-x-3 ml-4">
                 <UButton label="Add" :ui="{base: 'min-w-[125px] justify-center'}" @click="handleAddBtnClick"/>
-                <UButton label="Remove" :ui="{base: 'min-w-[125px] justify-center '}"/>
-                <UButton label="Update Price" :ui="{base: 'min-w-[125px] justify-center '}"/>
+                <UButton label="Remove" :ui="{base: 'min-w-[125px] justify-center'}" @click="handleRemoveBtnClick"/>
+                <UButton label="Update Price" :ui="{base: 'min-w-[125px] justify-center'}" @click="handleUpdateBtnClick"/>
               </div>
             </div>
             <div>
@@ -738,12 +866,12 @@
                   <div class="flex flex-row space-x-2 w-full">
                     <div class="basis-1/2">
                       <UInput
-                        v-model="customerData.ParadynamixCatagory"
+                        v-model="formData.specialinstructions1"
                       />   
                     </div>
                     <div class="basis-1/2">
                       <UInput
-                        v-model="customerData.ParadynamixCatagory"
+                        v-model="formData.specialinstructions2"
                       />   
                     </div>
                   </div>
@@ -786,8 +914,8 @@
                     name="method"
                   >
                     <USelect
-                      v-model="formData.method"
-                      v-model:query="formData.method"
+                      v-model="formData.shippingmethod"
+                      v-model:query="formData.shippingmethod"
                       :options="methodOptions"
                     />
                   </UFormGroup>
@@ -807,7 +935,7 @@
                     <USelect
                       v-model="formData.fob"
                       v-model:query="formData.fob"
-                      :options="[]"
+                      :options="fobOptions"
                     />
                   </UFormGroup>
                 </div>
@@ -820,7 +948,7 @@
               >
                 <UTextarea
                   :rows="4"
-                  v-model="customerData.notes"
+                  v-model="formData.Notes"
                 />
               </UFormGroup>
             </div>
@@ -840,7 +968,7 @@
                   name="invoice"
                 >
                   <div class="flex items-center min-h-[32px]">
-                    2268172
+                    {{ formData.invoicenumber }}
                   </div>
                 </UFormGroup>
               </div>
@@ -893,9 +1021,9 @@
                   name="installationBy"
                 >
                   <USelect
-                    v-model="customerData.market"
-                    v-model:query="customerData.market"
-                    :options="[]"
+                    v-model="formData.InstallationBy"
+                    v-model:query="formData.InstallationBy"
+                    :options="installationByOptions"
                   />
                 </UFormGroup>
               </div>
@@ -907,9 +1035,10 @@
                       name="backOrder"
                     >
                       <USelect
-                        v-model="formData.backOrder"
-                        v-model:query="formData.backOrder"
-                        :options="[]"
+                        v-model="formData.BackOrder"
+                        v-model:query="formData.BackOrder"
+                        :options="backOrderOptions"
+                        option-attribute="name"
                       />
                     </UFormGroup>
                   </div>
@@ -932,6 +1061,7 @@
                   <UInput
                     v-model="itemsTotal"
                     disabled
+                    type="number"
                     :ui="{
                       base: 'text-right'
                     }"
@@ -945,9 +1075,11 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.lessdiscount"
+                    type="number"
                     :ui="{
-                      base: 'text-right'
+                      base: lessdiscountStyle + ' text-right'
                     }"
+                    @change="onCalculateInvoiceValues"
                   />
                 </div>
               </div>
@@ -958,9 +1090,11 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.lessdown"
+                    type="number"
                     :ui="{
-                      base: 'text-right'
+                      base: lessdownStyle + ' text-right'
                     }"
+                    @change="onCalculateInvoiceValues"
                   />
                 </div>
               </div>
@@ -985,9 +1119,11 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.tax"
+                    type="number"
                     :ui="{
-                      base: 'text-right'
+                      base: taxStyle + ' text-right'
                     }"
+                    @change="onCalculateInvoiceValues"
                   />
                 </div>
               </div>
@@ -1000,7 +1136,7 @@
                     <div class="basis-1/2">
                       <div class="flex flex-row items-center space-x-1">
                         <div>
-                          <UCheckbox name="mdet"/>
+                          <UCheckbox name="mdet" v-model:model-value="mdetChecked" @change="onCalculateInvoiceValues"/>
                         </div>
                         <div>
                           (Apply)
@@ -1011,10 +1147,12 @@
                 </div>
                 <div class="basis-1/2">
                   <UInput
-                    v-model="formData.tax"
+                    v-model="formData.MDET"
+                    type="number"
                     :ui="{
-                      base: 'text-right'
+                      base: mdetStyle + ' text-right'
                     }"
+                    @change="onCalculateInvoiceValues"
                   />
                 </div>
               </div>
@@ -1025,9 +1163,11 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.cod"
+                    type="number"
                     :ui="{
-                      base: 'text-right'
+                      base: codStyle + ' text-right'
                     }"
+                    @change="onCalculateInvoiceValues"
                   />
                 </div>
               </div>
@@ -1038,9 +1178,11 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.shipping"
+                    type="number"
                     :ui="{
-                      base: 'text-right'
+                      base: shippingStyle + ' text-right'
                     }"
+                    @change="onCalculateInvoiceValues"
                   />
                 </div>
               </div>
@@ -1051,6 +1193,8 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.subtotal"
+                    disabled
+                    type="number"
                     :ui="{
                       base: 'text-right'
                     }"
@@ -1064,6 +1208,8 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.total"
+                    disabled
+                    type="number"
                     :ui="{
                       base: 'text-right'
                     }"
@@ -1080,7 +1226,7 @@
                 <UInputMenu
                   v-model="formData.terms"
                   v-model:query="formData.terms"
-                  :options="[]"
+                  :options="termOptions"
                 />
               </UFormGroup>
             </div>
@@ -1120,7 +1266,7 @@
               <UButton icon="i-heroicons-check-badge" label="Receive Checks" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="onSubmit"/>
             </div>
           </div>
         </div>
