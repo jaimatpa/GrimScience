@@ -1,5 +1,5 @@
 <script setup lang="ts">
-await navigateTo("/customers/list")
+await navigateTo("/customers/customers/list")
 import { sub } from 'date-fns'
 import type { Period, Range } from '~/types'
 const { isNotificationsSlideoverOpen } = useDashboard()

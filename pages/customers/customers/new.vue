@@ -12,7 +12,7 @@
           let numberOfCustomers = response._data.body
           let pageSize = 50
           let page = Math.ceil(numberOfCustomers / pageSize)
-          await navigateTo(`/customers/list?page=${page}&pagesize=${pageSize}`)
+          await navigateTo(`/customers/customers/list?page=${page}&pagesize=${pageSize}`)
         }
       }
     })

@@ -83,7 +83,7 @@
         filterable: true
       }, {
         key: 'edit',
-        label: 'Detail',
+        label: 'Edit',
         kind: 'actions'
       }, {
         key: 'delete',

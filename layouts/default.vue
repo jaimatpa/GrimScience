@@ -6,23 +6,23 @@ const { isHelpSlideoverOpen } = useDashboard()
 const customersItems = [
   [{
     label: 'List',
-    to: '/customers/list',
+    to: '/customers/customers/list',
     exact: true
   }, {
     label: 'Service Orders',
-    to: '/service/orders/list'
+    to: '/service/serviceorders/list'
   }, {
     label: 'Message',
-    to: '/customers/message'
+    to: '/customers/messages/list'
   }, {
     label: 'Quote',
-    to: '/customers/quote'
+    to: '/customers/quotes/list'
   }, {
     label: 'Invoice',
-    to: '/customers/invoice'
+    to: '/customers/invoices/list'
   }, {
     label: 'Site Visit',
-    to: '/customers/visit'
+    to: '/customers/visits/list'
   }]
 ]
 const serviceItems = [
@@ -32,7 +32,7 @@ const serviceItems = [
     exact: true
   }, {
     label: 'Service Order',
-    to: '/service/orders/list'
+    to: '/service/serviceorders/list'
   }, {
     label: 'Schedule',
     to: '/service/schedule'
@@ -229,30 +229,30 @@ const links = [{
   }, 
   children: [{
     label: 'List',
-    to: '/customers/list',
+    to: '/customers/customers/list',
     exact: true
   }, {
     label: 'Service Orders',
-    to: '/service/orders/list'
+    to: '/service/serviceorders/list'
   }, {
     label: 'Message',
-    to: '/customers/message'
+    to: '/customers/messages/list'
   }, {
     label: 'Quote',
-    to: '/customers/quote'
+    to: '/customers/quotes/list'
   }, {
     label: 'Invoice',
-    to: '/customers/invoice'
+    to: '/customers/invoices/list'
   }, {
     label: 'Site Visit',
-    to: '/customers/visit'
+    to: '/customers/visits/list'
   }]
 }, {
   id: 'service',
   label: 'Service',
   icon: 'i-heroicons-user-group',
   to: '/service',
-  defaultOpen: route.path.startsWith('/service') && !route.path.match('/service/orders'),
+  defaultOpen: route.path.startsWith('/service') && !route.path.match('/service/serviceorders'),
   tooltip: {
     text: 'customers',
     shortcuts: ['G', 'U']
@@ -263,7 +263,7 @@ const links = [{
     exact: true
   }, {
     label: 'Service Order',
-    to: '/service/orders/list'
+    to: '/service/serviceorders/list'
   }, {
     label: 'Schedule',
     to: '/service/schedule'

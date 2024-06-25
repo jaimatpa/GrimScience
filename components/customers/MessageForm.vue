@@ -164,7 +164,7 @@ else
     <CommonNotFound
       :name="'Customer not found'"
       :message="'The customer you are looking for does not exist'"
-      :to="'/customers/list'"
+      :to="'/customers/customers/list'"
     />
   </template>
   <template v-else>
