@@ -618,7 +618,7 @@
                     <UPopover :popper="{ placement: 'bottom-start' }">
                       <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.orderdate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                       <template #panel="{ close }">
-                        <DatePicker v-model="formData.orderdate" is-required @close="close" />
+                        <CommonDatePicker v-model="formData.orderdate" is-required @close="close" />
                       </template>
                     </UPopover>
                   </UFormGroup>
@@ -1036,7 +1036,7 @@
                   <UPopover :popper="{ placement: 'bottom-start' }">
                     <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.invoicedate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                     <template #panel="{ close }">
-                      <DatePicker v-model="formData.invoicedate" is-required @close="close" />
+                      <CommonDatePicker v-model="formData.invoicedate" is-required @close="close" />
                     </template>
                   </UPopover>
                 </UFormGroup>
@@ -1051,7 +1051,7 @@
                   <UPopover :popper="{ placement: 'bottom-start' }">
                     <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.acceptancedate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                     <template #panel="{ close }">
-                      <DatePicker v-model="formData.acceptancedate" is-required @close="close" />
+                      <CommonDatePicker v-model="formData.acceptancedate" is-required @close="close" />
                     </template>
                   </UPopover>
                 </UFormGroup>
@@ -1064,7 +1064,7 @@
                   <UPopover :popper="{ placement: 'bottom-start' }">
                     <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.shipdate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                     <template #panel="{ close }">
-                      <DatePicker v-model="formData.shipdate" is-required @close="close" />
+                      <CommonDatePicker v-model="formData.shipdate" is-required @close="close" />
                     </template>
                   </UPopover>
                 </UFormGroup>

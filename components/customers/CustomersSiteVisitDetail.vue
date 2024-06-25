@@ -509,7 +509,7 @@
                 <UPopover :popper="{ placement: 'bottom-start' }">
                   <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.siteVisitDate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
-                    <DatePicker v-model="formData.siteVisitDate" is-required @close="close" />
+                    <CommonDatePicker v-model="formData.siteVisitDate" is-required @close="close" />
                   </template>
                 </UPopover>
               </UFormGroup>
@@ -754,7 +754,7 @@
             <UPopover  :popper="{ placement: 'bottom-start' }">
               <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.siteVisitDate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
               <template #panel="{ close }">
-                <DatePicker v-model="formData.siteVisitDate" is-required @close="close" />
+                <CommonDatePicker v-model="formData.siteVisitDate" is-required @close="close" />
               </template>
             </UPopover>
           </UFormGroup>
