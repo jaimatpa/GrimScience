@@ -1,4 +1,4 @@
-import { getProfessions } from '~/server/controller/customers/list';
+import { getProfessions } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {

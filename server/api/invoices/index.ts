@@ -1,4 +1,4 @@
-import { getOrders, createOrder, creteOrderDetail } from '~/server/controller/invoices';
+import { getOrders, createOrder, creteOrderDetail } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {

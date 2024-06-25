@@ -1,5 +1,5 @@
 import ExcelJS from 'exceljs'
-import { getAllServiceOrders } from '~/server/controller/service/orders';
+import { getAllServiceOrders } from '~/server/controller/service';
 
 const workbook = new ExcelJS.Workbook();
 

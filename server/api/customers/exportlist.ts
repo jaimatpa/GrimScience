@@ -1,4 +1,4 @@
-import { getAllCustomers } from '~/server/controller/customers/list';
+import { getAllCustomers } from '~/server/controller/customers';
 import ExcelJS from 'exceljs'
 
 const workbook = new ExcelJS.Workbook();

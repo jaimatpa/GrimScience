@@ -1,4 +1,4 @@
-import { getServiceOrders } from '~/server/controller/service/orders';
+import { getServiceOrders } from '~/server/controller/service';
 
 export default eventHandler(async (event) => {
   try {

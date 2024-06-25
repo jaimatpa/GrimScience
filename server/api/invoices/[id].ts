@@ -1,4 +1,4 @@
-import { orderExistByID, getOrderByID, updateOrder, creteOrderDetail, updateOrderDetail  } from '~/server/controller/invoices';
+import { orderExistByID, getOrderByID, updateOrder, creteOrderDetail, updateOrderDetail  } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {
