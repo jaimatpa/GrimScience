@@ -34,7 +34,7 @@
     key: 'quantity',
     label: 'Quantity',
   }, {
-    key: 'UniqueID',
+    key: 'bpid',
     label: 'Number'
   }, {
     key: 'DESCRIPTION',
@@ -227,7 +227,8 @@
           for (let i = 0; i < response._data.body.length; i++) {
             let item = response._data.body[i];
             const newOrder = {
-              UniqueID: item.bpid,
+              UniqueID: item.UniqueID,
+              bpid: item.bpid,
               quantity: item.quantity,
               DESCRIPTION: item.name,
               PRIMARYPRICE1: item.price,
@@ -256,6 +257,7 @@
         }
       }
     })
+    !props.selectedOrder &&
     await useApiFetch(`/api/invoices/lastorderid`, {
       method: 'GET',
       onResponse({ response }) {
@@ -416,6 +418,8 @@
     if(selectedProduct.value && qty.value) {
       const newOrder = {
         ...selectedProduct.value,
+        UniqueID: null,
+        bpid: selectedProduct.value.UniqueID,
         quantity: qty.value,
         created: new Date().getTime()
       }
@@ -423,11 +427,20 @@
     }
     onCalculateInvoiceValues()
   }
-  const handleRemoveBtnClick = () => {
+  const handleRemoveBtnClick = async () => {
     if(selectedOrder.value){
       const index = orderList.value.findIndex((order) => order.UniqueID === selectedOrder.value.UniqueID && order.created === selectedOrder.value.created)
       if(index > -1) {
         orderList.value.splice(index, 1)
+        if(selectedOrder?.value?.UniqueID??null !== null) {
+          await useApiFetch(`/api/invoices/detail/${selectedOrder.value.UniqueID}`, {
+            method: 'DELETE',
+            onResponse() {
+            }, 
+            onResponseError() {
+            }
+          })
+        }
         selectedOrder.value = null
       }
     }
@@ -495,23 +508,40 @@
     return errors
   }
   async function onSubmit(event: FormSubmitEvent<any>) {
-    await useApiFetch('/api/invoices/saveorder', {
-      method: 'POST',
-      body: {...formData, orderDetail: orderList.value},
-      onResponse({ response }) {
-        if(response.status === 201) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: 'i-heroicons-shopping-cart',
-            color: 'green'
-          })
-          emit('close')
+    if(!props.selectedOrder) { // Create Order
+      await useApiFetch('/api/invoices', {
+        method: 'POST',
+        body: {...formData, orderDetail: orderList.value},
+        onResponse({ response }) {
+          if(response.status === 201) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: 'i-heroicons-shopping-cart',
+              color: 'green'
+            })
+            emit('close')
+          }
         }
-      }
-    })
+      })
+    } else {  // Update Order
+      await useApiFetch(`/api/invoices/${props.selectedOrder}`, { 
+        method: 'PUT',
+        body: {...formData, orderDetail: orderList.value},
+        onResponse({ response }) {
+          if(response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: 'i-heroicons-shopping-cart',
+              color: 'green'
+            })
+            emit('close')
+          }
+        }
+      })
+    }
     emit('save', event.data)
-
   }
   if(props.selectedOrder) {
     editInit()

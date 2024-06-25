@@ -329,7 +329,7 @@
         title="Service Order List"
         :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
       >
-        <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-order="gridMeta.selectedOrderId"/>
+        <!-- <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-order="gridMeta.selectedOrderId"/> -->
       </UDashboardModal>
 
       <div class="flex flex-row px-10 mt-4">

@@ -1,4 +1,4 @@
-import { getTableRowWhere } from "~/server/controller/common/CommonRead";
+import { getTableRowWhere } from "~/server/controller/common";
 import { generateToken, type tokenDataProps } from "~/server/utils/Token";
 
 export default eventHandler(async (event) => {

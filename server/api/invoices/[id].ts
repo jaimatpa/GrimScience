@@ -1,4 +1,4 @@
-import { orderExistByID, getOrderByID  } from '~/server/controller/invoices';
+import { orderExistByID, getOrderByID, updateOrder, creteOrderDetail, updateOrderDetail  } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {
@@ -16,7 +16,35 @@ export default eventHandler(async (event) => {
           return { error: 'The order does not exist' }
         }
       case 'PUT':
-        
+        if (idExist) {
+          const data = await readBody(event);
+          const { orderDetail, ...orderData  } = data
+          const updatedID: any = await updateOrder(id, orderData)
+          let formattedOrderDetail = [];
+          orderDetail.forEach(order => {
+            const tmp = {
+              quantity: order.quantity, 
+              name: order.DESCRIPTION,
+              price: order.PRIMARYPRICE1,
+              serial: order?.serial??'',
+              orderid: id,
+              bpid: order.bdid,
+              UniqueID: order.UniqueID
+            }
+            formattedOrderDetail.push(tmp)
+          });
+          formattedOrderDetail.map(async (order) => {
+            if(order.UniqueID === null){
+              await creteOrderDetail(order)
+            } else {
+              await updateOrderDetail(order.UniqueID, order)
+            }
+          })
+          return {body: updatedID, message: "Order updated successfully" }
+        } else {
+          setResponseStatus(event, 404);
+          return { error: 'The customer does not exist' }
+        }
       case 'DELETE':
         
       default:

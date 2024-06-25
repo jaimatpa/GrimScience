@@ -1,4 +1,4 @@
-import { getNumberOfOrders } from '~/server/controller/invoices';
+import { getNumberOfOrders } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {

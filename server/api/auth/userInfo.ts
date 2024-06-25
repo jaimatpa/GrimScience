@@ -1,4 +1,4 @@
-import { getUserInfo } from "~/server/controller/auth/userInfo";
+import { getUserInfo } from "~/server/controller/auth";
 
 export default eventHandler(async (event) => {
   try {

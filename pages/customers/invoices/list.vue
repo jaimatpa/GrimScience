@@ -83,7 +83,7 @@
         filterable: true
       }, {
         key: 'edit',
-        label: 'Detail',
+        label: 'Edit',
         kind: 'actions'
       }, {
         key: 'delete',
@@ -357,7 +357,7 @@
         title="Order"
         :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
       >
-        <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId" :selected-order="gridMeta.selectedOrderId"  @close="modalMeta.isOrderDetailModalOpen = false"/>
+        <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId" :selected-order="gridMeta.selectedOrderId"  @close="handleModalClose"/>
       </UDashboardModal>    
       
       <UTable

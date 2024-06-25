@@ -1,4 +1,4 @@
-import { customerExistByID, deleteCustomer, getCustomerDetail, updateCustomer } from '~/server/controller/customers/list';
+import { customerExistByID, deleteCustomer, getCustomerDetail, updateCustomer } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {

@@ -1,4 +1,4 @@
-import { getNumberOfCustomers } from '~/server/controller/customers/list';
+import { getNumberOfCustomers } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {

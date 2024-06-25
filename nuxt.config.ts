@@ -38,6 +38,6 @@ export default defineNuxtConfig({
   routeRules: {
     '/login': {ssr: false},
     '/customers/:id': {ssr: false}, 
-    'service/orders/:id': {ssr: false}
+    'service/serviceordersorders/:id': {ssr: false}
   }
 })

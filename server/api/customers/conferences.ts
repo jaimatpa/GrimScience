@@ -1,4 +1,4 @@
-import { getConferences } from '~/server/controller/customers/list';
+import { getConferences } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {

@@ -57,7 +57,7 @@
       </UDashboardNavbar>
       <UDashboardPanelContent>
         <div class="p-6 overflow-x-auto">
-          <ServiceOrderDetail @close="handleClose" @save="handleSave" :selected-order="selectedOrder"/>
+          <!-- <ServiceOrderDetail @close="handleClose" @save="handleSave" :selected-order="selectedOrder"/> -->
         </div>
       </UDashboardPanelContent>
     </UDashboardPanel>
