@@ -1,6 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
 import { tblCustomers, tblOrder, tblOrderDetail, tblSourceCodes, tblEmployee } from "~/server/models";
-import sequelize from '../../utils/databse';
 
 const applyFilters = (params) => {
   const filterParams = ['number', 'fname', 'lname', 'company1', 'homephone', 'workphone', 'state', 'zip', 'market', 'source', 'SourceConfrence', 'ParadynamixCatagory'];
@@ -207,11 +206,6 @@ export const getSerialsByID = async (id: Number | String) => {
       serial: obj.serial
     }
   });
-  return result;
-}
-
-export const getLastCusomterID  = async () => {
-  const result = await tblOrder.max('UniqueID')
   return result;
 }
 

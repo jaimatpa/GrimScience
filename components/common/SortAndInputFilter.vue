@@ -45,6 +45,7 @@ const props = defineProps({
     <div class="flex justify-center">
       <UInput
         @update:model-value="event => emit('handleInputChange', event, props.filterKey)"
+        :ui="{wrapper: 'w-full', base: 'w-full'}"
       />
     </div>
   </template>

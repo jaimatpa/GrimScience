@@ -81,7 +81,7 @@ export const getProductInfos = async (productline, category, subcategory, model,
     whereClause['PARTTYPE'] = category
   }
   if (subcategory) {
-    whereClause['SUBCATEGOREY'] = subcategory
+    whereClause['SUBCATEGORY'] = subcategory
   }
   console.log(whereClause, !productline)
   const productInfos = await tblBP.findAll({

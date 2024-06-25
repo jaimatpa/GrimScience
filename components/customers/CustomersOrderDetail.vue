@@ -92,12 +92,12 @@
   const formData = reactive({
     customerid: props.selectedCustomer,
     orderdate: new Date(),
-    orderid: null,
+    orderid: props?.selectedOrder??null,
     shippingmethod: null,
     datepromised: '',
     specialinstructions1: '',
     specialinstructions2: '',
-    invoicenumber: null,
+    invoicenumber: props?.selectedOrder??null,
     referredby: '',
     referphone1: '',
     referphone2: '',
@@ -116,7 +116,6 @@
     installationdate: new Date(),
     invoicedate: new Date(),
     shipdate: new Date(),
-    BackOrder: null,
     subtotal: 0.0,
     total: 0.0,
     lessdiscount: 0.0,
@@ -200,25 +199,52 @@
 
   const editInit = async () => {
     loadingOverlay.value = true
-    // await useApiFetch(`/api/tbl/tblCustomers/${props.selectedOrder}`, {
-    //   method: 'GET',
-    //   onResponse({ response }) {
-    //     if(response.status === 200) {
-    //       loadingOverlay.value = false
-    //       for (const key in response._data.body) {
-    //         if (response._data.body[key] !== undefined) {
-    //           formData[key] = response._data.body[key]
-    //         }
-    //       }
-    //     }
-    //   }
-    // })
+    await useApiFetch(`/api/invoices/${props.selectedOrder}`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          for (const key in response._data.body) {
+            if (response._data.body[key] !== undefined) {
+              formData[key] = response._data.body[key]
+            }
+          }
+          loadingOverlay.value = false
+        }
+      }
+    })
+    await useApiFetch(`/api/tbl/tblSourceCodes?source=${formData.source}`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          sourcedescriptionOptions.value = response._data.body.map((item) => item.description)
+        }
+      }
+    })
+    await useApiFetch(`/api/invoices/detail/${props.selectedOrder}`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          for (let i = 0; i < response._data.body.length; i++) {
+            let item = response._data.body[i];
+            const newOrder = {
+              UniqueID: item.bpid,
+              quantity: item.quantity,
+              DESCRIPTION: item.name,
+              PRIMARYPRICE1: item.price,
+              serial: item.serial
+            }
+            orderList.value.push(newOrder)
+          }
+        }
+      }
+    })
     await propertiesInit()
+    onCalculateInvoiceValues()
     loadingOverlay.value = false
   }
   const propertiesInit = async () => {
     loadingOverlay.value = true
-    await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
+    await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
@@ -230,17 +256,16 @@
         }
       }
     })
-    await useApiFetch(`/api/customers/lastorderid`, {
+    await useApiFetch(`/api/invoices/lastorderid`, {
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
-          // formData.UniqueID = response._data.body + 1
           formData.orderid = response._data.body + 1
           formData.invoicenumber = response._data.body + 1
-          loadingOverlay.value = false
         }
       }
     })
+    loadingOverlay.value = false
     await useApiFetch(`/api/tbl/tblSourceCodes`, {
       method: 'GET',
       onResponse({ response }) {
@@ -456,8 +481,8 @@
       itemsTotal.value += (order?.quantity??0 as number) * (order?.PRIMARYPRICE1??0 as number)
     })
 
-    formData.subtotal = itemsTotal.value - formData.lessdiscount - formData.lessdown + formData.shipping
-    formData.total = formData.subtotal + (mdetChecked.value?formData.MDET:0)
+    formData.subtotal = Number(itemsTotal.value) - Number(formData.lessdiscount) - Number(formData.lessdown) + Number(formData.shipping)
+    formData.total = Number(formData.subtotal) + (mdetChecked.value?Number(formData.MDET):0)
     itemsTotal.value = Math.round(itemsTotal.value * 100) / 100;
     formData.subtotal = Math.round(formData.subtotal * 100) / 100;
     formData.total = Math.round(formData.total * 100) / 100;
@@ -470,7 +495,7 @@
     return errors
   }
   async function onSubmit(event: FormSubmitEvent<any>) {
-    await useApiFetch('/api/customers/saveorder', {
+    await useApiFetch('/api/invoices/saveorder', {
       method: 'POST',
       body: {...formData, orderDetail: orderList.value},
       onResponse({ response }) {
@@ -488,8 +513,9 @@
     emit('save', event.data)
 
   }
-  if(props.selectedOrder) 
+  if(props.selectedOrder) {
     editInit()
+  }
   else 
     propertiesInit()
 </script>
@@ -560,9 +586,9 @@
                     name="quoteDate"
                   >
                     <UPopover :popper="{ placement: 'bottom-start' }">
-                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(quoteDate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.orderdate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                       <template #panel="{ close }">
-                        <DatePicker v-model="quoteDate" is-required @close="close" />
+                        <DatePicker v-model="formData.orderdate" is-required @close="close" />
                       </template>
                     </UPopover>
                   </UFormGroup>
@@ -993,17 +1019,17 @@
                   name="installationDate"
                 >
                   <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(quoteDate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.acceptancedate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                     <template #panel="{ close }">
-                      <DatePicker v-model="quoteDate" is-required @close="close" />
+                      <DatePicker v-model="formData.acceptancedate" is-required @close="close" />
                     </template>
                   </UPopover>
                 </UFormGroup>
               </div>
               <div class="basis-1/2">
                 <UFormGroup
-                  label="Invoice Date"
-                  name="invoiceDate"
+                  label="Date Shipped"
+                  name="shippedDate"
                 >
                   <UPopover :popper="{ placement: 'bottom-start' }">
                     <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.shipdate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
@@ -1035,8 +1061,8 @@
                       name="backOrder"
                     >
                       <USelect
-                        v-model="formData.BackOrder"
-                        v-model:query="formData.BackOrder"
+                        v-model="formData.Backorder"
+                        v-model:query="formData.Backorder"
                         :options="backOrderOptions"
                         option-attribute="name"
                       />
