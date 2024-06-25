@@ -1,12 +1,13 @@
-import { getProductInfos } from "~/server/controller/product";
+import { getNumberOfOrders } from '~/server/controller/invoices';
 
 export default eventHandler(async (event) => {
   try {
-    const { productline, category, subcategory, model, stock } = getQuery(event)
+    const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;
+    
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getProductInfos(productline, category, subcategory, model, stock);
+        const list = await getNumberOfOrders(filterParams);
         return { body: list, message: '' }
       default:
         setResponseStatus(event, 405);
