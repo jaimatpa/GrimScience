@@ -119,7 +119,7 @@
         kind: 'actions'
       }, {
         key: 'delete',
-        label: 'Delete',
+        label: 'Del',
         kind: 'actions'
       }
     ],
@@ -462,7 +462,7 @@
         title="Order"
         :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
       >
-        <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId"/>
+        <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId" @close="modalMeta.isOrderDetailModalOpen = false"/>
       </UDashboardModal>      
       <!-- Quote Modal -->
       <UDashboardModal
