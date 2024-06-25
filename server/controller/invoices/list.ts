@@ -1,4 +1,4 @@
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 import { tblOrder, tblOrderDetail } from "~/server/models";
 
 const applyFilters = (params) => {
@@ -24,9 +24,19 @@ export const orderExistByID = async (id: number | string) => {
     return false;
 }
 
-export const orderDetailExistByID = async (id: number | string) => {
+export const orderDetailExistByOrderID = async (id: number | string) => {
   const tableDetail = await tblOrderDetail.findOne({
     where: {orderid: id}
+  });
+  if(tableDetail)
+    return true;
+  else
+    return false;
+}
+
+export const orderDetailExistByUniqueID = async (id: number | string) => {
+  const tableDetail = await tblOrderDetail.findOne({
+    where: {UniqueID: id}
   });
   if(tableDetail)
     return true;
@@ -93,4 +103,23 @@ export const creteOrderDetail = async (data) => {
 export const getOrderByID = async (id) => {
   const tableDetail = await tblOrder.findByPk(id);
   return tableDetail
+}
+
+export const updateOrder = async (id, reqData) => {
+  await tblOrder.update(reqData, {
+    where: { UniqueID: id }
+  });
+  return id;
+}
+
+export const updateOrderDetail = async (id, reqData) => {
+  await tblOrderDetail.update(reqData, {
+    where: { UniqueID: id }
+  });
+  return id;
+}
+
+export const deleteOrderDetail = async (id) => {
+  await tblOrderDetail.destroy({where: { UniqueID: id }});
+  return id
 }
