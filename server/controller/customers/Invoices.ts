@@ -1,20 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblOrder, tblOrderDetail } from "~/server/models";
-
-const applyFilters = (params) => {
-  const filterParams = ['uniqueid', 'date', 'customer', 'vendor', 'name', 'for', 'takenby'];
-  const whereClause = {};
-
-  filterParams.forEach(param => {
-    if (params[param]) {
-      whereClause[param] = {
-        [Op.like]: `%${params[param]}%`
-      };
-    }
-  });
-
-  return whereClause;
-};
+import { tblOrder, tblOrderDetail, tblCustomers } from "~/server/models";
 
 export const orderExistByID = async (id: number | string) => {
   const tableDetail = await tblOrder.findByPk(id);
@@ -48,15 +33,66 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
 
-  const whereClause = applyFilters(filterParams);
+  tblOrder.belongsTo(tblCustomers, {foreignKey: 'customerid', targetKey: 'UniqueID' })
 
-  const list = await tblOrder.findAll({
-    where: whereClause,
-    order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
+  let customerWhere = {}
+
+  if(filterParams.customerid) customerWhere['UniqueID'] = {[Op.like]: `%${filterParams.customerid}%`};
+  if(filterParams.company) customerWhere['company1'] = {[Op.like]: `%${filterParams.company}%`};
+  if(filterParams.zip) customerWhere['zip'] = {[Op.like]: `%${filterParams.zip}%`};
+  if(filterParams.customer) customerWhere[Op.or] = Sequelize.where(Sequelize.fn('concat', Sequelize.col('fname'), Sequelize.col('lname')), 'LIKE', `%${filterParams.customer}%`)
+
+  let queryOptions:any = {
+    attributes: [
+      'UniqueID',
+      'orderdate',
+      'shipdate',
+      'customerid',
+      'source',
+      'sourcedescription',
+      'total'
+    ],
+    include: [
+      {
+        model: tblCustomers,
+        attributes: ['fname', 'lname', 'company1', 'zip'],
+        required: true,
+        where: customerWhere
+      }
+    ],
+    order: [['UniqueID', 'ASC']],
+    where:{},
     offset,
-    limit
-  });
-  return list;
+    limit,
+  };
+  
+  if(filterParams.UniqueID) queryOptions.where['UniqueID'] = {[Op.like]: `%${filterParams.UniqueID}%`}
+  if(filterParams.orderdate) queryOptions.where['orderdate'] = {[Op.like]: `%${filterParams.orderdate}%`};
+  if(filterParams.shipdate) queryOptions.where['shipdate'] = {[Op.like]: `%${filterParams.shipdate}%`};
+  if(filterParams.source) queryOptions.where['source'] = {[Op.like]: `%${filterParams.source}%`};
+  if(filterParams.sourcedescription) queryOptions.where['sourcedescription'] = {[Op.like]: `%${filterParams.sourcedescription}%`};
+
+  const list = await tblOrder.findAll(queryOptions);
+  
+  const formattedList = list.map((item: any) => {
+    const parsedOrderDate = new Date(item.orderdate);
+    let formattedOrderDate = `${(parsedOrderDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedOrderDate.getDate().toString().padStart(2, '0')}/${parsedOrderDate.getFullYear()}`;
+    const parsedShipDate = new Date(item.shipdate);
+    let formattedShipDate = `${(parsedShipDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedShipDate.getDate().toString().padStart(2, '0')}/${parsedShipDate.getFullYear()}`;
+    
+    return {
+      UniqueID: item.UniqueID,
+      orderdate: formattedOrderDate,
+      shipdate: formattedShipDate,
+      customerid: item.customerid,
+      source: item.source,
+      sourcedescription: item.sourcedescription,
+      customer: `${item.tblCustomer.fname} ${item.tblCustomer.lname}`,
+      company: item.tblCustomer.company1,
+      zip: item.tblCustomer.zip,
+    }
+  })
+  return formattedList;
 }
 
 export const getOrderDetail = async (id: number | string) => {
@@ -75,11 +111,34 @@ export const getLastCusomterID  = async () => {
 }
 
 export const getNumberOfOrders = async (filterParams) => {
-  const whereClause = applyFilters(filterParams);
-  const numberOfMessages = await tblOrder.count({
-    where: whereClause
-  });
-  return numberOfMessages;
+  tblOrder.belongsTo(tblCustomers, {foreignKey: 'customerid', targetKey: 'UniqueID' })
+
+  let customerWhere = {}
+
+  if(filterParams.customerid) customerWhere['UniqueID'] = {[Op.like]: `%${filterParams.customerid}%`};
+  if(filterParams.company) customerWhere['company1'] = {[Op.like]: `%${filterParams.company}%`};
+  if(filterParams.zip) customerWhere['zip'] = {[Op.like]: `%${filterParams.zip}%`};
+  if(filterParams.customer) customerWhere[Op.or] = Sequelize.where(Sequelize.fn('concat', Sequelize.col('fname'), Sequelize.col('lname')), 'LIKE', `%${filterParams.customer}%`)
+
+  let queryOptions:any = {
+    include: [
+      {
+        model: tblCustomers,
+        required: true,
+        where: customerWhere
+      }
+    ],
+    where:{},
+  };
+  
+  if(filterParams.UniqueID) queryOptions.where['UniqueID'] = {[Op.like]: `%${filterParams.UniqueID}%`}
+  if(filterParams.orderdate) queryOptions.where['orderdate'] = {[Op.like]: `%${filterParams.orderdate}%`};
+  if(filterParams.shipdate) queryOptions.where['shipdate'] = {[Op.like]: `%${filterParams.shipdate}%`};
+  if(filterParams.source) queryOptions.where['source'] = {[Op.like]: `%${filterParams.source}%`};
+  if(filterParams.sourcedescription) queryOptions.where['sourcedescription'] = {[Op.like]: `%${filterParams.sourcedescription}%`};
+
+  const numberOfOrders = await tblOrder.count(queryOptions);
+  return numberOfOrders;
 }
 
 export const createOrder = async (data) => {

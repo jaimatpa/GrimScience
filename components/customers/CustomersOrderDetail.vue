@@ -98,10 +98,10 @@
     specialinstructions1: '',
     specialinstructions2: '',
     invoicenumber: props?.selectedOrder??null,
-    referredby: '',
-    referphone1: '',
-    referphone2: '',
-    referphone3: '',
+    referredby: null,
+    referphone1: null,
+    referphone2: null,
+    referphone3: null,
     terms: '',
     checknoorcreditcardinfo: '',
     purchaseordernumber: '',
@@ -164,16 +164,7 @@
     "USPS Mail", "Field Service", "Deliver", "Pick Up", "Freight", "On-Site"])
   const fobOptions = ref([null, 'Marietta, OH', 'PAW PAW, MI'])
   const installationByOptions = ref([])
-  const backOrderOptions = ref([{
-    name: '',
-    value: null
-  }, {
-    name: 'Yes',
-    value: 1
-  }, {
-    name: 'No',
-    value: 0
-  }])
+  const backOrderOptions = ref([null, "Yes", "No"])
   const termOptions = ref(["Prepaid", "Check", "Money Order", "Visa", "Master Card", 
     "Discover", "American Express", "Net 30", "50% Down Net 30", "COD", 
     "Capped Rental", "Loan/Gift", "Warranty", "Warranty Replacement"])
@@ -1094,7 +1085,6 @@
                         v-model="formData.Backorder"
                         v-model:query="formData.Backorder"
                         :options="backOrderOptions"
-                        option-attribute="name"
                       />
                     </UFormGroup>
                   </div>

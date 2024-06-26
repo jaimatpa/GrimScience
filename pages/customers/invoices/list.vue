@@ -70,6 +70,24 @@
         sortDirection: 'none',
         filterable: true
       }, {
+        key: 'customer',
+        label: 'Customer',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
+        key: 'company',
+        label: 'Company',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
+        key: 'zip',
+        label: 'Zip',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+      }, {
         key: 'source',
         label: 'Source',
         sortable: true,
@@ -109,18 +127,16 @@
     modalDescription: "Add a new customer to your database"
   })
   const filterValues = ref({
-    market: null,
-    source: null,
-    ParadynamixCatagory: null,
-    SourceConfrence: null,
-    number: null,
-    fname: null,
+    UniqueID: null,
+    orderdate: null,
+    shipdate: null,
+    customerid: null,
+    customer: null,
+    company: null,
     lname: null,
-    company1: null,
-    homephone: null,
-    workphone: null,
-    state: null,
-    zip: null
+    zip: null,
+    source: null,
+    sourcedescription: null
   })
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
@@ -211,7 +227,7 @@
     modalMeta.value.isOrderDetailModalOpen = true
   }
   const onDelete = async (row: any) => {
-    await useApiFetch(`/api/customers/${row?.UniqueID}`, {
+    await useApiFetch(`/api/invoices/${row?.UniqueID}`, {
       method: 'DELETE', 
       onResponse({ response }) {
         if (response.status === 200) {
