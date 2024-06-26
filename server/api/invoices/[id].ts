@@ -40,13 +40,14 @@ export default eventHandler(async (event) => {
               await updateOrderDetail(order.UniqueID, order)
             }
           })
-          return {body: updatedID, message: "Order updated successfully" }
+          return { body: updatedID, message: "Order updated successfully" }
         } else {
           setResponseStatus(event, 404);
           return { error: 'The customer does not exist' }
         }
       case 'DELETE':
-        
+        const updatedID: any = await updateOrder(id, {status: 'Closed'})
+        return {body: updatedID, message: "Order deleted successfully" }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
