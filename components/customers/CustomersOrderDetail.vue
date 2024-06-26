@@ -113,7 +113,6 @@
     Notes: null,
     zone: null,
     package: null,
-    installationdate: new Date(),
     invoicedate: new Date(),
     shipdate: new Date(),
     subtotal: 0.0,
@@ -172,10 +171,8 @@
   const selectedProduct = ref(null)
   const orderList = ref([])
   const selectedOrder = ref(null)
-  const selectedOrders = ref([])
   const qty = ref(1)
   const itemsTotal = ref(0)
-  const quoteDate = ref(new Date())
   const qtyStyle = ref('outline-none')
   const lessdiscountStyle = ref('outline-none')
   const lessdownStyle = ref('outline-none')
@@ -199,7 +196,6 @@
               formData[key] = response._data.body[key]
             }
           }
-          loadingOverlay.value = false
         }
       }
     })
@@ -232,7 +228,6 @@
     })
     await propertiesInit()
     onCalculateInvoiceValues()
-    loadingOverlay.value = false
   }
   const propertiesInit = async () => {
     loadingOverlay.value = true

@@ -34,46 +34,59 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
 
   tblOrder.belongsTo(tblCustomers, {foreignKey: 'customerid', targetKey: 'UniqueID' })
+  tblOrder.hasMany(tblOrderDetail, { foreignKey: 'orderid', sourceKey: 'UniqueID' })
 
   let customerWhere = {}
+  let orderDetailWhere = {}
 
   if(filterParams.customerid) customerWhere['UniqueID'] = {[Op.like]: `%${filterParams.customerid}%`};
   if(filterParams.company) customerWhere['company1'] = {[Op.like]: `%${filterParams.company}%`};
   if(filterParams.zip) customerWhere['zip'] = {[Op.like]: `%${filterParams.zip}%`};
   if(filterParams.customer) customerWhere[Op.or] = Sequelize.where(Sequelize.fn('concat', Sequelize.col('fname'), Sequelize.col('lname')), 'LIKE', `%${filterParams.customer}%`)
-
+  if(filterParams.serial) orderDetailWhere['serial'] = {[Op.like]: `%${filterParams.serial}%`};
   let queryOptions:any = {
-    attributes: [
-      'UniqueID',
-      'orderdate',
-      'shipdate',
-      'customerid',
-      'source',
-      'sourcedescription',
-      'total'
-    ],
+    attributes: { exclude: [] },
     include: [
       {
         model: tblCustomers,
         attributes: ['fname', 'lname', 'company1', 'zip'],
         required: true,
         where: customerWhere
+      },
+      {
+        model: tblOrderDetail,
+        attributes: ['serial'],
+        required: true,
+        where: orderDetailWhere
       }
     ],
-    order: [['UniqueID', 'ASC']],
-    where:{},
+    order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
+    where:{
+      status: 'Open'
+    },
     offset,
     limit,
+    disticnt: true
   };
-  
   if(filterParams.UniqueID) queryOptions.where['UniqueID'] = {[Op.like]: `%${filterParams.UniqueID}%`}
   if(filterParams.orderdate) queryOptions.where['orderdate'] = {[Op.like]: `%${filterParams.orderdate}%`};
   if(filterParams.shipdate) queryOptions.where['shipdate'] = {[Op.like]: `%${filterParams.shipdate}%`};
   if(filterParams.source) queryOptions.where['source'] = {[Op.like]: `%${filterParams.source}%`};
   if(filterParams.sourcedescription) queryOptions.where['sourcedescription'] = {[Op.like]: `%${filterParams.sourcedescription}%`};
-
+  if(!filterParams.orderdate && !filterParams.shipdate) queryOptions.where[Op.and] =[
+      {
+        [Op.and]: [
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')),  '>=', `${filterParams.from.replace(/"/g, '')}`),
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')),  '<=', `${filterParams.to.replace(/"/g, '')}`)
+        ]
+      }, {
+        [Op.and]: [
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')),  '>=', `${filterParams.from.replace(/"/g, '')}`),
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')),  '<=', `${filterParams.to.replace(/"/g, '')}`)
+        ]
+      }
+    ] 
   const list = await tblOrder.findAll(queryOptions);
-  
   const formattedList = list.map((item: any) => {
     const parsedOrderDate = new Date(item.orderdate);
     let formattedOrderDate = `${(parsedOrderDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedOrderDate.getDate().toString().padStart(2, '0')}/${parsedOrderDate.getFullYear()}`;
@@ -112,38 +125,80 @@ export const getLastCusomterID  = async () => {
 
 export const getNumberOfOrders = async (filterParams) => {
   tblOrder.belongsTo(tblCustomers, {foreignKey: 'customerid', targetKey: 'UniqueID' })
+  tblOrder.hasMany(tblOrderDetail, { foreignKey: 'orderid', sourceKey: 'UniqueID' })
 
   let customerWhere = {}
+  let orderDetailWhere = {}
 
   if(filterParams.customerid) customerWhere['UniqueID'] = {[Op.like]: `%${filterParams.customerid}%`};
   if(filterParams.company) customerWhere['company1'] = {[Op.like]: `%${filterParams.company}%`};
   if(filterParams.zip) customerWhere['zip'] = {[Op.like]: `%${filterParams.zip}%`};
   if(filterParams.customer) customerWhere[Op.or] = Sequelize.where(Sequelize.fn('concat', Sequelize.col('fname'), Sequelize.col('lname')), 'LIKE', `%${filterParams.customer}%`)
-
+  if(filterParams.serial) orderDetailWhere['serial'] = {[Op.like]: `%${filterParams.serial}%`};
   let queryOptions:any = {
+    attributes: { exclude: [] },
     include: [
       {
         model: tblCustomers,
+        attributes: ['fname', 'lname', 'company1', 'zip'],
         required: true,
         where: customerWhere
+      },
+      {
+        model: tblOrderDetail,
+        attributes: ['serial'],
+        required: true,
+        where: orderDetailWhere
       }
     ],
-    where:{},
+    where:{
+      status: 'Open'
+    },
+    disticnt: true
   };
-  
   if(filterParams.UniqueID) queryOptions.where['UniqueID'] = {[Op.like]: `%${filterParams.UniqueID}%`}
   if(filterParams.orderdate) queryOptions.where['orderdate'] = {[Op.like]: `%${filterParams.orderdate}%`};
   if(filterParams.shipdate) queryOptions.where['shipdate'] = {[Op.like]: `%${filterParams.shipdate}%`};
   if(filterParams.source) queryOptions.where['source'] = {[Op.like]: `%${filterParams.source}%`};
   if(filterParams.sourcedescription) queryOptions.where['sourcedescription'] = {[Op.like]: `%${filterParams.sourcedescription}%`};
-
+  if(!filterParams.orderdate && !filterParams.shipdate) queryOptions.where[Op.and] =[
+      {
+        [Op.and]: [
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')),  '>=', `${filterParams.from.replace(/"/g, '')}`),
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')),  '<=', `${filterParams.to.replace(/"/g, '')}`)
+        ]
+      }, {
+        [Op.and]: [
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')),  '>=', `${filterParams.from.replace(/"/g, '')}`),
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')),  '<=', `${filterParams.to.replace(/"/g, '')}`)
+        ]
+      }
+    ] 
   const numberOfOrders = await tblOrder.count(queryOptions);
   return numberOfOrders;
 }
 
 export const createOrder = async (data) => {
   try{
-    const newOrder = await tblOrder.create(data);
+    let newData = {}
+    const keys = Object.keys(data);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      if (['orderdate', 'shipdate', 'invoicedate', 'installationdate', 'acceptancedate', 'expirationdate'].includes(key)) {
+        const inputDate = new Date(data[key]);
+        const month = inputDate.getMonth() + 1;
+        const day = inputDate.getDate();
+        const year = inputDate.getFullYear();
+        const hours = inputDate.getHours();
+        const minutes = inputDate.getMinutes();
+        const seconds = inputDate.getSeconds();
+        const amOrPm = hours >= 12 ? 'PM' : 'AM';
+        const formattedHours = hours % 12 || 12;
+        const formattedDate = `${month}/${day}/${year} ${formattedHours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} ${amOrPm}`;
+        newData[key] = formattedDate
+      } else newData[key] = data[key]
+    }
+    const newOrder = await tblOrder.create(newData);
     return newOrder
   }catch(error){
     throw new Error(`Error fetching data from table: ${error.message}`);
