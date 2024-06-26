@@ -8,6 +8,10 @@
     title: 'Grimm-Employees List'
   })
 
+  const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
+  const descIcon = "i-heroicons-bars-arrow-down-20-solid"
+  const noneIcon = "i-heroicons-arrows-up-down-20-solid"
+
   const route = useRoute()
   const toast = useToast()
 
@@ -67,15 +71,28 @@
       }, {
         key: 'state',
         label: 'State',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
       }, {
         key: 'zip',
         label: 'Zip',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
       }, {
         key: 'home',
         label: 'Home',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
       }, {
         key: 'homephone',
-        label: 'Home Cell Phone'
+        label: 'Home Cell Phone',
+        sortable: true,
+        sortDirection: 'none',
+        filterable: true
+        
       }
     ],
     page: 1,
@@ -100,8 +117,17 @@
     modalDescription: "Add a new Employee to your database"
   })
   const filterValues = ref({
-    Active:  false,
-    inActive: false
+    ACTIVE:  false,
+    // inActive: false,
+    payrollno: null,
+    fname: null,
+    lname: null,
+    address: null, 
+    city: null,
+    state: null,
+    zip: null,
+    home: null,
+    homephone: null
   })
 
   const selectedColumns = ref(gridMeta.value.defaultColumns)
@@ -189,9 +215,9 @@
 
     filterValues.value.Active = headerCheckboxes.value.active.isChecked
     // filterValues.value.inActive = headerCheckboxes.value.inactive.isChecked
-    console.log('√√', filterValues.value);
+    // console.log('√√', filterValues.value);
     
-    fetchGridData()
+    // fetchGridData()
   }
 
   const handlePageChange = async () => {
@@ -201,6 +227,48 @@
   const onCreate = () => {
     console.log("create employee")
    
+  }
+
+  const handleSortingButton = async (btnName: string) => {
+    gridMeta.value.page = 1
+    for(const column of columns.value) {
+      if(column.sortable) {
+        if (column.key === btnName) {
+          switch(column.sortDirection) {
+            case 'none':
+              column.sortDirection = 'asc';
+              gridMeta.value.sort.column = btnName;
+              gridMeta.value.sort.direction = 'asc';
+              break;
+            case 'asc':
+              column.sortDirection = 'desc';
+              gridMeta.value.sort.column = btnName;
+              gridMeta.value.sort.direction = 'desc';
+              break;
+            default:
+              column.sortDirection = 'none';
+              gridMeta.value.sort.column = 'UniqueID';
+              gridMeta.value.sort.direction = 'asc';
+              break;
+          }
+        } else {
+          column.sortDirection = 'none';
+        }
+      }
+    }
+    fetchGridData()
+  }
+
+  const handleFilterInputChange = async (event, name) => {
+    gridMeta.value.page = 1
+    if (filterValues.value.hasOwnProperty(name)) {
+      filterValues.value[name] = event;
+    } else {
+      console.error(`Filter does not have property: ${name}`);
+    }
+    console.log('filterValues',filterValues.value);
+    
+    fetchGridData()
   }
 
 
@@ -256,6 +324,27 @@
         :loading="gridMeta.isLoading"
         class="w-full"
       >
+      <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+          <template v-if="column.kind !== 'actions'">
+            <div class="px-4 py-3.5">
+              <CommonSortAndInputFilter 
+                @handle-sorting-button="handleSortingButton" 
+                @handle-input-change="handleFilterInputChange"
+                :label="column.label"
+                :sortable="column.sortable"
+                :sort-key="column.key" 
+                :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
+                :filterable="column.filterable"
+                :filter-key="column.key"
+              />
+            </div>
+            </template>
+            <template v-else class='bg-slate-400'>
+              <div class="flex justify-center text-center w-[53px]">
+                {{ column.label }}
+              </div>
+            </template>
+        </template>
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1" >
