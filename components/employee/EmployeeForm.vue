@@ -1,0 +1,666 @@
+<script setup lang="ts">
+import type { FormError, FormSubmitEvent } from '#ui/types'
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/css/index.css';
+import { format } from 'date-fns'
+
+const fileRef = ref<HTMLInputElement>()
+
+const emit = defineEmits(['close', 'save'])
+const props = defineProps({
+    selectedCustomer: {
+        type: [String, Number, null],
+        required: true
+    },
+    isModal: {
+        type: [Boolean]
+    }
+})
+
+const toast = useToast()
+const router = useRouter()
+const customersFormInstance = getCurrentInstance();
+
+const loadingOverlay = ref(false)
+const customerExist = ref(true)
+const markets = ref([])
+const professions = ref([])
+const categories = ref([])
+const conferences = ref([])
+const usstates = ref([])
+const formData = reactive({
+    UniqueID: null,
+    PAYROLLNO: null,
+    payrollnumber: null,
+    SSNO: null,
+    fname: null,
+    mi: null,
+    lname: null,
+    address: null,
+    city: null,
+    state: null,
+    zip: null,
+    HoursPerWeek: null,
+    HourlyWage: null,
+    SECURITYCODE: null,//
+    department: null,
+    email: null,
+    SPEMAIL: null,
+    HIREDATE: new Date(),//
+    DOB: new Date(),//
+    AnnualSalary: null,
+    SpouseName: null,
+    SPWPHONE: null,
+    SPCPHONE: null,
+    homephone: null,
+    cellphone: null,
+    EmployeePicture: null,
+    ACTIVE: null,
+    dateterminated: new Date(),
+
+    //
+
+    // salaryHistory: null,
+})
+
+const editInit = async () => {
+    loadingOverlay.value = true
+    await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
+        method: 'GET',
+        onResponse({ response }) {
+            if (response.status === 200) {
+                loadingOverlay.value = false
+                customerExist.value = true
+                for (const key in response._data.body) {
+                    if (response._data.body[key] !== undefined) {
+                        formData[key] = response._data.body[key]
+                    }
+                }
+            }
+        },
+        onResponseError({ }) {
+            customerExist.value = false
+        }
+    })
+    propertiesInit()
+    loadingOverlay.value = false
+}
+
+function onFileChange(e: Event) {
+    const input = e.target as HTMLInputElement
+
+    if (!input.files?.length) {
+        return
+    }
+
+    formData.EmployeePicture = URL.createObjectURL(input.files[0])
+}
+
+function onFileClick() {
+    fileRef.value?.click()
+}
+
+const propertiesInit = async () => {
+    loadingOverlay.value = true
+    //   await useApiFetch('/api/customers/markets', {
+    //     method: 'GET',
+    //     onResponse({ response }) {
+    //       if(response.status === 200) {
+    //         markets.value = response._data.body;
+    //       }
+    //     }, 
+    //     onResponseError() {
+    //       markets.value = []
+    //     }
+    //   })
+    //   await useApiFetch('/api/customers/conferences', {
+    //     method: 'GET',
+    //     onResponse({ response }) {
+    //       if(response.status === 200) {
+    //         conferences.value = response._data.body;
+    //       }
+    //     }, 
+    //     onResponseError() {
+    //       conferences.value = []
+    //     }
+    //   })
+    //   await useApiFetch('/api/customers/categories', {
+    //     method: 'GET',
+    //     onResponse({ response }) {
+    //       if(response.status === 200) {
+    //         categories.value = response._data.body;
+    //       }
+    //     },
+    //     onResponseError() {
+    //       categories.value = []
+    //     }
+    //   })
+    //   await useApiFetch('/api/customers/professions', {
+    //     method: 'GET',
+    //     onResponse({ response }) {
+    //       if(response.status === 200) {
+    //         professions.value = response._data.body;
+    //       }
+    //     },
+    //     onResponseError() {
+    //       professions.value = []
+    //     }
+    //   })
+    await useApiFetch('/api/common/usstates', {
+        method: 'GET',
+        onResponse({ response }) {
+            if (response.status === 200) {
+                usstates.value = response._data.body;
+            }
+        },
+        onResponseError() {
+            usstates.value = [
+                "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+                "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+                "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+                "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+                "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+            ];
+        }
+    })
+    loadingOverlay.value = false
+}
+const validate = (state: any): FormError[] => {
+    const errors = []
+    if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
+    if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
+    if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
+    return errors
+}
+const handleClose = async () => {
+    if (customersFormInstance?.vnode?.props.onClose) {
+        emit('close')
+    } else {
+        router.go(-1)
+    }
+}
+const onSubmit = async (event: FormSubmitEvent<any>) => {
+    if (props.selectedCustomer === null) { // Create Customer
+        console.log('event.data', event.data);
+
+        await useApiFetch('/api/employees', {
+            method: 'POST',
+            body: event.data,
+            onResponse({ response }) {
+                if (response.status === 200) {
+                    toast.add({
+                        title: "Success",
+                        description: response._data.message,
+                        icon: 'i-heroicons-check-circle',
+                        color: 'green'
+                    })
+                }
+            }
+        })
+    } else { // Update Customer
+        await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
+            method: 'PUT',
+            body: event.data,
+            onResponse({ response }) {
+                if (response.status === 200) {
+                    toast.add({
+                        title: "Success",
+                        description: response._data.message,
+                        icon: 'i-heroicons-check-circle',
+                        color: 'green'
+                    })
+                }
+            }
+        })
+    }
+    emit('save')
+}
+
+const salaryHistory = ref([{
+    key: 'salaryHistory',
+    label: 'Salary History',
+}])
+
+const responsibilites = ref([{
+    key: 'responsibilites',
+    label: 'Responsibilites',
+}])
+
+const qualification = ref([{
+    key: 'qualifications',
+    label: 'Qualifications',
+}])
+const competencies = ref([{
+    key: 'competencies',
+    label: 'Competencies',
+}])
+const benefits = ref([{
+    key: 'benefits',
+    label: 'Benefits',
+}])
+
+const items = [{
+    slot: 'companyInfo',
+    label: 'Company Info'
+}, {
+    slot: 'payroll',
+    label: 'Payroll'
+},
+{
+    slot: 'permission',
+    label: 'Permission'
+}]
+
+const permissionTab = ref({
+    customers: {
+        label: 'Customers',
+        isChecked: false
+    },
+    marking: {
+        label: 'Marketing',
+        isChecked: false
+    },
+    employees: {
+        label: 'Employees',
+        isChecked: false
+    },
+    accounting: {
+        label: 'Accounting',
+        isChecked: false
+    },
+    it: {
+        label: 'IT',
+        isChecked: false
+    },
+    engineering: {
+        label: 'Engineering',
+        isChecked: false
+    },
+    materials: {
+        label: 'Materials',
+        isChecked: false
+    },
+    manufacturing: {
+        label: 'Manufacturing',
+        isChecked: false
+    },
+    maintenance: {
+        label: 'Maintenance',
+        isChecked: false
+    },
+    utilities: {
+        label: 'Utilities',
+        isChecked: false
+    },
+    help: {
+        label: 'Help',
+        isChecked: false
+    },
+})
+
+if (props.selectedCustomer !== null)
+    editInit()
+else
+    propertiesInit()
+</script>
+
+<template>
+    <div class="vl-parent">
+        <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+            loader="dots" />
+    </div>
+    <template v-if="!props.isModal && !customerExist">
+        <CommonNotFound :name="'Customer not found'" :message="'The customer you are looking for does not exist'"
+            :to="'/customers/customers/list'" />
+    </template>
+    <template v-else>
+        <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
+            <div class="flex gap-5">
+                <div class="w-3/4 flex flex-col space-y-4">
+                    <div class="flex flex-row space-x-3">
+                        <div class="basis-1/5">
+                            <UFormGroup name="EmployeePicture" label="Employee Picture" class="gap-2"
+                                :ui="{ container: 'flex flex-wrap items-center gap-3', help: 'mt-0' }">
+                                <UAvatar :src="formData.EmployeePicture" alt="Avatar" />
+
+                                <UButton label="Choose" color="white" size="sm" @click="onFileClick" />
+
+                                <input ref="fileRef" type="file" class="hidden" accept=".jpg, .jpeg, .png, .gif"
+                                    @change="onFileChange">
+                            </UFormGroup>
+                        </div>
+
+                        <div class="basis-1/5">
+                            <UFormGroup label="Payroll(#)" name="PAYROLLNO">
+                                <UInput v-model="formData.PAYROLLNO" placeholder="" />
+                            </UFormGroup>
+                        </div>
+                        <div class="basis-1/5">
+                            <UFormGroup label="Payroll #(Display)" name="payrollnumber">
+                                <UInput v-model="formData.payrollnumber" placeholder="" />
+                            </UFormGroup>
+                        </div>
+                        <div class="basis-1/5">
+                            <UFormGroup label="SS #" name="SSNO">
+                                <UInput v-model="formData.SSNO" placeholder="" />
+                            </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                            <UFormGroup label="First" name="fname">
+                                <UInput v-model="formData.fname" placeholder="" />
+                            </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                            <UFormGroup label="Middle" name="mi">
+                                <UInput v-model="formData.mi" placeholder="" />
+                            </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                            <UFormGroup label="Last" name="lname">
+                                <UInput v-model="formData.lname" placeholder="" />
+                            </UFormGroup>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-row space-x-3">
+                        <div class="basis-1/5">
+                            <UFormGroup label="Department" name="department">
+                                <UInputMenu v-model="formData.department" v-model:query="formData.department"
+                                    :options="markets" />
+                            </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                            <UFormGroup label="Employee Email" name="email">
+                                <UInput v-model="formData.email" placeholder="" />
+                            </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                            <UFormGroup label="Annual Salary" name="AnnualSalary">
+                                <UInput v-model="formData.AnnualSalary" placeholder="" />
+                            </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                            <UFormGroup label="Date Hired" name="HIREDATE">
+                                <UPopover :popper="{ placement: 'bottom-start' }">
+                                    <UButton icon="i-heroicons-calendar-days-20-solid"
+                                        :label="format(formData.HIREDATE, 'dd/MM/yyyy')" variant="outline"
+                                        :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+                                    <template #panel="{ close }">
+                                        <CommonDatePicker v-model="formData.HIREDATE" is-required @close="close" />
+                                    </template>
+                                </UPopover>
+                            </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                            <UFormGroup label="Date of Birth" name="DOB">
+                                <UPopover :popper="{ placement: 'bottom-start' }">
+                                    <UButton icon="i-heroicons-calendar-days-20-solid"
+                                        :label="format(formData.DOB, 'dd/MM/yyyy')" variant="outline"
+                                        :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+                                    <template #panel="{ close }">
+                                        <CommonDatePicker v-model="formData.DOB" is-required @close="close" />
+                                    </template>
+                                </UPopover>
+                            </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                            <UFormGroup label="Date of Termination" name="DOB">
+                                <UPopover :popper="{ placement: 'bottom-start' }">
+                                    <UButton icon="i-heroicons-calendar-days-20-solid"
+                                        :label="format(formData.dateterminated, 'dd/MM/yyyy')" variant="outline"
+                                        :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+                                    <template #panel="{ close }">
+                                        <CommonDatePicker v-model="formData.dateterminated" is-required
+                                            @close="close" />
+                                    </template>
+                                </UPopover>
+                            </UFormGroup>
+                        </div>
+                        <div class="basis-1/4 flex items-center justify-start gap-3 text-center">
+                            <UFormGroup name="ACTIVE" label="">
+                                <UCheckbox v-model="formData.ACTIVE" name="ACTIVE" label="Active" class="pt-4" />
+                            </UFormGroup>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-row">
+                        <div class="basis-1/2 text-center">
+                            Address Information
+                        </div>
+                        <div class="basis-1/2 text-center">
+                            Personal Information
+                        </div>
+                    </div>
+
+                    <div class="flex flex-row space-x-5">
+                        <div class="basis-1/2">
+                            <!-- Shipping Information -->
+                            <div class="flex flex-col space-y-2">
+                                <div class="flex flex-row space-x-3">
+                                    <div class="w-full">
+                                        <UFormGroup label="Address" name="address">
+                                            <UInput v-model="formData.address" placeholder="Address" />
+                                        </UFormGroup>
+                                    </div>
+                                </div>
+                                <div class="flex flex-row space-x-3">
+                                    <div class="basis-1/2">
+                                        <UFormGroup label="City" name="city">
+                                            <UInput v-model="formData.city" placeholder="Dallas" />
+                                        </UFormGroup>
+                                    </div>
+                                    <div class="basis-1/4">
+                                        <UFormGroup label="State" name="state">
+                                            <UInputMenu v-model="formData.state" :options="usstates" />
+                                        </UFormGroup>
+                                    </div>
+                                    <div class="basis-1/4">
+                                        <UFormGroup label="Zip" name="zip">
+                                            <UInput v-model="formData.zip" placeholder="65254" />
+                                        </UFormGroup>
+                                    </div>
+                                </div>
+                                <div class="flex flex-row space-x-3">
+                                    <div class="basis-1/2">
+                                        <UFormGroup label="Hours Per Week" name="HoursPerWeek">
+                                            <UInput v-model="formData.HoursPerWeek" placeholder="" />
+                                        </UFormGroup>
+                                    </div>
+                                    <div class="basis-1/2">
+                                        <UFormGroup label="Hourly Wage" name="HourlyWage">
+                                            <UInput v-model="formData.HourlyWage" placeholder="" />
+                                        </UFormGroup>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="basis-1/2">
+                            <!-- Billing Information -->
+                            <div class="flex flex-col space-y-2">
+                                <div class="flex flex-row space-x-3">
+                                    <div class="basis-1/2">
+                                        <UFormGroup label="Home Phone" name="homephone">
+                                            <UInput v-model="formData.homephone" placeholder="" />
+                                        </UFormGroup>
+                                    </div>
+                                    <div class="basis-1/2">
+                                        <UFormGroup label="Cell Phone" name="cellphone">
+                                            <UInput v-model="formData.cellphone" placeholder="" />
+                                        </UFormGroup>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-row space-x-3">
+                                    <div class="basis-1/2">
+                                        <UFormGroup label="Spouse Name" name="SpouseName">
+                                            <UInput v-model="formData.SpouseName" placeholder="" />
+                                        </UFormGroup>
+                                    </div>
+                                    <div class="basis-1/2">
+                                        <UFormGroup label="Spouse Email" name="SPEMAIL">
+                                            <UInput v-model="formData.SPEMAIL" placeholder="" />
+                                        </UFormGroup>
+                                    </div>
+                                </div>
+                                <div class="flex flex-row space-x-3">
+                                    <div class="basis-1/2">
+                                        <UFormGroup label="Spouse Work Phone" name="SPWPHONE">
+                                            <UInput v-model="formData.SPWPHONE" placeholder="" />
+                                        </UFormGroup>
+                                    </div>
+                                    <div class="basis-1/2">
+                                        <UFormGroup label="Spouse Cell Phone" name="SPCPHONE">
+                                            <UInput v-model="formData.SPCPHONE" placeholder="" />
+                                        </UFormGroup>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-1/4">
+                    <UTabs :items="items" class="w-full">
+                        <template #companyInfo="{ item }">
+                            <div class="basis-1/5 mt-5">
+                                <UFormGroup label="Employee Files" name="PAYROLLNO">
+                                    <UInput v-model="formData.PAYROLLNO" placeholder="" />
+                                </UFormGroup>
+                            </div>
+                            <div class="w-full bg-slate-400 px-3 py-1 mt-6">
+                                Company Information
+                            </div>
+                            <div class="flex flex-row space-x-3 mt-3">
+                                <div class="basis-3/5">
+                                    <UFormGroup label="Company Keys" name="PAYROLLNO">
+                                        <UInput v-model="formData.PAYROLLNO" placeholder="" />
+                                    </UFormGroup>
+                                </div>
+                                <div class="basis-2/5">
+                                    <UFormGroup label="Exemptions" name="PAYROLLNO">
+                                        <UInput v-model="formData.PAYROLLNO" placeholder="" />
+                                    </UFormGroup>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <UFormGroup label="Company Credit Cards" name="comment">
+                                    <UTextarea v-model="formData.PAYROLLNO" :rows="4" type="text" placeholder="" />
+                                </UFormGroup>
+                            </div>
+                        </template>
+
+                        <template #payroll="{ item }">
+                            <div class="flex flex-row space-x-3">
+                                <div class="basis-2/6">
+                                    <UFormGroup label="Exemptions" name="productLine">
+                                        <USelect v-model="formData.PAYROLLNO" :options="[]" />
+                                    </UFormGroup>
+                                </div>
+                                <div class="basis-2/6">
+                                    <UFormGroup label="Status" name="productLine">
+                                        <USelect v-model="formData.PAYROLLNO" :options="[]" />
+                                    </UFormGroup>
+                                </div>
+                                <div class="basis-2/6">
+                                    <UFormGroup label="Allowances" name="productLine">
+                                        <UInput v-model="formData.PAYROLLNO" placeholder="" />
+                                    </UFormGroup>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-row space-x-3 mt-3">
+                                <div class="basis-2/5">
+                                    <UFormGroup label="City Tax" name="PAYROLLNO">
+                                        <USelect v-model="formData.PAYROLLNO" :options="[]" />
+                                    </UFormGroup>
+                                </div>
+                                <div class="basis-3/5">
+                                    <UFormGroup label="Additional Witholding" name="PAYROLLNO">
+                                        <UInput v-model="formData.PAYROLLNO" placeholder="" />
+                                    </UFormGroup>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <UFormGroup label="Additional Withholding Description" name="comment">
+                                    <UInput v-model="formData.PAYROLLNO" placeholder="" />
+                                </UFormGroup>
+                            </div>
+                        </template>
+                        <template #permission="{ item }">
+                            <template v-for="(checkbox, index) in permissionTab" :key="index">
+                                <div class="basis-1/5 pb-1.5">
+                                    <UCheckbox v-model="checkbox.isChecked" :label="checkbox.label" />
+                                </div>
+                            </template>
+                        </template>
+                    </UTabs>
+                </div>
+            </div>
+
+            <div class="border-2 border-slate-600 border-r-0 border-l-0 border-b-0">
+                <div class="w-full bg-slate-400 px-3 py-1">
+                    HR
+                </div>
+                <div class="px-3 py-0 flex justify-between space-x-4 pt-4">
+                    <div class="basis-2/6">
+                        <UTable :columns="salaryHistory" :rows="[]" :ui="{
+                            wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                            th: {
+                                base: 'sticky top-0 z-10',
+                                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                                padding: 'p-1'
+                            }
+                        }" />
+                    </div>
+                    <div class="basis-2/6">
+                        <UTable :columns="responsibilites" :rows="[]" :ui="{
+                            wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                            th: {
+                                base: 'sticky top-0 z-10',
+                                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                                padding: 'p-1'
+                            }
+                        }" />
+                    </div>
+                    <div class="basis-2/6">
+                        <UTable :columns="qualification" :rows="[]" :ui="{
+                            wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                            th: {
+                                base: 'sticky top-0 z-10',
+                                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                                padding: 'p-1'
+                            }
+                        }" />
+                    </div>
+                </div>
+                <div class="px-3 py-0 flex justify-between space-x-4 pt-4">
+                    <div class="basis-1/2">
+                        <UTable :columns="competencies" :rows="[]" :ui="{
+                            wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                            th: {
+                                base: 'sticky top-0 z-10',
+                                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                                padding: 'p-1'
+                            }
+                        }" />
+                    </div>
+                    <div class="basis-1/2">
+                        <UTable :columns="benefits" :rows="[]" :ui="{
+                            wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                            th: {
+                                base: 'sticky top-0 z-10',
+                                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                                padding: 'p-1'
+                            }
+                        }" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <UButton :label="!isModal ? 'Go back' : 'Cancel'" color="gray" variant="ghost" @click="handleClose" />
+                <UButton type="submit" label="Save" color="black" />
+            </div>
+        </UForm>
+    </template>
+</template>

@@ -80,13 +80,15 @@
         sortable: true,
         sortDirection: 'none',
         filterable: true
-      }, {
-        key: 'home',
-        label: 'Home',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
+      }, 
+      // {
+      //   key: 'home',
+      //   label: 'Home',
+      //   sortable: true,
+      //   sortDirection: 'none',
+      //   filterable: true
+      // }, 
+      {
         key: 'homephone',
         label: 'Home Cell Phone',
         sortable: true,
@@ -100,7 +102,7 @@
     numberOfOrders: 0,
     numberOfEmployee: 0,
     employess: [],
-    selectedOrderId: null,
+    selectedEmpployeeId: null,
     sort: {
       column: 'UniqueID', 
       direction: 'asc'
@@ -117,8 +119,7 @@
     modalDescription: "Add a new Employee to your database"
   })
   const filterValues = ref({
-    ACTIVE:  false,
-    // inActive: false,
+    ACTIVE:  null,
     payrollno: null,
     fname: null,
     lname: null,
@@ -126,7 +127,6 @@
     city: null,
     state: null,
     zip: null,
-    home: null,
     homephone: null
   })
 
@@ -169,16 +169,16 @@
   }
   const fetchGridData = async () => {
     gridMeta.value.isLoading = true
+
+    const { ACTIVE, ...values} = filterValues.value
     // handle number of emoloyees and pagination
     await useApiFetch('/api/employees/numbers', {
       method: 'GET',
       params: {
-        ...filterValues.value
+        ...filterValues.value,
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
-          console.log('response._data',response._data);
-          
           gridMeta.value.numberOfEmployee = response._data.body
         }
       }
@@ -203,7 +203,6 @@
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
-            console.log("calling response._data.body",response._data.body)
             gridMeta.value.employess = response._data.body
         }
         gridMeta.value.isLoading = false
@@ -212,12 +211,19 @@
   }
 
   const handleCheckBoxChange = () => {
+    const isActiveChecked = headerCheckboxes.value.active.isChecked;
+    const isInactiveChecked = headerCheckboxes.value.inactive.isChecked;
 
-    filterValues.value.Active = headerCheckboxes.value.active.isChecked
-    // filterValues.value.inActive = headerCheckboxes.value.inactive.isChecked
-    // console.log('√√', filterValues.value);
+    if (isActiveChecked && !isInactiveChecked) {
+      filterValues.value.ACTIVE = Number(1);
+    } else if (!isActiveChecked && isInactiveChecked) {
+      filterValues.value.ACTIVE = Number(0);
+    } else {
+      // If both are true or both are false, remove ACTIVE from filterValues
+      delete filterValues.value.ACTIVE;
+    }
     
-    // fetchGridData()
+    fetchGridData()
   }
 
   const handlePageChange = async () => {
@@ -225,8 +231,10 @@
   }
 
   const onCreate = () => {
-    console.log("create employee")
-   
+    gridMeta.value.selectedEmpployeeId = null
+    modalMeta.value.modalTitle = "New Employee";
+    modalMeta.value.modalDescription = "Add a new employee"
+    modalMeta.value.isEmployeeModalOpen = true
   }
 
   const handleSortingButton = async (btnName: string) => {
@@ -266,12 +274,18 @@
     } else {
       console.error(`Filter does not have property: ${name}`);
     }
-    console.log('filterValues',filterValues.value);
     
     fetchGridData()
   }
 
+  const handleModalClose = () => {
+    modalMeta.value.isEmployeeModalOpen = false
+  }
 
+  const handleModalSave = async () => {
+    handleModalClose()
+    fetchGridData()
+  }
 
 </script>
 
@@ -306,6 +320,16 @@
           />
         </template>
       </UDashboardToolbar>
+
+      <!-- New Employee Detail Modal -->
+      <UDashboardModal
+        v-model="modalMeta.isEmployeeModalOpen"
+        :title="modalMeta.modalTitle"
+        :description="modalMeta.modalDescription"
+       :ui="{width: 'w-[1600px] sm:max-w-8xl', body: {padding: 'py-0 sm:pt-0'}}"
+      >
+        <EmployeeForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedEmpployeeId" :is-modal="true"/>
+      </UDashboardModal>
      
       <div class="flex flex-row px-10 mt-4">
         <template v-for="(checkbox, index) in headerCheckboxes" :key="index">
