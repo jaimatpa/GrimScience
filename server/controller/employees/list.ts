@@ -2,7 +2,7 @@ import { tblEmployee } from "~/server/models";
 import { Sequelize ,Op} from "sequelize";
 
 const applyFilters = (params) => {
-  const filterParams = ['Active', 'inActive'] ;  
+  const filterParams = ['Active', 'inActive'];  
   const whereClause = {};
 
 filterParams.forEach(param => {
