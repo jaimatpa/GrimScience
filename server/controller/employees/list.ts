@@ -2,16 +2,16 @@ import { tblEmployee } from "~/server/models";
 import { Sequelize ,Op} from "sequelize";
 
 const applyFilters = (params) => {
-  const filterParams = ['payrollno', 'fname', 'lname','address','city', 'state', 'zip', 'homephone'];  
+  const filterParams = ['Active', 'inActive'];  
   const whereClause = {};
 
-  filterParams.forEach(param => {
-    if (params[param]) {
-      whereClause[param] = {
-        [Op.like]: `%${params[param]}%`
-      };
-    }
-  });
+filterParams.forEach(param => {
+  if (params[param]) {
+    whereClause[param] = {
+      [Op.like]: `%${params[param]}%`
+    };
+  }
+});
 
   return whereClause;
 };
@@ -43,13 +43,10 @@ export const getAllEmployees = async (page, pageSize, sortBy, sortOrder, filterP
   
   const list = await tblEmployee.findAll({
     attributes: ['UniqueID','payrollno', 'fname', 'lname','address','city', 'state', 'zip', 'homephone'],
-    where: whereClause,
-    // where: {
-    //   ACTIVE: 0
-    // },
-    // where: {
-    //   ACTIVE: filterParams.Active === 'true' ? true : filterParams.inActive === 'true' ? true : true
-    // },
+    // where: whereClause,
+    where: {
+      ACTIVE: filterParams.Active === 'true' ? true : filterParams.inActive === 'true' ? true : true
+    },
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
     offset,
     limit
