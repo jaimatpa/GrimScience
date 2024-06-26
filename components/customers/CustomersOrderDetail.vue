@@ -182,6 +182,7 @@
   const shippingStyle = ref('outline-none')
 
   const isUpdatePriceModalOpen = ref(false)
+  const isInventoryTransactionModalOpen = ref(false)
   const updatedPrice = ref(null)
   const mdetChecked = ref(false)
 
@@ -439,6 +440,10 @@
     }
     onCalculateInvoiceValues()
   }
+  const handleReceiveChecksBtnClick = () => {
+    if(props.selectedOrder)
+      isInventoryTransactionModalOpen.value = true
+  }
   const onUpdatePrice = () => {
     selectedOrder.value.PRIMARYPRICE1 = updatedPrice.value
     const index = orderList.value.findIndex((item) => item.UniqueID === selectedOrder.value.UniqueID && item.created === selectedOrder.value.created)
@@ -561,6 +566,13 @@
         </div>
       </div>
     </div>
+  </UDashboardModal>
+  <UDashboardModal
+    v-model="isInventoryTransactionModalOpen"
+    title="Order"
+    :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}" 
+  >
+    <InventoryTransactions :selected-order="props.selectedOrder"/>
   </UDashboardModal>
   <div class="vl-parent">
     <loading
@@ -1304,7 +1316,7 @@
           </UFormGroup>
           <div class="flex flex-row space-x-3 w-full">
             <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-check-badge" label="Receive Checks" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton icon="i-heroicons-check-badge" label="Receive Checks" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="handleReceiveChecksBtnClick"/>
             </div>
             <div class="basis-1/2 w-full">
               <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="onSubmit"/>
