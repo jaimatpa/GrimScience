@@ -3,10 +3,11 @@ import { getInventoryTransactions } from '~/server/controller/inventorytransacti
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    
+    const { ...filterParams } = getQuery(event);
+
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getInventoryTransactions();
+        const list = await getInventoryTransactions(filterParams);
         return { body: list, message: '' }
       case 'POST':
         

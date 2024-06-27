@@ -91,7 +91,7 @@
   })
   const formData = reactive({
     customerid: props.selectedCustomer,
-    orderdate: new Date(),
+    orderdate: null,
     orderid: props?.selectedOrder??null,
     shippingmethod: null,
     datepromised: '',
@@ -113,8 +113,8 @@
     Notes: null,
     zone: null,
     package: null,
-    invoicedate: new Date(),
-    shipdate: new Date(),
+    invoicedate: null,
+    shipdate: null,
     subtotal: 0.0,
     total: 0.0,
     lessdiscount: 0.0,
@@ -131,8 +131,8 @@
     laborcost: null,
     materialcost: null,
     warranty: '',
-    acceptancedate: new Date(),
-    expirationdate: new Date(),
+    acceptancedate: null,
+    expirationdate: null,
     QuoteInvoiceNumber: null,
     Backorder: null,
     MDET: null,
@@ -614,7 +614,7 @@
                     name="quoteDate"
                   >
                     <UPopover :popper="{ placement: 'bottom-start' }">
-                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.orderdate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.orderdate && format(formData.orderdate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                       <template #panel="{ close }">
                         <CommonDatePicker v-model="formData.orderdate" is-required @close="close" />
                       </template>
@@ -1032,7 +1032,7 @@
                   name="invoiceDate"
                 >
                   <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.invoicedate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.invoicedate && format(formData.invoicedate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                     <template #panel="{ close }">
                       <CommonDatePicker v-model="formData.invoicedate" is-required @close="close" />
                     </template>
@@ -1047,7 +1047,7 @@
                   name="installationDate"
                 >
                   <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.acceptancedate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.acceptancedate && format(formData.acceptancedate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                     <template #panel="{ close }">
                       <CommonDatePicker v-model="formData.acceptancedate" is-required @close="close" />
                     </template>
@@ -1060,7 +1060,7 @@
                   name="shippedDate"
                 >
                   <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.shipdate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.shipdate && format(formData.shipdate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                     <template #panel="{ close }">
                       <CommonDatePicker v-model="formData.shipdate" is-required @close="close" />
                     </template>

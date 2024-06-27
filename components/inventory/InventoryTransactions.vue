@@ -19,48 +19,42 @@
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
   const loadingOverlay = ref(false)
   const formData = reactive({
-
+    transactionID: null,
+    By: null,
+    Dated: null,
+    Justification: null,
   })
   const inventoryFilterValues = ref({
-    stock: null,
-    orderdate: null,
-    soldby: null, 
-    inventoryid: null, 
-    jobid: null, 
-    complaintid: null,
-    reportid: null, 
-    invoiceid: null,
-    poid: null,
-    vendorinvoceid: null
+    Dated: null,
+    By: null, 
+    uniqueid: null,
+    JobID: null, 
+    COMPLAINTNUMBER: null, 
+    ServiceReportID: null,
+    InvoiceID: null, 
+    PONumber: null,
+    VendorInvoiceID: null,
   })
   const productFilterValues = ref({
-    parttype: null,
-    subcategory: null,
-    stockid: null, 
-    description: null, 
+    PARTTYPE: null,
+    SUBCATEGORY: null,
+    MODEL: null, 
+    DESCRIPTION: null, 
   })
-  const stockFilterValues = ref({
-    stock: null, 
+  const inventoryDetailFilterValues = ref({
+    MODEL: null, 
   })
-
   const inventoryGridMeta = ref({
     defaultColumns: <UTableColumn[]>[{
         key: 'Dated',
         label: 'Date',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
       }, {
         key: 'By',
         label: 'By',
-        sortable: true,
-        sortDirection: 'none',
         filterable: true
       }, {
         key: 'uniqueid',
         label: '#',
-        sortable: true,
-        sortDirection: 'none',
         filterable: true
       }, {
         key: 'type',
@@ -68,47 +62,27 @@
       },{
         key: 'JobID',
         label: 'Job#',
-        sortable: true,
-        sortDirection: 'none',
         filterable: true
       }, {
         key: 'COMPLAINTNUMBER',
         label: 'Complaint#',
-        sortable: true,
-        sortDirection: 'none',
         filterable: true
       }, {
         key: 'ServiceReportID',
         label: 'Service Report#',
-        sortable: true,
-        sortDirection: 'none',
         filterable: true
       }, {
         key: 'InvoiceID',
         label: 'Invoice#',
-        sortable: true,
-        sortDirection: 'none',
         filterable: true
       }, {
         key: 'PONumber',
         label: 'PO#',
-        sortable: true,
-        sortDirection: 'none',
         filterable: true
       }, {
         key: 'VendorInvoiceID',
         label: 'Vendor Invoice#',
-        sortable: true,
-        sortDirection: 'none',
         filterable: true
-      }, {
-        key: 'edit',
-        label: 'Edit',
-        kind: 'actions'
-      }, {
-        key: 'delete',
-        label: 'Delete',
-        kind: 'actions'
       }
     ],    
     sort: {
@@ -116,7 +90,7 @@
       direction: 'asc'
     }, 
     inventories: [],
-    selectedInventoryID: null,
+    selectedInventory: null,
     isLoading: false
   })
   const productGridMeta = ref({
@@ -131,15 +105,15 @@
         filterable: true,
         filterOptions: []
       }, {
-        key: 'stock',
+        key: 'MODEL',
         label: 'Stock#',
         filterable: true,
       }, {
-        key: 'sourcedescription',
+        key: 'DESCRIPTION',
         label: 'Description',
         filterable: true
       }, {
-        key: 'hand',
+        key: 'OnHand',
         label: 'Current On Hand',
       }
     ],    
@@ -151,22 +125,22 @@
     selectedProductID: null,
     isLoading: false
   })
-  const stockGridMeta = ref({
+  const inventoryDetailGridMeta = ref({
     defaultColumns: <UTableColumn[]>[{
-        key: 'UniqueID',
+        key: 'MODEL',
         label: 'Stock#',
         filterable: true
       }, {
-        key: 'description',
+        key: 'DESCRIPTION',
         label: 'Desc.',
       }, {
-        key: 'unit',
+        key: 'UNIT',
         label: 'Inv.Unit',
       }, {
-        key: 'adjustment',
+        key: 'QtyChange',
         label: 'Adjustment',
       }, {
-        key: 'hand',
+        key: 'OnHand',
         label: 'Hand Count',
       }
     ],    
@@ -174,23 +148,27 @@
       column: 'UniqueID', 
       direction: 'asc'
     }, 
-    stocks: [],
-    selectedStockID: null,
+    details: [],
+    selectedInventoryTrasaction: null,
     isLoading: false
   })
-  const date = ref(new Date())
 
   const editInit = async () => {
     loadingOverlay.value = true
     await inventoryFetchGridData()
+    await productFetchGridData()
+    await inventoryDetailFetchGridData()
     loadingOverlay.value = false
   }
   const propertiesInit = async () => {
     // loadingOverlay.value = true
 
+    // loadingOverlay.value = false
   }
   const inventoryFetchGridData = async () => {
     await useApiFetch(`/api/inventorytransactions`, {
+      method: 'GET',
+      params: {...inventoryFilterValues.value},
       onResponse({ response }) {
         if(response.status === 200) {
           inventoryGridMeta.value.inventories = response._data.body;
@@ -198,17 +176,72 @@
       }
     })
   }
-  const productFetchGridData = () => {
-
+  const productFetchGridData = async () => {
+    await useApiFetch(`/api/product/parts`, {
+      method: 'GET',
+      params: {...productFilterValues.value},
+      onResponse({ response }) {
+        if(response.status === 200) {
+          productGridMeta.value.products = response._data.body;
+        }
+      }
+    })
+    await useApiFetch(`/api/product/categories`, {
+      method: 'GET',
+      params: { partflag: 1 },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          productGridMeta.value.defaultColumns.forEach((column: any) => {
+            if(column.key === 'PARTTYPE') column.filterOptions = [null, ...response._data.body]
+          })
+        }
+      }
+    })
+    await useApiFetch(`/api/product/subcategories`, {
+      method: 'GET',
+      params: { category: productFilterValues.value.PARTTYPE, partflag: 1 },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          productGridMeta.value.defaultColumns.forEach((column: any) => {
+            if(column.key === 'SUBCATEGORY') column.filterOptions = [null, ...response._data.body]
+          })
+        }
+      }
+    })
   }
-  const stockFetchGridData = () => {
-
+  const inventoryDetailFetchGridData = async () => {
+    inventoryGridMeta.value.selectedInventory && 
+    await useApiFetch(`/api/inventorytransactions/${inventoryGridMeta.value.selectedInventory.uniqueid}`, {
+      method: 'GET',
+      params: {...inventoryDetailFilterValues.value},
+      onResponse({ response }) {
+        if(response.status === 200) {
+          inventoryDetailGridMeta.value.details = response._data.body;
+        }
+      }
+    })
   }
   const onInventorySelect = async (row) => {
-    inventoryGridMeta.value.selectedInventoryID = row?.UniqueID;
+    inventoryGridMeta.value.selectedInventory = row;
+    if(JSON.stringify({...inventoryGridMeta.value.selectedInventory.value, class:""})=== JSON.stringify({...row, class: ""})) inventoryGridMeta.value.selectedInventory = null;
+    else {
+      inventoryGridMeta.value.selectedInventory = {...row, class:""}
+    }
+    inventoryGridMeta.value.inventories.forEach((product) => {
+      if(product.uniqueid === row.uniqueid && row.class != 'bg-gray-200') {
+        product.class = 'bg-gray-200'
+      }else{
+        delete product.class
+      }
+    })
+    formData.transactionID = row.uniqueid
+    formData.By = row.By
+    formData.Dated = new Date(row.Dated)
+    formData.Justification = row.Justification
+    inventoryDetailFetchGridData()
   }
   const onInventoryDblClick = async () =>{
-    if(inventoryGridMeta.value.selectedInventoryID){
+    if(inventoryGridMeta.value.selectedInventory){
       // modalMeta.value.modalTitle = "Edit";
       // modalMeta.value.modalDescription = "Edit customer information"
       // modalMeta.value.isOrderDetailModalOpen = true
@@ -243,6 +276,7 @@
     inventoryFetchGridData()
   }
   const handleInventoryFilterInputChange = async (event, name) => {
+    console.log(name)
     if (inventoryFilterValues.value.hasOwnProperty(name)) {
       inventoryFilterValues.value[name] = event;
     } else {
@@ -279,8 +313,8 @@
     productFetchGridData()
   }
   const handleProductFilterInputChange = async (event, name) => {
-    if (inventoryFilterValues.value.hasOwnProperty(name)) {
-      inventoryFilterValues.value[name] = event;
+    if (productFilterValues.value.hasOwnProperty(name)) {
+      productFilterValues.value[name] = event;
     } else {
       console.error(`Filter does not have property: ${name}`);
     }
@@ -312,18 +346,18 @@
         }
       }
     }
-    stockFetchGridData()
+    inventoryDetailFetchGridData()
   }
-  const handleStockFilterInputChange = async (event, name) => {
-    if (inventoryFilterValues.value.hasOwnProperty(name)) {
-      inventoryFilterValues.value[name] = event;
+  const handleInventoryDetailFilterInputChange = async (event, name) => {
+    if (inventoryDetailFilterValues.value.hasOwnProperty(name)) {
+      inventoryDetailFilterValues.value[name] = event;
     } else {
       console.error(`Filter does not have property: ${name}`);
     }
-    stockFetchGridData()
+    inventoryDetailFetchGridData()
   }
   const onInventoryEdit = (row) => {
-    inventoryGridMeta.value.selectedInventoryID = row?.customerid
+    inventoryGridMeta.value.selectedInventory = row
     // modalMeta.value.modalTitle = "Edit";
     // modalMeta.value.modalDescription = "Edit invoice information"
     // modalMeta.value.isOrderDetailModalOpen = true
@@ -370,7 +404,7 @@
           <div class="flex flex-row space-x-3">
             <div class="flex items-center">Stock# Search</div>
             <div class="min-w-[150px]">
-              <UInput v-model="inventoryFilterValues.stock" />
+              <UInput v-model="inventoryFilterValues.uniqueid" />
             </div>
           </div>
           <div>
@@ -387,6 +421,9 @@
           :ui="{
             wrapper: 'overflow-auto h-80 border-2 border-gray-300 dark:border-gray-700',
             divide: 'divide-gray-200 dark:divide-gray-800',
+            tr: {
+              active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+            },
             th: { 
               base: 'sticky top-0 z-10',
               color: 'bg-white dark:text-gray dark:bg-[#111827]',
@@ -467,8 +504,8 @@
                 }
               }"
               :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-              @select="onInventorySelect"
-              @dblclick="onInventoryDblClick"
+              @select=""
+              @dblclick=""
             >
             <template v-for="column in productGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
               <template v-if="!column.filterOptions">
@@ -486,7 +523,7 @@
                 </div>
               </template>
               <template v-else>
-                <div class="px-1 py-1">
+                <div class="px-1 py-1 min-w-[120px]">
                   <CommonSortAndSelectFilter 
                     @handle-sorting-button="handleProductSortingButton" 
                     @handle-select-change="handleProductFilterInputChange"
@@ -494,6 +531,7 @@
                     :sortable="column.sortable"
                     :sort-key="column.key" 
                     :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
+                    :value="productFilterValues[column.key]"
                     :filterable="column.filterable"
                     :filter-key="column.key"
                     :filter-options="column.filterOptions"
@@ -520,9 +558,9 @@
           </div>
           <div class="basis-1/2">
             <UTable
-              :rows="stockGridMeta.stocks"
-              :columns="stockGridMeta.defaultColumns"
-              :loading="stockGridMeta.isLoading"
+              :rows="inventoryDetailGridMeta.details"
+              :columns="inventoryDetailGridMeta.defaultColumns"
+              :loading="inventoryDetailGridMeta.isLoading"
               class="w-full"
               :ui="{
                 wrapper: 'overflow-y-auto h-80 border-2 border-gray-300 dark:border-gray-700',
@@ -538,15 +576,15 @@
                 }
               }"
               :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-              @select="onInventorySelect"
-              @dblclick="onInventoryDblClick"
+              @select=""
+              @dblclick=""
             >
-              <template v-for="column in stockGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
+              <template v-for="column in inventoryDetailGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
                 <template v-if="column.kind !== 'actions'">
                   <div class="px-1 py-1">
                     <CommonSortAndInputFilter 
                       @handle-sorting-button="handleStockSortingButton" 
-                      @handle-input-change="handleStockFilterInputChange"
+                      @handle-input-change="handleInventoryDetailFilterInputChange"
                       :label="column.label"
                       :sortable="column.sortable"
                       :sort-key="column.key" 
@@ -584,7 +622,7 @@
         <div class="flex flex-row">
           <div class="basis-1/2 p-4">
             <div class="flex justify-center">
-              Transations#: 00
+              Transaction#: {{ formData.transactionID }}
             </div>
           </div>
           <div class="basis-1/2 p-4 flex flex-row space-x-3">
@@ -592,15 +630,17 @@
               <UFormGroup
                 label="By"
               >
-                <UInput />
+                <UInput 
+                  v-model="formData.By"
+                />
               </UFormGroup>
               <UFormGroup
                 label="Date"
               >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.Dated && format(formData.Dated, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
-                    <CommonDatePicker v-model="date" is-required @close="close" />
+                    <CommonDatePicker v-model="formData.Dated" is-required @close="close" />
                   </template>
                 </UPopover>
               </UFormGroup>
@@ -610,6 +650,7 @@
                 label="Justification"
               >
                 <UTextarea
+                  v-model="formData.Justification"
                   :rows="5"
                 />
               </UFormGroup>
