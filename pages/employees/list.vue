@@ -15,9 +15,7 @@
   const route = useRoute()
   const toast = useToast()
 
-  const headerFilters = ref({
-    
-  })
+  const selectStatus = ref('Active')
 
   const headerCheckboxes = ref({
     active: {
@@ -94,7 +92,15 @@
         sortable: true,
         sortDirection: 'none',
         filterable: true
-        
+      },
+      {
+        key: 'edit',
+        label: 'Edit',
+        kind: 'actions'
+      }, {
+        key: 'delete',
+        label: 'Delete',
+        kind: 'actions'
       }
     ],
     page: 1,
@@ -111,15 +117,11 @@
   })
   const modalMeta = ref({
     isEmployeeModalOpen: false,
-    // isOrderDetailModalOpen: false,
-    // isQuoteDetailModalOpen: false,
-    // isServiceOrderDetailModalOpen: false,
-    // isSiteVisitModalOpen: false,
     modalTitle: "New Employee",
-    modalDescription: "Add a new Employee to your database"
+    modalDescription: "Add a new Employee"
   })
   const filterValues = ref({
-    ACTIVE:  null,
+    ACTIVE:  '1',
     payrollno: null,
     fname: null,
     lname: null,
@@ -210,19 +212,14 @@
     });
   }
 
-  const handleCheckBoxChange = () => {
-    const isActiveChecked = headerCheckboxes.value.active.isChecked;
-    const isInactiveChecked = headerCheckboxes.value.inactive.isChecked;
+  const handleSelectChange = () => {
 
-    if (isActiveChecked && !isInactiveChecked) {
-      filterValues.value.ACTIVE = Number(1);
-    } else if (!isActiveChecked && isInactiveChecked) {
-      filterValues.value.ACTIVE = Number(0);
+    if(selectStatus.value === 'Active'){
+      filterValues.value.ACTIVE = '1';
     } else {
-      // If both are true or both are false, remove ACTIVE from filterValues
-      delete filterValues.value.ACTIVE;
+      filterValues.value.ACTIVE = '0';
     }
-    
+
     fetchGridData()
   }
 
@@ -235,6 +232,41 @@
     modalMeta.value.modalTitle = "New Employee";
     modalMeta.value.modalDescription = "Add a new employee"
     modalMeta.value.isEmployeeModalOpen = true
+  }
+
+  const onEdit = (row) => {    
+    gridMeta.value.selectedEmpployeeId = row?.UniqueID
+    modalMeta.value.modalTitle = "Edit";
+    modalMeta.value.modalDescription = "Edit Employee information"
+    modalMeta.value.isEmployeeModalOpen = true
+  }
+
+  const onSelect = async (row) => {
+    gridMeta.value.selectedEmpployeeId = row?.UniqueID;
+  }
+  const onDblClick = async () =>{
+    if(gridMeta.value.selectedEmpployeeId){
+      modalMeta.value.modalTitle = "Edit";
+      modalMeta.value.modalDescription = "Edit Employee information"
+      modalMeta.value.isEmployeeModalOpen = true
+    }
+  }
+
+  const onDelete = async (row: any) => {
+    await useApiFetch(`/api/employees/${row?.UniqueID}`, {
+      method: 'DELETE', 
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-trash-solid',
+            color: 'green'
+          })
+          fetchGridData()
+        }
+      }
+    })
   }
 
   const handleSortingButton = async (btnName: string) => {
@@ -298,7 +330,10 @@
       </UDashboardNavbar>
       <UDashboardToolbar>
         <template #left>
-          <div class="flex flex-row space-x-3">
+          <UFormGroup label="Employee Status" name="state">
+              <USelect v-model="selectStatus" :options="['Active', 'Inactive']" @change="handleSelectChange" searchable="false" />
+          </UFormGroup>
+          <div class="flex flex-row space-x-3 ml-5">
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup
                 label="Quantity"
@@ -328,25 +363,28 @@
         :description="modalMeta.modalDescription"
        :ui="{width: 'w-[1600px] sm:max-w-8xl', body: {padding: 'py-0 sm:pt-0'}}"
       >
-        <EmployeeForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedEmpployeeId" :is-modal="true"/>
+        <EmployeeForm @close="handleModalClose" @save="handleModalSave" :selected-employee="gridMeta.selectedEmpployeeId" :is-modal="true"/>
       </UDashboardModal>
-     
-      <div class="flex flex-row px-10 mt-4">
-        <template v-for="(checkbox, index) in headerCheckboxes" :key="index">
-          <div class="basis-1/5">
-            <UCheckbox
-              v-model="checkbox.isChecked"
-              :label="checkbox.label"
-              @change="handleCheckBoxChange()"
-            />
-          </div>
-        </template>
-      </div>
+    
       <UTable
         :rows="gridMeta.employess"
         :columns="columns"
         :loading="gridMeta.isLoading"
         class="w-full"
+        :ui="{
+          divide: 'divide-gray-200 dark:divide-gray-800', 
+          th: { 
+            base: 'sticky top-0 z-10',
+            color: 'bg-white dark:text-gray dark:bg-[#111827]',
+            padding: 'p-0'
+          }, 
+          td: {
+            padding: 'py-1'
+          }
+        }"
+        :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+        @select="onSelect"
+        @dblclick="onDblClick"
       >
       <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
@@ -362,12 +400,22 @@
                 :filter-key="column.key"
               />
             </div>
-            </template>
-            <template v-else class='bg-slate-400'>
-              <div class="flex justify-center text-center w-[53px]">
-                {{ column.label }}
-              </div>
-            </template>
+          </template>
+          <template v-else class='bg-slate-400'>
+            <div class="flex justify-center text-center w-[53px]">
+              {{ column.label }}
+            </div>
+          </template>
+        </template>
+        <template #edit-data="{row}">
+          <UTooltip text="Edit" class="flex justify-center">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)"/>
+          </UTooltip>
+        </template>
+        <template #delete-data="{row}">
+          <UTooltip text="Delete" class="flex justify-center">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)"/>
+          </UTooltip>
         </template>
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">

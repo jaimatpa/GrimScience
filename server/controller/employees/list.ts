@@ -66,3 +66,41 @@ export const createEmployee = async (data) => {
   const newCustomer = await tblEmployee.create(createReqData);
   return newCustomer
 }
+
+export const EmployeeExistByID = async (id: number | string) => {
+  const tableDetail = await tblEmployee.findByPk(id);
+  if(tableDetail)
+    return true;
+  else
+    return false;
+}
+
+export const getEmployeeDetail = async (id) => {
+  const tableDetail = await tblEmployee.findByPk(id);
+  return tableDetail
+}
+
+export const updateEmployee = async (id, reqData) => {
+  let updatedReqData
+  if (typeof reqData.adddate === 'string'){
+    updatedReqData = {
+      ...reqData,
+      fullname: `${reqData.lname}, ${reqData.fname}`,
+      adddate: Sequelize.literal(`CAST('${reqData.adddate}' AS DATETIME)`)
+    };
+  } else {
+    updatedReqData = {
+      ...reqData,
+      fullname: `${reqData.lname}, ${reqData.fname}`
+    };
+  }
+  await tblEmployee.update(updatedReqData, {
+    where: { UniqueID: id }
+  });
+  return id;
+}
+
+export const deleteEmployee = async (id) => {
+  await tblEmployee.destroy({where: { UniqueID: id }});
+  return id;
+}
