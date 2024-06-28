@@ -30,7 +30,8 @@ const tblOrganization = sequelize.define('tblOrganization', {
       type: DataTypes.STRING,
    },
 }, {
-   timestamps: false
+   timestamps: false,
+   tableName: 'tblOrganization',
 });
 
 export default tblOrganization;

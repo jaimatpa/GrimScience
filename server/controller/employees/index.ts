@@ -1,2 +1,2 @@
-// export * from "./List";
 export * from "./Employee";
+export * from "./Organization";
