@@ -19,7 +19,7 @@ const props = defineProps({
 
 const toast = useToast()
 const router = useRouter()
-const customersFormInstance = getCurrentInstance();
+const organizationFormInstance = getCurrentInstance();
 
 const loadingOverlay = ref(false)
 const employeeExist = ref(true)
@@ -154,15 +154,14 @@ const validate = (state: any): FormError[] => {
     return errors
 }
 const handleClose = async () => {
-    if (customersFormInstance?.vnode?.props.onClose) {
+    if (organizationFormInstance?.vnode?.props.onClose) {
         emit('close')
     } else {
         router.go(-1)
     }
 }
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-    if (props.selectedEmployee === null) { // Create Customer
-        console.log('event.data', event.data);
+    if (props.selectedEmployee === null) { // Create Employee
 
         await useApiFetch('/api/employees', {
             method: 'POST',
@@ -178,7 +177,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
                 }
             }
         })
-    } else { // Update Customer
+    } else { // Update Employee
         await useApiFetch(`/api/employees/${props.selectedEmployee}`, {
             method: 'PUT',
             body: event.data,
@@ -392,12 +391,12 @@ else
 
                     <div class="flex flex-row space-x-5">
                         <div class="basis-1/2">
-                            <!-- Shipping Information -->
+                            <!-- Address Information -->
                             <div class="flex flex-col space-y-2">
                                 <div class="flex flex-row space-x-3">
                                     <div class="w-full">
                                         <UFormGroup label="Address" name="address">
-                                            <UInput v-model="    formData.address" placeholder="Address" />
+                                            <UInput v-model="formData.address" placeholder="Address" />
                                         </UFormGroup>
                                     </div>
                                 </div>
@@ -432,6 +431,7 @@ else
                                 </div>
                             </div>
                         </div>
+                        <!-- Personal Information -->
                         <div class="basis-1/2">
                             <div class="flex flex-col space-y-2">
                                 <div class="flex flex-row space-x-3">
@@ -475,7 +475,7 @@ else
                         </div>
                     </div>
                 </div>
-
+                <!-- Side Tabs company, payroll, permission  -->
                 <div class="w-1/4">
                     <UTabs :items="items" class="w-full">
                         <template #companyInfo="{ item }">
@@ -553,7 +553,7 @@ else
                     </UTabs>
                 </div>
             </div>
-
+            <!-- HR Section -->
             <div class="border-2 border-slate-600 border-r-0 border-l-0 border-b-0">
                 <div class="w-full bg-slate-400 px-3 py-1">
                     HR
@@ -600,11 +600,6 @@ else
                   <UButton icon="i-heroicons-plus-20-solid" type="submit" variant="outline" color="blue"  label="Modify Employee" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                 </div>
             </div>
-
-            <!-- <div class="flex justify-end gap-3">
-                <UButton :label="!isModal ? 'Go back' : 'Cancel'" color="gray" variant="ghost" @click="handleClose" />
-                <UButton type="submit" label="Save" color="black" />
-            </div> -->
         </UForm>
     </template>
 </template>
