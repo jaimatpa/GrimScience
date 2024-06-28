@@ -14,6 +14,9 @@ const props = defineProps({
   sortIcon: {
     type: [String]
   }, 
+  value: {
+    type: [String, null]
+  },
   filterable: {
     type: [Boolean, null]
   }, 
@@ -47,6 +50,7 @@ const props = defineProps({
   <template v-if="props.filterable">
     <div>
       <USelect
+        :model-value="props.value"
         :options="props.filterOptions"
         @update:model-value="event => emit('handleSelectChange', event, props.filterKey)"
       />

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
   import type { UTableColumn } from '~/types';
-
+  import { format } from 'date-fns'
+  
   onMounted(() => {
     init()
   })
@@ -16,34 +17,6 @@
   const descIcon = "i-heroicons-bars-arrow-down-20-solid"
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
-  const headerFilters = ref({
-    markets: {
-      label: 'Market',
-      filter: 'market',
-      options: []
-    }, 
-    professions: {
-      label: 'Profession', 
-      filter: 'source',
-      options: []
-    }, 
-    categories: {
-      label: 'Category', 
-      filter: 'ParadynamixCatagory', 
-      options: []
-    }, 
-    conferences: {
-      label: 'Conference', 
-      filter: 'SourceConfrence',
-      options: []
-    }, 
-    usstates: {
-      label: 'State', 
-      filter: 'state',
-      api: '/api/common/usstates',
-      options: []
-    }
-  })
   const gridMeta = ref({
     defaultColumns: <UTableColumn[]>[{
         key: 'UniqueID',
@@ -123,9 +96,10 @@
   })
   const modalMeta = ref({
     isOrderDetailModalOpen: false,
-    modalTitle: "New Customer",
-    modalDescription: "Add a new customer to your database"
+    modalTitle: "New Invoice",
+    modalDescription: "Add a new invoice to your database"
   })
+  const today = new Date()
   const filterValues = ref({
     UniqueID: null,
     orderdate: null,
@@ -136,7 +110,11 @@
     lname: null,
     zip: null,
     source: null,
-    sourcedescription: null
+    sourcedescription: null, 
+    // from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
+    from: new Date('2016-01-02'),
+    to: today,
+    serial: null
   })
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
@@ -161,24 +139,14 @@
 
   const init = async () => {
     fetchGridData()
-    // for(const key in headerFilters.value) {
-    //   const apiURL = headerFilters.value[key]?.api?? `/api/customers/${key}`;
-    //   await useApiFetch(apiURL, {
-    //     method: 'GET',
-    //     onResponse({ response }) {
-    //       if(response.status === 200) {
-    //         headerFilters.value[key].options = [null, ...response._data.body];
-    //       }
-    //     }
-    //   })
-    // }
   }
   const fetchGridData = async () => {
     gridMeta.value.isLoading = true
     await useApiFetch('/api/invoices/numbers', {
       method: 'GET',
       params: {
-        ...filterValues.value
+        ...filterValues.value,
+        to: new Date(filterValues.value.to.getFullYear(), filterValues.value.to.getMonth(), filterValues.value.to.getDate() + 1)
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
@@ -193,7 +161,7 @@
       return;
     }
     if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfOrders) {
-      gridMeta.value.page = Math.ceil(gridMeta.value.numberOfOrders / gridMeta.value.pageSize) | 1
+      gridMeta.value.page = Math.ceil(gridMeta.value.numberOfOrders / gridMeta.value.pageSize)
     }
     await useApiFetch('/api/invoices', {
       method: 'GET',
@@ -203,6 +171,7 @@
         sortBy: gridMeta.value.sort.column,
         sortOrder: gridMeta.value.sort.direction,
         ...filterValues.value,
+        to: new Date(filterValues.value.to.getFullYear(), filterValues.value.to.getMonth(), filterValues.value.to.getDate() + 1)
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
@@ -215,15 +184,15 @@
   const onCreate = () => {
     gridMeta.value.selectedCustomerId = null
     gridMeta.value.selectedOrderId = null
-    // modalMeta.value.modalTitle = "New Customer";
-    // modalMeta.value.modalDescription = "Add a new customer to your database"
+    // modalMeta.value.modalTitle = "New Invoice";
+    // modalMeta.value.modalDescription = "Add a new invoice to your database"
     modalMeta.value.isOrderDetailModalOpen = true
   }
   const onEdit = (row) => {
     gridMeta.value.selectedCustomerId = row?.customerid
     gridMeta.value.selectedOrderId = row?.UniqueID
     // modalMeta.value.modalTitle = "Edit";
-    // modalMeta.value.modalDescription = "Edit customer information"
+    // modalMeta.value.modalDescription = "Edit invoice information"
     modalMeta.value.isOrderDetailModalOpen = true
   }
   const onDelete = async (row: any) => {
@@ -322,6 +291,8 @@
       modalMeta.value.isOrderDetailModalOpen = true
     }
   }
+  watch(() => filterValues.value.from, () => {fetchGridData()})
+  watch(() => filterValues.value.to, () => {fetchGridData()})
 </script>
 
 <template>
@@ -335,22 +306,41 @@
       <UDashboardToolbar>
         <template #left>
           <div class="flex flex-row space-x-3">
-            <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
-              <template v-if="value.options.length > 1">
-                <div class="basis-1/7 max-w-[200px]">
-                  <UFormGroup
-                    :label="value.label"
-                    :name="key"
-                  >
-                    <USelect
-                      v-model="filterValues[`${value.filter}`]"
-                      :options="value.options"
-                      @change="handleFilterChange()"
-                    />
-                  </UFormGroup>
-                </div>
-              </template>
-            </template>
+            <div class="basis-1/5 min-w-[150px]">
+              <UFormGroup
+                label="From"
+                name="quoteDate"
+              >
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(filterValues.from, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate />
+                  <template #panel="{ close }">
+                    <CommonDatePicker v-model="filterValues.from" is-required @close="close" />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+            </div>
+            <div class="basis-1/5 min-w-[150px]">
+              <UFormGroup
+                label="To"
+              >
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(filterValues.to, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <template #panel="{ close }">
+                    <CommonDatePicker v-model="filterValues.to" is-required @close="close" />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+            </div>
+            <div class="basis-1/5 min-w-[150px]">
+              <UFormGroup
+                label="Serial"
+              >
+                <UInput 
+                  v-model="filterValues.serial"
+                  @update:model-value="handleFilterChange()"
+                />
+              </UFormGroup>
+            </div>
           </div>
         </template>
         <template #right>

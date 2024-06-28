@@ -3,10 +3,10 @@ import { getProductSubCategories } from "~/server/controller/product";
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    const { productline, category } = getQuery(event)
+    const { ...filterParams } = getQuery(event)
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getProductSubCategories(productline, category);
+        const list = await getProductSubCategories(filterParams);
         return { body: list, message: '' }
       default:
         setResponseStatus(event, 405);

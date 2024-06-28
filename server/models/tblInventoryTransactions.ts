@@ -15,9 +15,9 @@ const tblInventoryTransactions = sequelize.define('tblInventoryTransactions', {
       type: DataTypes.STRING,
    },
    Dated: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING,
    },
-   '[By]': {
+   By: {
       type: DataTypes.STRING,
    },
    FromAcct: {

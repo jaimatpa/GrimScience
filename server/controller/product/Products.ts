@@ -22,7 +22,11 @@ export const getProductLines = async () => {
   return productLineValues;
 }
 
-export const getProductCategories = async (productline) => {
+export const getProductCategories = async (filterParams) => {
+  const { productline, partflag } = filterParams
+  let where = {}
+  if(productline) where['PRODUCTLINE'] = productline
+  if(partflag) where['partflag'] = partflag
   const distinctProductCategories = await tblBP.findAll({
     attributes: [
       [Sequelize.fn('DISTINCT', Sequelize.col('PARTTYPE')), 'PARTTYPE']
@@ -32,7 +36,7 @@ export const getProductCategories = async (productline) => {
         { PARTTYPE: { [Op.ne]: null } },
         { PARTTYPE: { [Op.ne]: '' } }
       ],
-      PRODUCTLINE: productline
+      ...where
     },
     order: [
       ['PARTTYPE', 'ASC'],
@@ -44,7 +48,12 @@ export const getProductCategories = async (productline) => {
   return productLineValues;
 }
 
-export const getProductSubCategories = async (productline, category) => {
+export const getProductSubCategories = async (filterParams) => {
+  const { productline, category, partflag } = filterParams
+  let where = {}
+  if(productline !== undefined) where['PRODUCTLINE'] = productline
+  if(category !== undefined) where['PARTTYPE'] = category
+  if(partflag) where['partflag'] = partflag
   const distinctProductSubCategories = await tblBP.findAll({
     attributes: [
       [Sequelize.fn('DISTINCT', Sequelize.col('SUBCATEGORY')), 'SUBCATEGORY']
@@ -54,8 +63,7 @@ export const getProductSubCategories = async (productline, category) => {
         { SUBCATEGORY: { [Op.ne]: null } },
         { SUBCATEGORY: { [Op.ne]: '' } }
       ],
-      PRODUCTLINE: productline, 
-      PARTTYPE: category
+      ...where
     },
     order: [
       ['SUBCATEGORY', 'ASC'],
@@ -99,6 +107,36 @@ export const getProductInfos = async (productline, category, subcategory, model,
       ['PRODUCTLINE', 'ASC'],
       ['PARTTYPE', 'ASC'],
       ['SUBCATEGORY', 'ASC'],
+    ]
+  });
+
+  return productInfos;
+}
+
+export const getParts = async (filterParams) => {
+  const { PARTTYPE, SUBCATEGORY, MODEL, DESCRIPTION } = filterParams
+  let where = {}
+  if(PARTTYPE) where['PARTTYPE'] = PARTTYPE
+  if(SUBCATEGORY) where['SUBCATEGORY'] = SUBCATEGORY
+  if(MODEL) where['MODEL'] = {[Op.like]: `%${MODEL}%`}
+  if(DESCRIPTION) where['DESCRIPTION'] = {[Op.like]: `%${DESCRIPTION}%`}
+
+  const productInfos = await tblBP.findAll({
+    attributes: [
+      'UniqueID',
+      'PARTTYPE',
+      'SUBCATEGORY',
+      'MODEL',
+      'DESCRIPTION',
+      'OnHand'
+    ],
+    where: {
+      partflag: 1,
+      ...where
+    },
+    limit: 50,
+    order: [
+      ['MODEL', 'ASC'],
     ]
   });
 

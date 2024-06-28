@@ -91,7 +91,7 @@
   })
   const formData = reactive({
     customerid: props.selectedCustomer,
-    orderdate: new Date(),
+    orderdate: null,
     orderid: props?.selectedOrder??null,
     shippingmethod: null,
     datepromised: '',
@@ -113,9 +113,8 @@
     Notes: null,
     zone: null,
     package: null,
-    installationdate: new Date(),
-    invoicedate: new Date(),
-    shipdate: new Date(),
+    invoicedate: null,
+    shipdate: null,
     subtotal: 0.0,
     total: 0.0,
     lessdiscount: 0.0,
@@ -132,8 +131,8 @@
     laborcost: null,
     materialcost: null,
     warranty: '',
-    acceptancedate: new Date(),
-    expirationdate: new Date(),
+    acceptancedate: null,
+    expirationdate: null,
     QuoteInvoiceNumber: null,
     Backorder: null,
     MDET: null,
@@ -172,10 +171,8 @@
   const selectedProduct = ref(null)
   const orderList = ref([])
   const selectedOrder = ref(null)
-  const selectedOrders = ref([])
   const qty = ref(1)
   const itemsTotal = ref(0)
-  const quoteDate = ref(new Date())
   const qtyStyle = ref('outline-none')
   const lessdiscountStyle = ref('outline-none')
   const lessdownStyle = ref('outline-none')
@@ -185,6 +182,7 @@
   const shippingStyle = ref('outline-none')
 
   const isUpdatePriceModalOpen = ref(false)
+  const isInventoryTransactionModalOpen = ref(false)
   const updatedPrice = ref(null)
   const mdetChecked = ref(false)
 
@@ -199,7 +197,6 @@
               formData[key] = response._data.body[key]
             }
           }
-          loadingOverlay.value = false
         }
       }
     })
@@ -232,7 +229,6 @@
     })
     await propertiesInit()
     onCalculateInvoiceValues()
-    loadingOverlay.value = false
   }
   const propertiesInit = async () => {
     loadingOverlay.value = true
@@ -444,6 +440,10 @@
     }
     onCalculateInvoiceValues()
   }
+  const handleReceiveChecksBtnClick = () => {
+    if(props.selectedOrder)
+      isInventoryTransactionModalOpen.value = true
+  }
   const onUpdatePrice = () => {
     selectedOrder.value.PRIMARYPRICE1 = updatedPrice.value
     const index = orderList.value.findIndex((item) => item.UniqueID === selectedOrder.value.UniqueID && item.created === selectedOrder.value.created)
@@ -567,6 +567,13 @@
       </div>
     </div>
   </UDashboardModal>
+  <UDashboardModal
+    v-model="isInventoryTransactionModalOpen"
+    title="Order"
+    :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}" 
+  >
+    <InventoryTransactions :selected-order="props.selectedOrder"/>
+  </UDashboardModal>
   <div class="vl-parent">
     <loading
       v-model:active="loadingOverlay"
@@ -607,7 +614,7 @@
                     name="quoteDate"
                   >
                     <UPopover :popper="{ placement: 'bottom-start' }">
-                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.orderdate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.orderdate && format(formData.orderdate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                       <template #panel="{ close }">
                         <CommonDatePicker v-model="formData.orderdate" is-required @close="close" />
                       </template>
@@ -1025,7 +1032,7 @@
                   name="invoiceDate"
                 >
                   <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.invoicedate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.invoicedate && format(formData.invoicedate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                     <template #panel="{ close }">
                       <CommonDatePicker v-model="formData.invoicedate" is-required @close="close" />
                     </template>
@@ -1040,7 +1047,7 @@
                   name="installationDate"
                 >
                   <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.acceptancedate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.acceptancedate && format(formData.acceptancedate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                     <template #panel="{ close }">
                       <CommonDatePicker v-model="formData.acceptancedate" is-required @close="close" />
                     </template>
@@ -1053,7 +1060,7 @@
                   name="shippedDate"
                 >
                   <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.shipdate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.shipdate && format(formData.shipdate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                     <template #panel="{ close }">
                       <CommonDatePicker v-model="formData.shipdate" is-required @close="close" />
                     </template>
@@ -1309,7 +1316,7 @@
           </UFormGroup>
           <div class="flex flex-row space-x-3 w-full">
             <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-check-badge" label="Receive Checks" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton icon="i-heroicons-check-badge" label="Receive Checks" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="handleReceiveChecksBtnClick"/>
             </div>
             <div class="basis-1/2 w-full">
               <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="onSubmit"/>

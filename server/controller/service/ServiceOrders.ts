@@ -30,7 +30,7 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
 
   const whereClause = applyFilters(filterParams);
 
-  tblOrder.hasOne(tblOrderDetail, { foreignKey: 'orderid', sourceKey: 'UniqueID' })
+  tblOrder.hasMany(tblOrderDetail, { foreignKey: 'orderid', sourceKey: 'UniqueID' })
   // tblCustomers.hasMany(tblOrder, { foreignKey: 'customerid', sourceKey: 'UniqueID' })
   tblOrder.belongsTo(tblCustomers, { foreignKey: 'customerid', targetKey: 'UniqueID' })
   tblOrderDetail.belongsTo(tblComplaints, { foreignKey: 'serial', targetKey: 'SERIALNO' })

@@ -1,12 +1,13 @@
-import { getProductCategories } from "~/server/controller/product";
+import { getParts } from "~/server/controller/product";
 
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    const { ...filterParams } = getQuery(event)
+    const { ...filterParams } = getQuery(event);
+
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getProductCategories(filterParams);
+        const list = await getParts(filterParams);
         return { body: list, message: '' }
       default:
         setResponseStatus(event, 405);
