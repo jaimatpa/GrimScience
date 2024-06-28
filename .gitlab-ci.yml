@@ -1,10 +1,9 @@
 image: node:lts
 
 before_script:  
-  - curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
-  - curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+  - curl -fsSL https://tailscale.com/install.sh | sh
   - apt-get update -qq && apt-get install
-  - apt install -y rsync unixodbc-common unixodbc-dev libodbc2 libodbccr2 libodbcinst2           
+  - apt install -y tailscale rsync unixodbc-common unixodbc-dev libodbc2 libodbccr2 libodbcinst2           
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
   - eval $(ssh-agent -s)
   - cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
