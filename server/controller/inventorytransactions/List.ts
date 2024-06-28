@@ -82,27 +82,27 @@ export const getInventoryTransactions = async (filterParams) => {
     })
     return formattedList;
   } catch(err) {
-    return err.message;
+    throw new Error(err.message);
   }
 };
 
 export const getInventoryTransactionDetails = async (id, filterParams) => {
-  const { MODEL } = filterParams
-  let bpWhere = {}
-  if(MODEL) bpWhere['MODEL'] = {[Op.like]: `%${MODEL}%`}
   try {
-    console.log(id === undefined)
+    const { MODEL } = filterParams
+    let bpWhere = {}
+    if(MODEL) bpWhere['MODEL'] = {[Op.like]: `%${MODEL}%`}
     if(id === 'undefined'){
       return []
     } else {
-      tblInventoryTransactionDetails.hasMany(tblBP, {foreignKey: 'uniqueID', sourceKey: 'BPID'})
+      tblInventoryTransactionDetails.hasOne(tblBP, {foreignKey: 'uniqueID', sourceKey: 'BPID'})
       const list = await tblInventoryTransactionDetails.findAll({
         attributes: [
+          'uniqueID',
           'QtyChange',
           'OnHand',
-          [Sequelize.col('tblBPs.UNIT'), 'UNIT'],  
-          [Sequelize.col('tblBPs.MODEL'), 'MODEL'],  
-          [Sequelize.col('tblBPs.DESCRIPTION'), 'DESCRIPTION'],  
+          [Sequelize.col('tblBP.UNIT'), 'UNIT'],  
+          [Sequelize.col('tblBP.MODEL'), 'MODEL'],  
+          [Sequelize.col('tblBP.DESCRIPTION'), 'DESCRIPTION'],  
         ],
         where: {
           InventoryTransactionID: id
@@ -120,18 +120,88 @@ export const getInventoryTransactionDetails = async (id, filterParams) => {
           }
         ]
       })
-      // const formattedList = list.map((item: any) => {
-      //   return {
-      //     QtyChange: item.QtyChange,
-      //     OnHand: item.OnHand,
-      //     UNIT: item.tblBPs.UNIT,
-      //     MODEL: item.MODEL,
-      //     DESCRIPTION: item.DESCRIPTION
-      //   }
-      // })
+      const formattedList = list.map((item: any) => {
+        return {
+          uniqueID: item.uniqueID,
+          QtyChange: item.QtyChange,
+          OnHand: item.OnHand,
+          UNIT: item.tblBP.UNIT,
+          MODEL: item.tblBP.MODEL,
+          DESCRIPTION: item.tblBP.DESCRIPTION
+        }
+      })
       return list
     } 
   } catch(err) {
-    return err.message;
+    throw new Error(err.message)
   }
 };
+
+export const createInventoryTransactionDetail = async (data) => {
+  try{
+    const { onhand, bpid, inventoryid } = data
+    const bpRow: any = await tblBP.findByPk(bpid)
+    const newDetail = await tblInventoryTransactionDetails.create({
+      InventoryTransactionID: inventoryid,
+      InstanceID: bpRow.instanceID,
+      BPID: bpid,
+      QtyChange: 0,
+      OnHand: onhand
+    })
+    return newDetail
+  } catch(err) {
+    throw new Error(err.message)
+  }
+}
+
+export const deleteInventoryTransaction = async (id) => {
+  try{
+    const deleteResult = await tblInventoryTransactions.destroy({
+      where: {
+        uniqueID: id
+      }
+    })
+    return deleteResult
+  } catch(err) {
+    throw new Error(err.message)
+  }
+}
+
+export const deleteInventoryTransactionDetail = async (id) => {
+  try{
+    const deleteResult = await tblInventoryTransactionDetails.destroy({
+      where: {
+        uniqueID: id
+      }
+    })
+    return deleteResult
+  } catch(err) {
+    throw new Error(err.message)
+  }
+}
+
+export const updateInventoryTransaction = async (id, data) => {
+  try{
+    // console.log(data.Dated)
+    // if(data.Dated) {
+    //   data.Dated = new Date(data.Dated)
+    //   data.Dated = data.Dated.toISOString();
+    //   console.log(data.Dated)
+    // }
+
+    console.log(data)
+    const updateResult = await tblInventoryTransactions.update({
+      By: data.By,
+      Justification: data.Justification,
+      Dated: data.Dated,
+    }, {
+      where: {
+        uniqueID: id
+      }
+    })
+    return updateResult
+  } catch(err) {
+    console.log(err)
+    throw new Error(err.message)
+  }
+}
