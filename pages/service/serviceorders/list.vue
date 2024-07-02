@@ -97,6 +97,7 @@
     numberOfServiceOrders: 0, 
     orders: [],
     selectedOrderId: null,
+    selectedCustomerId: null,
     sort: {
       column: 'COMPLAINTNUMBER', 
       direction: 'desc'
@@ -241,9 +242,10 @@
   }
   const onSelect = async (row) => {
     gridMeta.value.selectedOrderId = row?.UniqueID;
+    gridMeta.value.selectedCustomerId = row?.customerID;
   }
   const onDblClick = async () =>{
-    if(gridMeta.value.selectedOrderId){
+    if(gridMeta.value.selectedCustomerId){
       modalMeta.value.isServiceOrderModalOpen = true
     }
   }
@@ -322,7 +324,7 @@
         title="Service Order List"
         :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
       >
-        <!-- <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-order="gridMeta.selectedOrderId"/> -->
+        <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
       </UDashboardModal>
 
       <div class="flex flex-row px-10 mt-4">

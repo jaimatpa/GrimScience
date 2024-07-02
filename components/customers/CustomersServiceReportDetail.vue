@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import type { FormError, FormSubmitEvent } from '#ui/types'
   import Loading from 'vue-loading-overlay'
-  import 'vue-loading-overlay/dist/css/index.css';   
+  import 'vue-loading-overlay/dist/css/index.css';
   import type { UTableColumn } from '~/types';
   import { format } from 'date-fns'
 
@@ -15,6 +15,7 @@
       type: [Number, String, null],
     }
   })
+  const toast = useToast()
   const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
   const descIcon = "i-heroicons-bars-arrow-down-20-solid"
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
@@ -23,10 +24,11 @@
   const formData = reactive({
     uniqueID: null,
     REPAIRSMADE: null,
-    REPAIRDATE: null,
+    REPAIRDESC: null,
+    REPAIRDATE: new Date(),
     REPAIRSBY: null,
     CANO: null,
-    COMPALINTID: null,
+    COMPLAINTID: props.selectedComplaint,
     Week: null,
     ServiceStatus: 'Closed',
     type: 0,
@@ -36,7 +38,11 @@
     Miles: null,
     PerDiem: null,
     performs_to_spec: null,
-    performsnotext: null
+    performsnotext: null,
+    Shipping: null,
+    DATESHIPPED: null,
+    PARTS: null,
+    PARTSRECEIVED: null
   })
   const invoiceGridMeta = ref({
     defaultColumns: <UTableColumn[]>[
@@ -97,6 +103,15 @@
       }, {
         key: 'DESCRIPTION',
         label: 'Description'
+      }, {
+        key: 'PRIMARYPRICE1',
+        label: 'Cost'
+      }, {
+        key: 'UNIT',
+        label: 'Unit'
+      }, {
+        key: 'Amount',
+        label: 'Amount'
       }
     ],
     warrantyMaterials: [],
@@ -145,6 +160,18 @@
       }, {
         key: 'DESCRIPTION',
         label: 'Description'
+      }, {
+        key: 'PRIMARYPRICE1',
+        label: 'Cost'
+      }, {
+        key: 'UNIT',
+        label: 'Unit'
+      }, {
+        key: 'Amount',
+        label: 'Amount'
+      }, {
+        key: 'Nonconformance',
+        label: 'NonConformance'
       }
     ],
     parts: [],
@@ -190,6 +217,15 @@
   })
   const serviceTechOptions = ref([])
 
+  const getWeekNumber = (date) => {
+    date = new Date(date);
+    const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const dayOfYear = Math.floor((date.getTime() - firstDayOfYear.getTime()) / oneDay);
+
+    const weekNumber = Math.ceil((dayOfYear + 1) / 7);
+    return weekNumber
+  }
   const editInit = async () => {
     loadingOverlay.value = true
     await useApiFetch('/api/customers/servicereports', {
@@ -207,6 +243,46 @@
         }
       }
     })
+    let parsedParts = []
+    if(formData.PARTS) {
+      const tmp = formData.PARTS.split('=')
+      for(let i=0; i < tmp.length ; i++) {
+        if(tmp[i] !== '' && i % 3 === 0) {
+          await useApiFetch('/api/product/parts/', {
+            method: 'GET',
+            params: {
+              UniqueID: tmp[i]
+            },
+            onResponse({response}) {
+              if(response.status === 200) {
+                parsedParts.push({...response._data.body[0], Quantity: tmp[i+1], Amount: Number.parseFloat(response._data.body[0].PRIMARYPRICE1 || 0) * Number.parseFloat(tmp[i+1])})
+              }
+            }
+          })
+        }
+      }
+    }
+    let parsedPartReceived = []
+    if(formData.PARTSRECEIVED) {
+      const tmp = formData.PARTSRECEIVED.split('=')
+      for(let i=0; i < tmp.length ; i++) {
+        if(tmp[i] !== '' && i % 3 === 0) {
+          await useApiFetch('/api/product/parts/', {
+            method: 'GET',
+            params: {
+              UniqueID: tmp[i]
+            },
+            onResponse({response}) {
+              if(response.status === 200) {
+                parsedPartReceived.push({...response._data.body[0], Quantity: tmp[i+1], Amount: Number.parseFloat(response._data.body[0].PRIMARYPRICE1 || 0) * Number.parseFloat(tmp[i+1]), Nonconformance: 0})
+              }
+            }
+          })
+        }
+      }
+    }
+    selectedWarrantyMaterialGridMeta.value.warrantyMaterials = parsedParts
+    selectedPartGridMeta.value.parts = parsedPartReceived
     await propertiesInit()
   }
   const propertiesInit = async () => {
@@ -225,7 +301,26 @@
         }
       }
     })
-    
+    await useApiFetch(`/api/tbl/tblEmployee`, { 
+      method: 'GET',
+      params: {
+        ACTIVE: 1,
+        orderby: 'payrollnumber'
+      },
+      onResponse({response}) {
+        if(response.status === 200) {
+          serviceTechOptions.value = response._data.body.map((item: any) => `#${item.payrollnumber}${item.fname} ${item.lname}`)
+          if(serviceTechOptions.value.indexOf(formData.REPAIRSBY) < 0 && formData.REPAIRSBY !== null){
+            serviceTechOptions.value.unshift(formData.REPAIRSBY)
+          }
+          serviceTechOptions.value.unshift(null)
+        }
+      }
+    })
+    if(formData.REPAIRDATE && !formData.Week) {
+      formData.REPAIRDATE = new Date(formData.REPAIRDATE)
+      formData.Week = `${new Date(formData.REPAIRDATE).getFullYear().toString().substring(2)}-${getWeekNumber(formData.REPAIRDATE)}`
+    }
     loadingOverlay.value = false
   }
   const warrantyMaterialFetchGridData = async () => {
@@ -360,21 +455,38 @@
     } else qtyStyle.value = 'outline-none'
     if(addModalMeta.value.title === 'Warranty') {
       const index = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.findIndex((value) => value?.UniqueID === warrantyMaterialGridMeta.value.selectedWarrantyMaterial?.UniqueID)
-      if(index < 0) selectedWarrantyMaterialGridMeta.value.warrantyMaterials.push({...warrantyMaterialGridMeta.value.selectedWarrantyMaterial, Quantity: addModalMeta.value.quantity})
+      if(index < 0) {
+        if(!warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1)
+          warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1 = 0
+        let amount = Math.round(Number.parseFloat(warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) /100
+        selectedWarrantyMaterialGridMeta.value.warrantyMaterials.push({...warrantyMaterialGridMeta.value.selectedWarrantyMaterial, Quantity: addModalMeta.value.quantity, Amount: amount})
+      } 
     } else if(addModalMeta.value.title === 'Part') {
       const index = selectedPartGridMeta.value.parts.findIndex((value) => value?.UniqueID === partGridMeta.value.selectedPart?.UniqueID)
-      if(index < 0) selectedPartGridMeta.value.parts.push({...partGridMeta.value.selectedPart, Quantity: addModalMeta.value.quantity})
+      if(index < 0) {
+        if(!partGridMeta.value.selectedPart.PRIMARYPRICE1)
+          partGridMeta.value.selectedPart.PRIMARYPRICE1 = 0
+        let amount = Math.round(Number.parseFloat(partGridMeta.value.selectedPart.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) /100
+        selectedPartGridMeta.value.parts.push({...partGridMeta.value.selectedPart, Quantity: addModalMeta.value.quantity, Amount: amount, Nonconformance: 0})
+      }
+    } else if(addModalMeta.value.title === 'EditWarranty') {
+      selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial.Quantity = addModalMeta.value.quantity
+      selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial.Amount = Math.round(Number.parseFloat(selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) /100
+      const index = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.findIndex((value) =>  value?.UniqueID === selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial.UniqueID)  
+      selectedWarrantyMaterialGridMeta.value.warrantyMaterials[index] = selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial
+    } else if(addModalMeta.value.title === 'EditPart') {
+      selectedPartGridMeta.value.selectedPart.Quantity = addModalMeta.value.quantity
+      selectedPartGridMeta.value.selectedPart.Amount = Math.round(Number.parseFloat(selectedPartGridMeta.value.selectedPart.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) /100
+      const index = selectedPartGridMeta.value.parts.findIndex((value) =>  value?.UniqueID === selectedPartGridMeta.value.selectedPart.UniqueID)  
+      selectedPartGridMeta.value.parts[index] = selectedPartGridMeta.value.selectedPart
     }
     addModalMeta.value.isAddModalOpen = false
     addModalMeta.value.title = null
   }
   const onSelectedWarrantySelect = (row) => {
-    if(JSON.stringify({...selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial, class:""}) === JSON.stringify({...row, class: ""})) selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial = null;
-    else {
-      selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial = {...row, class:""}
-    }
+    selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial = {...row, class:""}
     selectedWarrantyMaterialGridMeta.value.warrantyMaterials.forEach((item) => {
-      if(item.UniqueID === row.UniqueID && row.class != 'bg-gray-200') {
+      if(item.UniqueID === row.UniqueID) {
         item.class = 'bg-gray-200'
       }else{
         delete item.class
@@ -382,22 +494,69 @@
     })
   }
   const onSelectedPartSelect = (row) => {
-    if(JSON.stringify({...selectedPartGridMeta.value.selectedPart, class:""}) === JSON.stringify({...row, class: ""})) selectedPartGridMeta.value.selectedPart = null;
-    else {
-      selectedPartGridMeta.value.selectedPart = {...row, class:""}
-    }
+    selectedPartGridMeta.value.selectedPart = {...row, class:""}
     selectedPartGridMeta.value.parts.forEach((item) => {
-      if(item.UniqueID === row.UniqueID && row.class != 'bg-gray-200') {
+      if(item.UniqueID === row.UniqueID) {
         item.class = 'bg-gray-200'
       }else{
         delete item.class
       }
     })
   }
+  const onSelectedWarrantyDblclick = () => {
+    addModalMeta.value.title = 'EditWarranty'
+    addModalMeta.value.quantity = selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial.Quantity
+    addModalMeta.value.isAddModalOpen = true
+  }
+  const onSelectedPartDblclick = () => {
+    addModalMeta.value.title = 'EditPart'
+    addModalMeta.value.quantity = selectedPartGridMeta.value.selectedPart.Quantity
+    addModalMeta.value.isAddModalOpen = true
+  }
   const onRemoveWarranty = () => {
     if(selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial) {
       selectedWarrantyMaterialGridMeta.value.warrantyMaterials = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.filter((item) => item?.UniqueID !== selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial?.UniqueID)
     }
+  }
+  const onSave = async () => {
+    if(!props.selectedServiceReport) {
+      await useApiFetch(`/api/customers/servicereports/`, {
+        method: 'POST',
+        body: {
+          ...formData,
+          Parts: selectedWarrantyMaterialGridMeta.value.warrantyMaterials,
+          PartsReceived: selectedPartGridMeta.value.parts
+        },
+        onResponse({response}) {
+          if(response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: 'i-heroicons-check-circle',
+              color: 'green'
+            })
+          }
+        }
+      })
+    } else {
+      await useApiFetch(`/api/customers/servicereports/${props.selectedServiceReport}`, {
+        method: 'PUT',
+        body: {
+          ...formData,
+          Parts: selectedWarrantyMaterialGridMeta.value.warrantyMaterials,
+          PartsReceived: selectedPartGridMeta.value.parts
+        },
+        onResponse({response}) {
+          toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: 'i-heroicons-check-circle',
+              color: 'green'
+            })
+        }
+      })
+    }
+    emit('save')
   }
   const validate = (state: any): FormError[] => {
     const errors = []
@@ -408,6 +567,7 @@
     emit('save', event.data)
     emit('close')
   }
+  watch(() => formData.REPAIRDATE, () => formData.Week = `${new Date(formData.REPAIRDATE).getFullYear().toString().substring(2)}-${getWeekNumber(formData.REPAIRDATE)}`)
   if(props.selectedServiceReport) 
     editInit()
   else 
@@ -436,12 +596,12 @@
       <div class="flex flex-row space-x-5">
         <div class="flex items-center">Quantity: </div>
         <div class="flex-1 mr-4">
-          <UInput type="number" :ui="{base: qtyStyle}" v-model="addModalMeta.quantity"></UInput>
+          <UInput type="number" :ui="{base: qtyStyle}" v-model="addModalMeta.quantity" @keypress="(event)=>{if(event.which === 13) onAddWarrantyOrMaterial()}"></UInput>
         </div>
       </div>
       <div class="flex flex-row-reverse mt-2">
         <div class="min-w-[60px]">
-          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onAddWarrantyOrMaterial"/>
+          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" type="submit" truncate @click="onAddWarrantyOrMaterial"/>
         </div>
         <div class="min-w-[60px] mr-3">
           <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="addModalMeta.isAddModalOpen = false"/>
@@ -460,12 +620,12 @@
         <div class="w-full px-3 py-1 bg-slate-400">
           Service Report
         </div>
-        <div class="px-2 pt-1">
-          Report {{  }}
+        <div class="px-2 pt-1 ml-4">
+          Report {{ formData.CANO }}
         </div>
-        <div class="flex flex-row space-x-4 px-2">
+        <div class="flex flex-row space-x-4 px-2 pr-7">
           <div class="basis-2/3 flex flex-col space-y-1">
-            <div class="flex flex-row space-x-20">
+            <div class="flex flex-row space-x-5">
               <div class="basis-1/2">
                 <div class="flex flex-row">
                   <div class="w-[80px] font-medium flex items-center">
@@ -492,7 +652,7 @@
                 </div>
               </div>
             </div>
-            <div class="flex flex-row space-x-20">
+            <div class="flex flex-row space-x-5">
               <div class="basis-1/2 flex items-center w-full border-[1px] border-slate-200 p-3">
                 <div class="flex justify-between w-full">
                   <URadio 
@@ -509,19 +669,19 @@
                 >
                   <USelect 
                     v-model="formData.REPAIRSBY"
-                    :options="[formData.REPAIRSBY]"
+                    :options="serviceTechOptions"
                   />
                 </UFormGroup>
               </div>
             </div>            
-            <div class="flex flex-row space-x-20">
+            <div class="flex flex-row space-x-5">
               <div class="basis-1/2 flex items-center w-full border-[1px] border-slate-200 p-3">
                 <div class="flex flex-col space-y-1">
                   <div class="flex justify-between w-full">
                     <URadio 
                       v-for="type of typeGroup"
                       :key = 'type.value'
-                      v-model="formData.type"
+                      v-model="formData.REPAIRDESC"
                       v-bind="type"
                     />
                   </div>
@@ -530,7 +690,7 @@
                       Factory Hrs
                     </div>
                     <div class="flex-1">
-                      <UInput v-model="formData.FactoryHours" />
+                      <UInput v-model="formData.FactoryHours" type="number"/>
                     </div>
                   </div>
                 </div>
@@ -544,7 +704,7 @@
                           Travel Hrs
                         </div>
                         <div class="flex-1">
-                          <UInput v-model="formData.TravelHours" />
+                          <UInput v-model="formData.TravelHours" type="number"/>
                         </div>
                       </div>
                     </div>
@@ -554,7 +714,7 @@
                           Miles
                         </div>
                         <div class="flex-1">
-                          <UInput v-model="formData.Miles" />
+                          <UInput v-model="formData.Miles" type="number" />
                         </div>
                       </div>
                     </div>
@@ -566,7 +726,7 @@
                           Onsite Hrs
                         </div>
                         <div class="flex-1">
-                          <UInput v-model="formData.OnsiteHours" />
+                          <UInput v-model="formData.OnsiteHours" type="number"/>
                         </div>
                       </div>
                     </div>
@@ -576,17 +736,27 @@
                           Per Diem
                         </div>
                         <div class="flex-1">
-                          <UInput v-model="formData.PerDiem" />
+                          <UInput v-model="formData.PerDiem" type="number"/>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>            
+            </div>
+            <div>
+              <UFormGroup
+                label="Description"
+              >
+                <UTextarea 
+                  v-model="formData.REPAIRSMADE"
+                  :rows="2"
+                />
+              </UFormGroup>
+            </div>    
           </div>
           <div class="basis-1/3">
-            <div class="border-[1px] border-slate-200 p-2">
+            <div class="border-[1px] border-slate-200 p-2 pb-3">
               <UFormGroup
                 label="Was device performing per specification?"
               >
@@ -600,7 +770,7 @@
                 </div>
                 <UTextarea 
                   v-model="formData.performsnotext"
-                  :rows="5"
+                  :rows="9"
                 />
               </UFormGroup>
             </div>
@@ -611,7 +781,7 @@
         <div class="w-full px-3 py-1 bg-slate-400">
           Invoice
         </div>
-        <div class="p-2">
+        <div class="p-2 pl-7">
           <UTable
             :rows="invoiceGridMeta.invoices"
             :columns="invoiceGridMeta.defaultColumns"
@@ -655,7 +825,7 @@
       <div class="w-full px-3 py-1 bg-slate-400">
           Warranty Material
       </div>
-      <div class="flex flex-row space-x-3 p-2">
+      <div class="flex flex-row space-x-9 p-2">
         <div class="basis-1/2">
           <UTable
             :rows="warrantyMaterialGridMeta.warrantyMaterials"
@@ -735,34 +905,36 @@
           </UTable>
         </div>
         <div class="basis-1/2">
-          <div class="flex flex-row space-x-2 py-1">
-            <div class="basis-1/4">
-              <div class="flex flex-row">
+          <div class="flex flex-row space-x-4 py-1">
+            <div class="basis-1/4 flex items-center">
+              <div class="flex flex-row space-x-2 ">
                 <div class="flex-1 flex items-center">
                   Ship Date
                 </div>
-                <div class="min-w-[140px]">
-                  <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="warrantyMaterialInfo.shipDate && format(warrantyMaterialInfo.shipDate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
-                    <template #panel="{ close }">
-                      <CommonDatePicker v-model="warrantyMaterialInfo.shipDate" is-required @close="close" />
-                    </template>
-                  </UPopover>
+                <div class="min-w-[120px] flex items-center">
+                  <div class="w-full">
+                    <UPopover :popper="{ placement: 'bottom-start' }">
+                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="warrantyMaterialInfo.shipDate && format(warrantyMaterialInfo.shipDate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                      <template #panel="{ close }">
+                        <CommonDatePicker v-model="warrantyMaterialInfo.shipDate" is-required @close="close" />
+                      </template>
+                    </UPopover>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="basis-1/4">
-              <div class="flex flex-row">
+            <div class="basis-1/4 flex items-center">
+              <div class="flex flex-row space-x-2">
                 <div class="flex-1 flex items-center">
                   Shipping
                 </div>
-                <div class="min-w-[80px]">
+                <div class="min-w-[60px]">
                   <UInput v-model="warrantyMaterialInfo.shipping"/>
                 </div>
               </div>
             </div>
-            <div class="basis-1/4">
-              <div class="flex flex-row">
+            <div class="basis-1/4 flex items-center">
+              <div class="flex flex-row w-full">
                 <div class="flex-1 flex items-center">
                   Total
                 </div>
@@ -798,6 +970,7 @@
             }"
             :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
             @select="onSelectedWarrantySelect"
+            @dblclick="onSelectedWarrantyDblclick"
           >
             <template #empty-state>
               <div></div>
@@ -915,6 +1088,7 @@
               }
             }"
             @select="onSelectedPartSelect"
+            @dblclick="onSelectedPartDblclick"
           >
             <template #empty-state>
               <div></div>
@@ -927,7 +1101,7 @@
       </div>
       <div class="flex justify-between px-2">
         <div class="basis-1/6 w-full">
-          <UButton icon="i-heroicons-document" label="Save" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+          <UButton icon="i-heroicons-document" label="Save" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onSave"/>
         </div>
         <div class="basis-1/6 w-full">
           <UButton icon="i-heroicons-magnifying-glass" label="View Order" variant="outline" color="primary" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>

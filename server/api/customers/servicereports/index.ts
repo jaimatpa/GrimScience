@@ -1,4 +1,4 @@
-import { getServiceReports } from '~/server/controller/customers';
+import { getServiceReports, createServiceReport } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {
@@ -7,8 +7,12 @@ export default eventHandler(async (event) => {
 
     switch(method){
       case 'GET':
-        const serials = await getServiceReports(params)
-        return { body: serials, message: '' };
+        const serviceReports = await getServiceReports(params)
+        return { body: serviceReports, message: '' };
+      case 'POST':
+        const data = await readBody(event)
+        const newServiceReport = await createServiceReport(data)
+        return { body: { newServiceReport }, message: 'New service report created successfully!'}
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
