@@ -1,5 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblOrder, tblOrderDetail, tblCustomers, tblComplaints, tblServiceReport, tblBP } from "~/server/models";
+import { tblOrder, tblCustomers, tblComplaints, tblBP } from "~/server/models";
 
 const applyFilters = (params) => {
   const filterParams = ['UniqueID', 'orderdate', 'status'];
@@ -27,79 +27,78 @@ export const orderExistByID = async (id: number | string) => {
 export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filterParams) => {
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
-
-  const whereClause = applyFilters(filterParams);
-
-  tblOrder.hasMany(tblOrderDetail, { foreignKey: 'orderid', sourceKey: 'UniqueID' })
-  // tblCustomers.hasMany(tblOrder, { foreignKey: 'customerid', sourceKey: 'UniqueID' })
-  tblOrder.belongsTo(tblCustomers, { foreignKey: 'customerid', targetKey: 'UniqueID' })
-  tblOrderDetail.belongsTo(tblComplaints, { foreignKey: 'serial', targetKey: 'SERIALNO' })
-  tblComplaints.hasOne(tblServiceReport, { foreignKey: 'COMPLAINTID', sourceKey: 'uniqueID' })
-
-  const list = await tblOrder.findAll({
+  let whereClause = {}
+  let customerWhereClause = {}
+  if(filterParams.COMPLAINTNUMBER) whereClause['COMPLAINTNUMBER'] = {[Op.like]: `%${filterParams.COMPLAINTNUMBER}%`};
+  if(filterParams.SERIALNO) whereClause['SERIALNO'] = {[Op.like]: `%${filterParams.SERIALNO}%`};
+  if(filterParams.COMPLAINTDATE) whereClause[Op.and] = [
+      Sequelize.where(Sequelize.fn('FORMAT', Sequelize.col('COMPLAINTDATE'), 'MM/dd/yyyy'), {
+        [Op.like]: Sequelize.literal(`'%${filterParams.COMPLAINTDATE}%'`)
+      })
+    ]
+  if(filterParams.FAILINVEST) whereClause['FAILINVEST'] = {[Op.like]: `%${filterParams.FAILINVEST}%`};
+  if(filterParams.company) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company}%`};
+  tblComplaints.hasOne(tblCustomers, {foreignKey: 'UniqueID', sourceKey: 'CustomerID'})
+  const list = await tblComplaints.findAll({
     attributes: [
-      ['UniqueID', 'orderID'], 
-      'warranty', 
-      'status',
-      [Sequelize.col('tblOrderDetail.serial'), 'serial'],
-      [Sequelize.col('tblOrderDetail.tblComplaint.uniqueID'), 'complaintID'], 
-      [Sequelize.col('tblOrderDetail.tblComplaint.complaintnumber'), 'complaintNumber'], 
-      [Sequelize.col('tblOrderDetail.tblComplaint.failinvest'), 'failinvest'], 
-      [Sequelize.col('tblOrderDetail.tblComplaint.COMPLAINT'), 'complaint'], 
-      [Sequelize.col('tblOrderDetail.tblComplaint.tblServiceReport.REPAIRDATE'), 'date'], 
-      [Sequelize.col('tblCustomer.company1'), 'company'], 
-      [Sequelize.col('tblCustomer.UniqueID'), 'customerID'], 
-    ], 
+      'uniqueID',
+      'COMPLAINTNUMBER',
+      'SERIALNO',
+      'COMPLAINTDATE',
+      'FAILINVEST',
+      'OPENCASE',
+      'INJURYREPORTNO',
+      'WarrentyService',
+      [Sequelize.col('tblCustomer.company1'), 'company1']
+    ],
     include: [
       {
-        model: tblOrderDetail,
-        attributes: ['serial'],
-        required: true, // INNER JOIN equivalent,
-        include: [
-          {
-            model: tblComplaints,
-            attributes: ['uniqueID', 'complaintnumber', 'failinvest', 'COMPLAINT'],
-            required: true,
-            include: [
-              {
-                model: tblServiceReport,
-                attributes: ['REPAIRDATE', 'ServiceStatus']
-              }
-            ]
-          }
-        ]
-      }, 
-      {
         model: tblCustomers,
-        attributes: ['UniqueID', 'company1'],
-        required: true
-      }, 
+        attributes: ['company1'],
+        where: customerWhereClause
+      }
     ],
-    order: [[Sequelize.col('tblOrderDetail.tblComplaint.complaintnumber'), 'DESC']],
-    where: whereClause,
+    where: {
+      OPENCASE: 0,
+      ...whereClause
+    },
+    order: [[sortBy as string || 'COMPLAINTNUMBER', sortOrder as string || 'DESC']],
     offset,
     limit,
     raw: true
-  });
-  const result = list.map((obj: any) => {
-    const parsedDate = new Date(obj.date);
-    let formattedDate = `${(parsedDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedDate.getDate().toString().padStart(2, '0')}/${parsedDate.getFullYear()}`;
-    // formattedDate = formattedDate.replace(/\n/g, '');
+  })
+  const formattedList = list.map((item: any) => {
+    let openCase;
+    let injury;
+    let warranty;
+    if(item.OPENCASE === '0') 
+      openCase = 'OPEN'
+    else
+      openCase = 'CLOSE'
+    if(item.injury === 0)
+      injury = 'NO'
+    else 
+      injury = 'YES'
+    if(item.WarrentyService === -1)
+      warranty = 'YES'
+    else
+      warranty = 'NO'
+    let complaintDate = new Date(item.COMPLAINTDATE).toISOString().split('T')
+    complaintDate = complaintDate[0].split('-')
+    let formattedDate = `${complaintDate[1]}/${complaintDate[2]}/${complaintDate[0]}`
     return {
-      orderID: obj.orderID,
-      customerID: obj.customerID,
-      warranty: obj.warranty,
-      status: obj.status,
-      serial: obj.serial,
-      complaintID: obj.complaintID,
-      complaintNumber: obj.complaintNumber,
-      failinvest: obj.failinvest,
-      COMPLAINT: obj.COMPLAINT,
-      date: formattedDate,
-      company: obj.company
-    };
-  });
-  return result;
+      uniqueID: item.uniqueID,
+      COMPLAINTNUMBER: item.COMPLAINTNUMBER,
+      SERIALNO: item.SERIALNO,
+      FAILINVEST: item.FAILINVEST,
+      COMPLAINTDATE: formattedDate,
+      Status: openCase,
+      INJURYREPORTNO: injury,
+      Warranty: warranty,
+      company1: item['tblCustomer.company1']
+    }
+  })
+  return formattedList;
 }
 
 export const getAllServiceOrders = async (sortBy, sortOrder, filterParams) => {
@@ -126,12 +125,33 @@ export const getAllServiceOrders = async (sortBy, sortOrder, filterParams) => {
   return formattedList;
 }
 
-export const getNumberOfOrders = async (filterParams) => {
-  const whereClause = applyFilters(filterParams);
-  const numberOfCustomers = await tblOrder.count({
-    where: whereClause
-  });
-  return numberOfCustomers;
+export const getNumberOfServiceOrders = async (filterParams) => {
+  let whereClause = {}
+  let customerWhereClause = {}
+  if(filterParams.COMPLAINTNUMBER) whereClause['COMPLAINTNUMBER'] = {[Op.like]: `%${filterParams.COMPLAINTNUMBER}%`};
+  if(filterParams.SERIALNO) whereClause['SERIALNO'] = {[Op.like]: `%${filterParams.SERIALNO}%`};
+  if(filterParams.COMPLAINTDATE) whereClause[Op.and] = [
+      Sequelize.where(Sequelize.fn('FORMAT', Sequelize.col('COMPLAINTDATE'), 'MM/dd/yyyy'), {
+        [Op.like]: Sequelize.literal(`'%${filterParams.COMPLAINTDATE}%'`)
+      })
+    ]
+  if(filterParams.FAILINVEST) whereClause['FAILINVEST'] = {[Op.like]: `%${filterParams.FAILINVEST}%`};
+  if(filterParams.company) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company}%`};
+  tblComplaints.hasOne(tblCustomers, {foreignKey: 'UniqueID', sourceKey: 'CustomerID'})
+  const numberOfServiceOrders = await tblComplaints.count({
+    include: [
+      {
+        model: tblCustomers,
+        attributes: ['company1'],
+        where: customerWhereClause
+      }
+    ],
+    where: {
+      OPENCASE: 0,
+      ...whereClause
+    },
+  })
+  return numberOfServiceOrders;
 }
 
 export const getProductLines = async (filterParams) => {

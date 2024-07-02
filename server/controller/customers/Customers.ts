@@ -1,5 +1,6 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblCustomers, tblOrder, tblOrderDetail, tblSourceCodes, tblEmployee } from "~/server/models";
+import { tblCustomers, tblOrder, tblOrderDetail, tblSourceCodes, tblComplaints, tblServiceReport } from "~/server/models";
+import { format } from 'date-fns';
 
 const applyFilters = (params) => {
   const filterParams = ['number', 'fname', 'lname', 'company1', 'homephone', 'workphone', 'state', 'zip', 'market', 'source', 'SourceConfrence', 'ParadynamixCatagory'];
@@ -16,7 +17,7 @@ const applyFilters = (params) => {
   return whereClause;
 };
 
-export const customerExistByID = async (id: number | string) => {
+export const customerExistByID = async (id) => {
   const tableDetail = await tblCustomers.findByPk(id);
   if(tableDetail)
     return true;
@@ -175,35 +176,36 @@ export const getConferences = async () => {
   return distinctCategories;
 }
 
-export const getSerialsByID = async (id: Number | String) => {
+export const   getSerialsByCustomerID = async (id) => {
   tblOrderDetail.hasOne(tblOrder, { foreignKey: 'UniqueID', sourceKey: 'orderid' })
-  tblOrder.belongsTo(tblCustomers, { foreignKey: 'customerid', targetKey: 'UniqueID' })
   const list = await tblOrderDetail.findAll({
     attributes: [ 
+      'UniqueID',
       'serial'
     ], 
+    where: {
+      serial: {
+        [Op.not]: null,
+        [Op.ne]: ''
+      }
+    }, 
     include: [
       {
         model: tblOrder,
         attributes: ['UniqueID'],
+        where: {
+          customerid: id
+        },
         required: true,
-        include: [
-          {          
-            model: tblCustomers,
-            attributes: ['UniqueID'],
-          }
-        ]
       }, 
     ],
-    where: {
-      '$tblOrder.tblCustomer.UniqueID$': id
-    },
     order: [['serial', 'ASC']],
     raw: true
   });
-  const result = list.map((obj: any) => {
+  const result = list.map((item: any) => {
     return {
-      serial: obj.serial
+      UniqueID: item.UniqueID,
+      serial: item.serial
     }
   });
   return result;
@@ -247,20 +249,89 @@ export const getSourceDescriptiosBySource = async (source: string | number) => {
   return result;
 }
 
-export const getEmployeesWithPayrollNumber = async () => {
-  const list = await tblEmployee.findAll({
-    attributes: [ 
-      'fname',
-      'lname',
-      'payrollnumber'
-    ], 
+export const getComplaints = async (params) => {
+  const { SERIALNO } = params
+  let where = {}
+  if(SERIALNO) where['SERIALNO'] = SERIALNO
+  const list = await tblComplaints.findAll({
+    attributes: [
+      'uniqueID',
+      'COMPLAINTDATE',
+      'COMPLAINTNUMBER',
+      'COMPLAINT',
+      'COMPLAINTDATE',
+      'RECBY',
+      'PRODUCTDESC',
+      'COMPLAINTNUMBER',
+      'SERIALNO',
+      'FAILINVEST',
+      'ValidComplaintReason'
+    ],
+    where: where,
+    raw: true
+  })
+  const formattedList = list.map((item: any) => {
+    let complaintDate = new Date(item.COMPLAINTDATE).toISOString().split('T')
+    complaintDate = complaintDate[0].split('-')
+    let formattedDate = `${complaintDate[1]}/${complaintDate[2]}/${complaintDate[0]}`
+    return {
+      ...item,
+      COMPLAINTDATE: formattedDate
+    }
+  })
+  return formattedList;
+}
+
+export const getServiceOrderInvoicesOfComplaint = async (params) => {
+  const { COMPLAINTID } = params
+  let where = {}
+  if(COMPLAINTID) where['COMPLAINTID'] = COMPLAINTID
+  let invoiceList = []
+  let invoiceListTmp = await tblServiceReport.findAll({
+    attributes: [
+      'INVOICES'
+    ],
     where: {
-      Active: true
-    },
-    order: [['payrollnumber', 'ASC']]
+      COMPLAINTID: COMPLAINTID
+    }
   })
-  const result = list.map((item: any) => {
-    return `#${item.payrollnumber} ${item.fname} ${item.lname}`
+  invoiceListTmp = invoiceListTmp.map((item: any) => item.INVOICES)
+  invoiceListTmp.map((item: any) => {
+    const tmp = item.split('=')
+    tmp.map((invoice: any) => {
+      if(!invoiceList.includes(invoice) && Number(invoice)) invoiceList.push(invoice)
+    })
   })
-  return result;
+  const result = await tblOrder.findAll({
+    attributes: [
+      'UniqueID',
+      'orderdate',
+      'invoicenumber',
+      'terms'
+    ],
+    where: {
+      invoicenumber: {
+        [Op.in]: invoiceList
+      }
+    }
+  })
+  return result
+}
+
+export const getServiceReports = async (params) => {
+  const { uniqueID, COMPLAINTID } = params
+  let where = {}
+  if(uniqueID) where['uniqueID'] = uniqueID
+  if(COMPLAINTID) where['COMPLAINTID'] = COMPLAINTID
+  const reports = await tblServiceReport.findAll({
+    where: where,
+    raw: true
+  })
+  const formattedReports = reports.map((item: any) => {
+    return {
+      ...item,
+      REPAIRDATE: format(new Date(item.REPAIRDATE), 'MM/dd/yyyy')
+    }
+  })
+  return formattedReports
 }

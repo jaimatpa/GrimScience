@@ -21,7 +21,7 @@
     productLines: {
       label: 'Product Line',
       filter: 'productLine',
-      api: '/api/service/orders/productlines',
+      api: '/api/product/productlines',
       options: []
     }
   })
@@ -49,57 +49,57 @@
   })
   const gridMeta = ref({
     defaultColumns: <UTableColumn[]>[{
-        key: 'complaintNumber',
+        key: 'COMPLAINTNUMBER',
         label: 'SO#',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'serial',
+        key: 'SERIALNO',
         label: 'Serial#',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'date',
+        key: 'COMPLAINTDATE',
         label: 'Date',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'failinvest',
+        key: 'FAILINVEST',
         label: 'Failure Comment',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'company',
+        key: 'company1',
         label: 'Company',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'status',
+        key: 'Status',
         label: 'Status',
       }, {
-        key: 'injury',
+        key: 'INJURYREPORTNO',
         label: 'Injury',
       }, {
-        key: 'warranty',
+        key: 'Warranty',
         label: 'Warranty',
       }, {
-        key: 'complaint',
+        key: 'Complaint',
         label: 'Complaint'
       }
     ],
     page: 1,
     pageSize: 50,
-    numberOfOrders: 0, 
+    numberOfServiceOrders: 0, 
     orders: [],
     selectedOrderId: null,
     sort: {
-      column: 'UniqueID', 
-      direction: 'asc'
+      column: 'COMPLAINTNUMBER', 
+      direction: 'desc'
     }, 
     isLoading: false
   })
@@ -108,15 +108,11 @@
   })
   const filterValues = ref({
     productLine: null,
-    UniqueID: null,
-    serial: null,
-    orderdate: null,
-    failureComment: null,
+    COMPLAINTNUMBER: null,
+    SERIALNO: null,
+    COMPLAINTDATE: null,
+    FAILINVEST: null,
     company: null,
-    status: null,
-    injury: null,
-    warranty: null,
-    complaint: null,
   })
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
@@ -140,26 +136,23 @@
   }
   const fetchGridData = async () => {
     gridMeta.value.isLoading = true
-    // await useApiFetch('/api/service/orders/list', {
-    //   method: 'GET',
-    //   // params: {
-    //   //   ...filterValues.value
-    //   // }, 
-    //   onResponse({ response }) {
-    //     if(response.status === 200) {
-    //       gridMeta.value.numberOfOrders = response._data.body
-    //     }
-    //   }
-    // })
-    // if(gridMeta.value.numberOfOrders === 0){
-    //   gridMeta.value.orders = []
-    //   gridMeta.value.numberOfOrders = 0
-    //   gridMeta.value.isLoading = false
-    //   return;
-    // }
-    // if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfOrders) {
-    //   gridMeta.value.page = Math.ceil(gridMeta.value.numberOfOrders / gridMeta.value.pageSize) | 1
-    // }
+    await useApiFetch('/api/service/orders/numbers', {
+      method: 'GET',
+      params: {
+        ...filterValues.value
+      }, 
+      onResponse({ response }) {
+        if(response.status === 200) {
+          gridMeta.value.numberOfServiceOrders = response._data.body
+        }
+      }
+    })
+    if(gridMeta.value.numberOfServiceOrders === 0){
+      gridMeta.value.orders = []
+      gridMeta.value.numberOfServiceOrders = 0
+      gridMeta.value.isLoading = false
+      return;
+    }
     await useApiFetch('/api/service/orders/list', {
       method: 'GET',
       params: {
@@ -209,8 +202,8 @@
               break;
             default:
               column.sortDirection = 'none';
-              gridMeta.value.sort.column = 'UniqueID';
-              gridMeta.value.sort.direction = 'asc';
+              gridMeta.value.sort.column = 'COMPLAINTNUMBER';
+              gridMeta.value.sort.direction = 'desc';
               break;
           }
         } else {
@@ -392,7 +385,7 @@
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1" >
-          <UPagination :max="7" :page-count="gridMeta.page" :total="1000" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
+          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfServiceOrders | 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
         </div>
       </div>
     </UDashboardPanel>
