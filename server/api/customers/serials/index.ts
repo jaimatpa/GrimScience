@@ -1,16 +1,16 @@
-import { customerExistByID, getSerialsByID } from '~/server/controller/customers';
+import { customerExistByID, getSerialsByCustomerID } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {
-    const id = event.context.params.id;
     const method = event._method;
+    const {...params } = getQuery(event);
 
-    const idExist = await customerExistByID(id);
-    switch(method.toUpperCase()){
+    const idExist = await customerExistByID(params.customerid);
+    switch(method){
       case 'GET':
         if (idExist){
-          const lastOrderID = await getSerialsByID(id)
-          return { body: lastOrderID, message: '' };
+          const serials = await getSerialsByCustomerID(params.customerid)
+          return { body: serials, message: '' };
         } else {
           setResponseStatus(event, 404);
           return { error: 'The customer does not exist' }

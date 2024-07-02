@@ -182,13 +182,6 @@ export const deleteInventoryTransactionDetail = async (id) => {
 
 export const updateInventoryTransaction = async (id, data) => {
   try{
-    // console.log(data.Dated)
-    // if(data.Dated) {
-    //   data.Dated = new Date(data.Dated)
-    //   data.Dated = data.Dated.toISOString();
-    //   console.log(data.Dated)
-    // }
-
     console.log(data)
     const updateResult = await tblInventoryTransactions.update({
       By: data.By,

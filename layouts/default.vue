@@ -27,8 +27,8 @@ const customersItems = [
 ]
 const serviceItems = [
   [{
-    label: 'Cust List',
-    to: '/service/list',
+    label: 'Customers',
+    to: '/customers/customers/list',
     exact: true
   }, {
     label: 'Service Order',
@@ -258,8 +258,8 @@ const links = [{
     shortcuts: ['G', 'U']
   }, 
   children: [{
-    label: 'Cust List',
-    to: '/service/list',
+    label: 'Customers',
+    to: '/customers/customers/list',
     exact: true
   }, {
     label: 'Service Order',

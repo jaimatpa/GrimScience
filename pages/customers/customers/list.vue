@@ -447,19 +447,10 @@
         <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId" :is-modal="true"/>
       </UDashboardModal>
 
-      <!-- Old Modal -->
-      <!-- <UDashboardModal
-        v-model="modalMeta.isCustomerModalOpen"
-        :title="modalMeta.modalTitle"
-        :description="modalMeta.modalDescription"
-        :ui="{width: 'w-[1000px] sm:max-w-7xl', height: 'h-[680px] sm:h-[680px]'}"
-      >
-        <CustomersFormOld @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
-      </UDashboardModal> -->
       <!-- Order Modal -->
       <UDashboardModal
         v-model="modalMeta.isOrderDetailModalOpen"
-        title="Order"
+        title="Invoices"
         :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
       >
         <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId" @close="modalMeta.isOrderDetailModalOpen = false"/>

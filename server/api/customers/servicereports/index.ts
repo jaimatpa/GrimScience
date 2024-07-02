@@ -1,14 +1,14 @@
-import { getNumberOfServiceOrders } from '~/server/controller/service';
+import { getServiceReports } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {
-    const filterParams = getQuery(event);
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+    const {...params } = getQuery(event);
+
+    switch(method){
       case 'GET':
-        const numberOfCustomers = await getNumberOfServiceOrders(filterParams);
-        return { body: numberOfCustomers, message: '' }
+        const serials = await getServiceReports(params)
+        return { body: serials, message: '' };
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
