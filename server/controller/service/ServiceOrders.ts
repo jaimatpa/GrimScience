@@ -49,12 +49,13 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
       'OPENCASE',
       'INJURYREPORTNO',
       'WarrentyService',
-      [Sequelize.col('tblCustomer.company1'), 'company1']
+      [Sequelize.col('tblCustomer.company1'), 'company1'],
+      [Sequelize.col('tblCustomer.UniqueID'), 'customerID']
     ],
     include: [
       {
         model: tblCustomers,
-        attributes: ['company1'],
+        attributes: ['UniqueID', 'company1'],
         where: customerWhereClause
       }
     ],
@@ -95,6 +96,7 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
       Status: openCase,
       INJURYREPORTNO: injury,
       Warranty: warranty,
+      customerID: item['tblCustomer.UniqueID'],
       company1: item['tblCustomer.company1']
     }
   })

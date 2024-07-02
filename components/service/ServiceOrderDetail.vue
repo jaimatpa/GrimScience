@@ -277,12 +277,9 @@
     }
   }
   const onComplaintSelect = async (row) => {
-    if(JSON.stringify({...complaintGridMeta.value.selectedComplaint, class:""})=== JSON.stringify({...row, class: ""})) complaintGridMeta.value.selectedComplaint = null;
-    else {
-      complaintGridMeta.value.selectedComplaint = {...row, class:""}
-    }
+    complaintGridMeta.value.selectedComplaint = {...row, class:""}
     complaintGridMeta.value.complaints.forEach((complaint) => {
-      if(complaint.uniqueID === row.uniqueID && row.class != 'bg-gray-200') {
+      if(complaint.uniqueID === row.uniqueID) {
         complaint.class = 'bg-gray-200'
       }else{
         delete complaint.class
@@ -349,6 +346,10 @@
     selectedServiceReportID.value = null
     modalMeta.value.isServiceReportModalOpen = true
   }
+  const onServiceReportSave = async () => {
+    modalMeta.value.isServiceReportModalOpen = false
+    fetchServiceReportList()
+  }
   const validate = (state: any): FormError[] => {
     const errors = []
 
@@ -386,7 +387,7 @@
       title="Service Report"
       :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
     >
-      <CustomersServiceReportDetail  :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" />
+      <CustomersServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
     </UDashboardModal>
     <div class="w-full px-3 py-1 bg-slate-400">
       Customer Information

@@ -1,5 +1,14 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblCustomers, tblOrder, tblOrderDetail, tblSourceCodes, tblComplaints, tblServiceReport } from "~/server/models";
+import { 
+  tblCustomers, 
+  tblOrder, 
+  tblOrderDetail, 
+  tblSourceCodes, 
+  tblComplaints, 
+  tblServiceReport, 
+  tblInventoryTransactions, 
+  tblInventoryTransactionDetails 
+} from "~/server/models";
 import { format } from 'date-fns';
 
 const applyFilters = (params) => {
@@ -297,10 +306,12 @@ export const getServiceOrderInvoicesOfComplaint = async (params) => {
   })
   invoiceListTmp = invoiceListTmp.map((item: any) => item.INVOICES)
   invoiceListTmp.map((item: any) => {
-    const tmp = item.split('=')
-    tmp.map((invoice: any) => {
-      if(!invoiceList.includes(invoice) && Number(invoice)) invoiceList.push(invoice)
-    })
+    if(item !=='' && item !== null) {
+      const tmp = item.split('=')
+      tmp.map((invoice: any) => {
+        if(!invoiceList.includes(invoice) && Number(invoice)) invoiceList.push(invoice)
+      })
+    }
   })
   const result = await tblOrder.findAll({
     attributes: [
@@ -334,4 +345,93 @@ export const getServiceReports = async (params) => {
     }
   })
   return formattedReports
+}
+
+export const createServiceReport = async (data) => {
+  const { Parts, PartsReceived } = data
+  const lastUniqueID: number = await tblServiceReport.max('uniqueID')
+  let PARTS = ''
+  let PARTSRECEIVED = ''
+  if(Parts) {
+    Parts.forEach((part: any) => {
+      PARTS += `${part.UniqueID}=${part.Quantity}=${part.PRIMARYPRICE1}=`
+    })
+  }
+  if(PartsReceived) {
+    PartsReceived.forEach((part: any) => {
+      PARTSRECEIVED += `${part.UniqueID}=${part.Quantity}=${part.PRIMARYPRICE1}=`
+    })
+  }
+  const reqData = {
+    ...data,
+    DATESHIPPED: data.SHIPPED && format(new Date(data.SHIPPED), 'yyyy-MM-dd HH:mm:ss.SSS'),
+    CANO: lastUniqueID + 1,
+    Year: new Date(data.REPAIRDATE).getFullYear(),
+    REPAIRDATE: format(new Date(data.REPAIRDATE), 'MM/dd/yyyy hh:mm:ss a'),
+    PARTS: PARTS,
+    PARTSRECEIVED: PARTSRECEIVED
+  }
+  const newServiceReport = await tblServiceReport.create(reqData);
+  if(Parts) {
+    const newInventoryTransaction = await tblInventoryTransactions.create({
+      Dated: format(new Date(data.REPAIRDATE), 'yyyy-MM-dd HH:mm:ss.SSS'),
+      By: data.REPAIRSBY,
+      Justification: 'System Generated - Service Report',
+      ServiceReportID: newServiceReport.dataValues?.uniqueID,
+      JobDetailID: 0,
+      JobID: 0, 
+      InvoiceID: 0,
+      VendorInvoiceID: 0,
+      Manual: '',
+      PONumber: 0,
+      OperationID: 0
+    })
+    for(const part of Parts) {
+      const newInventoryTransactionDetail = await tblInventoryTransactionDetails.create({
+        InventoryTransactionID: newInventoryTransaction.dataValues?.uniqueID,
+        InstanceID: part.instanceID,
+        BPID: part.UniqueID,
+        QtyChange: -part.Quantity,
+        OnHand: part.OnHand
+      })
+    }
+  }
+  
+  return newServiceReport
+}
+
+export const serviceReportExistByID = async (id) => {
+  const tableDetail = await tblServiceReport.findByPk(id);
+  if(tableDetail)
+    return true;
+  else
+    return false;
+}
+
+export const updateServiceReport = async (id, reqData) => {
+  const { Parts, PartsReceived } = reqData
+  let PARTS = ''
+  let PARTSRECEIVED = ''
+  if(Parts) {
+    Parts.forEach((part: any) => {
+      PARTS += `${part.UniqueID}=${part.Quantity}=${part.PRIMARYPRICE1}=`
+    })
+  }
+  if(PartsReceived) {
+    PartsReceived.forEach((part: any) => {
+      PARTSRECEIVED += `${part.UniqueID}=${part.Quantity}=${part.PRIMARYPRICE1}=`
+    })
+  }
+  let updatedReqData
+  updatedReqData = {
+    ...reqData,
+    Year: new Date(reqData.REPAIRDATE).getFullYear(),
+    REPAIRDATE: format(new Date(reqData.REPAIRDATE), 'MM/dd/yyyy hh:mm:ss a'),
+    PARTS: PARTS,
+    PARTSRECEIVED: PARTSRECEIVED
+  }
+  await tblServiceReport.update(updatedReqData, {
+    where: { uniqueID: id }
+  });
+  return id;
 }
