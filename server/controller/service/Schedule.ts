@@ -40,4 +40,17 @@ export const getNumberOfSchedules = async (filterParams) => {
     return numberOfCustomers;
 }
 
+export const ScheduleExistByID = async (id: number | string) => {
+    const tableDetail = await vwServiceReportListing.findByPk(id);
+    if(tableDetail)
+      return true;
+    else
+      return false;
+  }
+  
+  export const getScheduleDetail = async (id) => {
+    const tableDetail = await vwServiceReportListing.findByPk(id);
+    return tableDetail
+  }
+
 
