@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import OrganizationForm from '~/components/employee/OrganizationForm.vue';
 import type { UTableColumn } from '~/types';
 
 useSeoMeta({
@@ -88,7 +87,8 @@ const gridMeta = ref({
   const modalMeta = ref({
     isOrganizatioModalOpen: false,
     modalTitle: "New Organization",
-    modalDescription: "Add a new Organization"
+    modalDescription: "Add a new Organization",
+    isPositionModalOpen: false
   })
 
   const filterValues = ref({
@@ -261,6 +261,13 @@ const gridMeta = ref({
     })
   }
 
+  const viewPositions = () =>  {
+    gridMeta.value.selectedOrganizationId = null
+    modalMeta.value.modalTitle = "View Position";
+    modalMeta.value.modalDescription = ""
+    modalMeta.value.isPositionModalOpen = true
+  }
+
 </script>
 
 <template>
@@ -287,13 +294,30 @@ const gridMeta = ref({
         </template>
         <template #right>
           <UButton
+            label="View Position Details"
+            color="gray"
+            trailing-icon="i-heroicons-eye"
+             @click="viewPositions"
+          />
+
+          <UButton
             label="Add Organization"
             color="gray"
             trailing-icon="i-heroicons-plus"
-             @click="onCreate()"
+            @click="onCreate()"
           />
         </template>
       </UDashboardToolbar>
+
+      <!-- New Positon  Modal -->
+      <UDashboardModal
+        v-model="modalMeta.isPositionModalOpen"
+        :title="modalMeta.modalTitle"
+        :description="modalMeta.modalDescription"
+        :ui="{width: 'w-[1800px] sm:max-w-7xl', body: {padding: 'py-0 sm:pt-0'}}"      
+        >
+        <EmployeeViewPositionForm @close="handleModalClose" @save="handleModalSave" :selected-organization="gridMeta.selectedOrganizationId" :is-modal="true"/>
+      </UDashboardModal>
 
       <!-- New Organization Detail Modal -->
       <UDashboardModal
@@ -302,7 +326,7 @@ const gridMeta = ref({
         :description="modalMeta.modalDescription"
         :ui="{width: 'w-[1000px] sm:max-w-7xl', body: {padding: 'py-0 sm:pt-0'}}"      
         >
-        <OrganizationForm @close="handleModalClose" @save="handleModalSave" :selected-organization="gridMeta.selectedOrganizationId" :is-modal="true"/>
+        <EmployeeOrganizationForm @close="handleModalClose" @save="handleModalSave" :selected-organization="gridMeta.selectedOrganizationId" :is-modal="true"/>
       </UDashboardModal>
     
       <UTable
