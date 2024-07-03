@@ -228,7 +228,7 @@
   }
   const editInit = async () => {
     loadingOverlay.value = true
-    await useApiFetch('/api/customers/servicereports', {
+    await useApiFetch('/api/service/servicereports', {
       method: 'GET',
       params: {
         uniqueID: props.selectedServiceReport
@@ -520,7 +520,7 @@
   }
   const onSave = async () => {
     if(!props.selectedServiceReport) {
-      await useApiFetch(`/api/customers/servicereports/`, {
+      await useApiFetch(`/api/service/servicereports/`, {
         method: 'POST',
         body: {
           ...formData,
@@ -539,7 +539,7 @@
         }
       })
     } else {
-      await useApiFetch(`/api/customers/servicereports/${props.selectedServiceReport}`, {
+      await useApiFetch(`/api/service/servicereports/${props.selectedServiceReport}`, {
         method: 'PUT',
         body: {
           ...formData,
