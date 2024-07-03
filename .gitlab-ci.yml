@@ -31,7 +31,7 @@ build dev:
     - cat .env
     - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" pages/login.vue
     - yarn
-    - yarn build
+    - yarn build --fail-on-error
     
 deploy development:
   stage: deploy
