@@ -32,6 +32,17 @@ export const getScheduleList = async (page, pageSize, sortBy, sortOrder, filterP
     return list;
 }
 
+export const getAllSchedules = async (sortBy, sortOrder, filterParams) => {
+    const whereClause = applyFilters(filterParams);
+  
+    const list = await vwServiceReportListing.findAll({
+      attributes: ['uniqueID','SO#','SO Status','SN#','SO Date', 'Cust #', 'Company', 'city','ST','SO Type', 'Failure Comment', 'SR#', 'Status', 'Type', 'Service Tech', 'SR Date', 'Week','Invoice','REPAIRSMADE'],
+      where: whereClause,
+      order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
+    });
+    return list;
+  }
+
 export const getNumberOfSchedules = async (filterParams) => {
     const whereClause = applyFilters(filterParams);
     const numberOfCustomers = await vwServiceReportListing.count({
