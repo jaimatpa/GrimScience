@@ -219,7 +219,7 @@
 
   const getWeekNumber = (date) => {
     date = new Date(date);
-    const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+    const oneDay = 24 * 60 * 60 * 1000;
     const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
     const dayOfYear = Math.floor((date.getTime() - firstDayOfYear.getTime()) / oneDay);
 
@@ -620,40 +620,46 @@
         <div class="w-full px-3 py-1 bg-slate-400">
           Service Report
         </div>
-        <div class="px-2 pt-1 ml-4">
-          Report {{ formData.CANO }}
-        </div>
-        <div class="flex flex-row space-x-4 px-2 pr-7">
+        <div class="flex flex-row space-x-4 px-2 pr-7 pt-2">
           <div class="basis-2/3 flex flex-col space-y-1">
             <div class="flex flex-row space-x-5">
               <div class="basis-1/2">
-                <div class="flex flex-row">
-                  <div class="w-[80px] font-medium flex items-center">
-                    Date
-                  </div>
-                  <div class="flex-1">
-                    <UPopover :popper="{ placement: 'bottom-start' }">
-                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.REPAIRDATE && format(formData.REPAIRDATE, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
-                      <template #panel="{ close }">
-                        <CommonDatePicker v-model="formData.REPAIRDATE" is-required @close="close" />
-                      </template>
-                    </UPopover>
-                  </div>
+                <div class="px-2 pt-1 ml-4">
+                  Report {{ formData.CANO }}
                 </div>
               </div>
               <div class="basis-1/2">
-                <div class="flex flex-row">
-                  <div class="w-[80px] font-medium flex items-center">
-                    Week
+                <div class="flex flex-row space-x-2">
+                  <div class="basis-1/2">
+                    <div class="flex flex-row">
+                      <div class="w-[50px] font-medium flex items-center">
+                        Date
+                      </div>
+                      <div class="flex-1">
+                        <UPopover :popper="{ placement: 'bottom-start' }">
+                          <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.REPAIRDATE && format(formData.REPAIRDATE, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                          <template #panel="{ close }">
+                            <CommonDatePicker v-model="formData.REPAIRDATE" is-required @close="close" />
+                          </template>
+                        </UPopover>
+                      </div>
+                    </div>
                   </div>
-                  <div class="flex-1">
-                    <UInput v-model="formData.Week"/>
+                  <div class="basis-1/2">
+                    <div class="flex flex-row">
+                      <div class="w-[50px] font-medium flex items-center">
+                        Week
+                      </div>
+                      <div class="flex-1">
+                        <UInput v-model="formData.Week"/>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <div class="flex flex-row space-x-5">
-              <div class="basis-1/2 flex items-center w-full border-[1px] border-slate-200 p-3">
+              <div class="basis-1/2 flex items-center w-full border-[1px] border-slate-200 px-3 py-1">
                 <div class="flex justify-between w-full">
                   <URadio 
                     v-for="status of statusGroup"
@@ -664,14 +670,15 @@
                 </div>
               </div>
               <div class="basis-1/2">
-                <UFormGroup
-                  label="Service Tech"
-                >
+                <div class="flex justify-between">
+                  <div class="min-w-[80px] font-medium flex items-center">
+                    Service Tech
+                  </div>
                   <USelect 
                     v-model="formData.REPAIRSBY"
                     :options="serviceTechOptions"
                   />
-                </UFormGroup>
+                </div>
               </div>
             </div>            
             <div class="flex flex-row space-x-5">
@@ -744,15 +751,16 @@
                 </div>
               </div>
             </div>
-            <div>
-              <UFormGroup
-                label="Description"
-              >
+            <div class="flex flex-row space-x-2">
+              <div class="min-w-[80px] font-medium flex items-center">
+                Description
+              </div>
+              <div class="flex-1">
                 <UTextarea 
                   v-model="formData.REPAIRSMADE"
-                  :rows="2"
+                  :rows="1"
                 />
-              </UFormGroup>
+              </div>
             </div>    
           </div>
           <div class="basis-1/3">
@@ -770,7 +778,7 @@
                 </div>
                 <UTextarea 
                   v-model="formData.performsnotext"
-                  :rows="9"
+                  :rows="6"
                 />
               </UFormGroup>
             </div>
@@ -914,9 +922,9 @@
                 <div class="min-w-[120px] flex items-center">
                   <div class="w-full">
                     <UPopover :popper="{ placement: 'bottom-start' }">
-                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="warrantyMaterialInfo.shipDate && format(warrantyMaterialInfo.shipDate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.DATESHIPPED && format(formData.DATESHIPPED, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                       <template #panel="{ close }">
-                        <CommonDatePicker v-model="warrantyMaterialInfo.shipDate" is-required @close="close" />
+                        <CommonDatePicker v-model="formData.DATESHIPPED" is-required @close="close" />
                       </template>
                     </UPopover>
                   </div>
@@ -929,7 +937,7 @@
                   Shipping
                 </div>
                 <div class="min-w-[60px]">
-                  <UInput v-model="warrantyMaterialInfo.shipping"/>
+                  <UInput v-model="formData.Shipping"/>
                 </div>
               </div>
             </div>

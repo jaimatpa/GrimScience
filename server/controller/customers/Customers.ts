@@ -348,10 +348,11 @@ export const getServiceReports = async (params) => {
 }
 
 export const createServiceReport = async (data) => {
-  const { Parts, PartsReceived } = data
+  const { Parts, PartsReceived, DATESHIPPED } = data
   const lastUniqueID: number = await tblServiceReport.max('uniqueID')
   let PARTS = ''
   let PARTSRECEIVED = ''
+  let shippingDate;
   if(Parts) {
     Parts.forEach((part: any) => {
       PARTS += `${part.UniqueID}=${part.Quantity}=${part.PRIMARYPRICE1}=`
@@ -362,9 +363,14 @@ export const createServiceReport = async (data) => {
       PARTSRECEIVED += `${part.UniqueID}=${part.Quantity}=${part.PRIMARYPRICE1}=`
     })
   }
+  if(DATESHIPPED !== null) {
+    shippingDate = Sequelize.literal(`CAST('${DATESHIPPED}' AS DATETIME)`)
+  } else {
+    shippingDate = null
+  }
   const reqData = {
     ...data,
-    DATESHIPPED: data.SHIPPED && format(new Date(data.SHIPPED), 'yyyy-MM-dd HH:mm:ss.SSS'),
+    DATESHIPPED: shippingDate,
     CANO: lastUniqueID + 1,
     Year: new Date(data.REPAIRDATE).getFullYear(),
     REPAIRDATE: format(new Date(data.REPAIRDATE), 'MM/dd/yyyy hh:mm:ss a'),
@@ -409,9 +415,11 @@ export const serviceReportExistByID = async (id) => {
 }
 
 export const updateServiceReport = async (id, reqData) => {
-  const { Parts, PartsReceived } = reqData
+  const { Parts, PartsReceived, DATESHIPPED } = reqData
+  const lastUniqueID: number = await tblServiceReport.max('uniqueID')
   let PARTS = ''
   let PARTSRECEIVED = ''
+  let shippingDate;
   if(Parts) {
     Parts.forEach((part: any) => {
       PARTS += `${part.UniqueID}=${part.Quantity}=${part.PRIMARYPRICE1}=`
@@ -422,9 +430,15 @@ export const updateServiceReport = async (id, reqData) => {
       PARTSRECEIVED += `${part.UniqueID}=${part.Quantity}=${part.PRIMARYPRICE1}=`
     })
   }
+  if(DATESHIPPED !== null) {
+    shippingDate = Sequelize.literal(`CAST('${DATESHIPPED}' AS DATETIME)`)
+  } else {
+    shippingDate = null
+  }
   let updatedReqData
   updatedReqData = {
     ...reqData,
+    DATESHIPPED: shippingDate,
     Year: new Date(reqData.REPAIRDATE).getFullYear(),
     REPAIRDATE: format(new Date(reqData.REPAIRDATE), 'MM/dd/yyyy hh:mm:ss a'),
     PARTS: PARTS,
