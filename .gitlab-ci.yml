@@ -19,30 +19,27 @@ stages:
 build dev:
   stage: build
   artifacts:
-    untracked: false
     when: on_success
-    access: all
     expire_in: 30 days
     paths: 
       - '**'
-
   only:
     - dev
   script:
     - echo -n $ENV_FILE | base64 -d > .env
+    - echo 'NUXT_UI_PRO_LICENSE=DE96572D-DF69-4CE2-8359-220121662EBA' >> .env
     - cat .env
     - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" pages/login.vue
     - yarn
     - yarn build
-
+    
 deploy development:
   stage: deploy
   only:
     - dev
   script:
-#    - echo 'NUXT_UI_PRO_LICENSE=DE96572D-DF69-4CE2-8359-220121662EBA' > .env
 #    - rsync -azh --rsh="ssh -o StrictHostKeyChecking=no -l ubuntu" ./** ubuntu@3.132.84.177:/var/www/gms/grimm-management-system-web
     - rsync -azh --rsh="ssh -o StrictHostKeyChecking=no -l gitlab" ./** gitlab@100.69.4.76:/var/storage/apps/gms/grimm-management-system-web/
-    - ssh -o StrictHostKeyChecking=no gitlab@100.69.4.76 "pm2 restart all"
+    - ssh -o StrictHostKeyChecking=no gitlab@100.69.4.76 "pm2 restart 0"
 
 
