@@ -367,9 +367,10 @@ const onDblClick = async () => {
   }
 };
 
-function formatDate(date) {
-  return format(new Date(date), "yyyy-MM-dd");
-}
+const onServiceReportSave = async () => {
+  modalMeta.value.isReportModalOpen = false;
+  fetchGridData();
+};
 </script>
 
 <template>
@@ -393,6 +394,20 @@ function formatDate(date) {
       <!-- New Organization Detail Modal -->
       <UDashboardModal
         v-model="modalMeta.isReportModalOpen"
+        title="Service Report"
+        :ui="{
+          width: 'w-[1800px] sm:max-w-9xl',
+          body: { padding: 'py-0 sm:pt-0' },
+        }"
+      >
+        <CustomersServiceReportDetail
+          :selected-complaint="null"
+          :selected-service-report="gridMeta.selectedServiceId"
+          @save="onServiceReportSave"
+        />
+      </UDashboardModal>
+      <!-- <UDashboardModal
+        v-model="modalMeta.isReportModalOpen"
         :title="modalMeta.modalTitle"
         :description="modalMeta.modalDescription"
         :ui="{
@@ -406,7 +421,7 @@ function formatDate(date) {
           :selected-service="gridMeta.selectedServiceId"
           :is-modal="true"
         />
-      </UDashboardModal>
+      </UDashboardModal> -->
 
       <div class="flex flex-row px-10 mt-4">
         <template v-for="checkbox in headerCheckboxes">
