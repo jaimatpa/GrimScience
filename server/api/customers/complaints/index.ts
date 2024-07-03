@@ -1,18 +1,19 @@
-import { getNumberOfServiceOrders } from '~/server/controller/service';
+import { getComplaints } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {
-    const filterParams = getQuery(event);
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+    const {...params} = getQuery(event);
+
+    switch(method){
       case 'GET':
-        const numberOfCustomers = await getNumberOfServiceOrders(filterParams);
-        return { body: numberOfCustomers, message: '' }
+        const complaints = await getComplaints(params)
+        return {body: complaints, message: ''}
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
+    
   } catch (error) {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }

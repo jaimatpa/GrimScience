@@ -193,7 +193,7 @@
       onResponse({ response }) {
         if(response.status === 200) {
           for (const key in response._data.body) {
-            if (response._data.body[key] !== undefined) {
+            if (response._data.body[key] !== undefined && response._data.body[key] !== ' ') {
               formData[key] = response._data.body[key]
             }
           }
@@ -441,8 +441,7 @@
     onCalculateInvoiceValues()
   }
   const handleReceiveChecksBtnClick = () => {
-    if(props.selectedOrder)
-      isInventoryTransactionModalOpen.value = true
+    isInventoryTransactionModalOpen.value = true
   }
   const onUpdatePrice = () => {
     selectedOrder.value.PRIMARYPRICE1 = updatedPrice.value
@@ -569,7 +568,7 @@
   </UDashboardModal>
   <UDashboardModal
     v-model="isInventoryTransactionModalOpen"
-    title="Order"
+    title="Inventory Transactions"
     :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}" 
   >
     <InventoryTransactions :selected-order="props.selectedOrder"/>
