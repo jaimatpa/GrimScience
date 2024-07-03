@@ -188,7 +188,7 @@
     loadingOverlay.value = false
   }
   const fetchSerialList = async () => {
-    await useApiFetch(`/api/customers/serials/`, {
+    await useApiFetch(`/api/invoices/serials/`, {
       method: 'GET',
       params: {
         customerid: props.selectedCustomer
@@ -759,8 +759,8 @@
           </div>
           <div class="basis-4/12">
             <div class="flex flex-row">
-              <div class="flex items-center w-[35px]">Date</div>
-              <div class="w-full px-4">
+              <div class="flex items-center w-[35px] font-medium">Date</div>
+              <div class="flex-1 px-4">
                 <UPopover :popper="{ placement: 'bottom-start' }">
                   <UButton icon="i-heroicons-calendar-days-20-solid" :label="serviceOrderInfo.COMPLAINTDATE && format(serviceOrderInfo.COMPLAINTDATE, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
@@ -770,8 +770,8 @@
               </div>
             </div>
             <div class="flex flex-row mt-3">
-              <div class="flex mr-2 items-center w-[35px]">By</div>
-              <div class="w-full px-4">
+              <div class="flex items-center w-[35px] font-medium">By</div>
+              <div class="flex-1 px-4">
                 <USelect
                   v-model="serviceOrderInfo.RECBY"
                   :options="serviceOrderInfo.RECBYOptions"
@@ -788,7 +788,7 @@
                 v-bind="status"
               />
             </div>
-            <div class="mt-3">
+            <div class="mt-6 flex items-center">
               Warranty Period
             </div>
           </div>
