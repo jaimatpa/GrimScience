@@ -553,8 +553,8 @@
   <UDashboardModal 
     v-model="isUpdatePriceModalOpen"
     :ui="{
-      header: { base: 'flex flex-row min-h-[0]', padding: 'p-0' },
-      body: { padding: 'p-0 sm:p-0 sm:px-6 sm:pb-2 sm:pt-2' },
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
       width: 'w-[300px]'
     }"
   >
@@ -578,7 +578,11 @@
   <UDashboardModal
     v-model="isInventoryTransactionModalOpen"
     title="Inventory Transactions"
-    :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}" 
+    :ui="{
+      width: 'w-[1800px] sm:max-w-9xl', 
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
+    }"
   >
     <InventoryTransactions :selected-order="props.selectedOrder"/>
   </UDashboardModal>

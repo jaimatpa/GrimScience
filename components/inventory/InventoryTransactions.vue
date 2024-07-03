@@ -240,9 +240,6 @@
   }
   const onInventoryDblClick = async () =>{
     if(inventoryGridMeta.value.selectedInventory){
-      // modalMeta.value.modalTitle = "Edit";
-      // modalMeta.value.modalDescription = "Edit customer information"
-      // modalMeta.value.isOrderDetailModalOpen = true
     }
   }
   const onProductSelect = async (row) => {
@@ -528,10 +525,10 @@
   <UDashboardModal 
     v-model="isAddPartsModalOpen"
     :ui="{
-      header: { base: 'flex flex-row min-h-[0]', padding: 'p-0' },
-      body: { padding: 'p-0 sm:p-0 sm:px-6 sm:pb-2 sm:pt-2' },
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
       width: 'w-[300px]'
-      }"
+    }"
   >
     <div>
       <div class="flex flex-row space-x-5">

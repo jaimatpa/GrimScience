@@ -322,7 +322,11 @@
       <UDashboardModal
         v-model="modalMeta.isServiceOrderModalOpen"
         title="Service Order List"
-        :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
+        :ui="{
+          header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+          body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
+          width: 'w-[1800px] sm:max-w-9xl'
+        }"
       >
         <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
       </UDashboardModal>

@@ -286,8 +286,6 @@
   }
   const onDblClick = async () =>{
     if(gridMeta.value.selectedOrderId){
-      modalMeta.value.modalTitle = "Edit";
-      modalMeta.value.modalDescription = "Edit customer information"
       modalMeta.value.isOrderDetailModalOpen = true
     }
   }
@@ -361,7 +359,11 @@
       <UDashboardModal
         v-model="modalMeta.isOrderDetailModalOpen"
         title="Order"
-        :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
+        :ui="{
+          header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+          body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
+          width: 'w-[1800px] sm:max-w-9xl'
+        }"
       >
         <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId" :selected-order="gridMeta.selectedOrderId"  @close="handleModalClose"/>
       </UDashboardModal>    

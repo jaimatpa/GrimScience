@@ -361,7 +361,11 @@
         v-model="modalMeta.isEmployeeModalOpen"
         :title="modalMeta.modalTitle"
         :description="modalMeta.modalDescription"
-       :ui="{width: 'w-[1600px] sm:max-w-8xl', body: {padding: 'py-0 sm:pt-0'}}"
+        :ui="{
+          header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+          body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
+          width: 'w-[1600px] sm:max-w-8xl'
+        }"
       >
         <EmployeeForm @close="handleModalClose" @save="handleModalSave" :selected-employee="gridMeta.selectedEmpployeeId" :is-modal="true"/>
       </UDashboardModal>

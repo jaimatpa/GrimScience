@@ -382,7 +382,11 @@
   <UDashboardModal
     v-model="modalMeta.isInventoryTransactionModalOpen"
     title="Inventory Transactions"
-    :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}" 
+    :ui="{
+      width: 'w-[1800px] sm:max-w-9xl', 
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
+    }"
   >
     <InventoryTransactions />
   </UDashboardModal>
@@ -398,8 +402,8 @@
       title="Service Report"
       :ui="{
         width: 'w-[1800px] sm:max-w-9xl', 
-        header: { base: 'flex flex-row min-h-[0]', padding: 'p-0' }, 
-        body: { padding: 'py-0 sm:pt-0' }
+        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+        body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
       }"
     >
       <CustomersServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>

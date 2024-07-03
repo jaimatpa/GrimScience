@@ -280,7 +280,11 @@
         v-model="modalMeta.isCustomerModalOpen"
         :title="modalMeta.modalTitle"
         :description="modalMeta.modalDescription"
-        :ui="{width: 'w-[1000px] sm:max-w-7xl'}"
+        :ui="{
+          header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+          body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
+          width: 'w-[1000px] sm:max-w-7xl'
+        }"
       >
         <CustomersMessageForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedMessageId" :is-modal="true"/>
       </UDashboardModal>

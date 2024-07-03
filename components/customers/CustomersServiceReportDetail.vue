@@ -587,8 +587,8 @@
   <UDashboardModal 
     v-model="addModalMeta.isAddModalOpen"
     :ui="{
-      header: { base: 'flex flex-row min-h-[0]', padding: 'p-0' },
-      body: { padding: 'p-0 sm:p-0 sm:px-6 sm:pb-2 sm:pt-2' },
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
       width: 'w-[300px]'
       }"
   >
@@ -624,8 +624,13 @@
           <div class="basis-2/3 flex flex-col space-y-1">
             <div class="flex flex-row space-x-5">
               <div class="basis-1/2">
-                <div class="px-2 pt-1 ml-4">
-                  Report {{ formData.CANO }}
+                <div class="flex flex-row space-x-2 px-2 pt-1">
+                  <div class="font-medium">
+                    Report
+                  </div>
+                  <div>
+                    {{ formData.CANO }}
+                  </div>
                 </div>
               </div>
               <div class="basis-1/2">
