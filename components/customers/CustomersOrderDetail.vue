@@ -541,13 +541,22 @@
 </script>
 
 <template>
+  <div class="vl-parent">
+    <loading
+      v-model:active="loadingOverlay"
+      :is-full-page="true"
+      color="#000000"
+      backgroundColor="#1B2533"
+      loader="dots"
+    />
+  </div>
   <UDashboardModal 
     v-model="isUpdatePriceModalOpen"
     :ui="{
       header: { base: 'flex flex-row min-h-[0]', padding: 'p-0' },
       body: { padding: 'p-0 sm:p-0 sm:px-6 sm:pb-2 sm:pt-2' },
       width: 'w-[300px]'
-      }"
+    }"
   >
     <div>
       <div class="flex flex-row space-x-5">
@@ -573,15 +582,6 @@
   >
     <InventoryTransactions :selected-order="props.selectedOrder"/>
   </UDashboardModal>
-  <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
-  </div>
   <UForm
     :validate="validate"
     :validate-on="['submit']"

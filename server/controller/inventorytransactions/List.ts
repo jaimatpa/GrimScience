@@ -182,7 +182,6 @@ export const deleteInventoryTransactionDetail = async (id) => {
 
 export const updateInventoryTransaction = async (id, data) => {
   try{
-    console.log(data)
     const updateResult = await tblInventoryTransactions.update({
       By: data.By,
       Justification: data.Justification,
@@ -194,7 +193,6 @@ export const updateInventoryTransaction = async (id, data) => {
     })
     return updateResult
   } catch(err) {
-    console.log(err)
     throw new Error(err.message)
   }
 }

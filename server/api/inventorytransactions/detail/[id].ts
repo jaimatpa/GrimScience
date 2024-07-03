@@ -15,7 +15,6 @@ export default eventHandler(async (event) => {
         const newDetail = await createInventoryTransactionDetail(data)
         return { body: newDetail, message: '' }
       case 'DELETE':
-        console.log('dfasdfas')
         const result = await deleteInventoryTransactionDetail(id)
         return { body: result, message: 'Inventory Transaction Detail deleted successfully' }
       default:

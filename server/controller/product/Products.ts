@@ -91,7 +91,6 @@ export const getProductInfos = async (productline, category, subcategory, model,
   if (subcategory) {
     whereClause['SUBCATEGORY'] = subcategory
   }
-  console.log(whereClause, !productline)
   const productInfos = await tblBP.findAll({
     attributes: [
       'UniqueID',

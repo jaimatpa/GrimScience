@@ -185,7 +185,7 @@ export const getConferences = async () => {
   return distinctCategories;
 }
 
-export const   getSerialsByCustomerID = async (id) => {
+export const getSerialsByCustomerID = async (id) => {
   tblOrderDetail.hasOne(tblOrder, { foreignKey: 'UniqueID', sourceKey: 'orderid' })
   const list = await tblOrderDetail.findAll({
     attributes: [ 
@@ -416,7 +416,6 @@ export const serviceReportExistByID = async (id) => {
 
 export const updateServiceReport = async (id, reqData) => {
   const { Parts, PartsReceived, DATESHIPPED } = reqData
-  const lastUniqueID: number = await tblServiceReport.max('uniqueID')
   let PARTS = ''
   let PARTSRECEIVED = ''
   let shippingDate;

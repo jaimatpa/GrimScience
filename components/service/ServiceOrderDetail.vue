@@ -144,7 +144,8 @@
     reasonOptions: []
   })
   const modalMeta = ref({
-    isServiceReportModalOpen: false
+    isServiceReportModalOpen: false,
+    isInventoryTransactionModalOpen: false
   })
   const selectedServiceReportID = ref(null)
   const date = ref(new Date())
@@ -350,6 +351,9 @@
     modalMeta.value.isServiceReportModalOpen = false
     fetchServiceReportList()
   }
+  const onViewInventoryTransactioBtnClick = () => {
+    modalMeta.value.isInventoryTransactionModalOpen = true
+  }
   const validate = (state: any): FormError[] => {
     const errors = []
 
@@ -375,6 +379,13 @@
       loader="dots"
     />
   </div>
+  <UDashboardModal
+    v-model="modalMeta.isInventoryTransactionModalOpen"
+    title="Inventory Transactions"
+    :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}" 
+  >
+    <InventoryTransactions />
+  </UDashboardModal>
   <UForm
     :validate="validate"
     :validate-on="['submit']"
@@ -385,7 +396,11 @@
     <UDashboardModal
       v-model="modalMeta.isServiceReportModalOpen"
       title="Service Report"
-      :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
+      :ui="{
+        width: 'w-[1800px] sm:max-w-9xl', 
+        header: { base: 'flex flex-row min-h-[0]', padding: 'p-0' }, 
+        body: { padding: 'py-0 sm:pt-0' }
+      }"
     >
       <CustomersServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
     </UDashboardModal>
@@ -651,6 +666,7 @@
                     label="View Inventory Transaction"
                     variant="outline"
                     :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
+                    @click="onViewInventoryTransactioBtnClick"
                   />
                 </div>
               </div>

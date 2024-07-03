@@ -751,7 +751,7 @@
                 </div>
               </div>
             </div>
-            <div class="flex flex-row space-x-2">
+            <div class="flex flex-row space-x-2 pl-3">
               <div class="min-w-[80px] font-medium flex items-center">
                 Description
               </div>
@@ -841,7 +841,7 @@
             :loading="warrantyMaterialGridMeta.isLoading"
             class="w-full"
             :ui="{
-              wrapper: 'h-[240px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
+              wrapper: 'h-[210px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -961,7 +961,7 @@
             :loading="selectedWarrantyMaterialGridMeta.isLoading"
             class="w-full"
             :ui="{
-              wrapper: 'h-[200px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
+              wrapper: 'h-[170px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -999,7 +999,7 @@
             :loading="partGridMeta.isLoading"
             class="w-full"
             :ui="{
-              wrapper: 'h-[240px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
+              wrapper: 'h-[210px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -1080,7 +1080,7 @@
             :loading="selectedPartGridMeta.isLoading"
             class="w-full"
             :ui="{
-              wrapper: 'h-[240px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
+              wrapper: 'h-[210px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
