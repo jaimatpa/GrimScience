@@ -16,6 +16,7 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const route = useRoute();
 const toast = useToast();
+const exportIsLoading = ref(false)
 
 const headerCheckboxes = ref({
   field: {
@@ -371,6 +372,24 @@ const onServiceReportSave = async () => {
   modalMeta.value.isReportModalOpen = false;
   fetchGridData();
 };
+
+const excelExport = async () => {
+    exportIsLoading.value = true
+    const params = {
+        sortBy: gridMeta.value.sort.column,
+        sortOrder: gridMeta.value.sort.direction,
+        ...filterValues.value,
+      }
+    const paramsString = Object.entries(params)
+      .filter(([_, value]) => value !== null)
+      .map(([key, value]) => {
+        if(value !== null)
+        return `${key}=${value}`
+      })
+      .join("&") 
+    location.href = `/api/service/schedule/exportlist?${paramsString}`
+    exportIsLoading.value = false
+  }
 </script>
 
 <template>
@@ -388,6 +407,19 @@ const onServiceReportSave = async () => {
               </UFormGroup>
             </div>
           </div>
+        </template>
+        <template #right>
+          <UButton 
+            :loading="exportIsLoading"
+            label="Export to Excel" 
+            color="gray"
+            :disabled="exportIsLoading"
+            @click="excelExport"
+          >
+            <template #trailing>
+              <UIcon name="i-heroicons-document-text" class="text-green-500 w-5 h-5" />
+            </template>
+          </UButton>
         </template>
       </UDashboardToolbar>
 
