@@ -297,7 +297,7 @@
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar
-        title="Customer List"
+        title="Invoice List"
       >
       </UDashboardNavbar>
 
@@ -390,11 +390,6 @@
         @dblclick="onDblClick"
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-          <!-- <template v-if="column.key === 'UniqueID'">
-            <div class="w-[20px]">
-              asdf
-            </div>
-          </template> -->
           <template v-if="column.kind !== 'actions'">
             <div class="px-4 py-3.5">
               <CommonSortAndInputFilter 

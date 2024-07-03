@@ -381,9 +381,6 @@
   }
   const onInventoryEdit = (row) => {
     inventoryGridMeta.value.selectedInventory = row
-    // modalMeta.value.modalTitle = "Edit";
-    // modalMeta.value.modalDescription = "Edit invoice information"
-    // modalMeta.value.isOrderDetailModalOpen = true
   }
   const onInventoryDelete = async (row: any) => {
 
