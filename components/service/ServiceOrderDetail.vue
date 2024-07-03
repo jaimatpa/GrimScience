@@ -145,7 +145,9 @@
   })
   const modalMeta = ref({
     isServiceReportModalOpen: false,
-    isInventoryTransactionModalOpen: false
+    isInventoryTransactionModalOpen: false,
+    isNewInvoiceModalOpen: false,
+    isInvoiceListModalOpen: false,
   })
   const selectedServiceReportID = ref(null)
   const date = ref(new Date())
@@ -354,6 +356,24 @@
   const onViewInventoryTransactioBtnClick = () => {
     modalMeta.value.isInventoryTransactionModalOpen = true
   }
+  const onNewInvoiceBtnClick = () => {
+    modalMeta.value.isNewInvoiceModalOpen = true
+  }
+  const onLinkBtnClick = () => {
+    modalMeta.value.isInvoiceListModalOpen = true
+  }
+  const onNewInvoiceModalClose = () => {
+    modalMeta.value.isNewInvoiceModalOpen = false
+  }
+  const onInvoiceLinkModalClose = () => {
+    modalMeta.value.isInvoiceListModalOpen = false
+  }
+  const onNewInvoiceSave = (newInvoiceID) => {
+    console.log(newInvoiceID)
+  } 
+  const onInvoiceLink = (selectedInvoiceID) => {
+    console.log(selectedInvoiceID)
+  }
   const validate = (state: any): FormError[] => {
     const errors = []
 
@@ -379,35 +399,12 @@
       loader="dots"
     />
   </div>
-  <UDashboardModal
-    v-model="modalMeta.isInventoryTransactionModalOpen"
-    title="Inventory Transactions"
-    :ui="{
-      width: 'w-[1800px] sm:max-w-9xl', 
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
-    }"
-  >
-    <InventoryTransactions />
-  </UDashboardModal>
   <UForm
     :validate="validate"
     :validate-on="['submit']"
     :state="formData"
     @submit="onSubmit"
   >
-    <!-- Service Report Modal -->
-    <UDashboardModal
-      v-model="modalMeta.isServiceReportModalOpen"
-      title="Service Report"
-      :ui="{
-        width: 'w-[1800px] sm:max-w-9xl', 
-        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-        body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
-      }"
-    >
-      <CustomersServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
-    </UDashboardModal>
     <div class="w-full px-3 py-1 bg-slate-400">
       Customer Information
     </div>
@@ -586,10 +583,10 @@
               </div>
               <div class="flex flex-row space-x-1 mt-1">
                 <div class="basis-1/3 w-full">
-                  <UButton icon="i-heroicons-plus-20-solid" label="New" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-plus-20-solid" label="New" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onNewInvoiceBtnClick"/>
                 </div>
                 <div class="basis-1/3 w-full">
-                  <UButton icon="i-heroicons-plus-20-solid" label="Link" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-plus-20-solid" label="Link" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onLinkBtnClick"/>
                 </div>
                 <div class="basis-1/3 w-full">
                   <UButton icon="i-heroicons-minus-circle-20-solid" label="Unlink" variant="outline" color="red" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
@@ -902,4 +899,52 @@
       </div>
     </div>
   </UForm>
+  <!-- Service Report Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isServiceReportModalOpen"
+    title="Service Report"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-9xl', 
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
+    }"
+  >
+    <CustomersServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
+  </UDashboardModal>
+  <!-- Inventory Transaction Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isInventoryTransactionModalOpen"
+    title="Inventory Transactions"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-9xl', 
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
+    }"
+  >
+    <InventoryTransactions />
+  </UDashboardModal>
+  <!-- New Invoice Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isNewInvoiceModalOpen"
+    title="New Invoivce"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-9xl', 
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
+    }"
+  >
+    <CustomersOrderDetail :selected-customer="props.selectedCustomer" @save="onNewInvoiceSave" @close="onNewInvoiceModalClose"/>
+  </UDashboardModal>
+  <UDashboardModal
+    v-model="modalMeta.isInvoiceListModalOpen"
+    title="Invoice List"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-9xl', 
+      height: 'h-[900px] sm:h-[900px]',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1 overflow-y-scroll', padding: 'py-0 sm:pt-0' }
+    }"
+  >
+    <CustomersInoviceList :selected-customer="props.selectedCustomer" @close="onInvoiceLinkModalClose" @link="onInvoiceLink"/>
+  </UDashboardModal>
 </template>

@@ -510,6 +510,8 @@
               icon: 'i-heroicons-shopping-cart',
               color: 'green'
             })
+            console.log(response._data.body)
+            emit('save', response._data?.body?.UniqueID)
             emit('close')
           }
         }
@@ -531,7 +533,6 @@
         }
       })
     }
-    emit('save', event.data)
   }
   if(props.selectedOrder) {
     editInit()
@@ -676,8 +677,8 @@
                 </div>
                 <div class="flex-1 pl-4">
                   <UInputMenu
-                    v-model="customerData.sourcedescription"
-                    v-model:query="customerData.sourcedescription"
+                    v-model="formData.Quote"
+                    v-model:query="formData.Quote"
                     :options="[]"
                   />
                 </div>

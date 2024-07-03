@@ -449,7 +449,7 @@
       <!-- Order Modal -->
       <UDashboardModal
         v-model="modalMeta.isOrderDetailModalOpen"
-        title="Invoices"
+        title="Invoice"
         :ui="{
           width: 'w-[1800px] sm:max-w-9xl', 
           header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
