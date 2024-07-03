@@ -914,9 +914,9 @@
                 <div class="min-w-[120px] flex items-center">
                   <div class="w-full">
                     <UPopover :popper="{ placement: 'bottom-start' }">
-                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="warrantyMaterialInfo.shipDate && format(warrantyMaterialInfo.shipDate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.DATESHIPPED && format(formData.DATESHIPPED, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                       <template #panel="{ close }">
-                        <CommonDatePicker v-model="warrantyMaterialInfo.shipDate" is-required @close="close" />
+                        <CommonDatePicker v-model="formData.DATESHIPPED" is-required @close="close" />
                       </template>
                     </UPopover>
                   </div>
@@ -929,7 +929,7 @@
                   Shipping
                 </div>
                 <div class="min-w-[60px]">
-                  <UInput v-model="warrantyMaterialInfo.shipping"/>
+                  <UInput v-model="formData.Shipping"/>
                 </div>
               </div>
             </div>
