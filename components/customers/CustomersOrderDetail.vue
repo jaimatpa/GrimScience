@@ -12,6 +12,9 @@
     },
     selectedOrder: {
       type: [Number, String, null]
+    },
+    selectedComplaint: {
+      type: [Number, String, null]
     }
   })
   
@@ -91,7 +94,7 @@
   })
   const formData = reactive({
     customerid: props.selectedCustomer,
-    orderdate: null,
+    orderdate: new Date(),
     orderid: props?.selectedOrder??null,
     shippingmethod: null,
     datepromised: '',
@@ -113,7 +116,7 @@
     Notes: null,
     zone: null,
     package: null,
-    invoicedate: null,
+    invoicedate: new Date(),
     shipdate: null,
     subtotal: 0.0,
     total: 0.0,
@@ -142,7 +145,7 @@
     status: 'Open',
     estimatedbooking: null,
     estimatedship: null,
-    complaintID: null,
+    complaintID: props.selectedComplaint??null,
     InstallationBy: null
   })
   const orderMeta = reactive({
@@ -528,6 +531,7 @@
               icon: 'i-heroicons-shopping-cart',
               color: 'green'
             })
+            emit('save', response._data?.body?.UniqueID)
             emit('close')
           }
         }

@@ -316,14 +316,19 @@ export const getServiceOrderInvoicesOfComplaint = async (params) => {
   const result = await tblOrder.findAll({
     attributes: [
       'UniqueID',
-      'orderdate',
+      [Sequelize.literal("FORMAT(CONVERT(datetime, [orderdate], 101), 'MM/dd/yyyy')"), 'orderdate'],
       'invoicenumber',
       'terms'
     ],
     where: {
-      invoicenumber: {
-        [Op.in]: invoiceList
-      }
+      [Op.or]: [
+        {
+          invoicenumber: {
+            [Op.in]: invoiceList
+          }
+        }, 
+        { complaintID: COMPLAINTID }
+      ]
     }
   })
   return result

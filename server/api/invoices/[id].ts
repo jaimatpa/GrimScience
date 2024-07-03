@@ -21,25 +21,27 @@ export default eventHandler(async (event) => {
           const { orderDetail, ...orderData  } = data
           const updatedID: any = await updateOrder(id, orderData)
           let formattedOrderDetail = [];
-          orderDetail.forEach(order => {
-            const tmp = {
-              quantity: order.quantity, 
-              name: order.DESCRIPTION,
-              price: order.PRIMARYPRICE1,
-              serial: order?.serial??'',
-              orderid: id,
-              bpid: order.bdid,
-              UniqueID: order.UniqueID
-            }
-            formattedOrderDetail.push(tmp)
-          });
-          formattedOrderDetail.map(async (order) => {
-            if(order.UniqueID === null){
-              await creteOrderDetail(order)
-            } else {
-              await updateOrderDetail(order.UniqueID, order)
-            }
-          })
+          if(orderDetail){
+            orderDetail.forEach(order => {
+              const tmp = {
+                quantity: order.quantity, 
+                name: order.DESCRIPTION,
+                price: order.PRIMARYPRICE1,
+                serial: order?.serial??'',
+                orderid: id,
+                bpid: order.bdid,
+                UniqueID: order.UniqueID
+              }
+              formattedOrderDetail.push(tmp)
+            });
+            formattedOrderDetail.map(async (order) => {
+              if(order.UniqueID === null){
+                await creteOrderDetail(order)
+              } else {
+                await updateOrderDetail(order.UniqueID, order)
+              }
+            })
+          }
           return { body: updatedID, message: "Order updated successfully" }
         } else {
           setResponseStatus(event, 404);
