@@ -1,4 +1,4 @@
-import { getComplaints } from '~/server/controller/complaints';
+import { getComplaints } from '~/server/controller/service';
 
 export default eventHandler(async (event) => {
   try {

@@ -1,18 +1,16 @@
-import { getInventoryTransactions } from '~/server/controller/inventorytransactions';
+import { createInventoryTransactionDetail } from '~/server/controller/materials';
 
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    const { ...filterParams } = getQuery(event);
 
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getInventoryTransactions(filterParams);
-        return { body: list, message: '' }
+        break
       case 'POST':
-        
-      case 'PUT':
-        
+        const data = await readBody(event);
+        const newDetail = await createInventoryTransactionDetail(data)
+        return { body: newDetail, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

@@ -1,4 +1,4 @@
-import { getInventoryTransactionDetails, updateInventoryTransaction, deleteInventoryTransaction } from '~/server/controller/inventorytransactions';
+import { getInventoryTransactionDetails, updateInventoryTransaction, deleteInventoryTransaction } from '~/server/controller/materials';
 
 export default eventHandler(async (event) => {
   try {

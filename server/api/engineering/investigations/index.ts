@@ -1,4 +1,4 @@
-import { getComplaints } from '~/server/controller/complaints';
+import { getInvestigations } from '~/server/controller/engineering';
 
 export default eventHandler(async (event) => {
   try {
@@ -7,7 +7,7 @@ export default eventHandler(async (event) => {
 
     switch(method){
       case 'GET':
-        const investigations = await getComplaints(params)
+        const investigations = await getInvestigations(params)
         return {body: investigations, message: ''}
       default:
         setResponseStatus(event, 405);

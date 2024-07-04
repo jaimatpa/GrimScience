@@ -1,16 +1,18 @@
-import { createInventoryTransactionDetail } from '~/server/controller/inventorytransactions';
+import { deleteInventoryTransactionDetail } from '~/server/controller/materials';
 
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
+    const id = event.context.params.id;
 
     switch(method.toUpperCase()){
       case 'GET':
-        break
-      case 'POST':
-        const data = await readBody(event);
-        const newDetail = await createInventoryTransactionDetail(data)
-        return { body: newDetail, message: '' }
+        break;
+      case 'PUT':
+        break;
+      case 'DELETE':
+        const result = await deleteInventoryTransactionDetail(id)
+        return { body: result, message: 'Inventory Transaction Detail deleted successfully' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

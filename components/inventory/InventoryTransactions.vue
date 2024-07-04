@@ -169,7 +169,7 @@
     // loadingOverlay.value = false
   }
   const inventoryFetchGridData = async () => {
-    await useApiFetch(`/api/inventorytransactions`, {
+    await useApiFetch(`/api/materials/inventorytransactions`, {
       method: 'GET',
       params: {...inventoryFilterValues.value},
       onResponse({ response }) {
@@ -214,7 +214,7 @@
   }
   const inventoryDetailFetchGridData = async () => {
     inventoryGridMeta.value.selectedInventory && 
-    await useApiFetch(`/api/inventorytransactions/${inventoryGridMeta.value.selectedInventory.uniqueid}`, {
+    await useApiFetch(`/api/materials/inventorytransactions/${inventoryGridMeta.value.selectedInventory.uniqueid}`, {
       method: 'GET',
       params: {...inventoryDetailFilterValues.value},
       onResponse({ response }) {
@@ -387,7 +387,7 @@
 
   }
   const onAddPartToInventoryTransaction = async () => {
-    await useApiFetch(`/api/inventorytransactions/detail`, {
+    await useApiFetch(`/api/materials/inventorytransactions/detail`, {
       method: 'POST',
       body: {
         inventoryid: inventoryGridMeta.value.selectedInventory.uniqueid,
@@ -405,7 +405,7 @@
   }
   const onRemovePart = async () => {
     if(inventoryDetailGridMeta.value.selectedDetail) {
-      await useApiFetch(`/api/inventorytransactions/detail/${inventoryDetailGridMeta.value.selectedDetail.uniqueID}`, {
+      await useApiFetch(`/api/materials/inventorytransactions/detail/${inventoryDetailGridMeta.value.selectedDetail.uniqueID}`, {
         method: 'DELETE',
         onResponse({ response }) {
           if(response.status === 200) {
@@ -424,7 +424,7 @@
   }
   const onDelete = async () => {
     if(inventoryGridMeta.value.selectedInventory) {
-      await useApiFetch(`/api/inventorytransactions/${inventoryGridMeta.value.selectedInventory.uniqueid}`, {
+      await useApiFetch(`/api/materials/inventorytransactions/${inventoryGridMeta.value.selectedInventory.uniqueid}`, {
         method: 'DELETE',
         onResponse({ response }) {
           if(response.status === 200) {
@@ -454,7 +454,7 @@
   }
   const onSave = async () => {
     if(inventoryGridMeta.value.selectedInventory) {
-      await useApiFetch(`/api/inventorytransactions/${inventoryGridMeta.value.selectedInventory.uniqueid}`, {
+      await useApiFetch(`/api/materials/inventorytransactions/${inventoryGridMeta.value.selectedInventory.uniqueid}`, {
         method: 'PUT',
         body: {...formData},
         async onResponse({ response }){
