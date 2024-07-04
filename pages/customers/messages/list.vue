@@ -110,7 +110,7 @@
   }
   const fetchGridData = async () => {
     gridMeta.value.isLoading = true
-    await useApiFetch('/api/customers/messages/numbers', {
+    await useApiFetch('/api/messages/numbers', {
       method: 'GET',
       params: {
         ...filterValues.value
@@ -130,7 +130,7 @@
     if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfMessages) {
       gridMeta.value.page = Math.ceil(gridMeta.value.numberOfMessages / gridMeta.value.pageSize) | 1
     }
-    await useApiFetch('/api/customers/messages', {
+    await useApiFetch('/api/messages', {
       method: 'GET',
       params: {
         page: gridMeta.value.page,
