@@ -201,7 +201,7 @@
     })
   }
   const fetchComplaintList = async () => {
-    await useApiFetch(`/api/complaints/`, {
+    await useApiFetch(`/api/service/complaints/`, {
       method: 'GET',
       params: {
         SERIALNO: serialGridMeta.value.selectedSerial.serial
