@@ -137,51 +137,49 @@ Object.entries(route.query).forEach(([key, value]) => {
 });
 
 const fetchGridData = async () => {
-  gridMeta.value.isLoading = true;
-
+  //   gridMeta.value.isLoading = true;
   // handle number of organization and pagination
-  await useApiFetch("/api/employees/organization/numbers", {
-    method: "GET",
-    params: {
-      ...filterValues.value,
-    },
-    onResponse({ response }) {
-      if (response.status === 200) {
-        gridMeta.value.numberOfOrganization = response._data.body;
-      }
-    },
-  });
-  if (gridMeta.value.numberOfOrganization === 0) {
-    gridMeta.value.organization = [];
-    gridMeta.value.numberOfOrganization = 0;
-    gridMeta.value.isLoading = false;
-    return;
-  }
-  if (
-    gridMeta.value.page * gridMeta.value.pageSize >
-    gridMeta.value.numberOfOrganization
-  ) {
-    gridMeta.value.page =
-      Math.ceil(gridMeta.value.numberOfOrganization / gridMeta.value.pageSize) |
-      1;
-  }
-
-  await useApiFetch("/api/employees/organization/list", {
-    method: "GET",
-    params: {
-      page: gridMeta.value.page,
-      pageSize: gridMeta.value.pageSize,
-      sortBy: gridMeta.value.sort.column,
-      sortOrder: gridMeta.value.sort.direction,
-      ...filterValues.value,
-    },
-    onResponse({ response }) {
-      if (response.status === 200) {
-        gridMeta.value.organization = response._data.body;
-      }
-      gridMeta.value.isLoading = false;
-    },
-  });
+  //   await useApiFetch("/api/employees/organization/numbers", {
+  //     method: "GET",
+  //     params: {
+  //       ...filterValues.value,
+  //     },
+  //     onResponse({ response }) {
+  //       if (response.status === 200) {
+  //         gridMeta.value.numberOfOrganization = response._data.body;
+  //       }
+  //     },
+  //   });
+  //   if (gridMeta.value.numberOfOrganization === 0) {
+  //     gridMeta.value.organization = [];
+  //     gridMeta.value.numberOfOrganization = 0;
+  //     gridMeta.value.isLoading = false;
+  //     return;
+  //   }
+  //   if (
+  //     gridMeta.value.page * gridMeta.value.pageSize >
+  //     gridMeta.value.numberOfOrganization
+  //   ) {
+  //     gridMeta.value.page =
+  //       Math.ceil(gridMeta.value.numberOfOrganization / gridMeta.value.pageSize) |
+  //       1;
+  //   }
+  //   await useApiFetch("/api/employees/organization/list", {
+  //     method: "GET",
+  //     params: {
+  //       page: gridMeta.value.page,
+  //       pageSize: gridMeta.value.pageSize,
+  //       sortBy: gridMeta.value.sort.column,
+  //       sortOrder: gridMeta.value.sort.direction,
+  //       ...filterValues.value,
+  //     },
+  //     onResponse({ response }) {
+  //       if (response.status === 200) {
+  //         gridMeta.value.organization = response._data.body;
+  //       }
+  //       gridMeta.value.isLoading = false;
+  //     },
+  //   });
 };
 
 const handlePageChange = async () => {
@@ -290,9 +288,9 @@ const onDelete = async (row: any) => {
 </script>
 
 <template>
-  <UDashboardPage>
-    <UDashboardPanel grow>
-      <UDashboardNavbar title="Organization List"> </UDashboardNavbar>
+  <div class="max-w-8xl">
+    <div grow>
+      <!-- <UDashboardNavbar title="Jobs List"> </UDashboardNavbar> -->
       <UDashboardToolbar>
         <template #left>
           <div class="flex flex-row space-x-3">
@@ -443,6 +441,6 @@ const onDelete = async (row: any) => {
           />
         </div>
       </div>
-    </UDashboardPanel>
-  </UDashboardPage>
+    </div>
+  </div>
 </template>
