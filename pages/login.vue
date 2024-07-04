@@ -95,7 +95,10 @@
         </UButton>
       </UForm>
     </UCard>
-    <div>
+    <div style="margin-top: 20px; text-align: center;">
+      © Copyright 2024 - Grimm Scientific Industries
+    </div>
+    <div style="margin-top: 5px; font-size: 10px; text-align: center">
       Commit ID {COMMIT}
     </div>
   </div>
