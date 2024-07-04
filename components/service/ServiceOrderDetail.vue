@@ -2,6 +2,7 @@
   import type { FormError, FormSubmitEvent } from '#ui/types'
   import Loading from 'vue-loading-overlay'
   import 'vue-loading-overlay/dist/css/index.css';   
+  import type { UTableColumn } from '~/types';
   import { format } from 'date-fns'
 
   const emit = defineEmits(['close', 'save'])
@@ -10,49 +11,8 @@
       type: [Number, String, null],
       required: true
     },
-    selectedOrder: {
-      type: [Number, String, null]
-    }
   })
-  const serialColumns = ref([{
-    key: 'serial',
-    label: 'Serial',
-  }])
-  const orderColumns = ref([{
-    key: 'order',
-    label: 'Order'
-  }, {
-    key: 'UniqueID',
-    label: '#'
-  }])
-  const invoiceColumns = ref([{
-    key: 'orderdate',
-    label: 'Date',
-  }, {
-    key: 'invoice', 
-    label: 'Invoice#'
-  }, {
-    key: 'terms',
-    label: 'Terms'
-  }])
-  const reportColumns = ref([{
-    key: 'date',
-    label: 'Date',
-  }, {
-    key: 'type', 
-    label: 'Type'
-  }, {
-    key: 'by',
-    label: 'By'
-  }])
-  const investigationColumns = ref([{
-    key: 'date',
-    label: 'Date',
-  }, {
-    key: 'description',
-    label: 'Description'
-  }
-  ])
+  const toast = useToast()
   const loadingOverlay = ref(false)
   const formData = reactive({
     customerID: props.selectedCustomer,
@@ -96,16 +56,103 @@
     Extension: null,
     ExtensionBill: null,
   })
-  const serials = ref([])
+  const serialGridMeta = ref({
+    defaultColumns: <UTableColumn[]>[
+      {
+        key: 'serial',
+        label: 'Serial',
+      }
+    ],
+    serials: [],
+    selectedSerial: null,
+    isLoading: false
+  })
+  const complaintGridMeta = ref({
+    defaultColumns: <UTableColumn[]>[
+      {
+        key: 'COMPLAINTDATE',
+        label: 'Date'
+      }, {
+        key: 'COMPLAINTNUMBER',
+        label: '#'
+      }
+    ],
+    complaints: [],
+    selectedComplaint: null,
+    isLoading: false
+  })
+  const invoiceGridMeta = ref({
+    defaultColumns: <UTableColumn[]>[
+      {
+        key: 'orderdate',
+        label: 'Date'
+      }, {
+        key: 'invoicenumber',
+        label: 'Invoice#'
+      }, {
+        key: 'terms',
+        label: 'Terms'
+      }
+    ],
+    invoices: [],
+    selectedInvoice: null,
+    isLoading: false
+  })
+  const serviceReportGridMeta = ref({
+    defaultColumns: <UTableColumn[]>[
+      {
+        key: 'REPAIRDATE',
+        label: 'Date'
+      }, {
+        key: 'Type',
+        label: 'Type'
+      }, {
+        key: 'REPAIRSBY',
+        label: 'By'
+      }
+    ],
+    serviceReports: [],
+    selectedServiceReport: null,
+    isLoading: false
+  })
+  const investigationGridMeta = ref({
+    defaultColumns: <UTableColumn[]>[
+      {
+        key: 'date',
+        label: 'Date',
+      }, {
+        key: 'description',
+        label: 'Description'
+      }
+    ],
+    investigations: [],
+    selectedInvestigation: null,
+    isLoading: false
+  })
+  const serviceOrderInfo = ref({
+    COMPLAINTNUMBER: null,
+    COMPLAINTDATE: null,
+    RECBY: null,
+    RECBYOptions: [],
+    SERIALNO: null,
+    COMPLAINT: null,
+    PRODUCTDESC: null
+  })
+  const typeOfServiceInfo = ref({
+    reason: null, 
+    failure: null,
+    reasonOptions: []
+  })
+  const modalMeta = ref({
+    isServiceReportModalOpen: false
+  })
+  const selectedServiceReportID = ref(null)
   const date = ref(new Date())
-  const orderers = ref([])
-  const orderer = ref([])
   const statusGroup = ref([
     {value: 'open', label: 'Open'}, 
     {value: 'close', label: 'Close'}
   ])
   const selectedStatus = ref('open')
-  const description = ref('Warm Tank fill valve not closing')
   const riskStatusGroup = ref([
     {value: 'no', label: 'No'}, 
     {value: 'yes', label: 'Yes'}
@@ -114,29 +161,11 @@
   const receivedDate = ref(null)
   const nc = ref(null)
   const accessories = ref(null)
-  const service = ref(null)
-  const serviceList = ref([])
-  const failure = ref(null)
 
   const editInit = async () => {
     loadingOverlay.value = true
-    // await useApiFetch(`/api/tbl/tblCustomers/${props.selectedOrder}`, {
-    //   method: 'GET',
-    //   onResponse({ response }) {
-    //     if(response.status === 200) {
-    //       loadingOverlay.value = false
-    //       for (const key in response._data.body) {
-    //         if (response._data.body[key] !== undefined) {
-    //           formData[key] = response._data.body[key]
-    //         }
-    //       }
-    //     }
-    //   }
-    // })
     await propertiesInit()
-    loadingOverlay.value = false
   }
-
   const propertiesInit = async () => {
     loadingOverlay.value = true
     await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
@@ -152,32 +181,185 @@
         }
       }
     })
-    await useApiFetch(`/api/customers/serials/${props.selectedCustomer}`, {
+    await fetchSerialList();
+    loadingOverlay.value = false
+  }
+  const fetchSerialList = async () => {
+    await useApiFetch(`/api/customers/serials/`, {
       method: 'GET',
+      params: {
+        customerid: props.selectedCustomer
+      },
       onResponse({ response }) {
         if(response.status === 200) {
-          loadingOverlay.value = false
-          serials.value = response._data.body
+          serialGridMeta.value.serials = response._data.body
         }
       }
     })
-    
-    loadingOverlay.value = false
   }
-
+  const fetchComplaintList = async () => {
+    await useApiFetch(`/api/customers/complaints/`, {
+      method: 'GET',
+      params: {
+        SERIALNO: serialGridMeta.value.selectedSerial.serial
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          complaintGridMeta.value.complaints = response._data.body
+        }
+      }
+    })
+  }
+  const fetchInvoiceList = async () => {
+    await useApiFetch(`/api/invoices/serviceorderinvoices/`, {
+      method: 'GET',
+      params: {
+        COMPLAINTID: complaintGridMeta.value?.selectedComplaint?.uniqueID
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          invoiceGridMeta.value.invoices = response._data.body
+        }
+      }
+    })
+  }
+  const fetchServiceReportList = async () => {
+    await useApiFetch(`/api/customers/servicereports/`, {
+      method: 'GET',
+      params: {
+        COMPLAINTID: complaintGridMeta.value.selectedComplaint.uniqueID
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          serviceReportGridMeta.value.serviceReports = response._data.body
+        }
+      }
+    })
+  }
+  const onSerialSelect = async (row) => {
+    if(JSON.stringify({...serialGridMeta.value.selectedSerial, class:""})=== JSON.stringify({...row, class: ""})) serialGridMeta.value.selectedSerial = null;
+    else {
+      serialGridMeta.value.selectedSerial = {...row, class:""}
+    }
+    serialGridMeta.value.serials.forEach((serial) => {
+      if(serial.UniqueID === row.UniqueID && row.class != 'bg-gray-200') {
+        serial.class = 'bg-gray-200'
+      }else{
+        delete serial.class
+      }
+    })
+    if(serialGridMeta.value.selectedSerial) {
+      await fetchComplaintList()
+      let tmpRECBYOptions = complaintGridMeta.value.complaints.map((item: any) => item.RECBY)
+      tmpRECBYOptions = tmpRECBYOptions.filter(item => item !== '' && item !== null)
+      let uniqueItemSet = new Set()
+      let filteredRECBYOptions = tmpRECBYOptions.filter(item => {
+        if(!uniqueItemSet.has(item)) {
+          uniqueItemSet.add(item)
+          return true
+        }
+        return false
+      })
+      serviceOrderInfo.value.RECBYOptions = filteredRECBYOptions
+      serviceOrderInfo.value.RECBYOptions.unshift(null)
+      let tmpReasonOptions = complaintGridMeta.value.complaints.map((item: any) => item.ValidComplaintReason)
+      tmpReasonOptions = tmpReasonOptions.filter(item => item !== '' && item !== null)
+      let uniqueReasonSet = new Set()
+      let filteredReasonOptions = tmpReasonOptions.filter(item => {
+        if(!uniqueReasonSet.has(item)) {
+          uniqueReasonSet.add(item)
+          return true
+        }
+        return false
+      })
+      typeOfServiceInfo.value.reasonOptions = filteredReasonOptions
+      typeOfServiceInfo.value.reasonOptions.unshift(null)
+    }
+  }
+  const onComplaintSelect = async (row) => {
+    complaintGridMeta.value.selectedComplaint = {...row, class:""}
+    complaintGridMeta.value.complaints.forEach((complaint) => {
+      if(complaint.uniqueID === row.uniqueID) {
+        complaint.class = 'bg-gray-200'
+      }else{
+        delete complaint.class
+      }
+    })
+    if(complaintGridMeta.value.selectedComplaint) {
+      serviceOrderInfo.value.SERIALNO = complaintGridMeta.value.selectedComplaint.SERIALNO
+      serviceOrderInfo.value.COMPLAINTNUMBER = complaintGridMeta.value.selectedComplaint.COMPLAINTNUMBER
+      serviceOrderInfo.value.COMPLAINTDATE = complaintGridMeta.value.selectedComplaint.COMPLAINTDATE
+      serviceOrderInfo.value.COMPLAINT = complaintGridMeta.value.selectedComplaint.COMPLAINT
+      serviceOrderInfo.value.PRODUCTDESC = complaintGridMeta.value.selectedComplaint.PRODUCTDESC
+      serviceOrderInfo.value.RECBY = complaintGridMeta.value.selectedComplaint.RECBY
+      typeOfServiceInfo.value.reason = complaintGridMeta.value.selectedComplaint.ValidComplaintReason
+      typeOfServiceInfo.value.failure = complaintGridMeta.value.selectedComplaint.FAILINVEST
+      await fetchInvoiceList()
+      await fetchServiceReportList()
+    } else {
+      serviceOrderInfo.value.SERIALNO = null
+      serviceOrderInfo.value.COMPLAINTNUMBER = null
+      serviceOrderInfo.value.COMPLAINTDATE = null
+      serviceOrderInfo.value.COMPLAINT = null
+      serviceOrderInfo.value.PRODUCTDESC = null
+      serviceOrderInfo.value.RECBY = null
+      invoiceGridMeta.value.invoices = []
+      serviceReportGridMeta.value.serviceReports = []
+    }
+  }
+  const onInvoiceSelect = async (row) => {
+    if(JSON.stringify({...invoiceGridMeta.value.selectedInvoice, class:""})=== JSON.stringify({...row, class: ""})) invoiceGridMeta.value.selectedInvoice = null;
+    else {
+      invoiceGridMeta.value.selectedInvoice = {...row, class:""}
+    }
+    invoiceGridMeta.value.invoices.forEach((invoice) => {
+      if(invoice.UniqueID === row.UniqueID && row.class != 'bg-gray-200') {
+        invoice.class = 'bg-gray-200'
+      }else{
+        delete invoice.class
+      }
+    })
+  }
+  const onServiceReportSelect = async (row) => {
+    serviceReportGridMeta.value.selectedServiceReport = {...row, class:""}
+    serviceReportGridMeta.value.serviceReports.forEach((serviceReport) => {
+      if(serviceReport.uniqueID === row.uniqueID) {
+        serviceReport.class = 'bg-gray-200'
+      }else{
+        delete serviceReport.class
+      }
+    })
+  }
+  const onServiceReportDblClick = () => {
+    selectedServiceReportID.value = serviceReportGridMeta.value.selectedServiceReport?.uniqueID
+    modalMeta.value.isServiceReportModalOpen = true
+  }
+  const onServiceReportBtnClick = async () => {
+    if(!complaintGridMeta.value.selectedComplaint) {
+      toast.add({
+        description: 'You must save this complaint first before you can continue',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+      return;
+    }
+    selectedServiceReportID.value = null
+    modalMeta.value.isServiceReportModalOpen = true
+  }
+  const onServiceReportSave = async () => {
+    modalMeta.value.isServiceReportModalOpen = false
+    fetchServiceReportList()
+  }
   const validate = (state: any): FormError[] => {
     const errors = []
-    if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
-    if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
-    if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
+
     return errors
   }
-
   async function onSubmit(event: FormSubmitEvent<any>) {
     emit('save', event.data)
     emit('close')
   }
-  if(props.selectedOrder) 
+  if(props.selectedCustomer) 
     editInit()
   else 
     propertiesInit()
@@ -199,7 +381,15 @@
     :state="formData"
     @submit="onSubmit"
   >
-    <div class="w-full px-3 py-1 bg-slate-400 border-2 border-slate-600 border-l-0 border-b-0 border-r-0">
+    <!-- Service Report Modal -->
+    <UDashboardModal
+      v-model="modalMeta.isServiceReportModalOpen"
+      title="Service Report"
+      :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
+    >
+      <CustomersServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
+    </UDashboardModal>
+    <div class="w-full px-3 py-1 bg-slate-400">
       Customer Information
     </div>
 
@@ -215,7 +405,7 @@
         </div>
         <div class="flex flex-row space-x-3">
           <div class="basis-1/2">
-            <div class="font-bold border-b-2 border-black">
+            <div class="font-bold border-b-[1px] border-black">
               Shipping Information
             </div>
             <div class="flex flex-col mt-4 space-y-3">
@@ -248,7 +438,7 @@
             </div>
           </div>
           <div class="basis-1/2">
-            <div class="font-bold border-b-2 border-black">
+            <div class="font-bold border-b-[1px] border-black">
               Billing Information
             </div>
             <div class="flex flex-col mt-4 space-y-3">
@@ -282,16 +472,26 @@
               name="serial"
             >
               <UTable
-                :columns="serialColumns"
-                :rows="serials"
+                :columns="serialGridMeta.defaultColumns"
+                :rows="serialGridMeta.serials"
+                class="w-full"
                 :ui="{
                   wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
-                  th:{ 
+                  divide: 'divide-gray-200 dark:divide-gray-800',
+                  tr: {
+                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                  },
+                  th: { 
                     base: 'sticky top-0 z-10',
                     color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'p-1' 
+                    padding: 'px-2 py-0'
+                  }, 
+                  td: {
+                    base: 'h-[31px]',
+                    padding: 'px-2 py-0'
                   }
                 }"
+                @select="onSerialSelect"
               >
                 <template #empty-state>
                   <div></div>
@@ -305,15 +505,25 @@
               name="orders"
             >
               <UTable
-                :columns="orderColumns"
+                :rows="complaintGridMeta.complaints"
+                :columns="complaintGridMeta.defaultColumns"
                 :ui="{
                   wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
-                  th:{ 
+                  divide: 'divide-gray-200 dark:divide-gray-800',
+                  tr: {
+                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                  },
+                  th: { 
                     base: 'sticky top-0 z-10',
                     color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'p-1' 
+                    padding: 'px-2 py-0'
+                  }, 
+                  td: {
+                    base: 'h-[31px]',
+                    padding: 'px-2 py-0'
                   }
                 }"
+                @select="onComplaintSelect"
               >
                 <template #empty-state>
                   <div></div>
@@ -329,15 +539,25 @@
                   name="invoice"
                 >
                   <UTable
-                    :columns="invoiceColumns"
+                    :rows="invoiceGridMeta.invoices"
+                    :columns="invoiceGridMeta.defaultColumns"
                     :ui="{
                       wrapper: 'h-[100px] border-2 border-gray-300 dark:border-gray-700',
-                      th:{ 
+                      divide: 'divide-gray-200 dark:divide-gray-800',
+                      tr: {
+                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                      },
+                      th: { 
                         base: 'sticky top-0 z-10',
                         color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                        padding: 'p-1' 
+                        padding: 'px-2 py-0'
+                      }, 
+                      td: {
+                        base: 'h-[31px]',
+                        padding: 'px-2 py-0'
                       }
                     }"
+                    @select="onInvoiceSelect"
                   >
                   <template #empty-state>
                     <div></div>
@@ -364,64 +584,85 @@
           <div class="pl-3 bg-slate-400">
             Service Reports
           </div>
-          <div class="flex flex-row p-3 bg-slate-200 space-x-4">
-            <div class="basis-3/5">
-              <UTable
-                :columns="reportColumns"
-                :ui="{
-                  wrapper: 'h-24 border-2 border-gray-300 dark:border-gray-700',
-                  th:{ 
-                    base: 'sticky top-0 z-10',
-                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'p-1' 
-                  }
-                }"
-              >
-                <template #empty-state>
-                  <div></div>
-                </template>
-              </UTable>
-              <div class="flex flex-row space-x-3 mt-3">
-                <div class="basis-1/2">
+          <div class="flex flex-col p-3 bg-slate-200 space-x-4">
+            <div class="flex flex-row">
+              <div class="basis-3/5 px-2">
+                <UTable
+                  :rows="serviceReportGridMeta.serviceReports"
+                  :columns="serviceReportGridMeta.defaultColumns"
+                  :ui="{
+                    wrapper: 'h-24 border-2 border-gray-300 dark:border-gray-700 bg-white dark:text-gray dark:bg-[#111827]',
+                    divide: 'divide-gray-200 dark:divide-gray-800',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: { 
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                      padding: 'px-2 py-0'
+                    }, 
+                    td: {
+                      base: 'h-[31px]',
+                      padding: 'px-2 py-0'
+                    }
+                  }"
+                  @select="onServiceReportSelect"
+                  @dblclick="onServiceReportDblClick"
+                >
+                  <template #empty-state>
+                    <div></div>
+                  </template>
+                </UTable>
+                <div class="flex justify-between mt-1">
+                  <div class="italic flex items-center">
+                    Doubleclick to view
+                  </div>
+                  <div>
+                    <UButton 
+                      icon="i-f7-rays"
+                      label="Clear Selection"
+                      variant="outline"
+                      color="red"
+                      :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="basis-2/5 space-y-3 px-2">
+                <div>
+                  <UCheckbox name="warranty" label="Warranty Service" />
+                </div>
+                <div>
+                  This Warranty Cost: $0.00
+                </div>
+                <div>
+                  Total Serial Warranty: $2984.30
+                </div>
+                <div>
+                  Ship Date: 4/1/2007
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-row mt-2">
+              <div class="basis-3/5 px-2">
+                <div class="w-full">
+                  <UButton 
+                    icon="i-heroicons-check-badge-20-solid"
+                    label="View Inventory Transaction"
+                    variant="outline"
+                    :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
+                  />
+                </div>
+              </div>
+              <div class="basis-2/5 px-2">
+                <div class="w-full">
                   <UButton 
                     icon="i-heroicons-plus-20-solid"
                     label="Create Service Report"
                     variant="outline"
                     color="green"
                     :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
-                  />
-                </div>
-                <div class="basis-1/2">
-                  <UButton 
-                    icon="i-f7-rays"
-                    label="Clear Selection"
-                    variant="outline"
-                    color="red"
-                    :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
-                  />
-                </div>
-              </div>
-            </div>
-            <div class="basis-2/5 space-y-1">
-              <div>
-                <UCheckbox name="warranty" label="Warranty Service" />
-              </div>
-              <div>
-                This Warranty Cost: $0.00
-              </div>
-              <div>
-                Total Serial Warranty: $2984.30
-              </div>
-              <div>
-                Ship Date: 4/1/2007
-              </div>
-              <div>
-                <div class="">
-                  <UButton 
-                    icon="i-heroicons-check-badge-20-solid"
-                    label="View Inventory Transaction"
-                    variant="outline"
-                    :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
+                    @click="onServiceReportBtnClick"
                   />
                 </div>
               </div>
@@ -432,33 +673,36 @@
     </div>
 
     <div class="!my-0 flex flex-row">
-      <div class="basis-1/2 border-2 border-slate-600 border-l-0 border-b-0">
+      <div class="basis-1/2 border-[1px] border-slate-600 border-l-0 border-b-0 border-t-0">
         <div class="w-full bg-slate-400 px-3 py-1">
           Service Order
         </div>
         <div class="flex flex-row px-3 py-2">
           <div class="basis-5/12">
-            <div># 6659</div>
-            <div>#4100 CRYOTherm, Dual Console</div>
-            <div>Serial 4100008</div>
+            <div>{{ serviceOrderInfo.COMPLAINTNUMBER?`# ${serviceOrderInfo.COMPLAINTNUMBER}`:'' }}</div>
+            <div>{{ serviceOrderInfo.PRODUCTDESC }}</div>
+            <div>{{ serviceOrderInfo.SERIALNO?`Serial ${serviceOrderInfo.SERIALNO}`: '' }}</div>
           </div>
           <div class="basis-4/12">
             <div class="flex flex-row">
-              <div class="flex mr-2 items-center w-[35px]">Date</div>
-              <UPopover :popper="{ placement: 'bottom-start' }">
-                <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'd MMM, yyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
-                <template #panel="{ close }">
-                  <CommonDatePicker v-model="date" is-required @close="close" />
-                </template>
-              </UPopover>
+              <div class="flex items-center w-[35px]">Date</div>
+              <div class="w-full px-4">
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="serviceOrderInfo.COMPLAINTDATE && format(serviceOrderInfo.COMPLAINTDATE, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <template #panel="{ close }">
+                    <CommonDatePicker v-model="date" is-required @close="close" />
+                  </template>
+                </UPopover>
+              </div>
             </div>
             <div class="flex flex-row mt-3">
               <div class="flex mr-2 items-center w-[35px]">By</div>
-              <USelectMenu 
-                v-model="orderer"
-                :options="orderers"
-                :ui="{base: 'w-[125px]'}"
-              />
+              <div class="w-full px-4">
+                <USelect
+                  v-model="serviceOrderInfo.RECBY"
+                  :options="serviceOrderInfo.RECBYOptions"
+                />
+              </div>
             </div>
           </div>
           <div class="basis-3/12">
@@ -481,12 +725,12 @@
             name="description"
           >
             <UTextarea
-              :model-value="description"
+              :model-value="serviceOrderInfo.COMPLAINT"
             />
           </UFormGroup>
         </div>
         <div class="px-3 py-0 mt-1">
-          <div class="flex flex-row border border-gray rounded-md">
+          <div class="flex flex-row border border-gray rounded-md py-1">
             <div class="basis-5/12 flex items-center ml-2">
               Death, Serious Injury, or Risk of Either?
             </div>
@@ -498,7 +742,7 @@
                 v-bind="riskStatus"
               />
             </div>
-            <div class="basis-4/12 flex flex-row space-x-4">
+            <div class="basis-4/12 flex flex-row space-x-5 justify-center">
               <UButton 
                 label="VIEW#1"
               />
@@ -509,7 +753,7 @@
           </div>
         </div>
         <div class="px-3 py-0 mt-1">
-          <div class="flex flex-row space-x-3 border border-gray rounded-md px-2">
+          <div class="flex flex-row space-x-3 border border-gray rounded-md px-2 py-1">
             <div class="basis-3/12">
               <UFormGroup
                 label="Received"
@@ -567,7 +811,7 @@
           </div>
         </div>
       </div>
-      <div class="basis-1/2 border-2 border-slate-600 border-l-0 border-b-0 border-r-0">
+      <div class="basis-1/2">
         <div class="w-full bg-slate-400 px-3 py-1">
           Type of Services
         </div>
@@ -578,8 +822,8 @@
               name="select"
             >
               <USelect 
-                v-model="service"
-                :options="serviceList"
+                v-model="typeOfServiceInfo.reason"
+                :options="typeOfServiceInfo.reasonOptions"
               />
             </UFormGroup>
           </div>
@@ -589,7 +833,7 @@
               name="failure"
             >
               <UInput 
-                v-model="failure"
+                v-model="typeOfServiceInfo.failure"
               />
             </UFormGroup>
           </div>
@@ -601,14 +845,22 @@
               name="investigation"
             >
               <UTable
-                :columns="investigationColumns"
-                :rows="[]"
+                :rows="investigationGridMeta.investigations"
+                :columns="investigationGridMeta.defaultColumns"
                 :ui="{
                   wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
-                  th:{ 
+                  divide: 'divide-gray-200 dark:divide-gray-800',
+                  tr: {
+                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                  },
+                  th: { 
                     base: 'sticky top-0 z-10',
                     color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'p-1' 
+                    padding: 'px-2 py-0'
+                  }, 
+                  td: {
+                    base: 'h-[31px]',
+                    padding: 'py-0'
                   }
                 }"
               >

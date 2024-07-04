@@ -114,8 +114,9 @@ export const getProductInfos = async (productline, category, subcategory, model,
 }
 
 export const getParts = async (filterParams) => {
-  const { PARTTYPE, SUBCATEGORY, MODEL, DESCRIPTION } = filterParams
+  const { UniqueID, PARTTYPE, SUBCATEGORY, MODEL, DESCRIPTION } = filterParams
   let where = {}
+  if(UniqueID) where['UniqueID'] = UniqueID
   if(PARTTYPE) where['PARTTYPE'] = PARTTYPE
   if(SUBCATEGORY) where['SUBCATEGORY'] = SUBCATEGORY
   if(MODEL) where['MODEL'] = {[Op.like]: `%${MODEL}%`}
@@ -124,11 +125,14 @@ export const getParts = async (filterParams) => {
   const productInfos = await tblBP.findAll({
     attributes: [
       'UniqueID',
+      'instanceID',
       'PARTTYPE',
       'SUBCATEGORY',
       'MODEL',
       'DESCRIPTION',
-      'OnHand'
+      'OnHand',
+      'PRIMARYPRICE1',
+      'UNIT'
     ],
     where: {
       partflag: 1,
@@ -137,7 +141,8 @@ export const getParts = async (filterParams) => {
     limit: 50,
     order: [
       ['MODEL', 'ASC'],
-    ]
+    ],
+    raw: true
   });
 
   return productInfos;

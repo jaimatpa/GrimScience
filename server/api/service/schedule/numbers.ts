@@ -1,4 +1,4 @@
-import { getNumberOfServiceOrders } from '~/server/controller/service';
+import { getNumberOfSchedules } from '~/server/controller/service';
 
 export default eventHandler(async (event) => {
   try {
@@ -7,7 +7,7 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        const numberOfCustomers = await getNumberOfServiceOrders(filterParams);
+        const numberOfCustomers = await getNumberOfSchedules(filterParams);
         return { body: numberOfCustomers, message: '' }
       default:
         setResponseStatus(event, 405);

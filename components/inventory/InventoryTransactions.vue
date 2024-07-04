@@ -303,7 +303,6 @@
     inventoryFetchGridData()
   }
   const handleInventoryFilterInputChange = async (event, name) => {
-    console.log(name)
     if (inventoryFilterValues.value.hasOwnProperty(name)) {
       inventoryFilterValues.value[name] = event;
     } else {
@@ -788,7 +787,7 @@
         </div>
         <div class="flex flex-row">
           <div class="basis-1/2 p-4 pt-0">
-            <div>
+            <div class="italic">
               Parts(Double-Clcick To Add)
             </div>
           </div>
