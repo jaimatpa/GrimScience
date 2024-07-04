@@ -288,7 +288,7 @@
         }
       }
     })
-    await useApiFetch(`/api/product/productlines`, {
+    await useApiFetch(`/api/materials/productlines`, {
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
@@ -302,7 +302,7 @@
     loadingOverlay.value = false
   }
   const fetchProductList = async () => {
-    await useApiFetch(`/api/product/productinfos`, {
+    await useApiFetch(`/api/materials/products`, {
       method: 'GET',
       params: {
         productline: orderMeta.productLine,
@@ -325,7 +325,7 @@
     sourcedescriptionOptions.value.unshift(null)
   }
   const onProductLineChange= async () => {
-    await useApiFetch(`/api/product/categories`, {
+    await useApiFetch(`/api/materials/categories`, {
       method: 'GET',
       params: {
         productline: orderMeta.productLine
@@ -339,7 +339,7 @@
         }
       }
     })
-    await useApiFetch(`/api/product/subcategories`, {
+    await useApiFetch(`/api/materials/subcategories`, {
       method: 'GET',
       params: {
         productline: orderMeta.productLine,
@@ -357,7 +357,7 @@
     fetchProductList()
   }
   const onCategoryChange = async () => {
-    await useApiFetch(`/api/product/subcategories`, {
+    await useApiFetch(`/api/materials/subcategories`, {
       method: 'GET',
       params: {
         productline: orderMeta.productLine,

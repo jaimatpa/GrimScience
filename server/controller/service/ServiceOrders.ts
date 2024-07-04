@@ -1,5 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblCustomers, tblComplaints, tblBP, tblServiceReport, tblInventoryTransactions, tblInventoryTransactionDetails } from "~/server/models";
+import { tblCustomers, tblComplaints, tblServiceReport, tblInventoryTransactions, tblInventoryTransactionDetails } from "~/server/models";
 import { format } from 'date-fns';
 
 export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filterParams) => {

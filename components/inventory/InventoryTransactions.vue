@@ -180,7 +180,7 @@
     })
   }
   const productFetchGridData = async () => {
-    await useApiFetch(`/api/product/parts`, {
+    await useApiFetch(`/api/materials/parts`, {
       method: 'GET',
       params: {...productFilterValues.value},
       onResponse({ response }) {
@@ -189,7 +189,7 @@
         }
       }
     })
-    await useApiFetch(`/api/product/categories`, {
+    await useApiFetch(`/api/materials/categories`, {
       method: 'GET',
       params: { partflag: 1 },
       onResponse({ response }) {
@@ -200,7 +200,7 @@
         }
       }
     })
-    await useApiFetch(`/api/product/subcategories`, {
+    await useApiFetch(`/api/materials/subcategories`, {
       method: 'GET',
       params: { category: productFilterValues.value.PARTTYPE, partflag: 1 },
       onResponse({ response }) {

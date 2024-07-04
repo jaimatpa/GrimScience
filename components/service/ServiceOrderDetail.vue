@@ -118,10 +118,10 @@
   const investigationGridMeta = ref({
     defaultColumns: <UTableColumn[]>[
       {
-        key: 'date',
+        key: 'DIAGDATE',
         label: 'Date',
       }, {
-        key: 'description',
+        key: 'PROBLEMDIAG',
         label: 'Description'
       }
     ],
@@ -252,6 +252,19 @@
             }
             item.REPAIRDESC = type
           })
+        }
+      }
+    })
+  }
+  const fetchInvestigationList = async () => {
+    await useApiFetch(`/api/invoices/serviceorderinvoices/`, {
+      method: 'GET',
+      params: {
+        COMPLAINTID: complaintGridMeta.value?.selectedComplaint?.uniqueID
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          invoiceGridMeta.value.invoices = response._data.body
         }
       }
     })

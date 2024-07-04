@@ -21,7 +21,7 @@
     productLines: {
       label: 'Product Line',
       filter: 'productLine',
-      api: '/api/product/productlines',
+      api: '/api/materials/productlines',
       options: []
     }
   })

@@ -248,7 +248,7 @@
       const tmp = formData.PARTS.split('=')
       for(let i=0; i < tmp.length ; i++) {
         if(tmp[i] !== '' && i % 3 === 0) {
-          await useApiFetch('/api/product/parts/', {
+          await useApiFetch('/api/materials/parts/', {
             method: 'GET',
             params: {
               UniqueID: tmp[i]
@@ -267,7 +267,7 @@
       const tmp = formData.PARTSRECEIVED.split('=')
       for(let i=0; i < tmp.length ; i++) {
         if(tmp[i] !== '' && i % 3 === 0) {
-          await useApiFetch('/api/product/parts/', {
+          await useApiFetch('/api/materials/parts/', {
             method: 'GET',
             params: {
               UniqueID: tmp[i]
@@ -287,7 +287,7 @@
   }
   const propertiesInit = async () => {
     loadingOverlay.value = true
-    await useApiFetch(`/api/product/categories`, {
+    await useApiFetch(`/api/materials/categories`, {
       method: 'GET',
       params: { partflag: 1 },
       onResponse({ response }) {
@@ -324,7 +324,7 @@
     loadingOverlay.value = false
   }
   const warrantyMaterialFetchGridData = async () => {
-    await useApiFetch(`/api/product/parts`, {
+    await useApiFetch(`/api/materials/parts`, {
       method: 'GET',
       params: {...warrantyMaterialFilterValues.value},
       onResponse({ response }) {
@@ -333,7 +333,7 @@
         }
       }
     })
-    await useApiFetch(`/api/product/categories`, {
+    await useApiFetch(`/api/materials/categories`, {
       method: 'GET',
       params: { partflag: 1 },
       onResponse({ response }) {
@@ -344,7 +344,7 @@
         }
       }
     })
-    await useApiFetch(`/api/product/subcategories`, {
+    await useApiFetch(`/api/materials/subcategories`, {
       method: 'GET',
       params: { category: warrantyMaterialFilterValues.value.PARTTYPE, partflag: 1 },
       onResponse({ response }) {
@@ -357,7 +357,7 @@
     })
   }
   const partFetchGridData = async () => {
-    await useApiFetch(`/api/product/parts`, {
+    await useApiFetch(`/api/materials/parts`, {
       method: 'GET',
       params: {...partFilterValues.value},
       onResponse({ response }) {
@@ -366,7 +366,7 @@
         }
       }
     })
-    await useApiFetch(`/api/product/categories`, {
+    await useApiFetch(`/api/materials/categories`, {
       method: 'GET',
       params: { partflag: 1 },
       onResponse({ response }) {
@@ -377,7 +377,7 @@
         }
       }
     })
-    await useApiFetch(`/api/product/subcategories`, {
+    await useApiFetch(`/api/materials/subcategories`, {
       method: 'GET',
       params: { category: partFilterValues.value.PARTTYPE, partflag: 1 },
       onResponse({ response }) {

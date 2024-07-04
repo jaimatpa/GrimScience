@@ -7,10 +7,11 @@ export const getInventoryTransactions = async (filterParams) => {
     let inventoryTransactionsWhere = {}
     let complaintWhere = {}
     let jobWhere = {}
-    // if(Dated) inventoryTransactionsWhere[Op.and] = [
-    //   Sequelize.fn('FORMAT', Sequelize.col('Dated'), 'MM/dd/yyyy'),
-    //   { [Op.like]: `${Dated}%` }
-    // ]
+    if(Dated) inventoryTransactionsWhere[Op.and] = [
+      Sequelize.where(Sequelize.fn('FORMAT', Sequelize.col('Dated'), 'MM/dd/yyyy'), {
+        [Op.like]: Sequelize.literal(`'%${filterParams.Dated}%'`)
+      })
+    ]
     if(By) inventoryTransactionsWhere['By'] = {[Op.like]: `%${By}%`}
     if(uniqueid) inventoryTransactionsWhere['uniqueID'] = {[Op.like]: `%${uniqueid}%`}
     if(ServiceReportID) inventoryTransactionsWhere['ServiceReportID'] = {[Op.like]: `%${ServiceReportID}%`}
