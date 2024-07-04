@@ -13,7 +13,8 @@ export default defineEventHandler(async (event) => {
       '/api/auth/login',
       '/api/auth/employees', 
       '/api/customers/exportlist',
-      '/api/service/orders/exportorder'
+      '/api/customers/exportorder',
+      '/api/service/schedule/exportlist'
     ];
 
     if(path.startsWith('/api/')){

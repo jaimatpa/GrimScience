@@ -17,25 +17,8 @@
 
   const selectStatus = ref('Active')
 
-  const headerCheckboxes = ref({
-    active: {
-      label: 'Active',
-      isChecked: false
-    }, 
-    inactive: {
-      label: 'Inactive',
-      isChecked: false
-    }, 
-  })
   const gridMeta = ref({
     defaultColumns: <UTableColumn[]>[
-      // {
-      //   key: 'UniqueID',
-      //   label: 'Number',
-      //   sortable: true,
-      //   sortDirection: 'none',
-      //   filterable: true
-      // },
       {
         key: 'payrollno',
         label: 'Payroll #',
@@ -78,15 +61,7 @@
         sortable: true,
         sortDirection: 'none',
         filterable: true
-      }, 
-      // {
-      //   key: 'home',
-      //   label: 'Home',
-      //   sortable: true,
-      //   sortDirection: 'none',
-      //   filterable: true
-      // }, 
-      {
+      }, {
         key: 'homephone',
         label: 'Home Cell Phone',
         sortable: true,
@@ -105,7 +80,6 @@
     ],
     page: 1,
     pageSize: 50,
-    numberOfOrders: 0,
     numberOfEmployee: 0,
     employess: [],
     selectedEmpployeeId: null,
@@ -133,7 +107,6 @@
   })
 
   const selectedColumns = ref(gridMeta.value.defaultColumns)
-  const exportIsLoading = ref(false)
 
   const columns = computed(() => gridMeta.value.defaultColumns.filter(column => selectedColumns.value.includes(column)))
   Object.entries(route.query).forEach(([key, value]) => {
@@ -156,23 +129,10 @@
   
   const init = async () => {
     fetchGridData()
-    // for(const key in headerFilters.value) {
-    //   const apiURL = headerFilters.value[key]?.api?? `/api/customers/${key}`;
-    //   // console.log("check apiURL", apiURL)
-    //   await useApiFetch(apiURL, {
-    //     method: 'GET',
-    //     onResponse({ response }) {
-    //       if(response.status === 200) {
-    //         headerFilters.value[key].options = [null, ...response._data.body];
-    //       }
-    //     }
-    //   })
-    // }
   }
   const fetchGridData = async () => {
     gridMeta.value.isLoading = true
 
-    const { ACTIVE, ...values} = filterValues.value
     // handle number of emoloyees and pagination
     await useApiFetch('/api/employees/numbers', {
       method: 'GET',

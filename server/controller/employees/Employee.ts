@@ -5,13 +5,13 @@ const applyFilters = (params) => {
   const filterParams = ['ACTIVE','payrollno', 'fname', 'lname','address','city', 'state', 'zip', 'homephone'];  
   const whereClause = {};
 
-  filterParams.forEach(param => {
-    if (params[param]) {
-      whereClause[param] = {
-        [Op.like]: `%${params[param]}%`
-      };
-    }
-  });
+filterParams.forEach(param => {
+  if (params[param]) {
+    whereClause[param] = {
+      [Op.like]: `%${params[param]}%`
+    };
+  }
+});
 
   return whereClause;
 };
@@ -35,13 +35,14 @@ export const getEmployeeFullNames = async () => {
 
 export const getAllEmployees = async (page, pageSize, sortBy, sortOrder, filterParams) => {
   
+  
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
-
+  
   const whereClause = applyFilters(filterParams);
-
+  
   const list = await tblEmployee.findAll({
-    attributes: ['ACTIVE','UniqueID','payrollno', 'fname', 'lname','address','city', 'state', 'zip', 'homephone'],
+    attributes: ['UniqueID','payrollno', 'fname', 'lname','address','city', 'state', 'zip', 'homephone'],
     where: whereClause,
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
     offset,
@@ -57,7 +58,6 @@ export const getNumberOfEmplyees = async (filterParams) => {
   });
   return numberOfCustomers;
 }
-
 
 export const createEmployee = async (data) => {
   const createReqData = {
