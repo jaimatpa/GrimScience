@@ -430,7 +430,7 @@
       width: 'w-[1800px] sm:max-w-9xl'
     }"
   >
-    <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId" :selected-order="gridMeta.selectedOrderId"  @close="handleModalClose"/>
+    <InvoiceDetail :selected-customer="gridMeta.selectedCustomerId" :selected-order="gridMeta.selectedOrderId"  @close="handleModalClose" @save="handleModalSave"/>
   </UDashboardModal>  
 </template>
 <style scoped>

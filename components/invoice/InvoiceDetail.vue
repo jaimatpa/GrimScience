@@ -513,8 +513,7 @@
               icon: 'i-heroicons-shopping-cart',
               color: 'green'
             })
-            console.log(response._data.body)
-            emit('save', response._data?.body?.UniqueID)
+            emit('save')
             emit('close')
           }
         }
@@ -531,7 +530,7 @@
               icon: 'i-heroicons-shopping-cart',
               color: 'green'
             })
-            emit('save', response._data?.body?.UniqueID)
+            emit('save')
             emit('close')
           }
         }

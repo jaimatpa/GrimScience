@@ -201,9 +201,9 @@
     {value: 'close', label: 'Closed'}
   ])
   const typeGroup = ref([
-    {value: 0, label: 'Factory'}, 
-    {value: 1, label: 'Customer'},
-    {value: 2, label: 'Field'}
+    {value: 1, label: 'Factory'}, 
+    {value: 2, label: 'Customer'},
+    {value: 0, label: 'Field'}
   ])
   const performanceGroup = ref([
     {value: 0, label: 'Yes'}, 

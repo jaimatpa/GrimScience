@@ -540,7 +540,7 @@
       width: 'w-[1800px] sm:max-w-9xl', 
     }"
   >
-    <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId" @close="modalMeta.isOrderDetailModalOpen = false"/>
+    <InvoiceDetail :selected-customer="gridMeta.selectedCustomerId" @close="modalMeta.isOrderDetailModalOpen = false"/>
   </UDashboardModal>      
   <!-- Quote Modal -->
   <UDashboardModal

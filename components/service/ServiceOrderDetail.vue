@@ -104,7 +104,7 @@
         key: 'REPAIRDATE',
         label: 'Date'
       }, {
-        key: 'Type',
+        key: 'REPAIRDESC',
         label: 'Type'
       }, {
         key: 'REPAIRSBY',
@@ -235,6 +235,23 @@
       onResponse({ response }) {
         if(response.status === 200) {
           serviceReportGridMeta.value.serviceReports = response._data.body
+          serviceReportGridMeta.value.serviceReports.forEach((item) => {
+            let type;
+            switch(item.REPAIRDESC) {
+              case 0:
+                type = 'Field Service'
+                break;
+              case 1:
+                type = 'Factory Service'
+                break
+              case 2:
+                type = 'Customer'
+                break
+              default: 
+                type = null
+            }
+            item.REPAIRDESC = type
+          })
         }
       }
     })
@@ -967,7 +984,7 @@
       width: 'w-[1800px] sm:max-w-9xl', 
     }"
   >
-    <CustomersServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
+    <ServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
   </UDashboardModal>
   <!-- Inventory Transaction Modal -->
   <UDashboardModal
@@ -993,7 +1010,7 @@
       width: 'w-[1800px] sm:max-w-9xl', 
     }"
   >
-    <CustomersOrderDetail :selected-customer="props.selectedCustomer" :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @save="onNewInvoiceSave" @close="onNewInvoiceModalClose"/>
+    <InvoiceDetail :selected-customer="props.selectedCustomer" :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @save="onNewInvoiceSave" @close="onNewInvoiceModalClose"/>
   </UDashboardModal>
   <UDashboardModal
     v-model="modalMeta.isInvoiceListModalOpen"
@@ -1006,6 +1023,6 @@
       height: 'h-[900px] sm:h-[900px]',
     }"
   >
-    <CustomersInoviceList :selected-customer="props.selectedCustomer" @close="onInvoiceLinkModalClose" @link="onInvoiceLink"/>
+    <InvoiceList selected-customer="props.selectedCustomer" @close="onInvoiceLinkModalClose" @link="onInvoiceLink"/>
   </UDashboardModal>
 </template>

@@ -48,6 +48,7 @@
     defaultColumns: <UTableColumn[]>[{
         key: 'Dated',
         label: 'Date',
+        filterable: true
       }, {
         key: 'By',
         label: 'By',
