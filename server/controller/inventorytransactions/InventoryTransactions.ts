@@ -120,16 +120,6 @@ export const getInventoryTransactionDetails = async (id, filterParams) => {
           }
         ]
       })
-      const formattedList = list.map((item: any) => {
-        return {
-          uniqueID: item.uniqueID,
-          QtyChange: item.QtyChange,
-          OnHand: item.OnHand,
-          UNIT: item.tblBP.UNIT,
-          MODEL: item.tblBP.MODEL,
-          DESCRIPTION: item.tblBP.DESCRIPTION
-        }
-      })
       return list
     } 
   } catch(err) {

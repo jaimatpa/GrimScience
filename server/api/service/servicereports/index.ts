@@ -1,4 +1,4 @@
-import { getServiceReports, createServiceReport } from '~/server/controller/customers';
+import { getServiceReports, createServiceReport } from '~/server/controller/service';
 
 export default eventHandler(async (event) => {
   try {

@@ -1,4 +1,4 @@
-import { serviceReportExistByID, updateServiceReport } from '~/server/controller/customers';
+import { serviceReportExistByID, updateServiceReport } from '~/server/controller/service';
 
 export default eventHandler(async (event) => {
   try {

@@ -961,9 +961,10 @@
     v-model="modalMeta.isServiceReportModalOpen"
     title="Service Report"
     :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
       width: 'w-[1800px] sm:max-w-9xl', 
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
     }"
   >
     <CustomersServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
@@ -973,9 +974,10 @@
     v-model="modalMeta.isInventoryTransactionModalOpen"
     title="Inventory Transactions"
     :ui="{
-      width: 'w-[1800px] sm:max-w-9xl', 
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl',
     }"
   >
     <InventoryTransactions />
@@ -985,21 +987,23 @@
     v-model="modalMeta.isInvoiceModalOpen"
     title="Invoivce"
     :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
       width: 'w-[1800px] sm:max-w-9xl', 
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
     }"
   >
-    <CustomersOrderDetail :selected-order="invoiceGridMeta.selectedInvoice?.UniqueID" :selected-customer="props.selectedCustomer" :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @save="onNewInvoiceSave" @close="onNewInvoiceModalClose"/>
+    <CustomersOrderDetail :selected-customer="props.selectedCustomer" :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @save="onNewInvoiceSave" @close="onNewInvoiceModalClose"/>
   </UDashboardModal>
   <UDashboardModal
     v-model="modalMeta.isInvoiceListModalOpen"
     title="Invoice List"
     :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
       width: 'w-[1800px] sm:max-w-9xl', 
       height: 'h-[900px] sm:h-[900px]',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-      body: { base: 'gap-y-1 overflow-y-scroll', padding: 'py-0 sm:pt-0' }
     }"
   >
     <CustomersInoviceList :selected-customer="props.selectedCustomer" @close="onInvoiceLinkModalClose" @link="onInvoiceLink"/>

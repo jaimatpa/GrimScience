@@ -154,7 +154,7 @@
       gridMeta.value.isLoading = false
       return;
     }
-    await useApiFetch('/api/service/orders/list', {
+    await useApiFetch('/api/service/orders/', {
       method: 'GET',
       params: {
         page: gridMeta.value.page,
@@ -237,7 +237,7 @@
         return `${key}=${value}`
       })
       .join("&")
-    location.href = `/api/customers/exportorder?${paramsString}`
+    location.href = `/api/service/orders/exportorder?${paramsString}`
     exportIsLoading.value = false
   }
   const onSelect = async (row) => {
@@ -318,19 +318,6 @@
           </UButton>
         </template>
       </UDashboardToolbar>
-      
-      <UDashboardModal
-        v-model="modalMeta.isServiceOrderModalOpen"
-        title="Service Order List"
-        :ui="{
-          header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-          body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
-          width: 'w-[1800px] sm:max-w-9xl'
-        }"
-      >
-        <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
-      </UDashboardModal>
-
       <div class="flex flex-row px-10 mt-4">
         <template v-for="checkbox in headerCheckboxes">
           <div class="basis-1/5">
@@ -396,4 +383,17 @@
       </div>
     </UDashboardPanel>
   </UDashboardPage>
+        
+  <UDashboardModal
+    v-model="modalMeta.isServiceOrderModalOpen"
+    title="Service Order"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl'
+    }"
+  >
+    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
+  </UDashboardModal>
 </template>

@@ -1,17 +1,19 @@
-import { getProductInfos } from "~/server/controller/product";
+import { getSerials } from '~/server/controller/invoices';
 
 export default eventHandler(async (event) => {
   try {
-    const { ...params } = getQuery(event)
     const method = event._method;
-    switch(method.toUpperCase()){
+    const {...params } = getQuery(event);
+
+    switch(method){
       case 'GET':
-        const list = await getProductInfos(params);
-        return { body: list, message: '' }
+        const serials = await getSerials(params)
+        return { body: serials, message: '' };
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
+    
   } catch (error) {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }

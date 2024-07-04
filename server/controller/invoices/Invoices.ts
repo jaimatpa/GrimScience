@@ -1,18 +1,8 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblOrder, tblOrderDetail, tblCustomers } from "~/server/models";
+import { tblOrder, tblOrderDetail, tblCustomers, tblServiceReport } from "~/server/models";
 
 export const orderExistByID = async (id: number | string) => {
   const tableDetail = await tblOrder.findByPk(id);
-  if(tableDetail)
-    return true;
-  else
-    return false;
-}
-
-export const orderDetailExistByOrderID = async (id: number | string) => {
-  const tableDetail = await tblOrderDetail.findOne({
-    where: {orderid: id}
-  });
   if(tableDetail)
     return true;
   else
@@ -108,11 +98,12 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
   return formattedList;
 }
 
-export const getOrderDetail = async (id: number | string) => {
+export const getOrderDetail = async (params) => {
+  const { orderid } = params
+  let whereClause = {}
+  if(orderid) whereClause['orderid'] = orderid
   const list = await tblOrderDetail.findAll({
-    where: {
-      orderid: id
-    },
+    where: whereClause,
     order: [['UniqueID', 'ASC']],
   });
   return list;
@@ -236,4 +227,83 @@ export const updateOrderDetail = async (id, reqData) => {
 export const deleteOrderDetail = async (id) => {
   await tblOrderDetail.destroy({where: { UniqueID: id }});
   return id
+}
+
+export const getServiceOrderInvoices = async (params) => {
+  const { COMPLAINTID } = params
+  let where = {}
+  if(COMPLAINTID) where['COMPLAINTID'] = COMPLAINTID
+  let invoiceList = []
+  let invoiceListTmp = await tblServiceReport.findAll({
+    attributes: [
+      'INVOICES'
+    ],
+    where: {
+      COMPLAINTID: COMPLAINTID
+    }
+  })
+  invoiceListTmp = invoiceListTmp.map((item: any) => item.INVOICES)
+  invoiceListTmp.map((item: any) => {
+    if(item !=='' && item !== null) {
+      const tmp = item.split('=')
+      tmp.map((invoice: any) => {
+        if(!invoiceList.includes(invoice) && Number(invoice)) invoiceList.push(invoice)
+      })
+    }
+  })
+  const result = await tblOrder.findAll({
+    attributes: [
+      'UniqueID',
+      [Sequelize.literal("FORMAT(CONVERT(datetime, [orderdate], 101), 'MM/dd/yyyy')"), 'orderdate'],
+      'invoicenumber',
+      'terms'
+    ],
+    where: {
+      [Op.or]: [
+        {
+          invoicenumber: {
+            [Op.in]: invoiceList
+          }
+        }, 
+        { complaintID: COMPLAINTID }
+      ]
+    }
+  })
+  return result
+}
+
+export const getSerials = async (params) => {
+  const { customerid } = params
+  let whereClause = {}
+  if(customerid) whereClause['customerid'] = customerid
+  tblOrderDetail.hasOne(tblOrder, { foreignKey: 'UniqueID', sourceKey: 'orderid' })
+  const list = await tblOrderDetail.findAll({
+    attributes: [ 
+      'UniqueID',
+      'serial'
+    ], 
+    where: {
+      serial: {
+        [Op.not]: null,
+        [Op.ne]: ''
+      }
+    }, 
+    include: [
+      {
+        model: tblOrder,
+        attributes: ['UniqueID'],
+        where: whereClause,
+        required: true,
+      }, 
+    ],
+    order: [['serial', 'ASC']],
+    raw: true
+  });
+  const result = list.map((item: any) => {
+    return {
+      UniqueID: item.UniqueID,
+      serial: item.serial
+    }
+  });
+  return result;
 }

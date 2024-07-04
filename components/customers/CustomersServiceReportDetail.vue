@@ -584,31 +584,6 @@
       loader="dots"
     />
   </div>
-  <UDashboardModal 
-    v-model="addModalMeta.isAddModalOpen"
-    :ui="{
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
-      width: 'w-[300px]'
-      }"
-  >
-    <div>
-      <div class="flex flex-row space-x-5">
-        <div class="flex items-center">Quantity: </div>
-        <div class="flex-1 mr-4">
-          <UInput type="number" :ui="{base: qtyStyle}" v-model="addModalMeta.quantity" @keypress="(event)=>{if(event.which === 13) onAddWarrantyOrMaterial()}"></UInput>
-        </div>
-      </div>
-      <div class="flex flex-row-reverse mt-2">
-        <div class="min-w-[60px]">
-          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" type="submit" truncate @click="onAddWarrantyOrMaterial"/>
-        </div>
-        <div class="min-w-[60px] mr-3">
-          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="addModalMeta.isAddModalOpen = false"/>
-        </div>
-      </div>
-    </div>
-  </UDashboardModal>
   <UForm
     :validate="validate"
     :validate-on="['submit']"
@@ -1140,6 +1115,30 @@
         </div>
       </div>
     </div>
-
   </UForm>
+  <UDashboardModal 
+    v-model="addModalMeta.isAddModalOpen"
+    :ui="{
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
+      width: 'w-[300px]'
+      }"
+  >
+    <div>
+      <div class="flex flex-row space-x-5">
+        <div class="flex items-center">Quantity: </div>
+        <div class="flex-1 mr-4">
+          <UInput type="number" :ui="{base: qtyStyle}" v-model="addModalMeta.quantity" @keypress="(event)=>{if(event.which === 13) onAddWarrantyOrMaterial()}"></UInput>
+        </div>
+      </div>
+      <div class="flex flex-row-reverse mt-2">
+        <div class="min-w-[60px]">
+          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" type="submit" truncate @click="onAddWarrantyOrMaterial"/>
+        </div>
+        <div class="min-w-[60px] mr-3">
+          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="addModalMeta.isAddModalOpen = false"/>
+        </div>
+      </div>
+    </div>
+  </UDashboardModal>
 </template>

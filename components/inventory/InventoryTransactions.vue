@@ -519,31 +519,6 @@
       loader="dots"
     />
   </div>
-  <UDashboardModal 
-    v-model="isAddPartsModalOpen"
-    :ui="{
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
-      width: 'w-[300px]'
-    }"
-  >
-    <div>
-      <div class="flex flex-row space-x-5">
-        <div class="flex items-center">Onhand Count: </div>
-        <div class="flex-1 mr-4">
-          <UInput type="number" v-model="updatedHand"></UInput>
-        </div>
-      </div>
-      <div class="flex flex-row-reverse mt-2">
-        <div class="min-w-[60px]">
-          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onAddPartToInventoryTransaction"/>
-        </div>
-        <div class="min-w-[60px] mr-3">
-          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="isAddPartsModalOpen = false"/>
-        </div>
-      </div>
-    </div>
-  </UDashboardModal>
   <UForm
     :validate="validate"
     :validate-on="['submit']"
@@ -832,4 +807,29 @@
       </div>
     </div>
   </UForm>
+  <UDashboardModal 
+    v-model="isAddPartsModalOpen"
+    :ui="{
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
+      width: 'w-[300px]'
+    }"
+  >
+    <div>
+      <div class="flex flex-row space-x-5">
+        <div class="flex items-center">Onhand Count: </div>
+        <div class="flex-1 mr-4">
+          <UInput type="number" v-model="updatedHand"></UInput>
+        </div>
+      </div>
+      <div class="flex flex-row-reverse mt-2">
+        <div class="min-w-[60px]">
+          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onAddPartToInventoryTransaction"/>
+        </div>
+        <div class="min-w-[60px] mr-3">
+          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="isAddPartsModalOpen = false"/>
+        </div>
+      </div>
+    </div>
+  </UDashboardModal>
 </template>

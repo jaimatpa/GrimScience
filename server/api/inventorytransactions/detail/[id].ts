@@ -7,13 +7,9 @@ export default eventHandler(async (event) => {
 
     switch(method.toUpperCase()){
       case 'GET':
-        // const list = await getInventoryTransactionDetails(id, filterParams);
-        // return { body: list, message: '' }
         break;
-      case 'POST':
-        const data = await readBody(event);
-        const newDetail = await createInventoryTransactionDetail(data)
-        return { body: newDetail, message: '' }
+      case 'PUT':
+        break;
       case 'DELETE':
         const result = await deleteInventoryTransactionDetail(id)
         return { body: result, message: 'Inventory Transaction Detail deleted successfully' }

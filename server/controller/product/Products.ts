@@ -75,7 +75,8 @@ export const getProductSubCategories = async (filterParams) => {
   return productLineValues;
 }
 
-export const getProductInfos = async (productline, category, subcategory, model, stock) => {
+export const getProductInfos = async (params) => {
+  const { productline, category, subcategory, model, stock } = params
   let whereClause = {
     [Op.and]: [
       { PRIMARYPRICE1: { [Op.ne]: null } },

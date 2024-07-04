@@ -555,42 +555,6 @@
       loader="dots"
     />
   </div>
-  <UDashboardModal 
-    v-model="isUpdatePriceModalOpen"
-    :ui="{
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
-      width: 'w-[300px]'
-    }"
-  >
-    <div>
-      <div class="flex flex-row space-x-5">
-        <div class="flex items-center">Price: </div>
-        <div class="flex-1 mr-4">
-          <UInput type="number" v-model="updatedPrice"></UInput>
-        </div>
-      </div>
-      <div class="flex flex-row-reverse mt-2">
-        <div class="min-w-[60px]">
-          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onUpdatePrice"/>
-        </div>
-        <div class="min-w-[60px] mr-3">
-          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="isUpdatePriceModalOpen = false"/>
-        </div>
-      </div>
-    </div>
-  </UDashboardModal>
-  <UDashboardModal
-    v-model="isInventoryTransactionModalOpen"
-    title="Inventory Transactions"
-    :ui="{
-      width: 'w-[1800px] sm:max-w-9xl', 
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
-    }"
-  >
-    <InventoryTransactions :selected-order="props.selectedOrder"/>
-  </UDashboardModal>
   <UForm
     :validate="validate"
     :validate-on="['submit']"
@@ -1358,4 +1322,41 @@
       </div>
     </div>
   </UForm>
+  <UDashboardModal 
+    v-model="isUpdatePriceModalOpen"
+    :ui="{
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
+      width: 'w-[300px]'
+    }"
+  >
+    <div>
+      <div class="flex flex-row space-x-5">
+        <div class="flex items-center">Price: </div>
+        <div class="flex-1 mr-4">
+          <UInput type="number" v-model="updatedPrice"></UInput>
+        </div>
+      </div>
+      <div class="flex flex-row-reverse mt-2">
+        <div class="min-w-[60px]">
+          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onUpdatePrice"/>
+        </div>
+        <div class="min-w-[60px] mr-3">
+          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="isUpdatePriceModalOpen = false"/>
+        </div>
+      </div>
+    </div>
+  </UDashboardModal>
+  <UDashboardModal
+    v-model="isInventoryTransactionModalOpen"
+    title="Inventory Transactions"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl', 
+    }"
+  >
+    <InventoryTransactions :selected-order="props.selectedOrder"/>
+  </UDashboardModal>
 </template>

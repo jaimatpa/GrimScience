@@ -213,7 +213,7 @@
     if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfCustomers) {
       gridMeta.value.page = Math.ceil(gridMeta.value.numberOfCustomers / gridMeta.value.pageSize) | 1
     }
-    await useApiFetch('/api/customers/list', {
+    await useApiFetch('/api/customers/', {
       method: 'GET',
       params: {
         page: gridMeta.value.page,
@@ -432,69 +432,6 @@
           />
         </template>
       </UDashboardToolbar>
-      
-      <!-- New Customer Detail Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isCustomerModalOpen"
-        :title="modalMeta.modalTitle"
-        :ui="{
-          header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-          body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
-          width: 'w-[1000px] sm:max-w-7xl'
-        }"
-      >
-        <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId" :is-modal="true"/>
-      </UDashboardModal>
-
-      <!-- Order Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isOrderDetailModalOpen"
-        title="Invoice"
-        :ui="{
-          width: 'w-[1800px] sm:max-w-9xl', 
-          header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-          body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' }
-        }"
-      >
-        <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId" @close="modalMeta.isOrderDetailModalOpen = false"/>
-      </UDashboardModal>      
-      <!-- Quote Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isQuoteDetailModalOpen"
-        title="Quote"
-        :ui="{
-          header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-          body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
-          width: 'w-[1000px] sm:max-w-7xl'
-        }"
-      >
-        <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId"/>
-      </UDashboardModal>
-      <!-- Service Order Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isServiceOrderDetailModalOpen"
-        title="Service Order"
-        :ui="{
-          header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-          body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
-          width: 'w-[1800px] sm:max-w-9xl'
-        }"
-      >
-        <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId"/>
-      </UDashboardModal>
-      <!-- Site Visit Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isSiteVisitModalOpen"
-        title="Site Visit"
-        :ui="{
-          header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-          body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
-          width: 'w-[1800px] sm:max-w-9xl'
-        }"
-      >
-        <CustomersSiteVisitDetail :selected-customer="gridMeta.selectedCustomerId"/>
-      </UDashboardModal>
-
       <UTable
         :rows="gridMeta.customers"
         :columns="columns"
@@ -579,6 +516,71 @@
       </div>
     </UDashboardPanel>
   </UDashboardPage>
+  <!-- New Customer Detail Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isCustomerModalOpen"
+    :title="modalMeta.modalTitle"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1000px] sm:max-w-7xl'
+    }"
+  >
+    <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId" :is-modal="true"/>
+  </UDashboardModal>
+  <!-- Order Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isOrderDetailModalOpen"
+    title="Invoice"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl', 
+    }"
+  >
+    <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId" @close="modalMeta.isOrderDetailModalOpen = false"/>
+  </UDashboardModal>      
+  <!-- Quote Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isQuoteDetailModalOpen"
+    title="Quote"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1000px] sm:max-w-7xl'
+    }"
+  >
+    <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId"/>
+  </UDashboardModal>
+  <!-- Service Order Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isServiceOrderDetailModalOpen"
+    title="Service Order"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl'
+    }"
+  >
+    <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId"/>
+  </UDashboardModal>
+  <!-- Site Visit Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isSiteVisitModalOpen"
+    title="Site Visit"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl'
+    }"
+  >
+    <CustomersSiteVisitDetail :selected-customer="gridMeta.selectedCustomerId"/>
+  </UDashboardModal>
 </template>
 <style scoped>
 </style>

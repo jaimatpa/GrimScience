@@ -3,12 +3,9 @@ import { createInventoryTransactionDetail } from '~/server/controller/inventoryt
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    const { ...filterParams } = getQuery(event);
 
     switch(method.toUpperCase()){
       case 'GET':
-        // const list = await getInventoryTransactionDetails(id, filterParams);
-        // return { body: list, message: '' }
         break
       case 'POST':
         const data = await readBody(event);

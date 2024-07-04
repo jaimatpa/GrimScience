@@ -1,4 +1,4 @@
-import { getLastCusomterID } from '~/server/controller/customers';
+import { getLastCusomterID } from '~/server/controller/invoices';
 
 export default eventHandler(async (event) => {
   try {

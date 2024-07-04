@@ -10,11 +10,15 @@ export default eventHandler(async (event) => {
 
     workbook.removeWorksheet('My sheet')
     const worksheet = workbook.addWorksheet('My sheet')
-    worksheet.columns = [
-      { header: 'Number', key: 'UniqueID', width: 10 },
-      { header: 'OrderDate', key: 'orderdate', width: 32 },
-      { header: 'Status', key: 'status', width: 32 },
-      { header: 'Warranty', key: 'warranty', width: 32 },
+    worksheet.columns = [ 
+      { header: 'SO#', key: 'COMPLAINTNUMBER', width: 10 },
+      { header: 'Serial#', key: 'SERIALNO', width: 32 },
+      { header: 'Date', key: 'COMPLAINTDATE', width: 32 },
+      { header: 'Failutre Comment', key: 'FAILINVEST', width: 32 },
+      { header: 'Company', key: 'company1', width: 32 },
+      { header: 'Status', key: 'Status', width: 32 },
+      { header: 'Injury', key: 'INJURYREPORTNO', width: 32 },
+      { header: 'Warranty', key: 'Warranty', width: 32 },
     ];
     list.forEach(row => {
       worksheet.addRow(row)
