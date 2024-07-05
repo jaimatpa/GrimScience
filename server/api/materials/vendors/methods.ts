@@ -1,17 +1,13 @@
-import { getServiceOrderInvoices } from '~/server/controller/invoices';
+import { getShippingMethods } from "~/server/controller/materials";
 
 export default eventHandler(async (event) => {
   try {
-    const { ...params } = getQuery(event);
     const method = event._method;
     
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getServiceOrderInvoices(params)
-        return { body: list, message: '' }
-      case 'POST':
-      case 'PUT':
-        
+        const shippingMethods = await getShippingMethods();
+        return { body: shippingMethods, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
