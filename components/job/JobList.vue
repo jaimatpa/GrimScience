@@ -19,59 +19,87 @@ const toast = useToast();
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "ReportsTo",
-      label: "Reports To",
+      key: "NUMBER",
+      label: "Job #",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "Title",
-      label: "Title",
+      key: "QUANTITY",
+      label: "Quantity",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "Employee",
-      label: "Employee",
+      key: "MODEL",
+      label: "Description",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "WorkCenters",
-      label: "Work Centers",
+      key: "PerType",
+      label: "Type",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "Skills",
-      label: "Skills",
+      key: "DATEOPENED",
+      label: "Openend",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "Talents",
-      label: "Talents",
+      key: "DATECLOSED",
+      label: "Closed",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "PercentageComplete",
+      label: "% Complete",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "Cost",
+      label: "Job Cost",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "jobcat",
+      label: "Category",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "jobsubcat",
+      label: "Sub Category",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "ProductionDate",
+      label: "Production Date",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     // {
-    //   key: 'JobDescription',
-    //   label: 'Job Description',
-    //   sortable: true,
-    //   sortDirection: 'none',
-    //   filterable: true
+    //   key: "view",
+    //   label: "View Position Details",
+    //   kind: "actions",
     // },
-    {
-      key: "view",
-      label: "View Position Details",
-      kind: "actions",
-    },
     {
       key: "edit",
       label: "Edit",
@@ -87,7 +115,7 @@ const gridMeta = ref({
   pageSize: 50,
   numberOfOrganization: 0,
   organization: [],
-  selectedOrganizationId: null,
+  selectedJobId: null,
   sort: {
     column: "UniqueID",
     direction: "asc",
@@ -96,20 +124,23 @@ const gridMeta = ref({
 });
 
 const modalMeta = ref({
-  isOrganizatioModalOpen: false,
-  modalTitle: "New Organization",
-  modalDescription: "Add a new Organization",
+  isJobFormModalOpen: true,
+  modalTitle: "New Job",
+  modalDescription: "Add New Job",
   isPositionModalOpen: false,
 });
 
 const filterValues = ref({
-  ReportsTo: null,
-  Title: null,
-  Employee: null,
-  JobDescription: null,
-  WorkCenters: null,
-  Skills: null,
-  Talents: null,
+  NUMBER: null,
+  QUANTITY: null,
+  MODEL: null,
+  PerType: null,
+  DATEOPENED: null,
+  DATECLOSED: null,
+  PercentageComplete: null,
+  Cost: null,
+  jobcat: null,
+  jobsubcat: null,
 });
 
 const selectedColumns = ref(gridMeta.value.defaultColumns);
@@ -137,49 +168,49 @@ Object.entries(route.query).forEach(([key, value]) => {
 });
 
 const fetchGridData = async () => {
-  //   gridMeta.value.isLoading = true;
-  // handle number of organization and pagination
-  //   await useApiFetch("/api/employees/organization/numbers", {
-  //     method: "GET",
-  //     params: {
-  //       ...filterValues.value,
-  //     },
-  //     onResponse({ response }) {
-  //       if (response.status === 200) {
-  //         gridMeta.value.numberOfOrganization = response._data.body;
-  //       }
-  //     },
-  //   });
-  //   if (gridMeta.value.numberOfOrganization === 0) {
-  //     gridMeta.value.organization = [];
-  //     gridMeta.value.numberOfOrganization = 0;
-  //     gridMeta.value.isLoading = false;
-  //     return;
-  //   }
-  //   if (
-  //     gridMeta.value.page * gridMeta.value.pageSize >
-  //     gridMeta.value.numberOfOrganization
-  //   ) {
-  //     gridMeta.value.page =
-  //       Math.ceil(gridMeta.value.numberOfOrganization / gridMeta.value.pageSize) |
-  //       1;
-  //   }
-  //   await useApiFetch("/api/employees/organization/list", {
-  //     method: "GET",
-  //     params: {
-  //       page: gridMeta.value.page,
-  //       pageSize: gridMeta.value.pageSize,
-  //       sortBy: gridMeta.value.sort.column,
-  //       sortOrder: gridMeta.value.sort.direction,
-  //       ...filterValues.value,
-  //     },
-  //     onResponse({ response }) {
-  //       if (response.status === 200) {
-  //         gridMeta.value.organization = response._data.body;
-  //       }
-  //       gridMeta.value.isLoading = false;
-  //     },
-  //   });
+  gridMeta.value.isLoading = true;
+  // // handle number of jobs and pagination
+  await useApiFetch("/api/jobs/numbers", {
+    method: "GET",
+    params: {
+      ...filterValues.value,
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        gridMeta.value.numberOfOrganization = response._data.body;
+      }
+    },
+  });
+  if (gridMeta.value.numberOfOrganization === 0) {
+    gridMeta.value.organization = [];
+    gridMeta.value.numberOfOrganization = 0;
+    gridMeta.value.isLoading = false;
+    return;
+  }
+  if (
+    gridMeta.value.page * gridMeta.value.pageSize >
+    gridMeta.value.numberOfOrganization
+  ) {
+    gridMeta.value.page =
+      Math.ceil(gridMeta.value.numberOfOrganization / gridMeta.value.pageSize) |
+      1;
+  }
+  await useApiFetch("/api/jobs/list", {
+    method: "GET",
+    params: {
+      page: gridMeta.value.page,
+      pageSize: gridMeta.value.pageSize,
+      sortBy: gridMeta.value.sort.column,
+      sortOrder: gridMeta.value.sort.direction,
+      ...filterValues.value,
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        gridMeta.value.organization = response._data.body;
+      }
+      gridMeta.value.isLoading = false;
+    },
+  });
 };
 
 const handlePageChange = async () => {
@@ -228,7 +259,7 @@ const handleFilterInputChange = async (event, name) => {
 };
 
 const handleModalClose = () => {
-  modalMeta.value.isOrganizatioModalOpen = false;
+  modalMeta.value.isJobFormModalOpen = false;
 };
 
 const handleModalSave = async () => {
@@ -237,35 +268,35 @@ const handleModalSave = async () => {
 };
 
 const onCreate = () => {
-  gridMeta.value.selectedOrganizationId = null;
-  modalMeta.value.modalTitle = "New Organization";
-  modalMeta.value.modalDescription = "Add a new organization";
-  modalMeta.value.isOrganizatioModalOpen = true;
+  gridMeta.value.selectedJobId = null;
+  modalMeta.value.modalTitle = "New Job";
+  modalMeta.value.modalDescription = "Add New Job";
+  modalMeta.value.isJobFormModalOpen = true;
 };
 
 const onEdit = (row) => {
-  gridMeta.value.selectedOrganizationId = row?.UniqueID;
+  gridMeta.value.selectedJobId = row?.UniqueID;
   modalMeta.value.modalTitle = "Edit";
-  modalMeta.value.modalDescription = "Edit Organization information";
-  modalMeta.value.isOrganizatioModalOpen = true;
+  modalMeta.value.modalDescription = "Edit Job information";
+  modalMeta.value.isJobFormModalOpen = true;
 };
 
 const onView = (row) => {
-  gridMeta.value.selectedOrganizationId = row?.UniqueID;
+  gridMeta.value.selectedJobId = row?.UniqueID;
   modalMeta.value.modalTitle = "View Position";
   modalMeta.value.modalDescription = "";
   modalMeta.value.isPositionModalOpen = true;
 };
 
 const onSelect = async (row) => {
-  gridMeta.value.selectedOrganizationId = row?.UniqueID;
+  gridMeta.value.selectedJobId = row?.UniqueID;
 };
 
 const onDblClick = async () => {
-  if (gridMeta.value.selectedOrganizationId) {
+  if (gridMeta.value.selectedJobId) {
     modalMeta.value.modalTitle = "Edit";
-    modalMeta.value.modalDescription = "Edit Organization information";
-    modalMeta.value.isOrganizatioModalOpen = true;
+    modalMeta.value.modalDescription = "Edit Job information";
+    modalMeta.value.isJobFormModalOpen = true;
   }
 };
 
@@ -288,9 +319,8 @@ const onDelete = async (row: any) => {
 </script>
 
 <template>
-  <div class="max-w-8xl">
-    <div grow>
-      <!-- <UDashboardNavbar title="Jobs List"> </UDashboardNavbar> -->
+  <UDashboardPage>
+    <UDashboardPanel grow>
       <UDashboardToolbar>
         <template #left>
           <div class="flex flex-row space-x-3">
@@ -305,49 +335,13 @@ const onDelete = async (row: any) => {
         </template>
         <template #right>
           <UButton
-            label="Add Organization"
+            label="Add New Job"
             color="gray"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
         </template>
       </UDashboardToolbar>
-
-      <!-- New Positon  Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isPositionModalOpen"
-        :title="modalMeta.modalTitle"
-        :description="modalMeta.modalDescription"
-        :ui="{
-          width: 'w-[1600px] sm:max-w-8xl',
-          body: { padding: 'py-0 sm:pt-0' },
-        }"
-      >
-        <EmployeeViewPositionForm
-          @close="handleModalClose"
-          @save="handleModalSave"
-          :selected-organization="gridMeta.selectedOrganizationId"
-          :is-modal="true"
-        />
-      </UDashboardModal>
-
-      <!-- New Organization Detail Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isOrganizatioModalOpen"
-        :title="modalMeta.modalTitle"
-        :description="modalMeta.modalDescription"
-        :ui="{
-          width: 'w-[1000px] sm:max-w-7xl',
-          body: { padding: 'py-0 sm:pt-0' },
-        }"
-      >
-        <EmployeeOrganizationForm
-          @close="handleModalClose"
-          @save="handleModalSave"
-          :selected-organization="gridMeta.selectedOrganizationId"
-          :is-modal="true"
-        />
-      </UDashboardModal>
 
       <UTable
         :rows="gridMeta.organization"
@@ -399,7 +393,7 @@ const onDelete = async (row: any) => {
             </div>
           </template>
         </template>
-        <template #view-data="{ row }">
+        <!-- <template #view-data="{ row }">
           <UTooltip text="Site Visit" class="flex justify-center">
             <UButton
               color="gray"
@@ -408,7 +402,7 @@ const onDelete = async (row: any) => {
               @click="onView(row)"
             />
           </UTooltip>
-        </template>
+        </template> -->
         <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
             <UButton
@@ -441,6 +435,24 @@ const onDelete = async (row: any) => {
           />
         </div>
       </div>
-    </div>
-  </div>
+    </UDashboardPanel>
+  </UDashboardPage>
+
+  <!-- New Organization Detail Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isJobFormModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1000px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <JobForm
+      @close="handleModalClose"
+      @save="handleModalSave"
+      :selected-organization="gridMeta.selectedJobId"
+      :is-modal="true"
+    />
+  </UDashboardModal>
 </template>

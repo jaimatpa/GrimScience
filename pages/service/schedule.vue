@@ -438,22 +438,6 @@ const excelExport = async () => {
           @save="onServiceReportSave"
         />
       </UDashboardModal>
-      <!-- <UDashboardModal
-        v-model="modalMeta.isReportModalOpen"
-        :title="modalMeta.modalTitle"
-        :description="modalMeta.modalDescription"
-        :ui="{
-          width: 'w-[1600px] sm:max-w-9xl',
-          body: { padding: 'py-0 sm:pt-0' },
-        }"
-      >
-        <ServiceReport
-          @close="handleModalClose"
-          @save="handleModalSave"
-          :selected-service="gridMeta.selectedServiceId"
-          :is-modal="true"
-        />
-      </UDashboardModal> -->
 
       <div class="flex flex-row px-10 mt-4">
         <template v-for="checkbox in headerCheckboxes">

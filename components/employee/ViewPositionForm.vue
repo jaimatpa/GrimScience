@@ -274,7 +274,7 @@ if (props.selectedOrganization !== null) editInit();
       <!-- Jobs List Modal -->
       <UDashboardModal
         v-model="modalMeta.isJobsListModalOpen"
-        title="Jobs Report"
+        title="Jobs List"
         :ui="{
           width: 'w-[1600px] sm:max-w-8xl',
           body: { padding: 'py-0 sm:pt-0' },
@@ -363,7 +363,7 @@ if (props.selectedOrganization !== null) editInit();
 
                   <div class="w-[180px]">
                     <UButton
-                      icon="i-heroicons-document-arrow-up"
+                      icon="i-heroicons-document-text"
                       type="submit"
                       variant="outline"
                       color="green"
@@ -415,7 +415,7 @@ if (props.selectedOrganization !== null) editInit();
 
                   <div class="w-[180px]">
                     <UButton
-                      icon="i-heroicons-document-arrow-up"
+                      icon="i-heroicons-document-text"
                       type="submit"
                       variant="outline"
                       color="green"
@@ -470,7 +470,7 @@ if (props.selectedOrganization !== null) editInit();
 
                   <div class="w-[180px]">
                     <UButton
-                      icon="i-heroicons-document-arrow-up"
+                      icon="i-heroicons-document-text"
                       type="submit"
                       variant="outline"
                       color="green"
@@ -558,7 +558,7 @@ if (props.selectedOrganization !== null) editInit();
 
                   <div class="w-[180px]">
                     <UButton
-                      icon="i-heroicons-document-arrow-up"
+                      icon="i-heroicons-document-text"
                       type="submit"
                       variant="outline"
                       color="green"
@@ -581,7 +581,7 @@ if (props.selectedOrganization !== null) editInit();
       <div class="flex flex-row space-x-4 justify-start mt-2">
         <div class="w-[180px]">
           <UButton
-            icon="i-heroicons-document-arrow-up"
+            icon="i-heroicons-document-text"
             type="submit"
             variant="outline"
             color="green"
