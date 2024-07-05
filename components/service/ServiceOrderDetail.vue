@@ -121,7 +121,7 @@
         key: 'DIAGDATE',
         label: 'Date',
       }, {
-        key: 'PROBLEMDIAG',
+        key: 'DESCRIPTION',
         label: 'Description'
       }
     ],
@@ -148,6 +148,7 @@
     isInventoryTransactionModalOpen: false,
     isInvoiceModalOpen: false,
     isInvoiceListModalOpen: false,
+    isInvestigationModalOpen: false
   })
   const selectedServiceReportID = ref(null)
   const date = ref(new Date())
@@ -257,14 +258,14 @@
     })
   }
   const fetchInvestigationList = async () => {
-    await useApiFetch(`/api/invoices/serviceorderinvoices/`, {
+    await useApiFetch(`/api/engineering/investigationcomplaints`, {
       method: 'GET',
       params: {
-        COMPLAINTID: complaintGridMeta.value?.selectedComplaint?.uniqueID
+        ComplaintID: complaintGridMeta.value?.selectedComplaint?.uniqueID
       },
       onResponse({ response }) {
         if(response.status === 200) {
-          invoiceGridMeta.value.invoices = response._data.body
+          investigationGridMeta.value.investigations = response._data.body
         }
       }
     })
@@ -356,6 +357,7 @@
       typeOfServiceInfo.value.failure = complaintGridMeta.value.selectedComplaint.FAILINVEST
       await fetchInvoiceList()
       await fetchServiceReportList()
+      await fetchInvestigationList()
     } else {
       serviceOrderInfo.value.SERIALNO = null
       serviceOrderInfo.value.COMPLAINTNUMBER = null
@@ -393,6 +395,19 @@
   const onServiceReportDblClick = () => {
     selectedServiceReportID.value = serviceReportGridMeta.value.selectedServiceReport?.uniqueID
     modalMeta.value.isServiceReportModalOpen = true
+  }
+  const onInvestigationSelect = async (row) => {
+    investigationGridMeta.value.selectedInvestigation = {...row, class:""}
+    investigationGridMeta.value.investigations.forEach((investigation) => {
+      if(investigation.uniqueID === row.uniqueID) {
+        investigation.class = 'bg-gray-200'
+      }else{
+        delete investigation.class
+      }
+    })
+  }
+  const onInvestigationDblClick = () => {
+    modalMeta.value.isInvestigationModalOpen = true
   }
   const onServiceReportBtnClick = async () => {
     if(!complaintGridMeta.value.selectedComplaint) {
@@ -447,6 +462,28 @@
       })
     }
   }
+  const onInvestigationAddBtnClick = () => {
+    if(complaintGridMeta.value.selectedComplaint) {
+      modalMeta.value.isInvestigationModalOpen = true
+    } else {
+      toast.add({
+        description: 'Please select order first',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+    }
+  }
+  const onInvestigationRemoveBtnClick = () => {
+    if(investigationGridMeta.value.selectedInvestigation) {
+      // await 
+    } else {
+      toast.add({
+        description: 'Please select investigation first',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+    }
+  }
   const onNewInvoiceModalClose = () => {
     modalMeta.value.isInvoiceModalOpen = false
   }
@@ -459,6 +496,24 @@
   const onInvoiceLink = async (selectedInvoiceID) => {
     await linkInvoice(selectedInvoiceID)
     fetchInvoiceList()
+  }
+  
+  const onInvestigationModalClose = () => {
+    modalMeta.value.isInvestigationModalOpen = false
+  }
+  const onInvestigationAdd = async(selelctedInvestigationID) => {
+    await useApiFetch('/api/engineering/investigationcomplaints/', {
+      method: 'POST',
+      body: {
+        investigationID: selelctedInvestigationID,
+        ComplaintID: complaintGridMeta.value.selectedComplaint?.uniqueID??0
+      }, 
+      onResponse({response}) {
+        if(response.status === 200) {
+          fetchInvestigationList()
+        }
+      }
+    })
   }
   const validate = (state: any): FormError[] => {
     const errors = []
@@ -964,9 +1019,11 @@
                   }, 
                   td: {
                     base: 'h-[31px]',
-                    padding: 'py-0'
+                    padding: 'px-2 py-0'
                   }
                 }"
+                @select="onInvestigationSelect"
+                @dblclick="onInvestigationDblClick"
               >
                 <template #empty-state>
                   <div></div>
@@ -975,7 +1032,7 @@
             </UFormGroup>
             <div class="flex flex-row space-x-4 justify-end mt-2">
               <div class="w-[120px]">
-                <UButton icon="i-heroicons-plus-20-solid" variant="outline" label="Add" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                <UButton icon="i-heroicons-plus-20-solid" variant="outline" label="Add" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onInvestigationAddBtnClick"/>
               </div>
               <div class="w-[120px]">
                 <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red" label="Remove" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
@@ -1025,6 +1082,7 @@
   >
     <InvoiceDetail :selected-customer="props.selectedCustomer" :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @save="onNewInvoiceSave" @close="onNewInvoiceModalClose"/>
   </UDashboardModal>
+  <!-- Link Invoice Modal -->
   <UDashboardModal
     v-model="modalMeta.isInvoiceListModalOpen"
     title="Invoice List"
@@ -1037,5 +1095,18 @@
     }"
   >
     <InvoiceList selected-customer="props.selectedCustomer" @close="onInvoiceLinkModalClose" @link="onInvoiceLink"/>
+  </UDashboardModal>
+  <!-- Investigation Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isInvestigationModalOpen"
+    title="Root Cause Investigation"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl'
+    }"
+  >
+    <EngineeringInvestigationDetail :selected-investigation="investigationGridMeta.selectedInvestigation?.investigationID??null" @close="onInvestigationModalClose" @link="onInvestigationAdd"/>
   </UDashboardModal>
 </template>
