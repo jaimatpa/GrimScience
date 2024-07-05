@@ -81,6 +81,11 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
   return formattedList;
 }
 
+export const getComplaintDetail = async (id) => {
+  const detail = await tblComplaints.findByPk(id)
+  return detail
+}
+
 export const getAllServiceOrders = async (sortBy, sortOrder, filterParams) => {
   let whereClause = {}
   let customerWhereClause = {}
@@ -333,6 +338,59 @@ export const  getComplaints = async (params) => {
     return {
       ...item,
       COMPLAINTDATE: formattedDate
+    }
+  })
+  return formattedList;
+}
+
+export const  getAllComplaints = async () => {
+  tblComplaints.hasOne(tblCustomers, {foreignKey: 'UniqueID', sourceKey: 'CustomerID'})
+  const list = await tblComplaints.findAll({
+    attributes: [
+      'uniqueID',
+      'COMPLAINTDATE',
+      'COMPLAINTNUMBER',
+      'COMPLAINT',
+      'COMPLAINTDATE',
+      'COMPLAINTNUMBER',
+      'SERIALNO',
+      'ValidComplaintReason',
+      'OPENCASE',
+      [Sequelize.col('tblCustomer.number'), 'cusomternumber'],
+      [Sequelize.col('tblCustomer.fname'), 'cusomterfname'],
+      [Sequelize.col('tblCustomer.lname'), 'cusomterlname'],
+      [Sequelize.col('tblCustomer.company1'), 'cusomtercompany1'],
+    ],
+    include: [
+      {
+        model: tblCustomers,
+        attributes: [
+          'number',
+          'fname',
+          'lname',
+          'company1'
+        ]
+      }
+    ],
+    order: [['COMPLAINTNUMBER', 'asc']],
+    raw: true
+  })
+  const formattedList = list.map((item: any) => {
+    let complaintDate = new Date(item.COMPLAINTDATE).toISOString().split('T')
+    complaintDate = complaintDate[0].split('-')
+    let formattedDate = `${complaintDate[1]}/${complaintDate[2]}/${complaintDate[0]}`
+    let status = item.OPENCASE === '1'?'Open':'Closed'
+
+    return {
+      COMPLAINTNUMBER: item.COMPLAINTNUMBER,
+      COMPLAINTDATE: formattedDate,
+      SERIALNO: item.SERIALNO,
+      ValidComplaintReason: item.ValidComplaintReason,
+      Status: status,
+      cusomternumber: item.cusomternumber,
+      cusomterfname: item.cusomterfname,
+      cusomterlname: item.cusomterlname,
+      cusomtercompany1: item.cusomtercompany1,
     }
   })
   return formattedList;
