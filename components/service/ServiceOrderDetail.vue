@@ -1074,7 +1074,7 @@
       width: 'w-[1800px] sm:max-w-9xl',
     }"
   >
-    <InventoryTransactions />
+    <MaterialsTransactionsInventoryTransactions />
   </UDashboardModal>
   <!-- New Invoice Modal -->
   <UDashboardModal

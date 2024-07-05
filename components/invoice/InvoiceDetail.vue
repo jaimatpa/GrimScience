@@ -1356,6 +1356,6 @@
       width: 'w-[1800px] sm:max-w-9xl', 
     }"
   >
-    <InventoryTransactions :selected-order="props.selectedOrder"/>
+    <MaterialsTransactionsInventoryTransactions :selected-order="props.selectedOrder"/>
   </UDashboardModal>
 </template>
