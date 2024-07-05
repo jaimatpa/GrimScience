@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize';
 import sequelize from "../utils/databse";
 
 const tblInvestigations = sequelize.define('tblInvestigations', {
-   uniqueid: {
+   uniqueID: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       allowNull: false,

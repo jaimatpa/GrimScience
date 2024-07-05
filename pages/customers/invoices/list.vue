@@ -286,8 +286,6 @@
   }
   const onDblClick = async () =>{
     if(gridMeta.value.selectedOrderId){
-      modalMeta.value.modalTitle = "Edit";
-      modalMeta.value.modalDescription = "Edit customer information"
       modalMeta.value.isOrderDetailModalOpen = true
     }
   }
@@ -299,7 +297,7 @@
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar
-        title="Customer List"
+        title="Invoice List"
       >
       </UDashboardNavbar>
 
@@ -355,17 +353,7 @@
             </template>
           </UButton>
         </template>
-      </UDashboardToolbar>
-
-      <!-- Order Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isOrderDetailModalOpen"
-        title="Order"
-        :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
-      >
-        <CustomersOrderDetail :selected-customer="gridMeta.selectedCustomerId" :selected-order="gridMeta.selectedOrderId"  @close="handleModalClose"/>
-      </UDashboardModal>    
-      
+      </UDashboardToolbar>     
       <UTable
         :rows="gridMeta.orders"
         :columns="columns"
@@ -388,11 +376,6 @@
         @dblclick="onDblClick"
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-          <!-- <template v-if="column.key === 'UniqueID'">
-            <div class="w-[20px]">
-              asdf
-            </div>
-          </template> -->
           <template v-if="column.kind !== 'actions'">
             <div class="px-4 py-3.5">
               <CommonSortAndInputFilter 
@@ -436,6 +419,19 @@
       </div>
     </UDashboardPanel>
   </UDashboardPage>
+  <!-- Order Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isOrderDetailModalOpen"
+    title="Order"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl'
+    }"
+  >
+    <InvoiceDetail :selected-customer="gridMeta.selectedCustomerId" :selected-order="gridMeta.selectedOrderId"  @close="handleModalClose" @save="handleModalSave"/>
+  </UDashboardModal>  
 </template>
 <style scoped>
 </style>

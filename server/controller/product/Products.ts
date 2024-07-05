@@ -75,7 +75,8 @@ export const getProductSubCategories = async (filterParams) => {
   return productLineValues;
 }
 
-export const getProductInfos = async (productline, category, subcategory, model, stock) => {
+export const getProductInfos = async (params) => {
+  const { productline, category, subcategory, model, stock } = params
   let whereClause = {
     [Op.and]: [
       { PRIMARYPRICE1: { [Op.ne]: null } },
@@ -91,7 +92,6 @@ export const getProductInfos = async (productline, category, subcategory, model,
   if (subcategory) {
     whereClause['SUBCATEGORY'] = subcategory
   }
-  console.log(whereClause, !productline)
   const productInfos = await tblBP.findAll({
     attributes: [
       'UniqueID',

@@ -1,4 +1,4 @@
-import { orderDetailExistByOrderID, orderDetailExistByUniqueID, getOrderDetail, deleteOrderDetail  } from '~/server/controller/customers';
+import { orderDetailExistByUniqueID, deleteOrderDetail  } from '~/server/controller/invoices';
 
 export default eventHandler(async (event) => {
   try {
@@ -8,14 +8,6 @@ export default eventHandler(async (event) => {
     let idExist;
     switch(method.toUpperCase()){
       case 'GET':
-        idExist = await orderDetailExistByOrderID(id);
-        if (idExist){
-          const detail = await getOrderDetail(id)
-          return { body: detail, message: '' };
-        } else {
-          setResponseStatus(event, 404);
-          return { error: 'The order does not exist' }
-        }
       case 'PUT':
         break;
       case 'DELETE':

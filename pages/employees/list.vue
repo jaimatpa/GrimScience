@@ -314,18 +314,7 @@
             @click="onCreate()"
           />
         </template>
-      </UDashboardToolbar>
-
-      <!-- New Employee Detail Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isEmployeeModalOpen"
-        :title="modalMeta.modalTitle"
-        :description="modalMeta.modalDescription"
-       :ui="{width: 'w-[1600px] sm:max-w-8xl', body: {padding: 'py-0 sm:pt-0'}}"
-      >
-        <EmployeeForm @close="handleModalClose" @save="handleModalSave" :selected-employee="gridMeta.selectedEmpployeeId" :is-modal="true"/>
-      </UDashboardModal>
-    
+      </UDashboardToolbar>    
       <UTable
         :rows="gridMeta.employess"
         :columns="columns"
@@ -385,4 +374,18 @@
       </div>
     </UDashboardPanel>
   </UDashboardPage>
+  <!-- New Employee Detail Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isEmployeeModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1600px] sm:max-w-8xl'
+    }"
+  >
+    <EmployeeForm @close="handleModalClose" @save="handleModalSave" :selected-employee="gridMeta.selectedEmpployeeId" :is-modal="true"/>
+  </UDashboardModal>
 </template>
