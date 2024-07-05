@@ -24,8 +24,8 @@ const day = String(now.getDate()).padStart(2, '0');
 const month = String(now.getMonth() + 1).padStart(2, '0'); 
 const year = now.getFullYear();
 
-const hour = String(now.getHours()).padStart(2, '0'); // Get the hours and pad with leading zero if needed
-const minute = String(now.getMinutes()).padStart(2, '0'); // Get the minutes and pad with leading zero if needed
+const hour = String(now.getHours()).padStart(2, '0');
+const minute = String(now.getMinutes()).padStart(2, '0');
 
 const formattedDate = month + '/' + day + '/' + year;
 const formattedTime = hour + ':' + minute;

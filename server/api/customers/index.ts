@@ -8,8 +8,7 @@ export default eventHandler(async (event) => {
     switch(method.toUpperCase()){
       case 'GET':
         const list = await getCustomers(page, pageSize, sortBy, sortOrder, filterParams);
-        const numberOfCustomers = await getNumberOfCustomers(filterParams);
-        return { body: {list, numberOfCustomers}, message: '' }
+        return { body: list, message: '' }
       case 'POST':
         const data = await readBody(event)
         const newCustomer = await createCustomer(data)

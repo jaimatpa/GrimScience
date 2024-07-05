@@ -1,4 +1,4 @@
-import { getServiceOrderInvoicesOfComplaint } from '~/server/controller/customers';
+import { getServiceOrderInvoices } from '~/server/controller/invoices';
 
 export default eventHandler(async (event) => {
   try {
@@ -7,7 +7,7 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getServiceOrderInvoicesOfComplaint(params)
+        const list = await getServiceOrderInvoices(params)
         return { body: list, message: '' }
       case 'POST':
       case 'PUT':

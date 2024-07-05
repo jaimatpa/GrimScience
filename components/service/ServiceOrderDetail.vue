@@ -104,7 +104,7 @@
         key: 'REPAIRDATE',
         label: 'Date'
       }, {
-        key: 'Type',
+        key: 'REPAIRDESC',
         label: 'Type'
       }, {
         key: 'REPAIRSBY',
@@ -118,10 +118,10 @@
   const investigationGridMeta = ref({
     defaultColumns: <UTableColumn[]>[
       {
-        key: 'date',
+        key: 'DIAGDATE',
         label: 'Date',
       }, {
-        key: 'description',
+        key: 'DESCRIPTION',
         label: 'Description'
       }
     ],
@@ -144,7 +144,11 @@
     reasonOptions: []
   })
   const modalMeta = ref({
-    isServiceReportModalOpen: false
+    isServiceReportModalOpen: false,
+    isInventoryTransactionModalOpen: false,
+    isInvoiceModalOpen: false,
+    isInvoiceListModalOpen: false,
+    isInvestigationModalOpen: false
   })
   const selectedServiceReportID = ref(null)
   const date = ref(new Date())
@@ -185,7 +189,7 @@
     loadingOverlay.value = false
   }
   const fetchSerialList = async () => {
-    await useApiFetch(`/api/customers/serials/`, {
+    await useApiFetch(`/api/invoices/serials/`, {
       method: 'GET',
       params: {
         customerid: props.selectedCustomer
@@ -198,7 +202,7 @@
     })
   }
   const fetchComplaintList = async () => {
-    await useApiFetch(`/api/customers/complaints/`, {
+    await useApiFetch(`/api/service/complaints/`, {
       method: 'GET',
       params: {
         SERIALNO: serialGridMeta.value.selectedSerial.serial
@@ -224,7 +228,7 @@
     })
   }
   const fetchServiceReportList = async () => {
-    await useApiFetch(`/api/customers/servicereports/`, {
+    await useApiFetch(`/api/service/servicereports/`, {
       method: 'GET',
       params: {
         COMPLAINTID: complaintGridMeta.value.selectedComplaint.uniqueID
@@ -232,48 +236,105 @@
       onResponse({ response }) {
         if(response.status === 200) {
           serviceReportGridMeta.value.serviceReports = response._data.body
+          serviceReportGridMeta.value.serviceReports.forEach((item) => {
+            let type;
+            switch(item.REPAIRDESC) {
+              case 0:
+                type = 'Field Service'
+                break;
+              case 1:
+                type = 'Factory Service'
+                break
+              case 2:
+                type = 'Customer'
+                break
+              default: 
+                type = null
+            }
+            item.REPAIRDESC = type
+          })
         }
       }
     })
   }
-  const onSerialSelect = async (row) => {
-    if(JSON.stringify({...serialGridMeta.value.selectedSerial, class:""})=== JSON.stringify({...row, class: ""})) serialGridMeta.value.selectedSerial = null;
-    else {
-      serialGridMeta.value.selectedSerial = {...row, class:""}
-    }
-    serialGridMeta.value.serials.forEach((serial) => {
-      if(serial.UniqueID === row.UniqueID && row.class != 'bg-gray-200') {
-        serial.class = 'bg-gray-200'
-      }else{
-        delete serial.class
+  const fetchInvestigationList = async () => {
+    await useApiFetch(`/api/engineering/investigationcomplaints`, {
+      method: 'GET',
+      params: {
+        ComplaintID: complaintGridMeta.value?.selectedComplaint?.uniqueID
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          investigationGridMeta.value.investigations = response._data.body
+        }
       }
     })
-    if(serialGridMeta.value.selectedSerial) {
-      await fetchComplaintList()
-      let tmpRECBYOptions = complaintGridMeta.value.complaints.map((item: any) => item.RECBY)
-      tmpRECBYOptions = tmpRECBYOptions.filter(item => item !== '' && item !== null)
-      let uniqueItemSet = new Set()
-      let filteredRECBYOptions = tmpRECBYOptions.filter(item => {
-        if(!uniqueItemSet.has(item)) {
-          uniqueItemSet.add(item)
-          return true
+  }
+  const linkInvoice = async (orderID) => {
+    await useApiFetch(`/api/invoices/${orderID}`, {
+      method: 'PUT',
+      body: {
+        complaintID: complaintGridMeta.value.selectedComplaint?.uniqueID
+      }
+    })
+  }
+  const unlinkInvoice = async (orderID) => {
+    await useApiFetch(`/api/invoices/${orderID}`, {
+      method: 'PUT',
+      body: {
+        complaintID: null
+      }
+    })
+  }
+  const onSerialSelect = async (row) => {
+    if(JSON.stringify({...serialGridMeta.value.selectedSerial, class:""}) !== JSON.stringify({...row, class: ""})) {
+      serialGridMeta.value.selectedSerial = {...row, class:""}
+      serialGridMeta.value.serials.forEach((serial) => {
+        if(serial.UniqueID === row.UniqueID) {
+          serial.class = 'bg-gray-200'
+        }else{
+          delete serial.class
         }
-        return false
       })
-      serviceOrderInfo.value.RECBYOptions = filteredRECBYOptions
-      serviceOrderInfo.value.RECBYOptions.unshift(null)
-      let tmpReasonOptions = complaintGridMeta.value.complaints.map((item: any) => item.ValidComplaintReason)
-      tmpReasonOptions = tmpReasonOptions.filter(item => item !== '' && item !== null)
-      let uniqueReasonSet = new Set()
-      let filteredReasonOptions = tmpReasonOptions.filter(item => {
-        if(!uniqueReasonSet.has(item)) {
-          uniqueReasonSet.add(item)
-          return true
-        }
-        return false
-      })
-      typeOfServiceInfo.value.reasonOptions = filteredReasonOptions
-      typeOfServiceInfo.value.reasonOptions.unshift(null)
+      invoiceGridMeta.value.invoices = []
+      invoiceGridMeta.value.selectedInvoice = null
+      serviceReportGridMeta.value.serviceReports = []
+      serviceReportGridMeta.value.selectedServiceReport = null    
+      serviceOrderInfo.value.SERIALNO = null
+      serviceOrderInfo.value.COMPLAINTNUMBER = null
+      serviceOrderInfo.value.COMPLAINTDATE = null
+      serviceOrderInfo.value.COMPLAINT = null
+      serviceOrderInfo.value.PRODUCTDESC = null
+      serviceOrderInfo.value.RECBY = null
+      typeOfServiceInfo.value.reason = null
+      typeOfServiceInfo.value.failure = null
+      if(serialGridMeta.value.selectedSerial) {
+        await fetchComplaintList()
+        let tmpRECBYOptions = complaintGridMeta.value.complaints.map((item: any) => item.RECBY)
+        tmpRECBYOptions = tmpRECBYOptions.filter(item => item !== '' && item !== null)
+        let uniqueItemSet = new Set()
+        let filteredRECBYOptions = tmpRECBYOptions.filter(item => {
+          if(!uniqueItemSet.has(item)) {
+            uniqueItemSet.add(item)
+            return true
+          }
+          return false
+        })
+        serviceOrderInfo.value.RECBYOptions = filteredRECBYOptions
+        serviceOrderInfo.value.RECBYOptions.unshift(null)
+        let tmpReasonOptions = complaintGridMeta.value.complaints.map((item: any) => item.ValidComplaintReason)
+        tmpReasonOptions = tmpReasonOptions.filter(item => item !== '' && item !== null)
+        let uniqueReasonSet = new Set()
+        let filteredReasonOptions = tmpReasonOptions.filter(item => {
+          if(!uniqueReasonSet.has(item)) {
+            uniqueReasonSet.add(item)
+            return true
+          }
+          return false
+        })
+        typeOfServiceInfo.value.reasonOptions = filteredReasonOptions
+        typeOfServiceInfo.value.reasonOptions.unshift(null)
+      }
     }
   }
   const onComplaintSelect = async (row) => {
@@ -296,6 +357,7 @@
       typeOfServiceInfo.value.failure = complaintGridMeta.value.selectedComplaint.FAILINVEST
       await fetchInvoiceList()
       await fetchServiceReportList()
+      await fetchInvestigationList()
     } else {
       serviceOrderInfo.value.SERIALNO = null
       serviceOrderInfo.value.COMPLAINTNUMBER = null
@@ -308,17 +370,17 @@
     }
   }
   const onInvoiceSelect = async (row) => {
-    if(JSON.stringify({...invoiceGridMeta.value.selectedInvoice, class:""})=== JSON.stringify({...row, class: ""})) invoiceGridMeta.value.selectedInvoice = null;
-    else {
-      invoiceGridMeta.value.selectedInvoice = {...row, class:""}
-    }
+    invoiceGridMeta.value.selectedInvoice = {...row, class:""}
     invoiceGridMeta.value.invoices.forEach((invoice) => {
-      if(invoice.UniqueID === row.UniqueID && row.class != 'bg-gray-200') {
+      if(invoice.UniqueID === row.UniqueID) {
         invoice.class = 'bg-gray-200'
       }else{
         delete invoice.class
       }
     })
+  }
+  const onInvoiceDblClick = () => {
+    modalMeta.value.isInvoiceModalOpen = true
   }
   const onServiceReportSelect = async (row) => {
     serviceReportGridMeta.value.selectedServiceReport = {...row, class:""}
@@ -333,6 +395,19 @@
   const onServiceReportDblClick = () => {
     selectedServiceReportID.value = serviceReportGridMeta.value.selectedServiceReport?.uniqueID
     modalMeta.value.isServiceReportModalOpen = true
+  }
+  const onInvestigationSelect = async (row) => {
+    investigationGridMeta.value.selectedInvestigation = {...row, class:""}
+    investigationGridMeta.value.investigations.forEach((investigation) => {
+      if(investigation.uniqueid === row.uniqueid) {
+        investigation.class = 'bg-gray-200'
+      }else{
+        delete investigation.class
+      }
+    })
+  }
+  const onInvestigationDblClick = () => {
+    modalMeta.value.isInvestigationModalOpen = true
   }
   const onServiceReportBtnClick = async () => {
     if(!complaintGridMeta.value.selectedComplaint) {
@@ -349,6 +424,103 @@
   const onServiceReportSave = async () => {
     modalMeta.value.isServiceReportModalOpen = false
     fetchServiceReportList()
+  }
+  const onViewInventoryTransactioBtnClick = () => {
+    modalMeta.value.isInventoryTransactionModalOpen = true
+  }
+  const onNewInvoiceBtnClick = () => {
+    if(complaintGridMeta.value.selectedComplaint) {
+      modalMeta.value.isInvoiceModalOpen = true
+    } else {
+      toast.add({
+        description: 'Please select order first',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+    }
+  }
+  const onLinkBtnClick = () => {
+    if(complaintGridMeta.value.selectedComplaint) {
+      modalMeta.value.isInvoiceListModalOpen = true
+    } else {
+      toast.add({
+        description: 'Please select order first',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+    }
+  }
+  const onUnlinkBtnClick = () => {
+    if(invoiceGridMeta.value.selectedInvoice) {
+      unlinkInvoice(invoiceGridMeta.value.selectedInvoice?.UniqueID)
+      fetchInvoiceList()
+    } else {
+      toast.add({
+        description: 'Please select invoice first',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+    }
+  }
+  const onInvestigationAddBtnClick = () => {
+    if(complaintGridMeta.value.selectedComplaint) {
+      modalMeta.value.isInvestigationModalOpen = true
+    } else {
+      toast.add({
+        description: 'Please select order first',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+    }
+  }
+  const onInvestigationRemoveBtnClick = async () => {
+    if(investigationGridMeta.value.selectedInvestigation) {
+      await useApiFetch(`/api/engineering/investigationcomplaints/${investigationGridMeta.value.selectedInvestigation?.uniqueid??0}`, {
+        method: 'DELETE',
+        onResponse({response}) {
+          if(response.status === 200) {
+            fetchInvestigationList()
+          }
+        }
+      })
+    } else {
+      toast.add({
+        description: 'Please select investigation first',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+    }
+  }
+  const onNewInvoiceModalClose = () => {
+    modalMeta.value.isInvoiceModalOpen = false
+  }
+  const onInvoiceLinkModalClose = () => {
+    modalMeta.value.isInvoiceListModalOpen = false
+  }
+  const onNewInvoiceSave = async () => {
+    fetchInvoiceList()
+  } 
+  const onInvoiceLink = async (selectedInvoiceID) => {
+    await linkInvoice(selectedInvoiceID)
+    fetchInvoiceList()
+  }
+  
+  const onInvestigationModalClose = () => {
+    modalMeta.value.isInvestigationModalOpen = false
+  }
+  const onInvestigationAdd = async(selelctedInvestigationID) => {
+    await useApiFetch('/api/engineering/investigationcomplaints/', {
+      method: 'POST',
+      body: {
+        investigationID: selelctedInvestigationID,
+        ComplaintID: complaintGridMeta.value.selectedComplaint?.uniqueID??0
+      }, 
+      onResponse({response}) {
+        if(response.status === 200) {
+          fetchInvestigationList()
+        }
+      }
+    })
   }
   const validate = (state: any): FormError[] => {
     const errors = []
@@ -381,14 +553,6 @@
     :state="formData"
     @submit="onSubmit"
   >
-    <!-- Service Report Modal -->
-    <UDashboardModal
-      v-model="modalMeta.isServiceReportModalOpen"
-      title="Service Report"
-      :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
-    >
-      <CustomersServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
-    </UDashboardModal>
     <div class="w-full px-3 py-1 bg-slate-400">
       Customer Information
     </div>
@@ -558,6 +722,7 @@
                       }
                     }"
                     @select="onInvoiceSelect"
+                    @dblclick="onInvoiceDblClick"
                   >
                   <template #empty-state>
                     <div></div>
@@ -567,13 +732,13 @@
               </div>
               <div class="flex flex-row space-x-1 mt-1">
                 <div class="basis-1/3 w-full">
-                  <UButton icon="i-heroicons-plus-20-solid" label="New" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-plus-20-solid" label="New" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onNewInvoiceBtnClick"/>
                 </div>
                 <div class="basis-1/3 w-full">
-                  <UButton icon="i-heroicons-plus-20-solid" label="Link" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-plus-20-solid" label="Link" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onLinkBtnClick"/>
                 </div>
                 <div class="basis-1/3 w-full">
-                  <UButton icon="i-heroicons-minus-circle-20-solid" label="Unlink" variant="outline" color="red" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-minus-circle-20-solid" label="Unlink" variant="outline" color="red" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onUnlinkBtnClick"/>
                 </div>
               </div>
             </div>
@@ -651,6 +816,7 @@
                     label="View Inventory Transaction"
                     variant="outline"
                     :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
+                    @click="onViewInventoryTransactioBtnClick"
                   />
                 </div>
               </div>
@@ -685,8 +851,8 @@
           </div>
           <div class="basis-4/12">
             <div class="flex flex-row">
-              <div class="flex items-center w-[35px]">Date</div>
-              <div class="w-full px-4">
+              <div class="flex items-center w-[35px] font-medium">Date</div>
+              <div class="flex-1 px-4">
                 <UPopover :popper="{ placement: 'bottom-start' }">
                   <UButton icon="i-heroicons-calendar-days-20-solid" :label="serviceOrderInfo.COMPLAINTDATE && format(serviceOrderInfo.COMPLAINTDATE, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
@@ -696,8 +862,8 @@
               </div>
             </div>
             <div class="flex flex-row mt-3">
-              <div class="flex mr-2 items-center w-[35px]">By</div>
-              <div class="w-full px-4">
+              <div class="flex items-center w-[35px] font-medium">By</div>
+              <div class="flex-1 px-4">
                 <USelect
                   v-model="serviceOrderInfo.RECBY"
                   :options="serviceOrderInfo.RECBYOptions"
@@ -714,7 +880,7 @@
                 v-bind="status"
               />
             </div>
-            <div class="mt-3">
+            <div class="mt-6 flex items-center">
               Warranty Period
             </div>
           </div>
@@ -860,9 +1026,11 @@
                   }, 
                   td: {
                     base: 'h-[31px]',
-                    padding: 'py-0'
+                    padding: 'px-2 py-0'
                   }
                 }"
+                @select="onInvestigationSelect"
+                @dblclick="onInvestigationDblClick"
               >
                 <template #empty-state>
                   <div></div>
@@ -871,10 +1039,10 @@
             </UFormGroup>
             <div class="flex flex-row space-x-4 justify-end mt-2">
               <div class="w-[120px]">
-                <UButton icon="i-heroicons-plus-20-solid" variant="outline" label="Add" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                <UButton icon="i-heroicons-plus-20-solid" variant="outline" label="Add" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onInvestigationAddBtnClick"/>
               </div>
               <div class="w-[120px]">
-                <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red" label="Remove" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red" label="Remove" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onInvestigationRemoveBtnClick"/>
               </div>
             </div>
           </div>
@@ -882,4 +1050,70 @@
       </div>
     </div>
   </UForm>
+  <!-- Service Report Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isServiceReportModalOpen"
+    title="Service Report"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl', 
+    }"
+  >
+    <ServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
+  </UDashboardModal>
+  <!-- Inventory Transaction Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isInventoryTransactionModalOpen"
+    title="Inventory Transactions"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl',
+    }"
+  >
+    <MaterialsTransactionsInventoryTransactions />
+  </UDashboardModal>
+  <!-- New Invoice Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isInvoiceModalOpen"
+    title="Invoivce"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl', 
+    }"
+  >
+    <InvoiceDetail :selected-customer="props.selectedCustomer" :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @save="onNewInvoiceSave" @close="onNewInvoiceModalClose"/>
+  </UDashboardModal>
+  <!-- Link Invoice Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isInvoiceListModalOpen"
+    title="Invoice List"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl', 
+      height: 'h-[900px] sm:h-[900px]',
+    }"
+  >
+    <InvoiceList selected-customer="props.selectedCustomer" @close="onInvoiceLinkModalClose" @link="onInvoiceLink"/>
+  </UDashboardModal>
+  <!-- Investigation Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isInvestigationModalOpen"
+    title="Root Cause Investigation"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl'
+    }"
+  >
+    <EngineeringInvestigationDetail :selected-investigation="investigationGridMeta.selectedInvestigation?.investigationID??null" @close="onInvestigationModalClose" @link="onInvestigationAdd"/>
+  </UDashboardModal>
 </template>
