@@ -399,7 +399,7 @@
   const onInvestigationSelect = async (row) => {
     investigationGridMeta.value.selectedInvestigation = {...row, class:""}
     investigationGridMeta.value.investigations.forEach((investigation) => {
-      if(investigation.uniqueID === row.uniqueID) {
+      if(investigation.uniqueid === row.uniqueid) {
         investigation.class = 'bg-gray-200'
       }else{
         delete investigation.class
@@ -473,9 +473,16 @@
       })
     }
   }
-  const onInvestigationRemoveBtnClick = () => {
+  const onInvestigationRemoveBtnClick = async () => {
     if(investigationGridMeta.value.selectedInvestigation) {
-      // await 
+      await useApiFetch(`/api/engineering/investigationcomplaints/${investigationGridMeta.value.selectedInvestigation?.uniqueid??0}`, {
+        method: 'DELETE',
+        onResponse({response}) {
+          if(response.status === 200) {
+            fetchInvestigationList()
+          }
+        }
+      })
     } else {
       toast.add({
         description: 'Please select investigation first',
@@ -1035,7 +1042,7 @@
                 <UButton icon="i-heroicons-plus-20-solid" variant="outline" label="Add" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onInvestigationAddBtnClick"/>
               </div>
               <div class="w-[120px]">
-                <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red" label="Remove" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red" label="Remove" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onInvestigationRemoveBtnClick"/>
               </div>
             </div>
           </div>

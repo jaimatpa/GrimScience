@@ -1,4 +1,4 @@
-import { Sequelize, Op } from "sequelize";
+import { Sequelize, Op, where } from "sequelize";
 import { tblInvestigations, tblInvestigationComplaint } from "~/server/models";
 
 export const getInvestigations = async (params) => {
@@ -78,9 +78,14 @@ export const getInvestigationsOfComplaint = async (params) => {
 
 export const createInvestigationComplaint = async (data) => {
   const { ComplaintID, investigationID } = data
-  const InvestigationComplaint = await tblInvestigationComplaint.create({
+  const newInvestigationComplaint = await tblInvestigationComplaint.create({
     ComplaintID: ComplaintID,
     investigationID: investigationID
   })
-  return InvestigationComplaint
+  return newInvestigationComplaint
+}
+
+export const deleteInvestigationComplaint = async (id) => {
+  const deletedInvestigationComplaint = await tblInvestigationComplaint.destroy({where: { uniqueid: id }})
+  return deletedInvestigationComplaint
 }
