@@ -29,7 +29,8 @@ build dev:
     - echo -n $ENV_FILE | base64 -d > .env
 #    - echo 'NUXT_UI_PRO_LICENSE=DE96572D-DF69-4CE2-8359-220121662EBA' >> .env
     - cat .env
-    - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" pages/login.vue
+    - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" ./pages/login.vue
+    - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" ./components/common/UserDropdown.vue
     - yarn
     - yarn generate --fail-on-error
     - yarn build --fail-on-error
