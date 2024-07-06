@@ -492,7 +492,15 @@
     }
   }
   const onPreviewOrderViewBtnClick = () => {
-    window.open(`/api/service/orders/exportcomplaints/${complaintGridMeta.value.selectedComplaint?.uniqueID}`)
+    if(complaintGridMeta.value.selectedComplaint) {
+      window.open(`/api/service/orders/exportcomplaints/${complaintGridMeta.value.selectedComplaint?.uniqueID}`)
+    } else {
+      toast.add({
+        description: 'Please select order first',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+    }
   }
   const onNewInvoiceModalClose = () => {
     modalMeta.value.isInvoiceModalOpen = false
