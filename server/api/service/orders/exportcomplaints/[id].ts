@@ -133,7 +133,7 @@ export default eventHandler(async (event) => {
           <table>
             <thead>
               <tr>
-                <th width="500px" style="text-align: left;"><span style="border-bottom: 2px solid black;">Invoice #: </span><span style="font-weight: normal; margin-left: 20px;">${serviceOrderInvoices[0]['invoicenumber']}</span></th>
+                <th width="500px" style="text-align: left;"><span style="border-bottom: 2px solid black;">Invoice #: </span><span style="font-weight: normal; margin-left: 20px;">${serviceOrderInvoices.length?serviceOrderInvoices[0]['invoicenumber']:'' }</span></th>
                 <th width="400px" style="text-align: left;"><span style="border-bottom: 2px solid black;">Onsite Hrs.</span></th>
                 <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black;">Travel Hrs.</span></th>
                 <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black;">Factory Hrs.</span></th>
