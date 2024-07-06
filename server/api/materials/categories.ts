@@ -1,4 +1,4 @@
-import { getProductCategories } from "~/server/controller/product";
+import { getProductCategories } from "~/server/controller/materials";
 
 export default eventHandler(async (event) => {
   try {

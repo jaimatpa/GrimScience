@@ -240,6 +240,10 @@
     location.href = `/api/service/orders/exportorder?${paramsString}`
     exportIsLoading.value = false
   }
+  const onPrevieOrderBtnClick = () => {
+    // location.href = `/api/service/orders/exportcomplaints`
+    window.open(`/api/service/orders/exportcomplaints`)
+  }
   const onSelect = async (row) => {
     gridMeta.value.selectedOrderId = row?.UniqueID;
     gridMeta.value.selectedCustomerId = row?.customerID;
@@ -306,16 +310,17 @@
           </div>
         </template>
         <template #right>
-          <UButton 
-            :loading="exportIsLoading"
-            label="Export to Excel" 
-            color="gray"
-            @click="excelExport"
-          >
-            <template #trailing>
-              <UIcon name="i-heroicons-document-text" class="text-green-500 w-5 h-5" />
-            </template>
-          </UButton>
+          <div class="flex flex-row space-x-2">
+            <div>
+              <UButton icon="i-heroicons-document-text" label="Export to Excel" color="green" variant="outline" :ui="{base: 'min-w-[210px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="excelExport"/>
+            </div>
+            <div>
+              <UButton icon="i-heroicons-eye-20-solid" label="Preview Action Summary" variant="outline" :ui="{base: 'min-w-[210px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+            </div>
+            <div>
+              <UButton icon="i-heroicons-eye-20-solid" label="Preview Order Summary" variant="outline" :ui="{base: 'min-w-[210px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="onPrevieOrderBtnClick"/>
+            </div>
+          </div>
         </template>
       </UDashboardToolbar>
       <div class="flex flex-row px-10 mt-4">

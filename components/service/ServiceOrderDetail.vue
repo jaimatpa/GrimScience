@@ -491,6 +491,9 @@
       })
     }
   }
+  const onPreviewOrderViewBtnClick = () => {
+    window.open(`/api/service/orders/exportcomplaints/${complaintGridMeta.value.selectedComplaint?.uniqueID}`)
+  }
   const onNewInvoiceModalClose = () => {
     modalMeta.value.isInvoiceModalOpen = false
   }
@@ -504,7 +507,6 @@
     await linkInvoice(selectedInvoiceID)
     fetchInvoiceList()
   }
-  
   const onInvestigationModalClose = () => {
     modalMeta.value.isInvestigationModalOpen = false
   }
@@ -966,7 +968,7 @@
               <UButton icon="i-heroicons-document-text-20-solid" label="Save" color="green" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/4">
-              <UButton icon="i-heroicons-eye-20-solid" label="Preview Order" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton icon="i-heroicons-eye-20-solid" label="Preview Order" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onPreviewOrderViewBtnClick"/>
             </div>
             <div class="basis-1/4">
               <UButton icon="i-heroicons-eye-20-solid" label="Preview Label" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
