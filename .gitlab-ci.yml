@@ -41,7 +41,7 @@ deploy development:
     - dev
   script:
 #    - rsync -azh --rsh="ssh -o StrictHostKeyChecking=no -l ubuntu" ./** ubuntu@3.132.84.177:/var/www/gms/grimm-management-system-web
-    - rsync -azhz --rsh="ssh -o StrictHostKeyChecking=no -l gitlab" ./** gitlab@100.69.4.76:/var/storage/apps/gms/grimm-management-system-web/
+    - rsync -azhz --delete ./** gitlab@100.69.4.76:/var/storage/apps/gms/grimm-management-system-web/
     - ssh -o StrictHostKeyChecking=no gitlab@100.69.4.76 "pm2 restart gms"
 
 
