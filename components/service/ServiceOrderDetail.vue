@@ -1106,12 +1106,12 @@
     :ui="{
       title: 'text-lg',
       header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      body: { base: 'gap-y-1 overflow-y-auto', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
       width: 'w-[1800px] sm:max-w-9xl', 
       height: 'h-[900px] sm:h-[900px]',
     }"
   >
-    <InvoiceList selected-customer="props.selectedCustomer" @close="onInvoiceLinkModalClose" @link="onInvoiceLink"/>
+    <InvoiceList :selected-customer="props.selectedCustomer" @close="onInvoiceLinkModalClose" @link="onInvoiceLink"/>
   </UDashboardModal>
   <!-- Investigation Modal -->
   <UDashboardModal
