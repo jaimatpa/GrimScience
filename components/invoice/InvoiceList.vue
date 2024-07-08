@@ -308,7 +308,6 @@
         >
         </UDashboardNavbar>
       </template>
-
       <UDashboardToolbar>
         <template #left>
           <div class="flex flex-row space-x-3">
@@ -396,7 +395,6 @@
                 :sortable="column.sortable"
                 :sort-key="column.key" 
                 :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                :value="filterValues[column.key]"
                 :filterable="column.filterable"
                 :filter-key="column.key"
               />

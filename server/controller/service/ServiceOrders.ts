@@ -15,7 +15,8 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
       })
     ]
   if(filterParams.FAILINVEST) whereClause['FAILINVEST'] = {[Op.like]: `%${filterParams.FAILINVEST}%`};
-  if(filterParams.company) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company}%`};
+  console.log(filterParams)
+  if(filterParams.company1) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company1}%`};
   tblComplaints.hasOne(tblCustomers, {foreignKey: 'UniqueID', sourceKey: 'CustomerID'})
   const list = await tblComplaints.findAll({
     attributes: [

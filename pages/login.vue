@@ -59,6 +59,9 @@
 
 <template>
   <div>
+    <div class="w-[360px] flex justify-center items-center">
+      <img src="../public/grimm_logo_menu_dropshadow_v2.png" alt="Grimm Logo" />
+    </div>
     <div class="vl-parent">
       <loading
         v-model:active="loadingOverlay"
@@ -69,7 +72,7 @@
       />
     </div>
     <UCard 
-      class="w-[360px] bg-white/75 dark:bg-white/5 backdrop-blur"
+      class="w-[360px] bg-white/100 dark:bg-black backdrop-blur"
     > 
       <div class="text-center text-2xl font-[1000] w-full">
         Welcome

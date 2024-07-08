@@ -259,16 +259,19 @@
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar
+      <UDashboardNavbar class="gmsPurpleHeader"
         title="Customer Messages"
       >
       </UDashboardNavbar>
 
-      <UDashboardToolbar>
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+    <h2>Lookup</h2>
+      </div>
+
+      <UDashboardToolbar class="gmsPurpleToolbar">
         <template #right>
-          <UButton
+          <UButton color="green" variant="outline"
             label="New message"
-            color="gray"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />

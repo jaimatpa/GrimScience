@@ -7,8 +7,8 @@ useHead({
 </script>
 
 <template>
-  <div class="h-screen flex items-center justify-center overlay">
-    <div class="gradient" />
+  <div class="h-screen flex items-center justify-center bg-gms-gray-400 dark:bg-gms-gray-600">
+    <div />
     <slot />
   </div>
 </template>

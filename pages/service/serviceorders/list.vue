@@ -113,7 +113,7 @@
     SERIALNO: null,
     COMPLAINTDATE: null,
     FAILINVEST: null,
-    company: null,
+    company1: null,
   })
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
@@ -257,10 +257,14 @@
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar
+      <UDashboardNavbar class="gmsPurpleHeader"
         title="Service Order"
       >
       </UDashboardNavbar>
+
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+    <h2>Sort</h2>
+      </div>
 
       <UDashboardToolbar>
         <template #left>
@@ -323,6 +327,9 @@
           </div>
         </template>
       </UDashboardToolbar>
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+        <h2>Order Lookup</h2>
+      </div>
       <div class="flex flex-row px-10 mt-4">
         <template v-for="checkbox in headerCheckboxes">
           <div class="basis-1/5">
