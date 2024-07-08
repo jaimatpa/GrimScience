@@ -705,8 +705,8 @@ const links = [
     to: "/settings",
     icon: "i-heroicons-cog-8-tooth",
     defaultOpen: route.path.startsWith("/settings"),
-    backgroundClass: "bg-[#bf5163]",
-    activeClass: "!text-black before:!bg-blue-400",
+    backgroundClass: "bg-[#666]",
+    activeClass: "!text-white before:!bg-[#777]",
     children: [
       {
         label: "General",
@@ -799,7 +799,7 @@ const getUiConfig = (link) => {
     <UDashboardPanel
       :width="250"
       :resizable="{ min: 200, max: 300 }"
-      class="bg-gray-200"
+      class="bg-gray-400"
       collapsible
     >
       <UDashboardNavbar class="!border-transparent" :ui="{ left: 'flex-1' }">
@@ -896,7 +896,7 @@ color:#fff!important;
 
 .menuPurple button:hover::before,
 .menuPurple a:hover::before,
-.before\:bg-gray-100::before {
+.menuPurple a:hover::after {
   background-color: #b95db7 !important;
 }
 
