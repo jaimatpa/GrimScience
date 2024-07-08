@@ -617,7 +617,9 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
           <UDashboardSearchButton />
         </template>
 
-        <UDashboardSidebarLinks :links="links" />
+        <UDashboardSidebarLinks :links="links" 
+          :ui="{container: 'bg-sky-400'}"
+        />
 
 
         <!-- <UDashboardSidebarLinks
@@ -629,7 +631,7 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
 
         <!-- <UDashboardSidebarLinks :links="footerLinks" /> -->
 
-<UDivider class="white-divider" />
+        <UDivider class="white-divider" />
 
         <template #footer>
           <!-- ~/components/UserDropdown.vue -->

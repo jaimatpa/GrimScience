@@ -28,22 +28,27 @@
   const headerCheckboxes = ref({
     open: {
       label: 'Open',
+      filterKey: 'OPENCASE',
       isChecked: true
     }, 
     cryotherm: {
       label: 'CRYOTherm Checkup',
+      filterKey: 'kind',
       isChecked: false
     }, 
     nonMedical: {
       label: 'Non-Medical Device',
+      filterKey: 'medicalKind',
       isChecked: false
     }, 
     complaints: {
       label: 'Complaints',
+      filterKey: 'ValidComplaint',
       isChecked: false
     }, 
     injury: {
       label: 'Injury',
+      filterKey: 'INJURYREPORTNO',
       isChecked: false
     }
   })
@@ -114,6 +119,11 @@
     COMPLAINTDATE: null,
     FAILINVEST: null,
     company1: null,
+    OPENCASE: true,
+    kind: false, 
+    medicalKind: false,
+    ValidComplaint: false, 
+    INJURYREPORTNO: false
   })
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
@@ -334,8 +344,9 @@
         <template v-for="checkbox in headerCheckboxes">
           <div class="basis-1/5">
             <UCheckbox
-              v-model="checkbox.isChecked"
+              v-model="filterValues[checkbox.filterKey]"
               :label="checkbox.label"
+              @update:model-value="handleFilterChange"
             />
           </div>
         </template>
