@@ -28,22 +28,27 @@
   const headerCheckboxes = ref({
     open: {
       label: 'Open',
+      filterKey: 'OPENCASE',
       isChecked: true
     }, 
     cryotherm: {
       label: 'CRYOTherm Checkup',
+      filterKey: 'kind',
       isChecked: false
     }, 
     nonMedical: {
       label: 'Non-Medical Device',
+      filterKey: 'medicalKind',
       isChecked: false
     }, 
     complaints: {
       label: 'Complaints',
+      filterKey: 'ValidComplaint',
       isChecked: false
     }, 
     injury: {
       label: 'Injury',
+      filterKey: 'INJURYREPORTNO',
       isChecked: false
     }
   })
@@ -113,7 +118,12 @@
     SERIALNO: null,
     COMPLAINTDATE: null,
     FAILINVEST: null,
-    company: null,
+    company1: null,
+    OPENCASE: true,
+    kind: false, 
+    medicalKind: false,
+    ValidComplaint: false, 
+    INJURYREPORTNO: false
   })
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
@@ -257,10 +267,14 @@
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar
+      <UDashboardNavbar class="gmsPurpleHeader"
         title="Service Order"
       >
       </UDashboardNavbar>
+
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+    <h2>Sort</h2>
+      </div>
 
       <UDashboardToolbar>
         <template #left>
@@ -323,12 +337,16 @@
           </div>
         </template>
       </UDashboardToolbar>
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+        <h2>Order Lookup</h2>
+      </div>
       <div class="flex flex-row px-10 mt-4">
         <template v-for="checkbox in headerCheckboxes">
           <div class="basis-1/5">
             <UCheckbox
-              v-model="checkbox.isChecked"
+              v-model="filterValues[checkbox.filterKey]"
               :label="checkbox.label"
+              @update:model-value="handleFilterChange"
             />
           </div>
         </template>

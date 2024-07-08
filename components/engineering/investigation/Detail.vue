@@ -212,7 +212,7 @@
   async function onSubmit(event: FormSubmitEvent<any>) {
     emit('close')
   }
-  watch(() => filterValues.value.Status, () => {console.log(filterValues.value.Status); fetchInvestigationList()})
+  watch(() => filterValues.value.Status, () => {fetchInvestigationList()})
   if(props.selectedInvestigation) 
     editInit()
   else 

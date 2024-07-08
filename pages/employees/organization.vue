@@ -266,7 +266,7 @@ const gridMeta = ref({
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar
+      <UDashboardNavbar class="gmsTealHeader"
         title="Organization List"
       >
       </UDashboardNavbar>
@@ -286,9 +286,8 @@ const gridMeta = ref({
           </div>
         </template>
         <template #right>
-          <UButton
+          <UButton color="green" variant="outline"
             label="Add Organization"
-            color="gray"
             trailing-icon="i-heroicons-plus"
              @click="onCreate()"
           />

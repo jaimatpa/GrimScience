@@ -796,11 +796,15 @@ const getUiConfig = (link) => {
 
 <template>
   <UDashboardLayout>
-    <UDashboardPanel
+
+    <slot />
+
+    <UDashboardPanel class="bg-gms-gray-400"
       :width="250"
       :resizable="{ min: 200, max: 300 }"
       class="bg-gray-400"
       collapsible
+      
     >
       <UDashboardNavbar class="!border-transparent" :ui="{ left: 'flex-1' }">
         <template #left>
@@ -819,7 +823,7 @@ const getUiConfig = (link) => {
         }"
       >
         <template #header>
-          <div class="text-center text-white">
+          <div class="text-center text-white mt-5">
             <!-- {{userInfo.fname + " " + userInfo.lname}} -->
           </div>
           <UDashboardSearchButton />
@@ -832,7 +836,6 @@ const getUiConfig = (link) => {
           :ui="getUiConfig(link)"
         />
 
-        <UDivider />
 
         <!-- <UDashboardSidebarLinks
           :links="[{ label: 'Colors', draggable: true, children: colors }]"
@@ -843,16 +846,18 @@ const getUiConfig = (link) => {
 
         <!-- <UDashboardSidebarLinks :links="footerLinks" /> -->
 
-        <UDivider class="sticky bottom-0" />
+        <UDivider class="white-divider" />
 
         <template #footer>
           <!-- ~/components/UserDropdown.vue -->
           <CommonUserDropdown />
         </template>
+
+                
       </UDashboardSidebar>
     </UDashboardPanel>
-
-    <slot />
+    <div class="hidden bg-{slate}-50 hover:bg-{color}-100 dark:bg-{color}-800"></div>
+    
 
     <ClientOnly>
       <LazyUDashboardSearch :groups="groups" />

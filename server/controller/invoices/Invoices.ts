@@ -32,25 +32,24 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
   if(filterParams.customerid) customerWhere['UniqueID'] = {[Op.like]: `%${filterParams.customerid}%`};
   if(filterParams.company) customerWhere['company1'] = {[Op.like]: `%${filterParams.company}%`};
   if(filterParams.zip) customerWhere['zip'] = {[Op.like]: `%${filterParams.zip}%`};
-  if(filterParams.customer) customerWhere[Op.or] = Sequelize.where(Sequelize.fn('concat', Sequelize.col('fname'), Sequelize.col('lname')), 'LIKE', `%${filterParams.customer}%`)
+  if(filterParams.customer) customerWhere[Op.and] = Sequelize.where(Sequelize.fn('concat', Sequelize.col('fname'), Sequelize.col('lname')), 'LIKE', `%${filterParams.customer}%`)
   if(filterParams.serial) orderDetailWhere['serial'] = {[Op.like]: `%${filterParams.serial}%`};
   let queryOptions:any = {
-    attributes: { exclude: [] },
     include: [
       {
         model: tblCustomers,
-        attributes: ['fname', 'lname', 'company1', 'zip'],
         required: true,
+        order:[['UniqueID', 'ASC']],
         where: customerWhere
       },
       {
         model: tblOrderDetail,
-        attributes: ['serial'],
         required: true,
+        order:[['UniqueID', 'ASC']], 
         where: orderDetailWhere
       }
     ],
-    order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
+    order: [['UniqueID', sortOrder as string || 'ASC']],
     where:{
       status: 'Open'
     },
@@ -76,6 +75,7 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
         ]
       }
     ] 
+  // console.log(queryOptions)
   const list = await tblOrder.findAll(queryOptions);
   const formattedList = list.map((item: any) => {
     const parsedOrderDate = new Date(item.orderdate);
