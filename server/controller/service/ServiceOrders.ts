@@ -50,7 +50,6 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
     raw: true
   })
   const formattedList = list.map((item: any) => {
-    console.log(item)
     let openCase;
     let injury;
     let warranty;
