@@ -781,6 +781,7 @@ const getUiConfig = (link) => {
     wrapper: "relative !min-h-[auto] !min-w-[auto]",
     container: link.backgroundClass,
     base: "group text-white relative flex items-center gap-1.5 px-2.5 py-1.5 w-full rounded-md font-medium text-sm focus:outline-none focus-visible:outline-none dark:focus-visible:outline-none focus-visible:before:ring-inset focus-visible:before:ring-2 focus-visible:before:ring-primary-500 dark:focus-visible:before:ring-primary-400 before:absolute before:inset-px before:rounded-md disabled:cursor-not-allowed disabled:opacity-75",
+    active: "!text-black",
   };
 };
 </script>
@@ -790,6 +791,7 @@ const getUiConfig = (link) => {
     <UDashboardPanel
       :width="250"
       :resizable="{ min: 200, max: 300 }"
+      class="bg-gray-200"
       collapsible
     >
       <UDashboardNavbar class="!border-transparent" :ui="{ left: 'flex-1' }">
