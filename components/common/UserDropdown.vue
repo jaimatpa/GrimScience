@@ -53,7 +53,7 @@ const items = computed(() => [
   }],
   [{
     label: 'Settings',
-    icon: 'i-heroicons-cog-8-tooth',
+    icon: 'i-heroicons-cog',
     to: '/settings'
   }, {
     label: 'Command menu',

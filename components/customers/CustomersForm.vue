@@ -697,16 +697,13 @@ else
       </div>
   
       <div class="flex justify-end gap-3">
-        <UButton
+        <UButton color="red" variant="outline"
           :label="!isModal ? 'Go back': 'Cancel'"
-          color="gray"
-          variant="ghost"
           @click="handleClose"
         />
-        <UButton
+        <UButton color="cyan" variant="outline"
           type="submit"
           label="Save"
-          color="black"
         />
       </div>
     </UForm>

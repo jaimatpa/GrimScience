@@ -1,6 +1,6 @@
 export default defineAppConfig({
   ui: {
-    primary: 'sky',
+    primary: 'gms-primary',
     gray: 'cool',
     tooltip: {
       default: {
@@ -9,6 +9,13 @@ export default defineAppConfig({
     },
     notifications: {
       position: 'top-0 bottom-auto'
+    },
+
+    button: {
+      variant: {
+        outline: 'bg-{slate}-50 hover:bg-{color}-100 dark:bg-{color}-800'
+        
+      }
     }
   }
 })

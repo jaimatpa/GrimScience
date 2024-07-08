@@ -11,6 +11,9 @@
     selectedCustomer: {
       type: [Number, String, null],
     },
+    isPage: {
+      type: [Boolean, null],
+    }
   })
   const route = useRoute()
   const toast = useToast()
@@ -284,9 +287,12 @@
   }
   const onDblClick = async () => {
     if(gridMeta.value.selectedOrderId){
-      // modalMeta.value.isOrderDetailModalOpen = true
-      emit('link', gridMeta.value.selectedOrderId)
-      emit('close')
+      if(props.isPage) {
+        modalMeta.value.isOrderDetailModalOpen = true
+      } else {
+        emit('link', gridMeta.value.selectedOrderId)
+        emit('close')
+      }
     }
   }
   watch(() => filterValues.value.from, () => {fetchGridData()})
@@ -296,11 +302,12 @@
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <!-- <UDashboardNavbar
-        title="Invoice List"
-      >
-      </UDashboardNavbar> -->
-
+      <template v-if="props.isPage">
+        <UDashboardNavbar
+          title="Invoice List"
+        >
+        </UDashboardNavbar>
+      </template>
       <UDashboardToolbar>
         <template #left>
           <div class="flex flex-row space-x-3">
@@ -341,18 +348,20 @@
             </div>
           </div>
         </template>
-        <!-- <template #right>
-          <UButton 
-            :loading="exportIsLoading"
-            label="Export to Excel" 
-            color="gray"
-            @click="excelExport"
-          >
-            <template #trailing>
-              <UIcon name="i-heroicons-document-text" class="text-green-500 w-5 h-5" />
-            </template>
-          </UButton>
-        </template> -->
+        <template #right>
+          <template v-if="props.isPage">
+            <UButton 
+              :loading="exportIsLoading"
+              label="Export to Excel" 
+              color="gray"
+              @click="excelExport"
+            >
+              <template #trailing>
+                <UIcon name="i-heroicons-document-text" class="text-green-500 w-5 h-5" />
+              </template>
+            </UButton>
+          </template>
+        </template>
       </UDashboardToolbar>
       
       <UTable
@@ -386,7 +395,6 @@
                 :sortable="column.sortable"
                 :sort-key="column.key" 
                 :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                :value="filterValues[column.key]"
                 :filterable="column.filterable"
                 :filter-key="column.key"
               />

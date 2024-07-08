@@ -15,7 +15,10 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
       })
     ]
   if(filterParams.FAILINVEST) whereClause['FAILINVEST'] = {[Op.like]: `%${filterParams.FAILINVEST}%`};
-  if(filterParams.company) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company}%`};
+  if(filterParams.OPENCASE === 'true') whereClause['OPENCASE'] = 0
+  if(filterParams.ValidComplaint === 'true') whereClause['ValidComplaint'] = -1
+  if(filterParams.INJURYREPORTNO === 'true') whereClause['INJURYREPORTNO'] = 1
+  if(filterParams.company1) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company1}%`};
   tblComplaints.hasOne(tblCustomers, {foreignKey: 'UniqueID', sourceKey: 'CustomerID'})
   const list = await tblComplaints.findAll({
     attributes: [
@@ -26,6 +29,7 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
       'FAILINVEST',
       'OPENCASE',
       'INJURYREPORTNO',
+      'ValidComplaint',
       'WarrentyService',
       [Sequelize.col('tblCustomer.company1'), 'company1'],
       [Sequelize.col('tblCustomer.UniqueID'), 'customerID']
@@ -38,7 +42,6 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
       }
     ],
     where: {
-      OPENCASE: 0,
       ...whereClause
     },
     order: [[sortBy as string || 'COMPLAINTNUMBER', sortOrder as string || 'DESC']],
@@ -50,11 +53,12 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
     let openCase;
     let injury;
     let warranty;
+    let complaint;
     if(item.OPENCASE === '0') 
       openCase = 'OPEN'
     else
-      openCase = 'CLOSE'
-    if(item.injury === 0)
+      openCase = 'CLOSED'
+    if(item.INJURYREPORTNO === 0)
       injury = 'NO'
     else 
       injury = 'YES'
@@ -62,6 +66,10 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
       warranty = 'YES'
     else
       warranty = 'NO'
+    if(item.ValidComplaint === '-1')
+      complaint = 'Yes'
+    else
+      complaint = 'NO'
     let complaintDate = new Date(item.COMPLAINTDATE).toISOString().split('T')
     complaintDate = complaintDate[0].split('-')
     let formattedDate = `${complaintDate[1]}/${complaintDate[2]}/${complaintDate[0]}`
@@ -74,6 +82,7 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
       Status: openCase,
       INJURYREPORTNO: injury,
       Warranty: warranty,
+      Complaint: complaint,
       customerID: item['tblCustomer.UniqueID'],
       company1: item['tblCustomer.company1']
     }

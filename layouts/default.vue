@@ -250,7 +250,7 @@ const links = [{
 }, {
   id: 'service',
   label: 'Service',
-  icon: 'i-heroicons-user-group',
+  icon: 'i-heroicons-chat-bubble-bottom-center-text',
   to: '/service',
   defaultOpen: route.path.startsWith('/service') && !route.path.match('/service/serviceorders'),
   tooltip: {
@@ -275,7 +275,7 @@ const links = [{
 {
   id: 'marketing',
   label: 'Marketing',
-  icon: 'i-heroicons-user-group',
+  icon: 'i-heroicons-megaphone',
   to: '/marketing',
   defaultOpen: route.path.startsWith('/marketing'),
   tooltip: {
@@ -306,7 +306,7 @@ const links = [{
 {
   id: 'employees',
   label: 'Employees',
-  icon: 'i-heroicons-user-group',
+  icon: 'i-heroicons-user',
   to: '/employees',
   defaultOpen: route.path.startsWith('/employees'),
   tooltip: {
@@ -325,7 +325,7 @@ const links = [{
 {
   id: 'accounting',
   label: 'Accounting',
-  icon: 'i-heroicons-user-group',
+  icon: 'i-heroicons-currency-dollar',
   to: '/accounting',
   defaultOpen: route.path.startsWith('/accounting'),
   tooltip: {
@@ -344,7 +344,7 @@ const links = [{
 {
   id: 'it',
   label: 'IT',
-  icon: 'i-heroicons-user-group',
+  icon: 'i-heroicons-cpu-chip',
   to: '/it',
   defaultOpen: route.path.startsWith('/it'),
   tooltip: {
@@ -360,7 +360,7 @@ const links = [{
 {
   id: 'engineering',
   label: 'Engineering',
-  icon: 'i-heroicons-user-group',
+  icon: 'i-heroicons-cog-8-tooth',
   to: '/engineering',
   defaultOpen: route.path.startsWith('/engineering'),
   tooltip: {
@@ -394,7 +394,7 @@ const links = [{
 {
   id: 'materials',
   label: 'Materials',
-  icon: 'i-heroicons-user-group',
+  icon: 'i-heroicons-cube',
   to: '/materials',
   defaultOpen: route.path.startsWith('/materials'),
   tooltip: {
@@ -434,7 +434,7 @@ const links = [{
 {
   id: 'manufacturing',
   label: 'Manufacturing',
-  icon: 'i-heroicons-user-group',
+  icon: 'i-heroicons-user',
   to: '/manufacturing',
   defaultOpen: route.path.startsWith('/manufacturing'),
   tooltip: {
@@ -459,7 +459,7 @@ const links = [{
 {
   id: 'maintenance',
   label: 'Maintenance',
-  icon: 'i-heroicons-user-group',
+  icon: 'i-heroicons-wrench-screwdriver',
   to: '/maintenance',
   defaultOpen: route.path.startsWith('/maintenance'),
   tooltip: {
@@ -481,7 +481,7 @@ const links = [{
 {
   id: 'utilities',
   label: 'Utilities',
-  icon: 'i-heroicons-user-group',
+  icon: 'i-heroicons-wrench',
   to: '/utilities',
   defaultOpen: route.path.startsWith('/utilities'),
   tooltip: {
@@ -512,7 +512,7 @@ const links = [{
 {
   id: 'help',
   label: 'Help',
-  icon: 'i-heroicons-user-group',
+  icon: 'i-heroicons-question-mark-circle',
   to: '/help',
   defaultOpen: route.path.startsWith('/help'),
   tooltip: {
@@ -540,7 +540,7 @@ const links = [{
   id: 'settings',
   label: 'Settings',
   to: '/settings',
-  icon: 'i-heroicons-cog-8-tooth',
+  icon: 'i-heroicons-cog',
   defaultOpen: route.path.startsWith('/settings'),
   children: [{
     label: 'General',
@@ -588,17 +588,21 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
 
 <template>
   <UDashboardLayout>
-    <UDashboardPanel
+
+    <slot />
+
+    <UDashboardPanel class="bg-gms-gray-400"
       :width="250"
       :resizable="{ min: 200, max: 300 }"
       collapsible
+      
     >
       <UDashboardNavbar
         class="!border-transparent"
         :ui="{ left: 'flex-1' }"
       >
         <template #left>
-          <div class="w-full p-3 mt-2">
+          <div class="w-full p-3 mt-5 flex justify-center items-center">
             <img src="../public/grimm_logo_menu_dropshadow_v2.png" alt="Grimm Avatar"/>
           </div>
           
@@ -607,7 +611,7 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
 
       <UDashboardSidebar>
         <template #header>
-          <div class="text-center text-white">
+          <div class="text-center text-white mt-5">
             <!-- {{userInfo.fname + " " + userInfo.lname}} -->
           </div>
           <UDashboardSearchButton />
@@ -615,7 +619,6 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
 
         <UDashboardSidebarLinks :links="links" />
 
-        <UDivider />
 
         <!-- <UDashboardSidebarLinks
           :links="[{ label: 'Colors', draggable: true, children: colors }]"
@@ -626,16 +629,18 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
 
         <!-- <UDashboardSidebarLinks :links="footerLinks" /> -->
 
-        <UDivider class="sticky bottom-0" />
+        <UDivider class="white-divider" />
 
         <template #footer>
           <!-- ~/components/UserDropdown.vue -->
           <CommonUserDropdown />
         </template>
+
+                
       </UDashboardSidebar>
     </UDashboardPanel>
-
-    <slot />
+    <div class="hidden bg-{slate}-50 hover:bg-{color}-100 dark:bg-{color}-800"></div>
+    
 
     <ClientOnly>
       <LazyUDashboardSearch :groups="groups" />

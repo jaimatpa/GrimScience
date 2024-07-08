@@ -1,4 +1,4 @@
-import { Sequelize, Op, where } from "sequelize";
+import { Sequelize, Op } from "sequelize";
 import { tblInvestigations, tblInvestigationComplaint } from "~/server/models";
 
 export const getInvestigations = async (params) => {
