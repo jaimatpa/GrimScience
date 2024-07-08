@@ -114,136 +114,16 @@
     selectedTagEntry: null,
     isLoading: false
   })
-  const investigationGridMeta = ref({
-    defaultColumns: <UTableColumn[]>[
-      {
-        key: 'uniqueID',
-        label: '#',
-        filterable: true
-      }, {
-        key: 'PRODLINE',
-        label: 'Product Line',
-        filterable: true,
-        filterOptions: []
-      }, {
-        key: 'DIAGDATE',
-        label: 'Date',
-        filterable: true
-      }, {
-        key: 'DESCRIPTION',
-        label: 'Description',
-        filterable: true
-      }, {
-        key: 'Status',
-        label: 'Status', 
-      }
-    ],
-    investigations: [],
-    selectedInvestigation: null,
-    isLoading: false
-  })
-  const complaintGridMeta = ref({
-    defaultColumns: <UTableColumn[]>[
-      {
-        key: 'COMPLAINTDATE',
-        label: 'Date',
-        filterable: true
-      }, {
-        key: 'SERIALNO',
-        label: 'Serial',
-        filterable: true
-      }, {
-        key: 'COMPLAINTNUMBER',
-        label: 'Complaint#',
-        filterable: true
-      }, {
-        key: 'Shipdate',
-        label: 'Ship Date',
-        filterable: true
-      }
-    ],
-    complaints: [],
-    selectedComplaint: null,
-    isLoading: false
-  })
-  const serialGridMeta = ref({
-    defaultColumns: <UTableColumn[]>[
-      {
-        key: 'serial',
-        label: 'Serial',
-      }
-    ],
-    serials: [],
-    selectedSerial: null,
-    isLoading: false
-  })
-  const invoiceGridMeta = ref({
-    defaultColumns: <UTableColumn[]>[
-      {
-        key: 'orderdate',
-        label: 'Date'
-      }, {
-        key: 'invoicenumber',
-        label: 'Invoice#'
-      }, {
-        key: 'terms',
-        label: 'Terms'
-      }
-    ],
-    invoices: [],
-    selectedInvoice: null,
-    isLoading: false
-  })
-  const serviceReportGridMeta = ref({
-    defaultColumns: <UTableColumn[]>[
-      {
-        key: 'REPAIRDATE',
-        label: 'Date'
-      }, {
-        key: 'REPAIRDESC',
-        label: 'Type'
-      }, {
-        key: 'REPAIRSBY',
-        label: 'By'
-      }
-    ],
-    serviceReports: [],
-    selectedServiceReport: null,
-    isLoading: false
-  })
-  const serviceOrderInfo = ref({
-    COMPLAINTNUMBER: null,
-    COMPLAINTDATE: null,
-    RECBY: null,
-    RECBYOptions: [],
-    SERIALNO: null,
-    COMPLAINT: null,
-    PRODUCTDESC: null
-  })
-  const typeOfServiceInfo = ref({
-    reason: null, 
-    failure: null,
-    reasonOptions: []
-  })
-  const modalMeta = ref({
-    isServiceReportModalOpen: false,
-    isInventoryTransactionModalOpen: false,
-    isInvoiceModalOpen: false,
-    isInvoiceListModalOpen: false,
-  })
-  const selectedServiceReportID = ref(null)
-  const date = ref(new Date())
-  const statusGroup = ref([
-    {value: 'Open', label: 'Open'}, 
-    {value: 'Closed', label: 'Closed'}
-  ])
-  const selectedStatus = ref('open')
   const filterValues = ref({
     uniqueID: null,
-    PRODLINE: null,
-    Status: true,
-    DIAGDATE: null,
-    DESCRIPTION: null,
+    STATUS: null,
+    TAGASSIGNEDTO: null,
+    TAGLOCATION: null,
+    PARTS: null, 
+    COMPLAINTNUMBER: null, 
+    SERVICEREPORT: null, 
+    JobNum: null, 
+    InvestigationNum: null, 
     OpenClosed: null
   })
   const checkStatusGroup = ref([
@@ -281,18 +161,18 @@
     }
     await fetchNonConformances()
   }
-  const onInvestigationSelect = async (row) => {
-    investigationGridMeta.value.selectedInvestigation = {...row, class:""}
-    investigationGridMeta.value.investigations.forEach((investigation) => {
-      if(investigation.uniqueID === row.uniqueID) {
-        investigation.class = 'bg-gray-200'
+  const onNonConformanceSelect = async (row) => {
+    nonConformanceGridMeta.value.selectedNonConformance = {...row, class:""}
+    nonConformanceGridMeta.value.nonConformances.forEach((nonConformance) => {
+      if(nonConformance.uniqueID === row.uniqueID) {
+        nonConformance.class = 'bg-gray-200'
       }else{
-        delete investigation.class
+        delete nonConformance.class
       }
     })
   }
-  const onInvestigationDblclick = () => {
-    emit('link', investigationGridMeta.value.selectedInvestigation?.uniqueID)
+  const onNonConformanceDblclick = () => {
+    emit('link', nonConformanceGridMeta.value.selectedNonConformance?.uniqueID)
     emit('close')
   }
   const validate = (state: any): FormError[] => {
@@ -303,7 +183,7 @@
   async function onSubmit(event: FormSubmitEvent<any>) {
     emit('close')
   }
-  watch(() => filterValues.value.Status, () => {console.log(filterValues.value.Status); fetchNonConformances()})
+  watch(() => filterValues.value.OpenClosed, () => {fetchNonConformances()})
   if(props.selectedInvestigation) 
     editInit()
   else 
@@ -332,7 +212,7 @@
         <div class="flex flex-row space-x-5">
           <div class="flex flex-row space-x-3">
             <div class="flex items-center">
-              <UCheckbox v-model="filterValues.Status" label="Open" class="" />
+              <UCheckbox v-model="filterValues.OpenClosed" label="Open" class="" />
             </div>
             <div class="min-w-[150px]">
               <UButton icon="i-heroicons-eye" label="Summary" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
@@ -363,17 +243,30 @@
             }
           }"
           :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+          @select="onNonConformanceSelect"
         >
           <template v-for="column in nonConformanceGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
             <template v-if="!column.filterOptions">
-              <div class="px-1 py-1">
-                <CommonSortAndInputFilter 
-                  @handle-input-change="handleFilterChange"
-                  :label="column.label"
-                  :filterable="column.filterable"
-                  :filter-key="column.key"
-                />
-              </div>
+              <template v-if="column.key === 'SERVICEREPORT' || 'TAGASSIGNEDTO'">
+                <div class="px-1 py-1  min-w-[150px]">
+                  <CommonSortAndInputFilter 
+                    @handle-input-change="handleFilterChange"
+                    :label="column.label"
+                    :filterable="column.filterable"
+                    :filter-key="column.key"
+                  />
+                </div>
+              </template>
+              <template v-else>
+                <div class="px-1 py-1">
+                  <CommonSortAndInputFilter 
+                    @handle-input-change="handleFilterChange"
+                    :label="column.label"
+                    :filterable="column.filterable"
+                    :filter-key="column.key"
+                  />
+                </div>
+              </template>
             </template>
             <template v-else>
               <div class="px-1 py-1">
@@ -476,7 +369,7 @@
           }"
           :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
         >
-                    <template v-for="column in tagEntriesGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
+          <template v-for="column in tagEntriesGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
             <template v-if="!column.filterOptions">
               <div class="px-1 py-1">
                 <CommonSortAndInputFilter 
