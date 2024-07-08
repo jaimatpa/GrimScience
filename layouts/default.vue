@@ -617,9 +617,7 @@ const colors = computed(() => defaultColors.value.map(color => ({ ...color, acti
           <UDashboardSearchButton />
         </template>
 
-        <UDashboardSidebarLinks :links="links" 
-          :ui="{container: 'bg-sky-400'}"
-        />
+        <UDashboardSidebarLinks :links="links" />
 
 
         <!-- <UDashboardSidebarLinks

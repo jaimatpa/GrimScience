@@ -215,6 +215,9 @@
     title: null,
     quantity: 1
   })
+  const modalMeta = ref({
+    isNonConformanceModalOpen: false
+  })
   const serviceTechOptions = ref([])
 
   const getWeekNumber = (date) => {
@@ -517,6 +520,9 @@
     if(selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial) {
       selectedWarrantyMaterialGridMeta.value.warrantyMaterials = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.filter((item) => item?.UniqueID !== selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial?.UniqueID)
     }
+  }
+  const onNonConformanceBtnClick = () => {
+    modalMeta.value.isNonConformanceModalOpen = true
   }
   const onSave = async () => {
     if(!props.selectedServiceReport) {
@@ -1101,7 +1107,7 @@
           <UButton icon="i-heroicons-minus-circle" label="Remove Part" variant="outline" color="red" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
         </div>
         <div class="">
-          <UButton icon="i-heroicons-document" label="Non-Conformance Create/View" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+          <UButton icon="i-heroicons-document" label="Non-Conformance Create/View" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onNonConformanceBtnClick"/>
         </div>
         <div class="min-w-[100px]">
           <div class="flex justify-between font-medium">
@@ -1140,5 +1146,17 @@
         </div>
       </div>
     </div>
+  </UDashboardModal>
+  <UDashboardModal
+    v-model="modalMeta.isNonConformanceModalOpen"
+    title="Non Conformance"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl', 
+    }"
+  >
+    <EngineeringNonconformanceDetail />
   </UDashboardModal>
 </template>

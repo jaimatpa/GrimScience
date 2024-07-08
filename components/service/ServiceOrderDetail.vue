@@ -148,7 +148,8 @@
     isInventoryTransactionModalOpen: false,
     isInvoiceModalOpen: false,
     isInvoiceListModalOpen: false,
-    isInvestigationModalOpen: false
+    isInvestigationModalOpen: false,
+    isNonConformanceModalOpen: false
   })
   const selectedServiceReportID = ref(null)
   const date = ref(new Date())
@@ -486,6 +487,17 @@
     } else {
       toast.add({
         description: 'Please select investigation first',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+    }
+  }
+  const onReceiveBtnClick = () => {
+    if(complaintGridMeta.value.selectedComplaint) {
+      modalMeta.value.isNonConformanceModalOpen = true
+    } else {
+      toast.add({
+        description: 'Please select order first',
         icon: 'i-heroicons-exclamation-triangle',
         color: 'yellow'
       })
@@ -968,6 +980,7 @@
                 icon="i-heroicons-plus-20-solid"
                 label="Receive"
                 :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
+                @click="onReceiveBtnClick"
               />
             </div>
           </div>
@@ -1125,5 +1138,18 @@
     }"
   >
     <EngineeringInvestigationDetail :selected-investigation="investigationGridMeta.selectedInvestigation?.investigationID??null" @close="onInvestigationModalClose" @link="onInvestigationAdd"/>
+  </UDashboardModal>
+  <!-- Non conformance Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isNonConformanceModalOpen"
+    title="Non Conformance"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl'
+    }"
+  >
+    <EngineeringNonconformanceDetail />
   </UDashboardModal>
 </template>
