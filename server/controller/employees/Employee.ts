@@ -81,20 +81,7 @@ export const getEmployeeDetail = async (id) => {
 }
 
 export const updateEmployee = async (id, reqData) => {
-  let updatedReqData
-  if (typeof reqData.adddate === 'string'){
-    updatedReqData = {
-      ...reqData,
-      fullname: `${reqData.lname}, ${reqData.fname}`,
-      adddate: Sequelize.literal(`CAST('${reqData.adddate}' AS DATETIME)`)
-    };
-  } else {
-    updatedReqData = {
-      ...reqData,
-      fullname: `${reqData.lname}, ${reqData.fname}`
-    };
-  }
-  await tblEmployee.update(updatedReqData, {
+  await tblEmployee.update(reqData, {
     where: { UniqueID: id }
   });
   return id;

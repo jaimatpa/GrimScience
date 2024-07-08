@@ -271,7 +271,7 @@ const fetchGridData = async () => {
       Math.ceil(gridMeta.value.numberOfOSchedule / gridMeta.value.pageSize) | 1;
   }
 
-  await useApiFetch("/api/service/schedule/list", {
+  await useApiFetch("/api/service/schedule", {
     method: "GET",
     params: {
       page: gridMeta.value.page,
@@ -423,22 +423,6 @@ const excelExport = async () => {
         </template>
       </UDashboardToolbar>
 
-      <!-- New Organization Detail Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isReportModalOpen"
-        title="Service Report"
-        :ui="{
-          width: 'w-[1800px] sm:max-w-9xl',
-          body: { padding: 'py-0 sm:pt-0' },
-        }"
-      >
-        <CustomersServiceReportDetail
-          :selected-complaint="null"
-          :selected-service-report="gridMeta.selectedServiceId"
-          @save="onServiceReportSave"
-        />
-      </UDashboardModal>
-
       <div class="flex flex-row px-10 mt-4">
         <template v-for="checkbox in headerCheckboxes">
           <div class="basis-1/5">
@@ -552,4 +536,20 @@ const excelExport = async () => {
       </div>
     </UDashboardPanel>
   </UDashboardPage>
+  
+  <!-- Service Report Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isReportModalOpen"
+    title="Service Report"
+    :ui="{
+    width: 'w-[1800px] sm:max-w-9xl',
+    body: { padding: 'py-0 sm:pt-0' },
+    }"
+    >
+    <ServiceReportDetail
+      :selected-complaint="null"
+      :selected-service-report="gridMeta.selectedServiceId"
+      @save="onServiceReportSave"
+    />
+  </UDashboardModal>
 </template>

@@ -40,4 +40,29 @@ export const getNumberOfJobs = async (filterParams) => {
       where: whereClause
     });
     return numberOfCustomers;
-  }
+}
+
+export const JobExistByID = async (id: number | string) => {
+  const tableDetail = await tblJobs.findByPk(id);
+  if(tableDetail)
+    return true;
+  else
+    return false;
+}
+
+export const getJobDetail = async (id) => {
+  const tableDetail = await tblJobs.findByPk(id);
+  return tableDetail
+}
+
+export const updateJob = async (id, reqData) => {
+  await tblJobs.update(reqData, {
+    where: { UniqueID: id }
+  });
+  return id;
+}
+
+export const deleteJob = async (id) => {
+  await tblJobs.destroy({where: { UniqueID: id }});
+  return id;
+}

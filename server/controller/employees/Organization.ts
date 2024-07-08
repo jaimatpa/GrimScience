@@ -62,20 +62,7 @@ export const getOrganizationDetail = async (id) => {
 }
 
 export const updateOrganization = async (id, reqData) => {
-    let updatedReqData
-    if (typeof reqData.adddate === 'string') {
-        updatedReqData = {
-            ...reqData,
-            fullname: `${reqData.lname}, ${reqData.fname}`,
-            adddate: Sequelize.literal(`CAST('${reqData.adddate}' AS DATETIME)`)
-        };
-    } else {
-        updatedReqData = {
-            ...reqData,
-            fullname: `${reqData.lname}, ${reqData.fname}`
-        };
-    }
-    await tblOrganization.update(updatedReqData, {
+    await tblOrganization.update(reqData, {
         where: { UniqueID: id }
     });
     return id;

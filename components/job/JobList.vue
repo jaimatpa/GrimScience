@@ -124,7 +124,7 @@ const gridMeta = ref({
 });
 
 const modalMeta = ref({
-  isJobFormModalOpen: true,
+  isJobFormModalOpen: false,
   modalTitle: "New Job",
   modalDescription: "Add New Job",
   isPositionModalOpen: false,
@@ -195,7 +195,7 @@ const fetchGridData = async () => {
       Math.ceil(gridMeta.value.numberOfOrganization / gridMeta.value.pageSize) |
       1;
   }
-  await useApiFetch("/api/jobs/list", {
+  await useApiFetch("/api/jobs", {
     method: "GET",
     params: {
       page: gridMeta.value.page,
@@ -301,7 +301,7 @@ const onDblClick = async () => {
 };
 
 const onDelete = async (row: any) => {
-  await useApiFetch(`/api/employees/organization/${row?.UniqueID}`, {
+  await useApiFetch(`/api/jobs/${row?.UniqueID}`, {
     method: "DELETE",
     onResponse({ response }) {
       if (response.status === 200) {

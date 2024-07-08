@@ -166,7 +166,7 @@ const fetchGridData = async () => {
       1;
   }
 
-  await useApiFetch("/api/employees/organization/list", {
+  await useApiFetch("/api/employees/organization", {
     method: "GET",
     params: {
       page: gridMeta.value.page,
@@ -315,42 +315,6 @@ const onDelete = async (row: any) => {
         </template>
       </UDashboardToolbar>
 
-      <!-- New Positon  Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isPositionModalOpen"
-        :title="modalMeta.modalTitle"
-        :description="modalMeta.modalDescription"
-        :ui="{
-          width: 'w-[1600px] sm:max-w-8xl',
-          body: { padding: 'py-0 sm:pt-0' },
-        }"
-      >
-        <EmployeeViewPositionForm
-          @close="handleModalClose"
-          @save="handleModalSave"
-          :selected-organization="gridMeta.selectedOrganizationId"
-          :is-modal="true"
-        />
-      </UDashboardModal>
-
-      <!-- New Organization Detail Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isOrganizatioModalOpen"
-        :title="modalMeta.modalTitle"
-        :description="modalMeta.modalDescription"
-        :ui="{
-          width: 'w-[1000px] sm:max-w-7xl',
-          body: { padding: 'py-0 sm:pt-0' },
-        }"
-      >
-        <EmployeeOrganizationForm
-          @close="handleModalClose"
-          @save="handleModalSave"
-          :selected-organization="gridMeta.selectedOrganizationId"
-          :is-modal="true"
-        />
-      </UDashboardModal>
-
       <UTable
         :rows="gridMeta.organization"
         :columns="columns"
@@ -445,4 +409,40 @@ const onDelete = async (row: any) => {
       </div>
     </UDashboardPanel>
   </UDashboardPage>
+
+  <!-- New Positon  Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isPositionModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1600px] sm:max-w-8xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <EmployeeViewPositionForm
+      @close="handleModalClose"
+      @save="handleModalSave"
+      :selected-organization="gridMeta.selectedOrganizationId"
+      :is-modal="true"
+    />
+  </UDashboardModal>
+
+  <!-- New Organization Detail Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isOrganizatioModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1000px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <EmployeeOrganizationForm
+      @close="handleModalClose"
+      @save="handleModalSave"
+      :selected-organization="gridMeta.selectedOrganizationId"
+      :is-modal="true"
+    />
+  </UDashboardModal>
 </template>

@@ -1,4 +1,4 @@
-import { createEmployee, getAllEmployees, getNumberOfEmplyees } from '~/server/controller/employees';
+import { createEmployee, getAllEmployees } from '~/server/controller/employees';
 
 export default eventHandler(async (event) => {
   try {
@@ -8,8 +8,7 @@ export default eventHandler(async (event) => {
     switch(method.toUpperCase()){
       case 'GET':
         const list = await getAllEmployees(page, pageSize, sortBy, sortOrder, filterParams);
-        const numberOfCustomers = await getNumberOfEmplyees(filterParams);
-        return { body: {list, numberOfCustomers}, message: '' }
+        return { body: list, message: '' }
       case 'POST':
         const data = await readBody(event)
         const newCustomer = await createEmployee(data)

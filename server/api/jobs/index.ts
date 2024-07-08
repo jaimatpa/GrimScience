@@ -1,4 +1,4 @@
-import { getAllOrganization } from "~/server/controller/employees";
+import { getAllJobs } from "~/server/controller/jobs";
 
 export default eventHandler(async (event) => {
   try {
@@ -7,7 +7,7 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getAllOrganization(page, pageSize, sortBy, sortOrder, filterParams);
+        const list = await getAllJobs(page, pageSize, sortBy, sortOrder, filterParams);
         return { body: list, message: '' }
       default:
         setResponseStatus(event, 405);

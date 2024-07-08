@@ -241,6 +241,27 @@ const handleConnectClick = () => {
   modalMeta.value.isJobsListModalOpen = true;
 };
 
+const jobModalMeta = ref({
+  isJobFormModalOpen: false,
+  modalTitle: "New Job",
+  modalDescription: "Add New Job",
+  isPositionModalOpen: false,
+});
+
+const handleModalClose = () => {
+  jobModalMeta.value.isJobFormModalOpen = false;
+};
+
+const handleModalSave = async () => {
+  handleModalClose();
+};
+
+const onJobCreate = () => {
+  jobModalMeta.value.modalTitle = "New Job";
+  jobModalMeta.value.modalDescription = "Add New Job";
+  jobModalMeta.value.isJobFormModalOpen = true;
+};
+
 if (props.selectedOrganization !== null) editInit();
 // else
 // propertiesInit()
@@ -271,17 +292,6 @@ if (props.selectedOrganization !== null) editInit();
       class="space-y-4"
       @submit="onSubmit"
     >
-      <!-- Jobs List Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isJobsListModalOpen"
-        title="Jobs List"
-        :ui="{
-          width: 'w-[1600px] sm:max-w-8xl',
-          body: { padding: 'py-0 sm:pt-0' },
-        }"
-      >
-        <JobList />
-      </UDashboardModal>
       <div class="w-full flex gap-5">
         <div class="w-1/5 flex flex-col gap-y-2">
           <div class="">
@@ -524,6 +534,7 @@ if (props.selectedOrganization !== null) editInit();
                         base: 'min-w-[200px] w-full',
                         truncate: 'flex justify-center w-full',
                       }"
+                      @click="onJobCreate()"
                       truncate
                     />
                   </div>
@@ -606,4 +617,34 @@ if (props.selectedOrganization !== null) editInit();
       </div>
     </UForm>
   </template>
+
+  <!-- Jobs List Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isJobsListModalOpen"
+    title="Jobs List"
+    :ui="{
+      width: 'w-[1600px] sm:max-w-8xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <JobList />
+  </UDashboardModal>
+
+  <!-- New Organization Detail Modal -->
+  <UDashboardModal
+    v-model="jobModalMeta.isJobFormModalOpen"
+    :title="jobModalMeta.modalTitle"
+    :description="jobModalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1000px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <JobForm
+      @close="handleModalClose"
+      @save="handleModalSave"
+      :selected-organization="null"
+      :is-modal="true"
+    />
+  </UDashboardModal>
 </template>

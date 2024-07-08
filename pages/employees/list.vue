@@ -154,7 +154,7 @@
     if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfEmployee) {
       gridMeta.value.page = Math.ceil(gridMeta.value.numberOfEmployee / gridMeta.value.pageSize) | 1
     }
-    await useApiFetch('/api/employees/list', {
+    await useApiFetch('/api/employees', {
       method: 'GET',
       params: {
         page: gridMeta.value.page,

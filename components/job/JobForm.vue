@@ -28,32 +28,35 @@ const formData = reactive({
   JobType: "Product",
   JobDescription: null,
   WorkCenters: null,
+  
+  NUMBER: null,
   DATEOPENED: null,
+  DATECLOSED: null,
+  jobcat: null,
+  jobsubcat: null
+
 });
 
 const editInit = async () => {
-  //   loadingOverlay.value = true;
-  //   await useApiFetch(
-  //     `/api/employees/organization/${props.selectedOrganization}`,
-  //     {
-  //       method: "GET",
-  //       onResponse({ response }) {
-  //         if (response.status === 200) {
-  //           loadingOverlay.value = false;
-  //           organizaationExist.value = true;
+  loadingOverlay.value = true;
+  await useApiFetch(`/api/jobs/${props.selectedOrganization}`, {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        loadingOverlay.value = false;
+        organizaationExist.value = true;
 
-  //           for (const key in response._data.body) {
-  //             if (response._data.body[key] !== undefined) {
-  //               formData[key] = response._data.body[key];
-  //             }
-  //           }
-  //         }
-  //       },
-  //       onResponseError({}) {
-  //         organizaationExist.value = false;
-  //       },
-  //     }
-  //   );
+        for (const key in response._data.body) {
+          if (response._data.body[key] !== undefined) {
+            formData[key] = response._data.body[key];
+          }
+        }
+      }
+    },
+    onResponseError({}) {
+      organizaationExist.value = false;
+    },
+  });
   loadingOverlay.value = false;
 };
 
@@ -207,6 +210,21 @@ const operationsColumns = ref([
   },
 ]);
 
+const employeeSchColumns = ref([
+  {
+    key: "date",
+    label: "Date",
+  },
+  {
+    key: "employees",
+    label: "Employees",
+  },
+  {
+    key: "hrs",
+    label: "Hrs.",
+  },
+]);
+
 const subAsssemblyColumns = ref([
   {
     key: "serial",
@@ -246,7 +264,7 @@ if (props.selectedOrganization !== null) editInit();
         <div class="flex flex-row space-x-3">
           <div class="basis-2/6">
             <UFormGroup label="Job #" name="ReportsTo">
-              <UInput v-model="formData.ReportsTo" placeholder="" />
+              <UInput v-model="formData.NUMBER" placeholder="" />
             </UFormGroup>
           </div>
           <div class="basis-2/6">
@@ -312,8 +330,8 @@ if (props.selectedOrganization !== null) editInit();
                 <UButton
                   icon="i-heroicons-calendar-days-20-solid"
                   :label="
-                    formData.DATEOPENED &&
-                    format(formData.DATEOPENED, 'MM/dd/yyyy')
+                    formData.DATECLOSED &&
+                    format(formData.DATECLOSED, 'MM/dd/yyyy')
                   "
                   variant="outline"
                   :ui="{
@@ -324,7 +342,7 @@ if (props.selectedOrganization !== null) editInit();
                 />
                 <template #panel="{ close }">
                   <CommonDatePicker
-                    v-model="formData.DATEOPENED"
+                    v-model="formData.DATECLOSED"
                     is-required
                     @close="close"
                   />
@@ -512,7 +530,7 @@ if (props.selectedOrganization !== null) editInit();
         </div>
       </div>
       <!-- Edit Tabs -->
-      <div>
+      <div v-if="props.selectedOrganization !== null">
         <UTabs :items="tabitems" class="">
           <template #product="{ item }">
             <template v-if="formData.JobType === 'Product'">
@@ -640,12 +658,12 @@ if (props.selectedOrganization !== null) editInit();
               <div class="flex flex-col space-y-3">
                 <div class="w-1/4">
                   <UFormGroup label="Category" name="Title">
-                    <USelect :options="[]" />
+                    <USelect v-model="formData.jobcat" :options="[]" />
                   </UFormGroup>
                 </div>
                 <div class="w-1/4">
                   <UFormGroup label="Sub Category" name="Title">
-                    <USelect :options="[]" />
+                    <USelect v-model="formData.jobsubcat" :options="[]" />
                   </UFormGroup>
                 </div>
                 <div class="w-1/4">
@@ -856,6 +874,158 @@ if (props.selectedOrganization !== null) editInit();
                   <div></div>
                 </template>
               </UTable>
+            </div>
+
+            <div class="flex mt-2 space-x-5">
+              <div
+                class="w-full flex flex-col border-[1px] border-slate-200 mt-2"
+              >
+                <div class="flex w-full space-x-5">
+                  <div class="basis-2/5 p-2">
+                    <span class="text-sm">
+                      Employee Hours For Selected Operations</span
+                    >
+                    <UTable
+                      :columns="employeeSchColumns"
+                      :ui="{
+                        wrapper:
+                          'h-52  border-2 border-gray-300 dark:border-gray-700',
+                        th: {
+                          base: 'sticky top-0 z-10',
+                          color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                          padding: 'p-1',
+                        },
+                      }"
+                    >
+                      <template #empty-state>
+                        <div></div>
+                      </template>
+                    </UTable>
+                    <div class="w-full flex">
+                      <span class="text-sm text-right w-full">
+                        Total Hrs: 0</span
+                      >
+                    </div>
+                  </div>
+
+                  <div
+                    class="basis-2/5 flex flex-col items-center justify-center"
+                  >
+                    <div class="flex items-center">
+                      <div class="flex flex-col items-center">
+                        <div>
+                          <span>Rework</span>
+                          <div class="">
+                            <UButton
+                              icon="i-heroicons-pencil-square"
+                              variant="outline"
+                              color="green"
+                              label="Rework Parts"
+                              :ui="{
+                                base: 'w-fit',
+                                truncate: 'flex justify-center w-full',
+                              }"
+                              truncate
+                            />
+                          </div>
+                        </div>
+                        <div class="w-28">
+                          <UFormGroup label="Hours" name="Title">
+                            <UInput placeholder="" />
+                          </UFormGroup>
+                        </div>
+                      </div>
+                      <div class="flex-col flex pl-3">
+                        <span>Rework Cost</span>
+                        <span>$ 0.00</span>
+                      </div>
+                    </div>
+
+                    <div class="mt-5">
+                      <UButton
+                        icon="i-heroicons-plus"
+                        variant="outline"
+                        color="green"
+                        label="Verify & Close Operation"
+                        :ui="{
+                          base: 'w-full',
+                          truncate: 'flex justify-center w-full',
+                        }"
+                        truncate
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="border-[1px] border-slate-200 p-2 m-2">
+                  <span class="text-sm"> Manage Time Entries</span>
+
+                  <div class="flex w-full space-x-3">
+                    <div class="w-fit mt-6">
+                      <UButton
+                        icon="i-heroicons-pencil-square"
+                        variant="outline"
+                        color="green"
+                        label="Move Selected Enteries to Operation"
+                        :ui="{
+                          base: 'w-fit',
+                          truncate: 'flex justify-center w-full',
+                        }"
+                        truncate
+                      />
+                    </div>
+
+                    <div class="w-1/2">
+                      <UFormGroup label="Destination Operation" name="Title">
+                        <USelect :options="[]" />
+                      </UFormGroup>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                v-if="formData.JobType === 'Product'"
+                class="flex flex-col items-center justify-center"
+              >
+                <div class="w-28">
+                  <UPopover :popper="{ placement: 'bottom-start' }">
+                    <UButton
+                      icon="i-heroicons-calendar-days-20-solid"
+                      :label="
+                        formData.DATEOPENED &&
+                        format(formData.DATEOPENED, 'MM/dd/yyyy')
+                      "
+                      variant="outline"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }"
+                      truncate
+                    />
+                    <template #panel="{ close }">
+                      <CommonDatePicker
+                        v-model="formData.DATEOPENED"
+                        is-required
+                        @close="close"
+                      />
+                    </template>
+                  </UPopover>
+                </div>
+
+                <div class="mt-5">
+                  <UButton
+                    icon="i-heroicons-pencil-square"
+                    variant="outline"
+                    color="green"
+                    label="reSchedule Operation"
+                    :ui="{
+                      base: 'w-full',
+                      truncate: 'flex justify-center w-full',
+                    }"
+                    truncate
+                  />
+                </div>
+              </div>
             </div>
           </template>
         </UTabs>
