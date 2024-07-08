@@ -296,6 +296,7 @@ const links = [
       shortcuts: ["G", "U"],
     },
     backgroundClass: "bg-[#9b4b99]",
+    activeClass: "!text-white before:!bg-[#b95db7]",
     children: [
       {
         label: "List",
@@ -337,6 +338,7 @@ const links = [
       shortcuts: ["G", "U"],
     },
     backgroundClass: "bg-[#9b4b99]",
+    activeClass: "!text-white before:!bg-[#b95db7]",
     children: [
       {
         label: "Customers",
@@ -368,6 +370,7 @@ const links = [
       shortcuts: ["G", "U"],
     },
     backgroundClass: "bg-[#9b4b99]",
+    activeClass: "!text-white before:!bg-[#b95db7]",
     children: [
       {
         label: "Products",
@@ -407,6 +410,7 @@ const links = [
       shortcuts: ["G", "U"],
     },
     backgroundClass: "bg-[#15889c]",
+    activeClass: "!text-white before:!bg-[#1da1b8]",
     children: [
       {
         label: "List",
@@ -430,6 +434,7 @@ const links = [
       shortcuts: ["G", "U"],
     },
     backgroundClass: "bg-[#15889c]",
+    activeClass: "!text-white before:!bg-[#1da1b8]",
     children: [
       {
         label: "Payables",
@@ -453,6 +458,7 @@ const links = [
       shortcuts: ["G", "U"],
     },
     backgroundClass: "bg-[#15889c]",
+    activeClass: "!text-white before:!bg-[#1da1b8]",
     children: [
       {
         label: "Corian Parts Monitor",
@@ -472,6 +478,7 @@ const links = [
       shortcuts: ["G", "U"],
     },
     backgroundClass: "bg-[#0d4c8b]",
+    activeClass: "!text-white before:!bg-[#1361ae]",
     children: [
       {
         label: "Change Orders",
@@ -515,6 +522,7 @@ const links = [
       shortcuts: ["G", "A"],
     },
     backgroundClass: "bg-[#0d4c8b]",
+    activeClass: "!text-white before:!bg-[#1361ae]",
     children: [
       {
         label: "Parts",
@@ -566,6 +574,7 @@ const links = [
       shortcuts: ["G", "U"],
     },
     backgroundClass: "bg-[#0d4c8b]",
+    activeClass: "!text-white before:!bg-[#1361ae]",
     children: [
       {
         label: "Jobs",
@@ -597,6 +606,7 @@ const links = [
       shortcuts: ["G", "U"],
     },
     backgroundClass: "bg-[#bf5163]",
+    activeClass: "!text-white before:!bg-[#ec6279]",
     children: [
       {
         label: "Equipment",
@@ -624,6 +634,7 @@ const links = [
       shortcuts: ["G", "U"],
     },
     backgroundClass: "bg-[#bf5163]",
+    activeClass: "!text-white before:!bg-[#ec6279]",
     children: [
       {
         label: "Shipping Rates",
@@ -662,8 +673,8 @@ const links = [
       text: "help",
       shortcuts: ["G", "U"],
     },
-    activeClass: "bg-black",
     backgroundClass: "bg-[#bf5163]",
+    activeClass: "!text-white before:!bg-[#ec6279]",
     children: [
       {
         label: "Help",
@@ -695,6 +706,7 @@ const links = [
     icon: "i-heroicons-cog-8-tooth",
     defaultOpen: route.path.startsWith("/settings"),
     backgroundClass: "bg-[#bf5163]",
+    activeClass: "!text-black before:!bg-blue-400",
     children: [
       {
         label: "General",
@@ -760,28 +772,24 @@ const colors = computed(() =>
   }))
 );
 
-const getContainerClass = (path) => {
-  if (path.startsWith("/customers")) {
-    console.log("1");
-
-    return "bg-red-400";
-  } else if (path.startsWith("/employees")) {
-    console.log("2");
-
-    return "bg-blue-400";
-  } else if (path.startsWith("/marketing")) {
-    return "bg-green-400";
-  }
-  // Add more conditions for other sections if needed
-  return "";
-};
-
 const getUiConfig = (link) => {
   return {
     wrapper: "relative !min-h-[auto] !min-w-[auto]",
     container: link.backgroundClass,
     base: "group text-white relative flex items-center gap-1.5 px-2.5 py-1.5 w-full rounded-md font-medium text-sm focus:outline-none focus-visible:outline-none dark:focus-visible:outline-none focus-visible:before:ring-inset focus-visible:before:ring-2 focus-visible:before:ring-primary-500 dark:focus-visible:before:ring-primary-400 before:absolute before:inset-px before:rounded-md disabled:cursor-not-allowed disabled:opacity-75",
-    active: "!text-black",
+    active: link.activeClass,
+    icon: {
+      inactive: "text-white",
+    },
+    dot: {
+      wrapper: "w-px h-full mx-[9.5px] bg-gray-200 dark:bg-gray-700 relative",
+      after:
+        "after:absolute after:z-[1] after:w-px after:h-full after:bg-gray-200 after:dark:bg-gray-700 after:transform after:translate-y-full",
+      base: "w-1 h-1 bg-white rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2",
+      active: "bg-gray-900 dark:bg-white",
+      inactive:
+        "bg-gray-400 dark:bg-gray-500 group-hover:bg-gray-700 dark:group-hover:bg-gray-200",
+    },
   };
 };
 </script>
@@ -805,7 +813,11 @@ const getUiConfig = (link) => {
         </template>
       </UDashboardNavbar>
 
-      <UDashboardSidebar>
+      <UDashboardSidebar
+        :ui="{
+          body: 'flex-1 px-4 flex flex-col !gap-y-0 overflow-y-auto',
+        }"
+      >
         <template #header>
           <div class="text-center text-white">
             <!-- {{userInfo.fname + " " + userInfo.lname}} -->
