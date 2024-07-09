@@ -11,6 +11,8 @@ export default eventHandler(async (event) => {
       case 'GET':
         if (idExist){
           const detail = await getScheduleDetail(id)
+          console.log('detail',detail);
+          
           return { body: detail, message: '' };
         } else {
           setResponseStatus(event, 404);
