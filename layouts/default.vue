@@ -799,10 +799,10 @@ const getUiConfig = (link) => {
 
     <slot />
 
-    <UDashboardPanel class="bg-gms-gray-400"
+    <UDashboardPanel 
+      class="bg-gms-gray-400"
       :width="250"
       :resizable="{ min: 200, max: 300 }"
-      class="bg-gray-400"
       collapsible
       
     >
