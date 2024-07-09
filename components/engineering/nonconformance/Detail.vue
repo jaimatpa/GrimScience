@@ -7,7 +7,7 @@
 
   const emit = defineEmits(['close', 'link'])
   const props = defineProps({
-    selectedInvestigation: {
+    selectedNonConformance: {
       type: [Number, String, null],
     },
   })
@@ -184,7 +184,7 @@
     emit('close')
   }
   watch(() => filterValues.value.OpenClosed, () => {fetchNonConformances()})
-  if(props.selectedInvestigation) 
+  if(props.selectedNonConformance) 
     editInit()
   else 
     propertiesInit()
@@ -244,6 +244,7 @@
           }"
           :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
           @select="onNonConformanceSelect"
+          @dblclick="onNonConformanceDblclick"
         >
           <template v-for="column in nonConformanceGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
             <template v-if="!column.filterOptions">

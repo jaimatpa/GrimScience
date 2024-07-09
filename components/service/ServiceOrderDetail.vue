@@ -136,7 +136,8 @@
     RECBYOptions: [],
     SERIALNO: null,
     COMPLAINT: null,
-    PRODUCTDESC: null
+    PRODUCTDESC: null,
+    NONCONFORMANCE: null
   })
   const typeOfServiceInfo = ref({
     reason: null, 
@@ -286,6 +287,9 @@
         complaintID: null
       }
     })
+  }
+  const linkNonConformance = async (nonConformanceID) => {
+
   }
   const onSerialSelect = async (row) => {
     if(JSON.stringify({...serialGridMeta.value.selectedSerial, class:""}) !== JSON.stringify({...row, class: ""})) {
@@ -529,6 +533,16 @@
   }
   const onInvestigationModalClose = () => {
     modalMeta.value.isInvestigationModalOpen = false
+  }
+  const onNonConformanceLink = async (selectedNonConformanceID) => {
+    if(!serviceOrderInfo.value.NONCONFORMANCE) {
+      serviceOrderInfo.value.NONCONFORMANCE = selectedNonConformanceID
+    } else {
+      serviceOrderInfo.value.NONCONFORMANCE += ` & ${selectedNonConformanceID}`
+    }
+  }
+  const onNonConformanceModalClose = () => {
+    modalMeta.value.isNonConformanceModalOpen = false
   }
   const onInvestigationAdd = async(selelctedInvestigationID) => {
     await useApiFetch('/api/engineering/investigationcomplaints/', {
@@ -961,7 +975,7 @@
                 name="nc"
               >
                 <UInput 
-                  v-model="nc"
+                  v-model="serviceOrderInfo.NONCONFORMANCE"
                 />
               </UFormGroup>
             </div>
@@ -1150,6 +1164,6 @@
       width: 'w-[1800px] sm:max-w-9xl'
     }"
   >
-    <EngineeringNonconformanceDetail />
+    <EngineeringNonconformanceDetail @link="onNonConformanceLink" @close="onNonConformanceModalClose"/>
   </UDashboardModal>
 </template>
