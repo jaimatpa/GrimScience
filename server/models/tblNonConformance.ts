@@ -2,76 +2,131 @@ import { DataTypes } from 'sequelize';
 import sequelize from "../utils/databse";
 
 const tblNonConformance = sequelize.define('tblNonConformance', {
-   UniqueID: {
+   uniqueID: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       allowNull: false,
       primaryKey: true,
    },
-   OrderID: {
+   instanceID: {
       type: DataTypes.INTEGER,
    },
-   No: {
+   QTY: {
       type: DataTypes.INTEGER,
    },
-   Date: {
-      type: DataTypes.DATE,
-   },
-   '[By]': {
+   SERIAL: {
       type: DataTypes.STRING,
+   }, 
+   DATEASSIGNED: {
+      type: DataTypes.DATE
+   },
+   DISPOSITION: {
+      type: DataTypes.STRING
+   },
+   REASONFORCHANGE: {
+      type: DataTypes.STRING
+   },
+   SOLUTION: {
+      type: DataTypes.STRING
+   },
+   ISSUE: {
+      type: DataTypes.STRING
    },
    DESCRIPTION: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING
+   },
+   ORIGINATOR: {
+      type: DataTypes.STRING
+   },
+   ORIGINATORDATE: {
+      type: DataTypes.DATE
+   },
+   PRODUCT: {
+      type: DataTypes.STRING
+   },
+   AUTHORIZEDBY: {
+      type: DataTypes.STRING
+   },
+   ASSIGNEDTO: {
+      type: DataTypes.STRING
+   },
+   DATEAUTHORIZED: {
+      type: DataTypes.DATE
+   },
+   SIGNATURE: {
+      type: DataTypes.STRING
+   },
+   APPROVALS: {
+      type: DataTypes.STRING
    },
    PARTS: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING
    },
-   CalibrationProcedure: {
-      type: DataTypes.STRING,
+   DOCUMENTSCHANGED: {
+      type: DataTypes.STRING
    },
-   Inhouse: {
-      type: DataTypes.STRING,
+   PRODUCTS: {
+      type: DataTypes.STRING
    },
-   Vendor: {
-      type: DataTypes.STRING,
+   WORKCENTER: {
+      type: DataTypes.STRING
    },
-   Sub1: {
-      type: DataTypes.STRING,
+   PART: {
+      type: DataTypes.STRING
    },
-   Sub2: {
-      type: DataTypes.STRING,
+   NUMBER: {
+      type: DataTypes.STRING
    },
-   Sub4: {
-      type: DataTypes.STRING,
+   PONUM: {
+      type: DataTypes.INTEGER
    },
-   Inst1: {
-      type: DataTypes.STRING,
+   COMPLAINTNUM: {
+      type: DataTypes.INTEGER
    },
-   Inst2: {
-      type: DataTypes.STRING,
+   ONORDER: {
+      type: DataTypes.INTEGER
    },
-   Inst3: {
-      type: DataTypes.STRING,
+   PARTID: {
+      type: DataTypes.STRING
    },
-   Inst4: {
-      type: DataTypes.STRING,
+   SERIALID: {
+      type: DataTypes.STRING
    },
-   IC1: {
-      type: DataTypes.STRING,
+   STATUS: {
+      type: DataTypes.STRING
    },
-   IC2: {
-      type: DataTypes.STRING,
+   TAGLOCATION: {
+      type: DataTypes.STRING
    },
-   IC3: {
-      type: DataTypes.STRING,
+   TAGBY: {
+      type: DataTypes.STRING
    },
-   IC4: {
-      type: DataTypes.STRING,
+   TAGQTY: {
+      type: DataTypes.INTEGER
    },
-   ThirdPartyReport: {
-      type: DataTypes.STRING,
+   TAGDATE: {
+      type: DataTypes.DATE
+   },
+   TAGASSIGNEDTO: {
+      type: DataTypes.STRING
+   },
+   SERVICEREPORT: {
+      type: DataTypes.INTEGER
+   },
+   OpenClosed: {
+      type: DataTypes.STRING
+   },
+   Justification: {
+      type: DataTypes.STRING
+   },
+   JobNum: {
+      type: DataTypes.STRING
+   },
+   InvestigationNum: {
+      type: DataTypes.STRING
    },
 }, {
+   tableName: 'tblNonConformance',
    timestamps: false
 });
 

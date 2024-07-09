@@ -1,4 +1,4 @@
-import { Sequelize, Op, where } from "sequelize";
+import { Sequelize, Op } from "sequelize";
 import { tblInvestigations, tblInvestigationComplaint } from "~/server/models";
 
 export const getInvestigations = async (params) => {
@@ -49,11 +49,12 @@ export const getInvestigationsOfComplaint = async (params) => {
       [Sequelize.fn('FORMAT', Sequelize.col('tblInvestigations.DIAGDATE'), 'MM/dd/yyyy'), 'DIAGDATE'],
       [Sequelize.col('tblInvestigations.PROBLEMDIAG'), 'PROBLEMDIAG'],
       [Sequelize.col('tblInvestigations.DESCRIPTION'), 'DESCRIPTION'],
+      [Sequelize.col('tblInvestigations.ACTIONTYPE'), 'ACTIONTYPE'],
     ],
     include: [
       {
         model: tblInvestigations,
-        attributes: ['uniqueID', 'DIAGDATE', 'PROBLEMDIAG', 'DESCRIPTION'],
+        attributes: ['uniqueID', 'DIAGDATE', 'PROBLEMDIAG', 'DESCRIPTION', 'ACTIONTYPE'],
         where: {
           uniqueID: {
             [Op.ne]: null
@@ -70,7 +71,8 @@ export const getInvestigationsOfComplaint = async (params) => {
       investigationID: item.investigationID,                            
       DIAGDATE: item.DIAGDATE,                            
       PROBLEMDIAG: item.PROBLEMDIAG,                           
-      DESCRIPTION: item.DESCRIPTION,                           
+      DESCRIPTION: item.DESCRIPTION,       
+      ACTIONTYPE: item.ACTIONTYPE                    
     }
   })
   return formattedList;

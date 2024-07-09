@@ -1,13 +1,14 @@
-import { getProductSubCategories } from "~/server/controller/materials";
+import { getComplaintDetail } from '~/server/controller/service';
 
 export default eventHandler(async (event) => {
   try {
+    const id = event.context.params.id
     const method = event._method;
-    const { ...filterParams } = getQuery(event)
+
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getProductSubCategories(filterParams);
-        return { body: list, message: '' }
+        const detail = await getComplaintDetail(id);
+        return { body: detail, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

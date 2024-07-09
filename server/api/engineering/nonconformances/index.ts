@@ -1,17 +1,19 @@
-import { getProductSubCategories } from "~/server/controller/materials";
+import { getNonConformances } from '~/server/controller/engineering';
 
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    const { ...filterParams } = getQuery(event)
-    switch(method.toUpperCase()){
+    const {...params} = getQuery(event);
+
+    switch(method){
       case 'GET':
-        const list = await getProductSubCategories(filterParams);
-        return { body: list, message: '' }
+        const investigations = await getNonConformances(params)
+        return {body: investigations, message: ''}
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
+    
   } catch (error) {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }

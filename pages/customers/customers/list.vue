@@ -355,10 +355,14 @@
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar
+      <UDashboardNavbar class="gmsPurpleHeader" 
         title="Customer List"
       >
       </UDashboardNavbar>
+
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+        <h2>Sort</h2>
+      </div>
 
       <UDashboardToolbar>
         <template #left>
@@ -403,35 +407,24 @@
           </div>
         </template>
         <template #right>
-          <!-- <USelectMenu
-            v-model="selectedColumns"
-            icon="i-heroicons-adjustments-horizontal-solid"
-            :options="gridMeta.defaultColumns"
-            multiple
-            class="hidden lg:block"
-          >
-            <template #label>
-              Display
-            </template>
-          </USelectMenu> -->
-          <UButton 
+          <UButton color="green" variant="outline"
             :loading="exportIsLoading"
             label="Export to Excel" 
-            color="gray"
+            trailing-icon="i-heroicons-document-text"
             @click="excelExport"
           >
-            <template #trailing>
-              <UIcon name="i-heroicons-document-text" class="text-green-500 w-5 h-5" />
-            </template>
           </UButton>
-          <UButton
+          <UButton color="green" variant="outline"
             label="New customer"
-            color="gray"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
         </template>
       </UDashboardToolbar>
+
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+        <h2>Lookup</h2>
+      </div>
       <UTable
         :rows="gridMeta.customers"
         :columns="columns"

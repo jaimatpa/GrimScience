@@ -284,11 +284,16 @@
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar
+      <UDashboardNavbar class="gmsTealHeader"
         title="Employee List"
       >
       </UDashboardNavbar>
-      <UDashboardToolbar>
+
+      <div class="px-4 py-2 gmsTealTitlebar">
+    <h2>Sorting</h2>
+      </div>
+
+      <UDashboardToolbar class="gmsTealToolbar">
         <template #left>
           <UFormGroup label="Employee Status" name="state">
               <USelect v-model="selectStatus" :options="['Active', 'Inactive']" @change="handleSelectChange" searchable="false" />
@@ -307,14 +312,29 @@
           </div>
         </template>
         <template #right>
-          <UButton
+          <UButton color="green" variant="outline"
             label="New Employee"
-            color="gray"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
         </template>
-      </UDashboardToolbar>    
+
+      </UDashboardToolbar>
+
+      <!-- New Employee Detail Modal -->
+      <UDashboardModal
+        v-model="modalMeta.isEmployeeModalOpen"
+        :title="modalMeta.modalTitle"
+        :description="modalMeta.modalDescription"
+       :ui="{width: 'w-[1600px] sm:max-w-8xl', body: {padding: 'py-0 sm:pt-0'}}"
+      >
+        <EmployeeForm @close="handleModalClose" @save="handleModalSave" :selected-employee="gridMeta.selectedEmpployeeId" :is-modal="true"/>
+      </UDashboardModal>
+    
+      <div class="px-4 py-2 gmsTealTitlebar">
+    <h2>Lookup</h2>
+      </div>
+
       <UTable
         :rows="gridMeta.employess"
         :columns="columns"
