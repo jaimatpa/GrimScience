@@ -285,7 +285,7 @@
       </div>
     </div>
     <div class="flex justify-between px-4 py-2 gmsBlueTitlebar">
-      Non Conformance
+      <h2>Non Conformance</h2>
     </div>
     <div class="flex flex-col space-y-3 px-4 py-2">
       <div class="flex flex-row space-x-9">
@@ -343,7 +343,7 @@
       </div>
     </div>
     <div class="flex justify-between px-4 py-2 gmsBlueTitlebar">
-      Tag Entries
+      <h2>Tag Entries</h2>
     </div>
     <div class="flex flex-row space-x-3 px-4 py-2">
       <div class="basis-3/4">

@@ -150,7 +150,9 @@
     isInvoiceModalOpen: false,
     isInvoiceListModalOpen: false,
     isInvestigationModalOpen: false,
-    isNonConformanceModalOpen: false
+    isNonConformanceModalOpen: false,
+    isInjuryReport1ModalOpen: false,
+    isInjuryReport2ModalOpen: false,
   })
   const selectedServiceReportID = ref(null)
   const date = ref(new Date())
@@ -467,6 +469,28 @@
       })
     }
   }
+  const onView1BtnClick = () => {
+    if(complaintGridMeta.value.selectedComplaint) {
+      modalMeta.value.isInjuryReport1ModalOpen = true
+    } else {
+      toast.add({
+        description: 'Please select order first',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+    }
+  }
+  const onView2BtnClick = () => {
+    if(complaintGridMeta.value.selectedComplaint) {
+      modalMeta.value.isInjuryReport2ModalOpen = true
+    } else {
+      toast.add({
+        description: 'Please select order first',
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'yellow'
+      })
+    }
+  }
   const onInvestigationAddBtnClick = () => {
     if(complaintGridMeta.value.selectedComplaint) {
       modalMeta.value.isInvestigationModalOpen = true
@@ -543,6 +567,12 @@
   }
   const onNonConformanceModalClose = () => {
     modalMeta.value.isNonConformanceModalOpen = false
+  }
+  const onInjuryReport1ModalClose = () => {
+    modalMeta.value.isInjuryReport1ModalOpen = false
+  }
+  const onInjuryReport2ModalClose = () => {
+    modalMeta.value.isInjuryReport2ModalOpen = false
   }
   const onInvestigationAdd = async(selelctedInvestigationID) => {
     await useApiFetch('/api/engineering/investigationcomplaints/', {
@@ -945,12 +975,8 @@
               />
             </div>
             <div class="basis-4/12 flex flex-row space-x-5 justify-center">
-              <UButton 
-                label="VIEW#1"
-              />
-              <UButton 
-                label="VIEW#2"
-              />
+              <UButton label="VIEW#1" @click="onView1BtnClick"/>
+              <UButton label="VIEW#2" @click="onView2BtnClick"/>
             </div>
           </div>
         </div>
@@ -1166,4 +1192,30 @@
   >
     <EngineeringNonconformanceDetail @link="onNonConformanceLink" @close="onNonConformanceModalClose"/>
   </UDashboardModal>
+  <!-- Injury Report1 Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isInjuryReport1ModalOpen"
+    title="Patient Injury Report"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl'
+    }"
+  >
+    <ServiceOrderInjuryReport :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @close="onInjuryReport1ModalClose"/>
+  </UDashboardModal>
+  <!-- Injury Report2 Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isInjuryReport2ModalOpen"
+    title="Patient Injury Report#2"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl'
+    }"
+  >
+    <ServiceOrderInjuryReport2 :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @close="onInjuryReport2ModalClose"/>
+  </UDashboardModal> 
 </template>
