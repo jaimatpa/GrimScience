@@ -808,7 +808,7 @@ const getUiConfig = (link) => {
     >
       <UDashboardNavbar class="!border-transparent" :ui="{ left: 'flex-1' }">
         <template #left>
-          <div class="w-full p-3 mt-2">
+          <div class="w-full p-3 mt-5 flex justify-center items-center">
             <img
               src="../public/grimm_logo_menu_dropshadow_v2.png"
               alt="Grimm Avatar"

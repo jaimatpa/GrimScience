@@ -22,7 +22,10 @@ build dev:
     when: on_success
     expire_in: 30 days
     paths: 
-      - '**'
+      - .nuxt
+      - .output
+      - node_modules
+#      - '**'
   only:
     - dev
   script:
