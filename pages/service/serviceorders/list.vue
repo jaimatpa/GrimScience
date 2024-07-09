@@ -329,9 +329,6 @@
               <UButton icon="i-heroicons-document-text" label="Export to Excel" color="green" variant="outline" :ui="{base: 'min-w-[210px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="excelExport"/>
             </div>
             <div>
-              <UButton icon="i-heroicons-eye-20-solid" label="Preview Action Summary" variant="outline" :ui="{base: 'min-w-[210px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
-            </div>
-            <div>
               <UButton icon="i-heroicons-eye-20-solid" label="Preview Order Summary" variant="outline" :ui="{base: 'min-w-[210px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="onPrevieOrderBtnClick"/>
             </div>
           </div>
