@@ -273,7 +273,7 @@
       </UDashboardNavbar>
 
       <div class="px-4 py-2 gmsPurpleTitlebar">
-    <h2>Sort</h2>
+        <h2>Sort</h2>
       </div>
 
       <UDashboardToolbar>
