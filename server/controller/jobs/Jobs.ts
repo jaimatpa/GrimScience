@@ -2,7 +2,7 @@ import { tblJobs } from "~/server/models";
 import { Sequelize ,Op} from "sequelize";
 
 const applyFilters = (params) => {
-  const filterParams = ['NUMBER','QUANTITY', 'MODEL','PerType','DATEOPENED', 'DATECLOSED','PercentageComplete','Cost','jobcat','jobsubcat','ProductionDate'];  
+  const filterParams = ['UniqueID','NUMBER','QUANTITY', 'MODEL','PerType','DATEOPENED', 'DATECLOSED','PercentageComplete','Catagory','SubCatagory','Cost','jobcat','jobsubcat','ProductionDate'];  
   const whereClause = {};
 
 filterParams.forEach(param => {
@@ -25,7 +25,7 @@ export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams
   const whereClause = applyFilters(filterParams);
   
   const list = await tblJobs.findAll({
-    attributes: ['UniqueID','NUMBER','QUANTITY', 'MODEL','PerType','DATEOPENED', 'DATECLOSED','PercentageComplete','Cost','jobcat','jobsubcat','ProductionDate'],
+    attributes: ['UniqueID','NUMBER','QUANTITY', 'MODEL','PerType','DATEOPENED', 'DATECLOSED','PercentageComplete','Catagory','SubCatagory','Cost','jobcat','jobsubcat','ProductionDate'],
     where: whereClause,
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
     offset,
@@ -65,4 +65,165 @@ export const updateJob = async (id, reqData) => {
 export const deleteJob = async (id) => {
   await tblJobs.destroy({where: { UniqueID: id }});
   return id;
+}
+
+export const createNewJob = async (data) => {
+  const createReqData = {
+      ...data,
+  };
+  const newCustomer = await tblJobs.create(createReqData);
+  return newCustomer
+}
+
+
+export const getJobCategories = async () => {
+  const result = await tblJobs.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('Catagory')), 'Catagory']
+    ],
+    where: {
+      [Op.and]: [
+        { 'Catagory': { [Op.ne]: null } },
+        { 'Catagory': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['Catagory', 'ASC']],
+    raw: true
+  });
+
+  const distinctCategories = result.map((item: any) => item['Catagory']);
+  return distinctCategories;
+}
+
+export const getJobSubCategories = async () => {
+  const result = await tblJobs.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('SubCatagory')), 'SubCatagory']
+    ],
+    where: {
+      [Op.and]: [
+        { 'SubCatagory': { [Op.ne]: null } },
+        { 'SubCatagory': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['SubCatagory', 'ASC']],
+    raw: true
+  });
+
+  const distinctSubCategories = result.map((item: any) => item['SubCatagory']);
+  return distinctSubCategories;
+}
+
+export const getClosesByUsers = async () => {
+  const result = await tblJobs.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('ClosedBy')), 'ClosedBy']
+    ],
+    where: {
+      [Op.and]: [
+        { 'ClosedBy': { [Op.ne]: null } },
+        { 'ClosedBy': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['ClosedBy', 'ASC']],
+    raw: true
+  });
+
+  const distinctClosedByUsers = result.map((item: any) => item['ClosedBy']);
+  return distinctClosedByUsers;
+}
+
+export const getJobTypes = async () => {
+  const result = await tblJobs.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('JobType')), 'JobType']
+    ],
+    where: {
+      [Op.and]: [
+        { 'JobType': { [Op.ne]: null } },
+        { 'JobType': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['JobType', 'ASC']],
+    raw: true
+  });
+
+  const distinctJobType = result.map((item: any) => item['JobType']);
+  return distinctJobType;
+}
+
+export const getPerType = async () => {
+  const result = await tblJobs.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('PerType')), 'PerType']
+    ],
+    where: {
+      [Op.and]: [
+        { 'PerType': { [Op.ne]: null } },
+        { 'PerType': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['PerType', 'ASC']],
+    raw: true
+  });
+
+  const distinctPerType = result.map((item: any) => item['PerType']);
+  return distinctPerType;
+}
+
+export const getProductionUsers = async () => {
+  const result = await tblJobs.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('ProductionBy')), 'ProductionBy']
+    ],
+    where: {
+      [Op.and]: [
+        { 'ProductionBy': { [Op.ne]: null } },
+        { 'ProductionBy': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['ProductionBy', 'ASC']],
+    raw: true
+  });
+
+  const distinctProductionBy = result.map((item: any) => item['ProductionBy']);
+  return distinctProductionBy;
+}
+
+export const getEmployees = async () => {
+  const result = await tblJobs.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('ByEmployee')), 'ByEmployee']
+    ],
+    where: {
+      [Op.and]: [
+        { 'ByEmployee': { [Op.ne]: null } },
+        { 'ByEmployee': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['ByEmployee', 'ASC']],
+    raw: true
+  });
+
+  const distinctByEmployees = result.map((item: any) => item['ByEmployee']);
+  return distinctByEmployees;
+}
+
+export const getProductLines = async () => {
+  const result = await tblJobs.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('PRODUCTLINE')), 'PRODUCTLINE']
+    ],
+    where: {
+      [Op.and]: [
+        { 'PRODUCTLINE': { [Op.ne]: null } },
+        { 'PRODUCTLINE': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['PRODUCTLINE', 'ASC']],
+    raw: true
+  });
+
+  const distinctPRODUCTLINE = result.map((item: any) => item['PRODUCTLINE']);
+  return distinctPRODUCTLINE;
 }

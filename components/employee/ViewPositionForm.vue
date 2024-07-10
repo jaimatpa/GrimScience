@@ -71,40 +71,45 @@ const handleClose = async () => {
   }
 };
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  // if (props.selectedOrganization === null) { // Create Organization
-  //     isLoading.value = true
-  //     await useApiFetch('/api/employees/organization', {
-  //         method: 'POST',
-  //         body: event.data,
-  //         onResponse({ response }) {
-  //             if (response.status === 200) {
-  //                 isLoading.value = false
-  //                 toast.add({
-  //                     title: "Success",
-  //                     description: response._data.message,
-  //                     icon: 'i-heroicons-check-circle',
-  //                     color: 'green'
-  //                 })
-  //             }
-  //         }
-  //     })
-  // } else { // Update Organization
-  //     await useApiFetch(`/api/employees/organization/${props.selectedOrganization}`, {
-  //         method: 'PUT',
-  //         body: event.data,
-  //         onResponse({ response }) {
-  //             if (response.status === 200) {
-  //                 toast.add({
-  //                     title: "Success",
-  //                     description: response._data.message,
-  //                     icon: 'i-heroicons-check-circle',
-  //                     color: 'green'
-  //                 })
-  //             }
-  //         }
-  //     })
-  // }
-  // emit('save')
+  if (props.selectedOrganization === null) {
+    // Create Organization
+    isLoading.value = true;
+    await useApiFetch("/api/employees/organization", {
+      method: "POST",
+      body: event.data,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          isLoading.value = false;
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
+  } else {
+    // Update Position Detail
+    await useApiFetch(
+      `/api/employees/organization/${props.selectedOrganization}`,
+      {
+        method: "PUT",
+        body: event.data,
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: "i-heroicons-check-circle",
+              color: "green",
+            });
+          }
+        },
+      }
+    );
+  }
+  emit("save");
 };
 
 if (props.selectedOrganization !== null) editInit();

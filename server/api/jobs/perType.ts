@@ -1,4 +1,4 @@
-import {  getSOCategories } from '~/server/controller/service';
+import { getPerType } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
@@ -6,8 +6,8 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        const categories = await getSOCategories()
-        return { body: categories, message: '' }
+        const jobTypes = await getPerType()
+        return { body: jobTypes, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

@@ -231,6 +231,7 @@ const handleFilterInputChange = async (event, name) => {
 
 const handleModalClose = () => {
   modalMeta.value.isOrganizatioModalOpen = false;
+  modalMeta.value.isPositionModalOpen = false;
 };
 
 const handleModalSave = async () => {
@@ -292,9 +293,7 @@ const onDelete = async (row: any) => {
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar class="gmsTealHeader"
-        title="Organization List"
-      >
+      <UDashboardNavbar class="gmsTealHeader" title="Organization List">
       </UDashboardNavbar>
       <UDashboardToolbar>
         <template #left>
@@ -309,8 +308,10 @@ const onDelete = async (row: any) => {
           </div>
         </template>
         <template #right>
-          <UButton color="green" variant="outline"
+          <UButton
+            variant="outline"
             label="Add Organization"
+            class="bg-gmsTealHeader"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />

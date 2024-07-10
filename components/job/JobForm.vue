@@ -6,7 +6,7 @@ import { format } from "date-fns";
 
 const emit = defineEmits(["close", "save"]);
 const props = defineProps({
-  selectedOrganization: {
+  selectedJob: {
     type: [String, Number, null],
     required: true,
   },
@@ -19,32 +19,49 @@ const toast = useToast();
 const router = useRouter();
 const organizationFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false);
-const organizaationExist = ref(true);
+const JobExist = ref(true);
 const isLoading = ref(false);
+const categories = ref([]);
+const subCategories = ref([]);
+const closedByUsers = ref([]);
+const jobTypes = ref([]);
+const perTypes = ref([]);
+const productionUsers = ref([]);
+const getEmployeees = ref([]);
 const formData = reactive({
   ReportsTo: null,
   Title: null,
   Employee: null,
-  JobType: "Product",
+  JobType: null,
   JobDescription: null,
   WorkCenters: null,
-  
+
   NUMBER: null,
+  QUANTITY: null,
   DATEOPENED: null,
   DATECLOSED: null,
-  jobcat: null,
-  jobsubcat: null
-
+  JOBCLOSED: null,
+  // jobcat: null,
+  jobsubcat: null,
+  Cost: null,
+  Catagory: null,
+  SubCatagory: null,
+  ClosedBy: null,
+  PerType: null,
+  ProductionDate: null,
+  ProductionBy: null,
+  PART: null,
+  ByEmployee: null,
 });
 
 const editInit = async () => {
   loadingOverlay.value = true;
-  await useApiFetch(`/api/jobs/${props.selectedOrganization}`, {
+  await useApiFetch(`/api/jobs/${props.selectedJob}`, {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
         loadingOverlay.value = false;
-        organizaationExist.value = true;
+        JobExist.value = true;
 
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
@@ -54,23 +71,126 @@ const editInit = async () => {
       }
     },
     onResponseError({}) {
-      organizaationExist.value = false;
+      JobExist.value = false;
     },
   });
+  propertiesInit();
+  loadingOverlay.value = false;
+};
+
+const propertiesInit = async () => {
+  loadingOverlay.value = true;
+  // get categories list
+  await useApiFetch("/api/jobs/categories", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        categories.value = response._data.body;
+        // usstates.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      categories.value = [];
+    },
+  });
+  // get sub categories list
+  await useApiFetch("/api/jobs/subCategories", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        subCategories.value = response._data.body;
+        // usstates.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      subCategories.value = [];
+    },
+  });
+
+  // get closedby users list
+  await useApiFetch("/api/jobs/users", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        closedByUsers.value = response._data.body;
+        // usstates.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      closedByUsers.value = [];
+    },
+  });
+
+  // get job type list
+  await useApiFetch("/api/jobs/jobTypes", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        jobTypes.value = response._data.body;
+        // usstates.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      jobTypes.value = [];
+    },
+  });
+
+  // get job type list
+  await useApiFetch("/api/jobs/perType", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        perTypes.value = response._data.body;
+        // usstates.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      perTypes.value = [];
+    },
+  });
+
+  // get production users
+  await useApiFetch("/api/jobs/productionUsers", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        productionUsers.value = response._data.body;
+        // usstates.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      productionUsers.value = [];
+    },
+  });
+
+  // get production users
+  await useApiFetch("/api/jobs/employees", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        getEmployeees.value = response._data.body;
+        // usstates.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      getEmployeees.value = [];
+    },
+  });
+
   loadingOverlay.value = false;
 };
 
 const validate = (state: any): FormError[] => {
   const errors = [];
-  if (!state.ReportsTo)
-    errors.push({
-      path: "ReportsTo",
-      message: "Please enter your report name.",
-    });
-  if (!state.Title)
-    errors.push({ path: "Title", message: "Please enter a your title." });
-  if (!state.Employee)
-    errors.push({ path: "Employee", message: "Please enter your name." });
+  // if (!state.ReportsTo)
+  //   errors.push({
+  //     path: "ReportsTo",
+  //     message: "Please enter your report name.",
+  //   });
+  // if (!state.Title)
+  //   errors.push({ path: "Title", message: "Please enter a your title." });
+  // if (!state.Employee)
+  //   errors.push({ path: "Employee", message: "Please enter your name." });
   // if (!state.JobDescription) errors.push({ path: 'JobDescription', message: 'Please enter your Job Description.' })
   // if (!state.WorkCenters) errors.push({ path: 'WorkCenters', message: 'Please enter your Work Centers.' })
   return errors;
@@ -83,43 +203,40 @@ const handleClose = async () => {
   }
 };
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  if (props.selectedOrganization === null) {
-    // Create Organization
-    // isLoading.value = true;
-    // await useApiFetch("/api/employees/organization", {
-    //   method: "POST",
-    //   body: event.data,
-    //   onResponse({ response }) {
-    //     if (response.status === 200) {
-    //       isLoading.value = false;
-    //       toast.add({
-    //         title: "Success",
-    //         description: response._data.message,
-    //         icon: "i-heroicons-check-circle",
-    //         color: "green",
-    //       });
-    //     }
-    //   },
-    // });
+  if (props.selectedJob === null) {
+    // Create New Job
+    isLoading.value = true;
+    await useApiFetch("/api/jobs", {
+      method: "POST",
+      body: event.data,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          isLoading.value = false;
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
   } else {
-    // Update Organization
-    // await useApiFetch(
-    //   `/api/employees/organization/${props.selectedOrganization}`,
-    //   {
-    //     method: "PUT",
-    //     body: event.data,
-    //     onResponse({ response }) {
-    //       if (response.status === 200) {
-    //         toast.add({
-    //           title: "Success",
-    //           description: response._data.message,
-    //           icon: "i-heroicons-check-circle",
-    //           color: "green",
-    //         });
-    //       }
-    //     },
-    //   }
-    // );
+    // Update Job
+    await useApiFetch(`/api/jobs/${props.selectedJob}`, {
+      method: "PUT",
+      body: event.data,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
   }
   emit("save");
 };
@@ -232,7 +349,8 @@ const subAsssemblyColumns = ref([
   },
 ]);
 
-if (props.selectedOrganization !== null) editInit();
+if (props.selectedJob !== null) editInit();
+else propertiesInit();
 </script>
 
 <template>
@@ -245,7 +363,7 @@ if (props.selectedOrganization !== null) editInit();
       loader="dots"
     />
   </div>
-  <template v-if="!props.isModal && !organizaationExist">
+  <template v-if="!props.isModal && !JobExist">
     <CommonNotFound
       :name="'Organization not found'"
       :message="'The organization you are looking for does not exist'"
@@ -262,39 +380,51 @@ if (props.selectedOrganization !== null) editInit();
     >
       <div class="flex flex-col space-y-4">
         <div class="flex flex-row space-x-3">
-          <div class="basis-2/6">
+          <div class="basis-1/5">
             <UFormGroup label="Job #" name="ReportsTo">
               <UInput v-model="formData.NUMBER" placeholder="" />
             </UFormGroup>
           </div>
-          <div class="basis-2/6">
-            <UFormGroup label="Job Qty" name="Title">
-              <UInput v-model="formData.Title" placeholder="" />
-            </UFormGroup>
-          </div>
-          <div class="basis-2/6">
-            <UFormGroup label="Job Type" name="Employee">
-              <USelect
-                v-model="formData.JobType"
-                :options="['Product', 'Sub Assembly']"
+          <div class="basis-1/5">
+            <UFormGroup label="Job Qty" name="Job Qty">
+              <UInput
+                v-model="formData.QUANTITY"
+                type="number"
+                placeholder=""
               />
             </UFormGroup>
           </div>
-          <div class="basis-2/6">
-            <UFormGroup label="Unit Material Cost" name="Title">
-              <UInput v-model="formData.Title" placeholder="" />
+          <div class="basis-1/5">
+            <UFormGroup label="Job Type" name="Job Type">
+              <UInputMenu
+                v-model="formData.JobType"
+                v-model:query="formData.JobType"
+                :options="jobTypes"
+              />
             </UFormGroup>
           </div>
-          <div class="basis-2/6">
-            <UFormGroup label="Relieve Inventory Per" name="Title">
-              <USelect :options="[]" />
+          <div class="basis-1/5">
+            <UFormGroup label="Unit Material Cost" name="Unit Material Cost">
+              <UInput type="number" placeholder="" />
+            </UFormGroup>
+          </div>
+          <div class="basis-1/5">
+            <UFormGroup
+              label="Relieve Inventory Per"
+              name="Relieve Inventory Per"
+            >
+              <UInputMenu
+                v-model="formData.PerType"
+                v-model:query="formData.PerType"
+                :options="perTypes"
+              />
             </UFormGroup>
           </div>
         </div>
 
         <div class="flex flex-row space-x-3">
-          <div class="basis-2/6">
-            <UFormGroup label="Date Opened" name="ReportsTo">
+          <div class="basis-1/5">
+            <UFormGroup label="Date Opened" name="Date Opened">
               <UPopover :popper="{ placement: 'bottom-start' }">
                 <UButton
                   icon="i-heroicons-calendar-days-20-solid"
@@ -319,19 +449,23 @@ if (props.selectedOrganization !== null) editInit();
               </UPopover>
             </UFormGroup>
           </div>
-          <div class="basis-2/6">
-            <UFormGroup label="By" name="Employee">
-              <USelect :options="[]" />
+          <div class="basis-1/5">
+            <UFormGroup label="By" name="By">
+              <UInputMenu
+                v-model="formData.ByEmployee"
+                v-model:query="formData.ByEmployee"
+                :options="productionUsers"
+              />
             </UFormGroup>
           </div>
-          <div class="basis-2/6">
-            <UFormGroup label="Date Closed" name="ReportsTo">
+          <div class="basis-1/5">
+            <UFormGroup label="Ready To Produce" name="Ready To Produce">
               <UPopover :popper="{ placement: 'bottom-start' }">
                 <UButton
                   icon="i-heroicons-calendar-days-20-solid"
                   :label="
-                    formData.DATECLOSED &&
-                    format(formData.DATECLOSED, 'MM/dd/yyyy')
+                    formData.ProductionDate &&
+                    format(formData.ProductionDate, 'MM/dd/yyyy')
                   "
                   variant="outline"
                   :ui="{
@@ -342,7 +476,7 @@ if (props.selectedOrganization !== null) editInit();
                 />
                 <template #panel="{ close }">
                   <CommonDatePicker
-                    v-model="formData.DATECLOSED"
+                    v-model="formData.ProductionDate"
                     is-required
                     @close="close"
                   />
@@ -351,27 +485,31 @@ if (props.selectedOrganization !== null) editInit();
             </UFormGroup>
           </div>
 
-          <div class="basis-2/6">
-            <UFormGroup label="Job Material Cost" name="Title">
-              <USelect :options="[]" />
+          <div class="basis-1/5">
+            <UFormGroup label="By" name="By">
+              <UInputMenu
+                v-model="formData.ProductionBy"
+                v-model:query="formData.ProductionBy"
+                :options="productionUsers"
+              />
             </UFormGroup>
           </div>
-          <div class="basis-2/6">
-            <UFormGroup label="Relieve Inventory Per" name="Title">
-              <UInput v-model="formData.Title" placeholder="" />
+          <div class="basis-1/5">
+            <UFormGroup label="Job Material Cost" name="Job Material Cost">
+              <UInput v-model="formData.Cost" />
             </UFormGroup>
           </div>
         </div>
 
         <div class="flex flex-row space-x-3">
-          <div class="basis-2/6">
-            <UFormGroup label="Job Closed" name="ReportsTo">
+          <div class="basis-1/5">
+            <UFormGroup label="Job Closed" name="Job Closed">
               <UPopover :popper="{ placement: 'bottom-start' }">
                 <UButton
                   icon="i-heroicons-calendar-days-20-solid"
                   :label="
-                    formData.DATEOPENED &&
-                    format(formData.DATEOPENED, 'MM/dd/yyyy')
+                    formData.JOBCLOSED &&
+                    format(formData.JOBCLOSED, 'MM/dd/yyyy')
                   "
                   variant="outline"
                   :ui="{
@@ -382,7 +520,7 @@ if (props.selectedOrganization !== null) editInit();
                 />
                 <template #panel="{ close }">
                   <CommonDatePicker
-                    v-model="formData.DATEOPENED"
+                    v-model="formData.JOBCLOSED"
                     is-required
                     @close="close"
                   />
@@ -390,13 +528,17 @@ if (props.selectedOrganization !== null) editInit();
               </UPopover>
             </UFormGroup>
           </div>
-          <div class="basis-2/6">
-            <UFormGroup label="By" name="Employee">
-              <USelect :options="[]" />
+          <div class="basis-1/5">
+            <UFormGroup label="By" name="By">
+              <UInputMenu
+                v-model="formData.ClosedBy"
+                v-model:query="formData.ClosedBy"
+                :options="closedByUsers"
+              />
             </UFormGroup>
           </div>
 
-          <div class="basis-2/6">
+          <div class="basis-1/5">
             <UFormGroup label="" name="Title">
               <UButton
                 label="Re-Open"
@@ -412,14 +554,14 @@ if (props.selectedOrganization !== null) editInit();
             </UFormGroup>
           </div>
 
-          <div class="basis-2/6">
-            <UFormGroup label="Category" name="Title">
-              <USelect :options="[]" />
+          <div class="basis-1/5">
+            <UFormGroup label="Category" name="Category">
+              <UInputMenu :options="[]" />
             </UFormGroup>
           </div>
-          <div class="basis-2/6">
-            <UFormGroup label="Sub Category" name="Title">
-              <USelect :options="[]" />
+          <div class="basis-1/5">
+            <UFormGroup label="Sub Category" name="Sub Category">
+              <UInputMenu :options="[]" />
             </UFormGroup>
           </div>
         </div>
@@ -462,7 +604,6 @@ if (props.selectedOrganization !== null) editInit();
         <div class="">
           <UButton
             icon="i-f7-arrow-clockwise"
-            type="submit"
             variant="outline"
             color="green"
             label="Refresh Job Costs"
@@ -530,23 +671,23 @@ if (props.selectedOrganization !== null) editInit();
         </div>
       </div>
       <!-- Edit Tabs -->
-      <div v-if="props.selectedOrganization !== null">
+      <div v-if="props.selectedJob !== null">
         <UTabs :items="tabitems" class="">
           <template #product="{ item }">
             <template v-if="formData.JobType === 'Product'">
               <div class="flex flex-col space-y-3">
                 <div class="w-1/4">
-                  <UFormGroup label="Product Line" name="Title">
+                  <UFormGroup label="Product Line" name="Product Line">
                     <USelect :options="[]" />
                   </UFormGroup>
                 </div>
                 <div class="w-1/4">
-                  <UFormGroup label="Model" name="Title">
+                  <UFormGroup label="Model" name="Model">
                     <USelect :options="[]" />
                   </UFormGroup>
                 </div>
                 <div class="w-1/4">
-                  <UFormGroup label="Beginning SN#" name="Title">
+                  <UFormGroup label="Beginning SN#" name="Beginning SN#">
                     <UInput placeholder="" />
                   </UFormGroup>
                 </div>
@@ -657,18 +798,26 @@ if (props.selectedOrganization !== null) editInit();
             <template v-if="formData.JobType === 'Sub Assembly'">
               <div class="flex flex-col space-y-3">
                 <div class="w-1/4">
-                  <UFormGroup label="Category" name="Title">
-                    <USelect v-model="formData.jobcat" :options="[]" />
+                  <UFormGroup label="Category" name="Category">
+                    <UInputMenu
+                      v-model="formData.Catagory"
+                      v-model:query="formData.Catagory"
+                      :options="categories"
+                    />
                   </UFormGroup>
                 </div>
                 <div class="w-1/4">
-                  <UFormGroup label="Sub Category" name="Title">
-                    <USelect v-model="formData.jobsubcat" :options="[]" />
+                  <UFormGroup label="Sub Category" name="Sub Category">
+                    <UInputMenu
+                      v-model="formData.SubCatagory"
+                      v-model:query="formData.SubCatagory"
+                      :options="subCategories"
+                    />
                   </UFormGroup>
                 </div>
                 <div class="w-1/4">
-                  <UFormGroup label="Part" name="Title">
-                    <UInput placeholder="" />
+                  <UFormGroup label="Part" name="Part">
+                    <UInput v-model="formData.PART" placeholder="" />
                   </UFormGroup>
                 </div>
               </div>
@@ -708,7 +857,7 @@ if (props.selectedOrganization !== null) editInit();
               </div>
               <div class="flex space-x-3 mt-4">
                 <div class="basis-1/6">
-                  <UFormGroup label="Qty" name="Title">
+                  <UFormGroup label="Qty" name="Qty">
                     <UInput type="number" placeholder="" />
                   </UFormGroup>
                 </div>
@@ -930,7 +1079,7 @@ if (props.selectedOrganization !== null) editInit();
                           </div>
                         </div>
                         <div class="w-28">
-                          <UFormGroup label="Hours" name="Title">
+                          <UFormGroup label="Hours" name="Hours">
                             <UInput placeholder="" />
                           </UFormGroup>
                         </div>
@@ -974,8 +1123,11 @@ if (props.selectedOrganization !== null) editInit();
                       />
                     </div>
 
-                    <div class="w-1/2">
-                      <UFormGroup label="Destination Operation" name="Title">
+                    <div class="basis-1/2">
+                      <UFormGroup
+                        label="Destination Operation"
+                        name="Destination Operation"
+                      >
                         <USelect :options="[]" />
                       </UFormGroup>
                     </div>

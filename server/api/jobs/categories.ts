@@ -1,4 +1,4 @@
-import {  getSOCategories } from '~/server/controller/service';
+import { getJobCategories } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
@@ -6,7 +6,7 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        const categories = await getSOCategories()
+        const categories = await getJobCategories()
         return { body: categories, message: '' }
       default:
         setResponseStatus(event, 405);

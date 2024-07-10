@@ -19,6 +19,13 @@ const toast = useToast();
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
+      key: "UniqueID",
+      label: "UniqueID",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
       key: "NUMBER",
       label: "Job #",
       sortable: true,
@@ -75,14 +82,14 @@ const gridMeta = ref({
       filterable: true,
     },
     {
-      key: "jobcat",
+      key: "Catagory",
       label: "Category",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "jobsubcat",
+      key: "SubCatagory",
       label: "Sub Category",
       sortable: true,
       sortDirection: "none",
@@ -131,6 +138,7 @@ const modalMeta = ref({
 });
 
 const filterValues = ref({
+  UniqueID: null,
   NUMBER: null,
   QUANTITY: null,
   MODEL: null,
@@ -281,13 +289,6 @@ const onEdit = (row) => {
   modalMeta.value.isJobFormModalOpen = true;
 };
 
-const onView = (row) => {
-  gridMeta.value.selectedJobId = row?.UniqueID;
-  modalMeta.value.modalTitle = "View Position";
-  modalMeta.value.modalDescription = "";
-  modalMeta.value.isPositionModalOpen = true;
-};
-
 const onSelect = async (row) => {
   gridMeta.value.selectedJobId = row?.UniqueID;
 };
@@ -393,16 +394,6 @@ const onDelete = async (row: any) => {
             </div>
           </template>
         </template>
-        <!-- <template #view-data="{ row }">
-          <UTooltip text="Site Visit" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-eye"
-              @click="onView(row)"
-            />
-          </UTooltip>
-        </template> -->
         <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
             <UButton
@@ -451,7 +442,7 @@ const onDelete = async (row: any) => {
     <JobForm
       @close="handleModalClose"
       @save="handleModalSave"
-      :selected-organization="gridMeta.selectedJobId"
+      :selected-job="gridMeta.selectedJobId"
       :is-modal="true"
     />
   </UDashboardModal>
