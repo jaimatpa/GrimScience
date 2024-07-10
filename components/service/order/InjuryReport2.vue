@@ -318,9 +318,9 @@
                   </div>
                   <div class="flex items-end">
                     <UPopover :popper="{ placement: 'bottom-start' }" :ui="{trigger: 'ml-[-370px] pt-[50px]'}">
-                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.REPORTBYDATE2 && format(formData.REPORTBYDATE2, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-[250px]'}"/>
+                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.DEATH2 && format(formData.DEATH2, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-[250px]'}"/>
                       <template #panel="{ close }">
-                        <CommonDatePicker v-model="formData.REPORTBYDATE2" is-required @close="close" />
+                        <CommonDatePicker v-model="formData.DEATH2" is-required @close="close" />
                       </template>
                     </UPopover>
                   </div>
