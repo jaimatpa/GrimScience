@@ -303,11 +303,14 @@
   <UDashboardPage>
     <UDashboardPanel grow>
       <template v-if="props.isPage">
-        <UDashboardNavbar
-          title="Invoice List"
+        <UDashboardNavbar class="gmsPurpleHeader"
+          title="Sales"
         >
         </UDashboardNavbar>
       </template>
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+        <h2>Sales Lookup</h2>
+      </div>
       <UDashboardToolbar>
         <template #left>
           <div class="flex flex-row space-x-3">

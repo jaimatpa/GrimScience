@@ -7,7 +7,7 @@ useSeoMeta({
 });
 
 onMounted(() => {
-  fetchGridData();
+  init();
 });
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
@@ -16,12 +16,12 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const route = useRoute();
 const toast = useToast();
-const exportIsLoading = ref(false)
+const exportIsLoading = ref(false);
 
 const headerCheckboxes = ref({
   field: {
     label: "Field",
-    isChecked: true,
+    isChecked: false,
   },
   open: {
     label: "Open",
@@ -221,11 +221,29 @@ Object.entries(route.query).forEach(([key, value]) => {
   }
 });
 
+const headerFilters = ref({
+  serviceTech: {
+    label: "Service Tech",
+    filter: "Service Tech",
+    options: [],
+  },
+  weeks: {
+    label: "Week",
+    filter: "Week",
+    options: [],
+  },
+  categories: {
+    label: "Category",
+    filter: "SO Type",
+    options: [],
+  },
+});
+
 const filterValues = ref({
   "SO#": null,
   "SO Status": null,
   "SN#": null,
-  // 'SO Date': null,
+  "SO Date": null,
   "Cust #": null,
   Company: null,
   city: null,
@@ -236,11 +254,77 @@ const filterValues = ref({
   Status: null,
   Type: null,
   "Service Tech": null,
-  // 'SR Date': null,
+  "SR Date": null,
   Week: null,
   Invoice: null,
   REPAIRSMADE: null,
+  WarrentyService: null,
 });
+
+const init = async () => {
+  fetchGridData();
+  for (const key in headerFilters.value) {
+    const apiURL = `/api/service/schedule/${key}`;
+    await useApiFetch(apiURL, {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          headerFilters.value[key].options = [null, ...response._data.body];
+        }
+      },
+    });
+  }
+};
+
+// Watcher to monitor changes in headerCheckboxes and update filterValues accordingly
+watch(
+  () => [
+    headerCheckboxes.value.open.isChecked,
+    headerCheckboxes.value.closed.isChecked,
+  ],
+  ([newOpenValue, newClosedValue]) => {
+    if (newOpenValue && !newClosedValue) {
+      filterValues.value.Status = "Open";
+    } else if (!newOpenValue && newClosedValue) {
+      filterValues.value.Status = "Closed";
+    } else {
+      filterValues.value.Status = null;
+    }
+  }
+);
+
+watch(
+  () => [
+    headerCheckboxes.value.warranty.isChecked,
+    headerCheckboxes.value.nonWarranty.isChecked,
+  ],
+  ([newOpenValue, newClosedValue]) => {
+    if (newOpenValue && !newClosedValue) {
+      filterValues.value.WarrentyService = "1";
+    } else if (!newOpenValue && newClosedValue) {
+      filterValues.value.WarrentyService = "0";
+    } else {
+      filterValues.value.WarrentyService = null;
+    }
+  }
+);
+
+// Watch for field, customer, and factory checkboxes
+watch(
+  () => [
+    headerCheckboxes.value.field.isChecked,
+    headerCheckboxes.value.customer.isChecked,
+    headerCheckboxes.value.factory.isChecked,
+  ],
+  ([newFieldValue, newCustomerValue, newFactoryValue]) => {
+    const typeArray = [];
+    if (newFieldValue) typeArray.push("Field");
+    if (newCustomerValue) typeArray.push("Customer");
+    if (newFactoryValue) typeArray.push("Factory");
+
+    filterValues.value.Type = typeArray.length > 0 ? typeArray : null;
+  }
+);
 
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
@@ -373,32 +457,73 @@ const onServiceReportSave = async () => {
   fetchGridData();
 };
 
+const handleFilterChange = () => {
+  gridMeta.value.page = 1;
+  fetchGridData();
+};
+
+const handleCheckboxChange = () => {
+  fetchGridData();
+};
+
 const excelExport = async () => {
-    exportIsLoading.value = true
-    const params = {
-        sortBy: gridMeta.value.sort.column,
-        sortOrder: gridMeta.value.sort.direction,
-        ...filterValues.value,
-      }
-    const paramsString = Object.entries(params)
-      .filter(([_, value]) => value !== null)
-      .map(([key, value]) => {
-        if(value !== null)
-        return `${key}=${value}`
-      })
-      .join("&") 
-    location.href = `/api/service/schedule/exportlist?${paramsString}`
-    exportIsLoading.value = false
-  }
+  exportIsLoading.value = true;
+  const params = {
+    sortBy: gridMeta.value.sort.column,
+    sortOrder: gridMeta.value.sort.direction,
+    ...filterValues.value,
+  };
+  const paramsString = Object.entries(params)
+    .filter(([_, value]) => value !== null)
+    .map(([key, value]) => {
+      if (value !== null) return `${key}=${value}`;
+    })
+    .join("&");
+  location.href = `/api/service/schedule/exportlist?${paramsString}`;
+  exportIsLoading.value = false;
+};
 </script>
 
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar title="Service Schedule"> </UDashboardNavbar>
+      <UDashboardNavbar title="Service Schedule" class="gmsPurpleHeader">
+      </UDashboardNavbar>
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+        <h2>Service Report List</h2>
+      </div>
       <UDashboardToolbar>
         <template #left>
-          <div class="flex flex-row space-x-3">
+          <template
+            v-for="[key, value] in Object.entries(headerFilters)"
+            :key="key"
+          >
+            <template v-if="value.options.length > 1">
+              <div class="basis-1/7 max-w-[200px]">
+                <UFormGroup :label="value.label" :name="key">
+                  <USelect
+                    v-model="filterValues[`${value.filter}`]"
+                    :options="value.options"
+                    @change="handleFilterChange()"
+                  />
+                </UFormGroup>
+              </div>
+            </template>
+          </template>
+
+          <div class="grid grid-cols-3 ml-10">
+            <template v-for="checkbox in headerCheckboxes">
+              <div class="basis-1/5">
+                <UCheckbox
+                  v-model="checkbox.isChecked"
+                  :label="checkbox.label"
+                  @change="handleCheckboxChange"
+                />
+              </div>
+            </template>
+          </div>
+
+          <!-- <div class="flex flex-row space-x-3">
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup label="Quantity" name="Quantity">
                 <div class="text-center text-bold">
@@ -406,30 +531,25 @@ const excelExport = async () => {
                 </div>
               </UFormGroup>
             </div>
-          </div>
+          </div> -->
         </template>
         <template #right>
-          <UButton 
+          <UButton
             :loading="exportIsLoading"
-            label="Export to Excel" 
+            label="Export to Excel"
             color="gray"
             :disabled="exportIsLoading"
             @click="excelExport"
           >
             <template #trailing>
-              <UIcon name="i-heroicons-document-text" class="text-green-500 w-5 h-5" />
+              <UIcon
+                name="i-heroicons-document-text"
+                class="text-green-500 w-5 h-5"
+              />
             </template>
           </UButton>
         </template>
       </UDashboardToolbar>
-
-      <div class="flex flex-row px-10 mt-4">
-        <template v-for="checkbox in headerCheckboxes">
-          <div class="basis-1/5">
-            <UCheckbox v-model="checkbox.isChecked" :label="checkbox.label" />
-          </div>
-        </template>
-      </div>
 
       <UTable
         :rows="gridMeta.schedules"
@@ -536,16 +656,16 @@ const excelExport = async () => {
       </div>
     </UDashboardPanel>
   </UDashboardPage>
-  
-  <!-- Service Report Modal -->
+
+  <!-- New Organization Detail Modal -->
   <UDashboardModal
     v-model="modalMeta.isReportModalOpen"
     title="Service Report"
     :ui="{
-    width: 'w-[1800px] sm:max-w-9xl',
-    body: { padding: 'py-0 sm:pt-0' },
+      width: 'w-[1800px] sm:max-w-9xl',
+      body: { padding: 'py-0 sm:pt-0' },
     }"
-    >
+  >
     <ServiceReportDetail
       :selected-complaint="null"
       :selected-service-report="gridMeta.selectedServiceId"
