@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type jobCat from "~/server/api/jobs/jobCat";
 import type { UTableColumn } from "~/types";
 
 useSeoMeta({
@@ -6,7 +7,7 @@ useSeoMeta({
 });
 
 onMounted(() => {
-  fetchGridData();
+  init();
 });
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
@@ -130,6 +131,19 @@ const gridMeta = ref({
   isLoading: false,
 });
 
+const headerFilters = ref({
+  jobCat: {
+    label: "Category",
+    filter: "jobCat",
+    options: [],
+  },
+  jobTypes: {
+    label: "Sub Category",
+    filter: "JobType",
+    options: [],
+  },
+});
+
 const modalMeta = ref({
   isJobFormModalOpen: false,
   modalTitle: "New Job",
@@ -174,6 +188,21 @@ Object.entries(route.query).forEach(([key, value]) => {
       break;
   }
 });
+
+const init = async () => {
+  fetchGridData();
+  for (const key in headerFilters.value) {
+    const apiURL = `/api/jobs/${key}`;
+    await useApiFetch(apiURL, {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          headerFilters.value[key].options = [null, ...response._data.body];
+        }
+      },
+    });
+  }
+};
 
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
@@ -270,6 +299,11 @@ const handleModalClose = () => {
   modalMeta.value.isJobFormModalOpen = false;
 };
 
+const handleFilterChange = () => {
+  gridMeta.value.page = 1;
+  fetchGridData();
+};
+
 const handleModalSave = async () => {
   handleModalClose();
   fetchGridData();
@@ -324,6 +358,23 @@ const onDelete = async (row: any) => {
     <UDashboardPanel grow>
       <UDashboardToolbar>
         <template #left>
+          <template
+            v-for="[key, value] in Object.entries(headerFilters)"
+            :key="key"
+          >
+            <template v-if="value.options.length > 1">
+              <div class="basis-1/7 max-w-[200px]">
+                <UFormGroup :label="value.label" :name="key">
+                  <USelect
+                    v-model="filterValues[`${value.filter}`]"
+                    :options="value.options"
+                    @change="handleFilterChange()"
+                  />
+                </UFormGroup>
+              </div>
+            </template>
+          </template>
+
           <div class="flex flex-row space-x-3">
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup label="Quantity" name="Quantity">

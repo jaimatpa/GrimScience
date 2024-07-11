@@ -3,6 +3,7 @@ import type { FormError, FormSubmitEvent } from "#ui/types";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
 import { format } from "date-fns";
+import type { UTableColumn } from "~/types";
 
 const emit = defineEmits(["close", "save"]);
 const props = defineProps({
@@ -28,6 +29,16 @@ const jobTypes = ref([]);
 const perTypes = ref([]);
 const productionUsers = ref([]);
 const getEmployeees = ref([]);
+const jobCat = ref([]);
+const jobsubcat = ref([]);
+const productLines = ref([]);
+const models = ref([]);
+const prodDesOperations = ref([]);
+const subDesOperations = ref([]);
+const prodScheduleHrs = ref("0");
+const subScheduleHrs = ref("0");
+const prodHrs = ref(0);
+const subHrs = ref(0);
 const formData = reactive({
   ReportsTo: null,
   Title: null,
@@ -41,7 +52,7 @@ const formData = reactive({
   DATEOPENED: null,
   DATECLOSED: null,
   JOBCLOSED: null,
-  // jobcat: null,
+  jobcat: null,
   jobsubcat: null,
   Cost: null,
   Catagory: null,
@@ -52,6 +63,8 @@ const formData = reactive({
   ProductionBy: null,
   PART: null,
   ByEmployee: null,
+  PRODUCTLINE: null,
+  MODEL: null,
 });
 
 const editInit = async () => {
@@ -60,7 +73,6 @@ const editInit = async () => {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        loadingOverlay.value = false;
         JobExist.value = true;
 
         for (const key in response._data.body) {
@@ -74,19 +86,13 @@ const editInit = async () => {
       JobExist.value = false;
     },
   });
-  propertiesInit();
-  loadingOverlay.value = false;
-};
 
-const propertiesInit = async () => {
-  loadingOverlay.value = true;
   // get categories list
   await useApiFetch("/api/jobs/categories", {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
         categories.value = response._data.body;
-        // usstates.value = response._data.body;
       }
     },
     onResponseError() {
@@ -99,7 +105,6 @@ const propertiesInit = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         subCategories.value = response._data.body;
-        // usstates.value = response._data.body;
       }
     },
     onResponseError() {
@@ -113,7 +118,6 @@ const propertiesInit = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         closedByUsers.value = response._data.body;
-        // usstates.value = response._data.body;
       }
     },
     onResponseError() {
@@ -121,13 +125,70 @@ const propertiesInit = async () => {
     },
   });
 
+  // get productLines users
+  await useApiFetch("/api/jobs/productLines", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        productLines.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      productLines.value = [];
+    },
+  });
+
+  // get models users
+  await useApiFetch("/api/jobs/models", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        models.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      models.value = [];
+    },
+  });
+
+  // get job operation
+  await useApiFetch("/api/jobs/operations", {
+    method: "GET",
+    params: { ...operationFilterValues.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        if (formData.JobType === "Product") {
+          prodOperationGridMeta.value.operations = response._data.body;
+          prodDesOperations.value = response._data.body.map(
+            (item) => item.Operation
+          );
+        } else {
+          subOperationGridMeta.value.subOperations = response._data.body;
+          subDesOperations.value = response._data.body.map(
+            (item) => item.Operation
+          );
+        }
+      }
+    },
+    onResponseError() {
+      prodOperationGridMeta.value.operations = [];
+      subOperationGridMeta.value.subOperations = [];
+    },
+  });
+
+  await propertiesInit();
+  loadingOverlay.value = false;
+};
+
+const propertiesInit = async () => {
+  loadingOverlay.value = true;
+
   // get job type list
   await useApiFetch("/api/jobs/jobTypes", {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
         jobTypes.value = response._data.body;
-        // usstates.value = response._data.body;
       }
     },
     onResponseError() {
@@ -135,13 +196,12 @@ const propertiesInit = async () => {
     },
   });
 
-  // get job type list
+  // get perType list
   await useApiFetch("/api/jobs/perType", {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
         perTypes.value = response._data.body;
-        // usstates.value = response._data.body;
       }
     },
     onResponseError() {
@@ -155,7 +215,6 @@ const propertiesInit = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         productionUsers.value = response._data.body;
-        // usstates.value = response._data.body;
       }
     },
     onResponseError() {
@@ -169,11 +228,69 @@ const propertiesInit = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         getEmployeees.value = response._data.body;
-        // usstates.value = response._data.body;
       }
     },
     onResponseError() {
       getEmployeees.value = [];
+    },
+  });
+
+  // get jobCar users
+  await useApiFetch("/api/jobs/jobCat", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        jobCat.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      jobCat.value = [];
+    },
+  });
+
+  // get subJobCat users
+  await useApiFetch("/api/jobs/jobsubcat", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        jobsubcat.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      jobsubcat.value = [];
+    },
+  });
+
+  loadingOverlay.value = false;
+};
+
+const getSchedules = async () => {
+  loadingOverlay.value = true;
+  // get job operation
+  await useApiFetch("/api/jobs/employeeSchedule", {
+    method: "GET",
+    params: { ...emploeeFilterValues.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        loadingOverlay.value = false;
+        if (formData.JobType === "Product") {
+          prodEmployeeGridMeta.value.employees = response._data.body;
+          prodScheduleHrs.value = response._data.body.reduce(
+            (total, item) => total + item.Hours,
+            0
+          );
+        } else {
+          subEmployeeGridMeta.value.subEmployees = response._data.body;
+
+          subScheduleHrs.value = response._data.body.reduce(
+            (total, item) => total + item.Hours,
+            0
+          );
+        }
+      }
+    },
+    onResponseError() {
+      prodEmployeeGridMeta.value.employees = [];
     },
   });
 
@@ -182,17 +299,6 @@ const propertiesInit = async () => {
 
 const validate = (state: any): FormError[] => {
   const errors = [];
-  // if (!state.ReportsTo)
-  //   errors.push({
-  //     path: "ReportsTo",
-  //     message: "Please enter your report name.",
-  //   });
-  // if (!state.Title)
-  //   errors.push({ path: "Title", message: "Please enter a your title." });
-  // if (!state.Employee)
-  //   errors.push({ path: "Employee", message: "Please enter your name." });
-  // if (!state.JobDescription) errors.push({ path: 'JobDescription', message: 'Please enter your Job Description.' })
-  // if (!state.WorkCenters) errors.push({ path: 'WorkCenters', message: 'Please enter your Work Centers.' })
   return errors;
 };
 const handleClose = async () => {
@@ -240,6 +346,167 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   }
   emit("save");
 };
+
+const handleProdOperationSelect = (row) => {
+  prodOperationGridMeta.value.selectedOperation = { ...row, class: "" };
+  prodOperationGridMeta.value.operations.forEach((c) => {
+    if (c.UniqueID === row.UniqueID) {
+      c.class = "bg-gray-200";
+    } else {
+      delete c.class;
+    }
+  });
+
+  emploeeFilterValues.value.OperationID =
+    prodOperationGridMeta.value.selectedOperation.UniqueID;
+
+  getSchedules();
+};
+
+const handleSubOperationSelect = (row) => {
+  subOperationGridMeta.value.selectedSubOperation = { ...row, class: "" };
+  subOperationGridMeta.value.subOperations.forEach((c) => {
+    if (c.UniqueID === row.UniqueID) {
+      c.class = "bg-gray-200";
+    } else {
+      delete c.class;
+    }
+  });
+
+  emploeeFilterValues.value.OperationID =
+    subOperationGridMeta.value.selectedSubOperation.UniqueID;
+
+  getSchedules();
+};
+
+const operationFilterValues = ref({
+  JobID: props.selectedJob,
+});
+
+const emploeeFilterValues = ref({
+  JobID: props.selectedJob,
+  OperationID: 8226,
+});
+
+const prodOperationGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "#",
+      label: "#",
+    },
+    {
+      key: "week",
+      label: "Week",
+    },
+    {
+      key: "Operation",
+      label: "Operation",
+    },
+    {
+      key: "WorkCenter",
+      label: "Work Center",
+    },
+    {
+      key: "Hours",
+      label: "Hrs.",
+    },
+    {
+      key: "reworkhrs",
+      label: "Rework Hours",
+    },
+    {
+      key: "verified",
+      label: "Verified",
+    },
+    {
+      key: "DateScheduled",
+      label: "Scheduled",
+    },
+  ],
+  operations: [],
+  selectedOperation: null,
+  isLoading: false,
+});
+
+const subOperationGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "#",
+      label: "#",
+    },
+    {
+      key: "week",
+      label: "Week",
+    },
+    {
+      key: "Operation",
+      label: "Operation",
+    },
+    {
+      key: "WorkCenter",
+      label: "Work Center",
+    },
+    {
+      key: "Hours",
+      label: "Hrs.",
+    },
+    {
+      key: "reworkhrs",
+      label: "Rework Hours",
+    },
+    {
+      key: "verified",
+      label: "Verified",
+    },
+    {
+      key: "DateScheduled",
+      label: "Scheduled",
+    },
+  ],
+  subOperations: [],
+  selectedSubOperation: null,
+  isLoading: false,
+});
+
+const prodEmployeeGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "StartTime",
+      label: "Date",
+    },
+    {
+      key: "employee",
+      label: "Employees",
+    },
+    {
+      key: "Hours",
+      label: "Hrs.",
+    },
+  ],
+  employees: [],
+  selectedEmployee: null,
+  isLoading: false,
+});
+
+const subEmployeeGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "StartTime",
+      label: "Date",
+    },
+    {
+      key: "employee",
+      label: "Employees",
+    },
+    {
+      key: "Hours",
+      label: "Hrs.",
+    },
+  ],
+  subEmployees: [],
+  selectedESubEmployee: null,
+  isLoading: false,
+});
 
 // Use a computed property for tabitems
 const tabitems = computed(() => [
@@ -349,6 +616,20 @@ const subAsssemblyColumns = ref([
   },
 ]);
 
+const modalMeta = ref({
+  isPartsModalOpen: false,
+  modalTitle: "Parts Listing",
+  modalDescription: "View Parts Listing",
+});
+
+const handleModalClose = () => {
+  modalMeta.value.isPartsModalOpen = false;
+};
+
+const onPartsClick = () => {
+  modalMeta.value.isPartsModalOpen = true;
+};
+
 if (props.selectedJob !== null) editInit();
 else propertiesInit();
 </script>
@@ -396,16 +677,12 @@ else propertiesInit();
           </div>
           <div class="basis-1/5">
             <UFormGroup label="Job Type" name="Job Type">
-              <UInputMenu
-                v-model="formData.JobType"
-                v-model:query="formData.JobType"
-                :options="jobTypes"
-              />
+              <USelect v-model="formData.JobType" :options="jobTypes" />
             </UFormGroup>
           </div>
           <div class="basis-1/5">
             <UFormGroup label="Unit Material Cost" name="Unit Material Cost">
-              <UInput type="number" placeholder="" />
+              <UInput v-model="formData.Cost" type="number" placeholder="" />
             </UFormGroup>
           </div>
           <div class="basis-1/5">
@@ -556,12 +833,20 @@ else propertiesInit();
 
           <div class="basis-1/5">
             <UFormGroup label="Category" name="Category">
-              <UInputMenu :options="[]" />
+              <UInputMenu
+                v-model="formData.jobcat"
+                v-model:query="formData.jobcat"
+                :options="jobCat"
+              />
             </UFormGroup>
           </div>
           <div class="basis-1/5">
             <UFormGroup label="Sub Category" name="Sub Category">
-              <UInputMenu :options="[]" />
+              <UInputMenu
+                v-model="formData.jobsubcat"
+                v-model:query="formData.jobsubcat"
+                :options="jobsubcat"
+              />
             </UFormGroup>
           </div>
         </div>
@@ -621,6 +906,7 @@ else propertiesInit();
             label="View Parts List"
             :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
             truncate
+            @click="onPartsClick()"
           />
         </div>
         <div class="">
@@ -678,12 +964,20 @@ else propertiesInit();
               <div class="flex flex-col space-y-3">
                 <div class="w-1/4">
                   <UFormGroup label="Product Line" name="Product Line">
-                    <USelect :options="[]" />
+                    <UInputMenu
+                      v-model="formData.PRODUCTLINE"
+                      v-model:query="formData.PRODUCTLINE"
+                      :options="productLines"
+                    />
                   </UFormGroup>
                 </div>
                 <div class="w-1/4">
                   <UFormGroup label="Model" name="Model">
-                    <USelect :options="[]" />
+                    <UInputMenu
+                      v-model="formData.MODEL"
+                      v-model:query="formData.MODEL"
+                      :options="models"
+                    />
                   </UFormGroup>
                 </div>
                 <div class="w-1/4">
@@ -1009,15 +1303,51 @@ else propertiesInit();
 
             <div class="w-full mt-5">
               <UTable
-                :columns="operationsColumns"
+                v-if="formData.JobType === 'Product'"
+                :columns="prodOperationGridMeta.defaultColumns"
+                :rows="prodOperationGridMeta.operations"
                 :ui="{
                   wrapper: 'h-52 border-2 border-gray-300 dark:border-gray-700',
+                  tr: {
+                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                  },
                   th: {
                     base: 'sticky top-0 z-10',
                     color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'p-1',
+                    padding: 'px-2 py-0',
+                  },
+                  td: {
+                    base: 'h-[31px]',
+                    padding: 'px-2 py-0',
                   },
                 }"
+                @select="handleProdOperationSelect"
+              >
+                <template #empty-state>
+                  <div></div>
+                </template>
+              </UTable>
+
+              <UTable
+                v-else
+                :columns="subOperationGridMeta.defaultColumns"
+                :rows="subOperationGridMeta.subOperations"
+                :ui="{
+                  wrapper: 'h-52 border-2 border-gray-300 dark:border-gray-700',
+                  tr: {
+                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                  },
+                  th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'px-2 py-0',
+                  },
+                  td: {
+                    base: 'h-[31px]',
+                    padding: 'px-2 py-0',
+                  },
+                }"
+                @select="handleSubOperationSelect"
               >
                 <template #empty-state>
                   <div></div>
@@ -1035,14 +1365,49 @@ else propertiesInit();
                       Employee Hours For Selected Operations</span
                     >
                     <UTable
-                      :columns="employeeSchColumns"
+                      v-if="formData.JobType === 'Product'"
+                      :columns="prodEmployeeGridMeta.defaultColumns"
+                      :rows="prodEmployeeGridMeta.employees"
                       :ui="{
                         wrapper:
                           'h-52  border-2 border-gray-300 dark:border-gray-700',
+                        tr: {
+                          active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                        },
                         th: {
                           base: 'sticky top-0 z-10',
                           color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                          padding: 'p-1',
+                          padding: 'px-2 py-0',
+                        },
+                        td: {
+                          base: 'h-[31px]',
+                          padding: 'px-2 py-0',
+                        },
+                      }"
+                    >
+                      <template #empty-state>
+                        <div></div>
+                      </template>
+                    </UTable>
+
+                    <UTable
+                      v-else
+                      :columns="subEmployeeGridMeta.defaultColumns"
+                      :rows="subEmployeeGridMeta.subEmployees"
+                      :ui="{
+                        wrapper:
+                          'h-52  border-2 border-gray-300 dark:border-gray-700',
+                        tr: {
+                          active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                        },
+                        th: {
+                          base: 'sticky top-0 z-10',
+                          color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                          padding: 'px-2 py-0',
+                        },
+                        td: {
+                          base: 'h-[31px]',
+                          padding: 'px-2 py-0',
                         },
                       }"
                     >
@@ -1052,7 +1417,12 @@ else propertiesInit();
                     </UTable>
                     <div class="w-full flex">
                       <span class="text-sm text-right w-full">
-                        Total Hrs: 0</span
+                        Total Hrs:
+                        {{
+                          formData.JobType === "Product"
+                            ? prodScheduleHrs
+                            : subScheduleHrs
+                        }}</span
                       >
                     </div>
                   </div>
@@ -1080,13 +1450,21 @@ else propertiesInit();
                         </div>
                         <div class="w-28">
                           <UFormGroup label="Hours" name="Hours">
-                            <UInput placeholder="" />
+                            <UInput
+                              v-if="formData.JobType === 'Product'"
+                              v-model="prodHrs"
+                              placeholder=""
+                            />
+                            <UInput v-else v-model="subHrs" placeholder="" />
                           </UFormGroup>
                         </div>
                       </div>
                       <div class="flex-col flex pl-3">
                         <span>Rework Cost</span>
-                        <span>$ 0.00</span>
+                        <span v-if="formData.JobType === 'Product'"
+                          >$ {{ (prodHrs * 36).toFixed(2) }}
+                        </span>
+                        <span v-else>$ {{ (subHrs * 36).toFixed(2) }} </span>
                       </div>
                     </div>
 
@@ -1128,7 +1506,11 @@ else propertiesInit();
                         label="Destination Operation"
                         name="Destination Operation"
                       >
-                        <USelect :options="[]" />
+                        <USelect
+                          v-if="formData.JobType === 'Product'"
+                          :options="prodDesOperations"
+                        />
+                        <USelect v-else :options="subDesOperations" />
                       </UFormGroup>
                     </div>
                   </div>
@@ -1184,4 +1566,17 @@ else propertiesInit();
       </div>
     </UForm>
   </template>
+
+  <!-- Parts List Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isPartsModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1000px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <JobPartsList @close="handleModalClose" :is-modal="true" />
+  </UDashboardModal>
 </template>

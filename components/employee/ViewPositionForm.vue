@@ -648,7 +648,7 @@ if (props.selectedOrganization !== null) editInit();
     <JobForm
       @close="handleModalClose"
       @save="handleModalSave"
-      :selected-organization="null"
+      :selected-job="null"
       :is-modal="true"
     />
   </UDashboardModal>

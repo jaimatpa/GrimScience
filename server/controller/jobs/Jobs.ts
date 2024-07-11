@@ -227,3 +227,60 @@ export const getProductLines = async () => {
   const distinctPRODUCTLINE = result.map((item: any) => item['PRODUCTLINE']);
   return distinctPRODUCTLINE;
 }
+
+export const getJobCat = async () => {
+  const result = await tblJobs.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('jobcat')), 'jobcat']
+    ],
+    where: {
+      [Op.and]: [
+        { 'jobcat': { [Op.ne]: null } },
+        { 'jobcat': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['jobcat', 'ASC']],
+    raw: true
+  });
+
+  const distinctjobcat = result.map((item: any) => item['jobcat']);
+  return distinctjobcat;
+}
+
+export const getJobSubCat = async () => {
+  const result = await tblJobs.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('jobsubcat')), 'jobsubcat']
+    ],
+    where: {
+      [Op.and]: [
+        { 'jobsubcat': { [Op.ne]: null } },
+        { 'jobsubcat': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['jobsubcat', 'ASC']],
+    raw: true
+  });
+
+  const distinctjobsubcat = result.map((item: any) => item['jobsubcat']);
+  return distinctjobsubcat;
+}
+
+export const getModels = async () => {
+  const result = await tblJobs.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('MODEL')), 'MODEL']
+    ],
+    where: {
+      [Op.and]: [
+        { 'MODEL': { [Op.ne]: null } },
+        { 'MODEL': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['MODEL', 'ASC']],
+    raw: true
+  });
+
+  const distinctMODEL = result.map((item: any) => item['MODEL']);
+  return distinctMODEL;
+}
