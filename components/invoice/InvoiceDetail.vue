@@ -3,6 +3,7 @@
   import Loading from 'vue-loading-overlay'
   import 'vue-loading-overlay/dist/css/index.css';   
   import { format } from 'date-fns' 
+  import { vMaska } from 'maska/vue'
 
   const emit = defineEmits(['close', 'save'])
   const props = defineProps({
@@ -183,6 +184,10 @@
   const mdetStyle = ref('outline-none')
   const codStyle = ref('outline-none')
   const shippingStyle = ref('outline-none')
+  const cardnumberStyle = ref('outline-none')
+  const expirationmonthStyle = ref('outline-none')
+  const expirationyearStyle = ref('outline-none')
+  const ccvStyle = ref('outline-none')
   const creditCardMeta = ref({
     cardnumber: '',
     expirationmonth: null,
@@ -505,43 +510,48 @@
   const onProcessCreditCardBtnClick = () => {
     modalMeta.value.isCreditCardInfoInputModalOpen = true
   }
-  // const formatCardNumber = (number) => 
-  //   number.split("").reduce((seed, next, index) => {
-  //     if(index !== 0 && !(index % 4)) seed += " ";
-  //     return seed + next
-  //   })
-  // const onFormatCardNumber = (value) => {
-  //   creditCardMeta.value.cardNumber += `${value.data}`
-  //   if(creditCardMeta.value.cardNumber) {
-  //     let formattedCardNumber = ''
-  //     for(let i = 0; i < creditCardMeta.value.cardNumber.split(' ').join('').length; i++) {
-  //       if(i !== 0 && ((i + 1) % 4 === 0)) {
-  //         formattedCardNumber += `${creditCardMeta.value.cardNumber.split(' ').join('')[i]} `
-  //       } else formattedCardNumber += `${creditCardMeta.value.cardNumber.split(' ').join('')[i]}`
-  //     }
-  //     console.log(formattedCardNumber)
-  //     creditCardMeta.value.cardNumber = formattedCardNumber
-  //   }
-  //   creditCardMeta.value.cardNumber = '111'
-  // }
   const onCreditCardInfoOkBtnClick = () => {
+    if(creditCardMeta.value.cardnumber.length === 19) {
+      cardnumberStyle.value = 'outline-none'
+    } else {
+      cardnumberStyle.value = 'outline outline-2 outline-[red]'
+      return
+    }
+    if(creditCardMeta.value.expirationmonth < 1 || creditCardMeta.value.expirationmonth > 13) {
+      expirationmonthStyle.value = 'outline outline-2 outline-[red]'
+      return
+    } else expirationmonthStyle.value = 'outline-none'
+    if(creditCardMeta.value.expirationyear < 1) {
+      expirationyearStyle.value = 'outline outline-2 outline-[red]'
+      return
+    } else expirationyearStyle.value = 'outline-none'
+    if(creditCardMeta.value.ccv < 0 || !creditCardMeta.value.ccv) {
+      ccvStyle.value = 'outline outline-2 outline-[red]'
+      return
+    } else ccvStyle.value = 'outline-none'
+
     modalMeta.value.isCreditCardInfoInputModalOpen = false
     modalMeta.value.isCreditCardAmountInputModalOpen = true
   }
   const onProcessCreditCard = async () => {
     await useApiFetch(`/api/invoices/creditcard/`, {
-      method: 'GET',
-      params: {
-        ...creditCardMeta.value,
-        fname: customerData.fname,
-        lname: customerData.lname,
-        company: customerData.company1,
-        country: customerData.country,
-        state: customerData.state,
-        city: customerData.city,
-        address: customerData.address,
-        zip: customerData.zip,
-        amount: formData.total
+      method: 'POST',
+      body: {
+        merchantinfo: {
+          ...creditCardMeta.value,
+          cardnumber: creditCardMeta.value.cardnumber.replaceAll(' ', '')
+        },
+        orderinfo: {
+          fname: customerData.fname,
+          lname: customerData.lname,
+          company: customerData.company1,
+          country: customerData.country,
+          state: customerData.state,
+          city: customerData.city,
+          address: customerData.address,
+          zip: customerData.zip,
+          amount: formData.total
+        }
       }
     })
   }
@@ -1425,23 +1435,51 @@
     <div>
       <UFormGroup label="Card Number">
         <div class="w-full">
-          <UInput v-model="creditCardMeta.cardnumber" placeholder="1234 5678 9012 3456" type="text" :maxlength="16" />
+          <UInput 
+            v-model="creditCardMeta.cardnumber" 
+            placeholder="1234 5678 9012 3456" 
+            type="text" 
+            :maxlength="19" 
+            v-maska="'#### #### #### ####'"
+            :ui="{base: cardnumberStyle}"
+          />
         </div>
       </UFormGroup>
       <div class="mt-2 flex justify-between">
         <UFormGroup label="Expiration Date">
           <div class="flex flex-row space-x-2">
             <div class="w-[100px]">
-              <UInput v-model="creditCardMeta.expirationmonth" placeholder="MM" type="number" :max="12" :min="1" />
+              <UInput 
+                v-model="creditCardMeta.expirationmonth" 
+                placeholder="MM" type="number" 
+                :max="12" 
+                :min="1" 
+                :ui="{
+                  base: expirationmonthStyle
+                }"
+              />
             </div>
             <div class="w-[100px]">
-              <UInput v-model="creditCardMeta.expirationyear" placeholder="YY" type="number" />
+              <UInput 
+                v-model="creditCardMeta.expirationyear" 
+                placeholder="YY" 
+                type="number" 
+                :ui="{
+                  base: expirationyearStyle
+                }"
+              />
             </div>
           </div>
         </UFormGroup>
         <UFormGroup label="CV Code">
           <div class="w-[100px]">
-            <UInput v-model="creditCardMeta.ccv" placeholder="123"/>
+            <UInput 
+              v-model="creditCardMeta.ccv" 
+              placeholder="123"
+              :ui="{
+                base: ccvStyle
+              }"
+            />
           </div>
         </UFormGroup>
       </div>

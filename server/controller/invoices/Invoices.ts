@@ -312,19 +312,21 @@ export const getSerials = async (params) => {
   return result;
 }
 
-export const processCreditCard = (cardnumber, expirationmonth, expirationyear, cvc, orderInfo) => {
+export const processCreditCard = (merchantinfo, orderInfo) => {
   const apiLoginKey = process.env.AUTHORIZE_API_LOGIN_KEY
   const transactionKey = process.env.AUTHORIZE_TRANSACTION_KEY
+  const { cardnumber, expirationmonth, expirationyear, ccv } = merchantinfo
   const { fname, lname, company, country, state, city, address, zip, amount } = orderInfo
-  
+  console.log(merchantinfo, orderInfo)
 	const merchantAuthenticationType = new APIContracts.MerchantAuthenticationType();
 	merchantAuthenticationType.setName(apiLoginKey);
 	merchantAuthenticationType.setTransactionKey(transactionKey);
 
   const creditCard = new APIContracts.CreditCardType();
   creditCard.setCardNumber(`${cardnumber}`);
-	creditCard.setExpirationDate(`${expirationmonth.padStart(2, '0')}${expirationyear}`);
-	creditCard.setCardCode(`${cvc}`);
+	creditCard.setExpirationDate(`${expirationmonth.toString().padStart(2, '0')}${expirationyear.toString().padStart(2, '0')}`);
+	creditCard.setCardCode(`${ccv}`);
+  console.log(creditCard)
 
   const paymentType = new APIContracts.PaymentType();
 	paymentType.setCreditCard(creditCard);
@@ -342,7 +344,7 @@ export const processCreditCard = (cardnumber, expirationmonth, expirationyear, c
   const transactionRequestType = new APIContracts.TransactionRequestType();
   transactionRequestType.setTransactionType(APIContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
 	transactionRequestType.setPayment(paymentType);
-  transactionRequestType.setAmount(52.2574)
+  transactionRequestType.setAmount(amount)
   transactionRequestType.setBillTo(billTo);
 
   const createRequest = new APIContracts.CreateTransactionRequest();

@@ -7,11 +7,12 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        console.log(cardnumber, expirationmonth, expirationyear, cvc)
-        processCreditCard(cardnumber, expirationmonth, expirationyear, cvc, orderInfo)
         // const list = await getOrders(page, pageSize, sortBy, sortOrder, filterParams);
         // return { body: list, message: '' }
-
+      case 'POST':
+        const data = await readBody(event)
+        const { merchantinfo, orderinfo } = data
+        processCreditCard(merchantinfo, orderinfo)
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
