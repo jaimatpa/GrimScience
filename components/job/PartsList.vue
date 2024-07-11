@@ -7,10 +7,10 @@ import type { UTableColumn } from "~/types";
 
 const emit = defineEmits(["close", "save"]);
 const props = defineProps({
-  selectedJob: {
-    type: [String, Number, null],
-    required: true,
-  },
+  //   selectedJob: {
+  //     type: [String, Number, null],
+  //     required: true,
+  //   },
   isModal: {
     type: [Boolean],
   },
@@ -76,7 +76,7 @@ const productColumns = ref([
   },
 ]);
 
-if (props.selectedJob !== null) editInit();
+// if (props.selectedJob !== null) editInit();
 // else propertiesInit();
 </script>
 

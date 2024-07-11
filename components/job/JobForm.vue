@@ -874,7 +874,7 @@ else propertiesInit();
             truncate
           />
         </div>
-        <div>
+        <!-- <div>
           <UButton
             icon="i-heroicons-eye"
             label="View Position Details"
@@ -885,7 +885,7 @@ else propertiesInit();
             }"
             truncate
           />
-        </div>
+        </div> -->
         <div class="">
           <UButton
             icon="i-f7-arrow-clockwise"
