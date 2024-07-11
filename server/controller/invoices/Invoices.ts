@@ -312,12 +312,12 @@ export const getSerials = async (params) => {
   return result;
 }
 
-export const processCreditCard = (merchantinfo, orderInfo) => {
+export const processCreditCard = async (merchantinfo, orderInfo) => {
   const apiLoginKey = process.env.AUTHORIZE_API_LOGIN_KEY
   const transactionKey = process.env.AUTHORIZE_TRANSACTION_KEY
-  const { cardnumber, expirationmonth, expirationyear, ccv } = merchantinfo
-  const { fname, lname, company, country, state, city, address, zip, amount } = orderInfo
-  console.log(merchantinfo, orderInfo)
+  const { cardnumber, expirationmonth, expirationyear, ccv, amount } = merchantinfo
+  const { fname, lname, company, country, state, city, address, zip } = orderInfo
+
 	const merchantAuthenticationType = new APIContracts.MerchantAuthenticationType();
 	merchantAuthenticationType.setName(apiLoginKey);
 	merchantAuthenticationType.setTransactionKey(transactionKey);
@@ -326,7 +326,6 @@ export const processCreditCard = (merchantinfo, orderInfo) => {
   creditCard.setCardNumber(`${cardnumber}`);
 	creditCard.setExpirationDate(`${expirationmonth.toString().padStart(2, '0')}${expirationyear.toString().padStart(2, '0')}`);
 	creditCard.setCardCode(`${ccv}`);
-  console.log(creditCard)
 
   const paymentType = new APIContracts.PaymentType();
 	paymentType.setCreditCard(creditCard);
@@ -352,9 +351,57 @@ export const processCreditCard = (merchantinfo, orderInfo) => {
   createRequest.setTransactionRequest(transactionRequestType);
 
   const ctrl = new APIControllers.CreateTransactionController(createRequest.getJSON());
-  ctrl.execute(() => {
-    const apiResponse = ctrl.getResponse()
-    const response = new APIContracts.CreateTransactionResponse(apiResponse)
-    console.log(JSON.stringify(response, null, 2))
-  })
+
+  const refundedPaymentPromise = new Promise((resolve, reject) => {
+    ctrl.execute(() => {
+      const apiResponse = ctrl.getResponse()
+      const response = new APIContracts.CreateTransactionResponse(apiResponse)
+      console.log(JSON.stringify(response, null, 2))
+  
+      const transactionResult = {
+        statusCode: 200,
+        message: '',
+        transactionID: ''
+      }
+      if (response != null) {
+        if (response.getMessages().getResultCode() == APIContracts.MessageTypeEnum.OK) {
+          if (response.getTransactionResponse().getMessages() != null) {
+            transactionResult.statusCode = 200
+            transactionResult.message = response
+              .getTransactionResponse()
+              .getMessages()
+              .getMessage()[0]
+              .getDescription()
+            transactionResult.transactionID = response.getTransactionResponse().getTransId()
+            resolve(transactionResult)
+          } else {
+            if (response.getTransactionResponse().getErrors() != null) {
+              transactionResult.statusCode = 400
+              transactionResult.message = response
+                .getTransactionResponse()
+                .getErrors()
+                .getError()[0]
+                .getErrorText();
+              }
+              reject(transactionResult)
+            }
+        } else {
+          if (response.getTransactionResponse() != null && response.getTransactionResponse().getErrors() != null) {
+            transactionResult.statusCode = 400
+            transactionResult.message = response
+              .getTransactionResponse()
+              .getErrors()
+              .getError()[0]
+              .getErrorText();
+            reject(transactionResult)
+          }
+        }
+      } else {
+        transactionResult.statusCode = 424
+        transactionResult.message = "Unable to process the payemnt"
+        reject(transactionResult)
+      }
+    })
+  }) 
+  return await refundedPaymentPromise
 }

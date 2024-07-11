@@ -6,13 +6,16 @@ export default eventHandler(async (event) => {
     const method = event._method;
     
     switch(method.toUpperCase()){
-      case 'GET':
-        // const list = await getOrders(page, pageSize, sortBy, sortOrder, filterParams);
-        // return { body: list, message: '' }
       case 'POST':
         const data = await readBody(event)
         const { merchantinfo, orderinfo } = data
-        processCreditCard(merchantinfo, orderinfo)
+        const transactionResult: any = await processCreditCard(merchantinfo, orderinfo)
+        if(transactionResult.statusCode === 200) {
+          return { body: transactionResult.transactionID, message: transactionResult.message }
+        } else {
+          setResponseStatus(event, transactionResult.statusCode)
+          return { error: transactionResult.message }
+        }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

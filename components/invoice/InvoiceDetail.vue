@@ -192,7 +192,8 @@
     cardnumber: '',
     expirationmonth: null,
     expirationyear: null,
-    ccv: null
+    ccv: null,
+    amount: 0
   })
   const modalMeta = ref({
     isUpdatePriceModalOpen: false,
@@ -529,6 +530,7 @@
       ccvStyle.value = 'outline outline-2 outline-[red]'
       return
     } else ccvStyle.value = 'outline-none'
+    creditCardMeta.value.amount = formData.total
 
     modalMeta.value.isCreditCardInfoInputModalOpen = false
     modalMeta.value.isCreditCardAmountInputModalOpen = true
@@ -549,8 +551,23 @@
           state: customerData.state,
           city: customerData.city,
           address: customerData.address,
-          zip: customerData.zip,
-          amount: formData.total
+          zip: customerData.zip
+        }
+      },
+      onResponse({response}) {
+        if(response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-shopping-cart',
+            color: 'green'
+          })
+        } else {
+          toast.add({
+            description: response._data.error,
+            icon: 'i-heroicons-exclamation-triangle',
+            color: 'red'
+          })
         }
       }
     })
@@ -1442,6 +1459,7 @@
             :maxlength="19" 
             v-maska="'#### #### #### ####'"
             :ui="{base: cardnumberStyle}"
+            autofocus
           />
         </div>
       </UFormGroup>
@@ -1507,7 +1525,7 @@
       <div class="flex flex-row space-x-5">
         <div class="flex items-center">Amount: </div>
         <div class="flex-1 mr-4">
-          <UInput type="number" v-model="formData.total"></UInput>
+          <UInput type="number" v-model="creditCardMeta.amount"  autofocus />
         </div>
       </div>
       <div class="flex flex-row-reverse mt-2">
