@@ -355,7 +355,7 @@ const fetchGridData = async () => {
       Math.ceil(gridMeta.value.numberOfOSchedule / gridMeta.value.pageSize) | 1;
   }
 
-  await useApiFetch("/api/service/schedule/list", {
+  await useApiFetch("/api/service/schedule", {
     method: "GET",
     params: {
       page: gridMeta.value.page,

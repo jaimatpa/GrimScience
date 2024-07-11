@@ -6,8 +6,8 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        const markets = await getWeeks()
-        return { body: markets, message: '' }
+        const weeks = await getWeeks()
+        return { body: weeks, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
