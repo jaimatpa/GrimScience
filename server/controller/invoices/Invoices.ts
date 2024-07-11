@@ -1,6 +1,10 @@
 import { Op, Sequelize } from 'sequelize';
 import { tblOrder, tblOrderDetail, tblCustomers, tblServiceReport } from "~/server/models";
 
+import { APIContracts } from 'authorizenet'
+import { APIControllers } from 'authorizenet';
+import { Constants } from 'authorizenet'
+
 export const orderExistByID = async (id: number | string) => {
   const tableDetail = await tblOrder.findByPk(id);
   if(tableDetail)
@@ -306,4 +310,49 @@ export const getSerials = async (params) => {
     }
   });
   return result;
+}
+
+export const processCreditCard = (cardnumber, expirationmonth, expirationyear, cvc, orderInfo) => {
+  const apiLoginKey = process.env.AUTHORIZE_API_LOGIN_KEY
+  const transactionKey = process.env.AUTHORIZE_TRANSACTION_KEY
+  const { fname, lname, company, country, state, city, address, zip, amount } = orderInfo
+  
+	const merchantAuthenticationType = new APIContracts.MerchantAuthenticationType();
+	merchantAuthenticationType.setName(apiLoginKey);
+	merchantAuthenticationType.setTransactionKey(transactionKey);
+
+  const creditCard = new APIContracts.CreditCardType();
+  creditCard.setCardNumber(`${cardnumber}`);
+	creditCard.setExpirationDate(`${expirationmonth.padStart(2, '0')}${expirationyear}`);
+	creditCard.setCardCode(`${cvc}`);
+
+  const paymentType = new APIContracts.PaymentType();
+	paymentType.setCreditCard(creditCard);
+
+  const billTo = new APIContracts.CustomerAddressType();
+	billTo.setFirstName(fname ?? null);
+	billTo.setLastName(lname ?? null);
+	billTo.setCompany(company ?? null);
+	billTo.setCountry(country ?? null);
+	billTo.setState(state ?? null);
+	billTo.setCity(city ?? null);
+	billTo.setAddress(address ?? null);
+	billTo.setZip(zip ?? null);
+
+  const transactionRequestType = new APIContracts.TransactionRequestType();
+  transactionRequestType.setTransactionType(APIContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
+	transactionRequestType.setPayment(paymentType);
+  transactionRequestType.setAmount(52.2574)
+  transactionRequestType.setBillTo(billTo);
+
+  const createRequest = new APIContracts.CreateTransactionRequest();
+  createRequest.setMerchantAuthentication(merchantAuthenticationType);
+  createRequest.setTransactionRequest(transactionRequestType);
+
+  const ctrl = new APIControllers.CreateTransactionController(createRequest.getJSON());
+  ctrl.execute(() => {
+    const apiResponse = ctrl.getResponse()
+    const response = new APIContracts.CreateTransactionResponse(apiResponse)
+    console.log(JSON.stringify(response, null, 2))
+  })
 }

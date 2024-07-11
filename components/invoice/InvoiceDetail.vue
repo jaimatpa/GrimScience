@@ -2,7 +2,7 @@
   import type { FormError, FormSubmitEvent } from '#ui/types'
   import Loading from 'vue-loading-overlay'
   import 'vue-loading-overlay/dist/css/index.css';   
-  import { format } from 'date-fns'
+  import { format } from 'date-fns' 
 
   const emit = defineEmits(['close', 'save'])
   const props = defineProps({
@@ -183,9 +183,18 @@
   const mdetStyle = ref('outline-none')
   const codStyle = ref('outline-none')
   const shippingStyle = ref('outline-none')
-
-  const isUpdatePriceModalOpen = ref(false)
-  const isInventoryTransactionModalOpen = ref(false)
+  const creditCardMeta = ref({
+    cardnumber: '',
+    expirationmonth: null,
+    expirationyear: null,
+    ccv: null
+  })
+  const modalMeta = ref({
+    isUpdatePriceModalOpen: false,
+    isInventoryTransactionModalOpen: false,
+    isCreditCardInfoInputModalOpen: false,
+    isCreditCardAmountInputModalOpen: false
+  })
   const updatedPrice = ref(null)
   const mdetChecked = ref(false)
 
@@ -438,20 +447,20 @@
   }
   const handleUpdateBtnClick = () => {
     if(selectedOrder.value) {
-      isUpdatePriceModalOpen.value = true
+      modalMeta.value.isUpdatePriceModalOpen = true
       updatedPrice.value = selectedOrder.value.PRIMARYPRICE1
     }
     onCalculateInvoiceValues()
   }
   const handleReceiveChecksBtnClick = () => {
-    isInventoryTransactionModalOpen.value = true
+    modalMeta.value.isInventoryTransactionModalOpen = true
   }
   const onUpdatePrice = () => {
     selectedOrder.value.PRIMARYPRICE1 = updatedPrice.value
     const index = orderList.value.findIndex((item) => item.UniqueID === selectedOrder.value.UniqueID && item.created === selectedOrder.value.created)
     orderList.value.splice(index, 1, {...orderList.value[index], PRIMARYPRICE1: updatedPrice.value})
     onCalculateInvoiceValues()
-    isUpdatePriceModalOpen.value = false
+    modalMeta.value.isUpdatePriceModalOpen = false
   }
   const onCalculateInvoiceValues = () => {
     let flag = 1;
@@ -492,6 +501,49 @@
     itemsTotal.value = Math.round(itemsTotal.value * 100) / 100;
     formData.subtotal = Math.round(formData.subtotal * 100) / 100;
     formData.total = Math.round(formData.total * 100) / 100;
+  }
+  const onProcessCreditCardBtnClick = () => {
+    modalMeta.value.isCreditCardInfoInputModalOpen = true
+  }
+  // const formatCardNumber = (number) => 
+  //   number.split("").reduce((seed, next, index) => {
+  //     if(index !== 0 && !(index % 4)) seed += " ";
+  //     return seed + next
+  //   })
+  // const onFormatCardNumber = (value) => {
+  //   creditCardMeta.value.cardNumber += `${value.data}`
+  //   if(creditCardMeta.value.cardNumber) {
+  //     let formattedCardNumber = ''
+  //     for(let i = 0; i < creditCardMeta.value.cardNumber.split(' ').join('').length; i++) {
+  //       if(i !== 0 && ((i + 1) % 4 === 0)) {
+  //         formattedCardNumber += `${creditCardMeta.value.cardNumber.split(' ').join('')[i]} `
+  //       } else formattedCardNumber += `${creditCardMeta.value.cardNumber.split(' ').join('')[i]}`
+  //     }
+  //     console.log(formattedCardNumber)
+  //     creditCardMeta.value.cardNumber = formattedCardNumber
+  //   }
+  //   creditCardMeta.value.cardNumber = '111'
+  // }
+  const onCreditCardInfoOkBtnClick = () => {
+    modalMeta.value.isCreditCardInfoInputModalOpen = false
+    modalMeta.value.isCreditCardAmountInputModalOpen = true
+  }
+  const onProcessCreditCard = async () => {
+    await useApiFetch(`/api/invoices/creditcard/`, {
+      method: 'GET',
+      params: {
+        ...creditCardMeta.value,
+        fname: customerData.fname,
+        lname: customerData.lname,
+        company: customerData.company1,
+        country: customerData.country,
+        state: customerData.state,
+        city: customerData.city,
+        address: customerData.address,
+        zip: customerData.zip,
+        amount: formData.total
+      }
+    })
   }
   const validate = (state: any): FormError[] => {
     const errors = []
@@ -1269,7 +1321,7 @@
           >
             <div class="flex flex-row space-x-2 w-full items-center">
               <div class="basis-1/2 w-full flex justify-center">
-                <UButton label="Process Credit Card" :ui="{base: 'justify-center w-full'}"/>
+                <UButton label="Process Credit Card" :ui="{base: 'justify-center w-full'}" @click="onProcessCreditCardBtnClick"/>
               </div>
               <div class="basis-1/2">
                 <div class="flex justify-between items-center">
@@ -1321,8 +1373,9 @@
       </div>
     </div>
   </UForm>
+  <!-- Update Price Modal -->
   <UDashboardModal 
-    v-model="isUpdatePriceModalOpen"
+    v-model="modalMeta.isUpdatePriceModalOpen"
     :ui="{
       header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
       body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
@@ -1341,13 +1394,14 @@
           <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onUpdatePrice"/>
         </div>
         <div class="min-w-[60px] mr-3">
-          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="isUpdatePriceModalOpen = false"/>
+          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="modalMeta.isUpdatePriceModalOpen = false"/>
         </div>
       </div>
     </div>
   </UDashboardModal>
+  <!-- InventoryTransaction Modal -->
   <UDashboardModal
-    v-model="isInventoryTransactionModalOpen"
+    v-model="modalMeta.isInventoryTransactionModalOpen"
     title="Inventory Transactions"
     :ui="{
       title: 'text-lg',
@@ -1357,5 +1411,75 @@
     }"
   >
     <MaterialsTransactionsInventoryTransactions :selected-order="props.selectedOrder"/>
+  </UDashboardModal>
+  <!-- Credit Card Info Input Modal -->
+  <UDashboardModal 
+    v-model="modalMeta.isCreditCardInfoInputModalOpen"
+    title="Payment Details"
+    :ui="{
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-2' },
+      width: 'w-[450px]'
+    }"
+  >
+    <div>
+      <UFormGroup label="Card Number">
+        <div class="w-full">
+          <UInput v-model="creditCardMeta.cardnumber" placeholder="1234 5678 9012 3456" type="text" :maxlength="16" />
+        </div>
+      </UFormGroup>
+      <div class="mt-2 flex justify-between">
+        <UFormGroup label="Expiration Date">
+          <div class="flex flex-row space-x-2">
+            <div class="w-[100px]">
+              <UInput v-model="creditCardMeta.expirationmonth" placeholder="MM" type="number" :max="12" :min="1" />
+            </div>
+            <div class="w-[100px]">
+              <UInput v-model="creditCardMeta.expirationyear" placeholder="YY" type="number" />
+            </div>
+          </div>
+        </UFormGroup>
+        <UFormGroup label="CV Code">
+          <div class="w-[100px]">
+            <UInput v-model="creditCardMeta.ccv" placeholder="123"/>
+          </div>
+        </UFormGroup>
+      </div>
+      <div class="flex flex-row-reverse mt-2">
+        <div class="min-w-[60px]">
+          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onCreditCardInfoOkBtnClick"/>
+        </div>
+        <div class="min-w-[60px] mr-3">
+          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="modalMeta.isCreditCardInfoInputModalOpen = false"/>
+        </div>
+      </div>
+    </div>    
+  </UDashboardModal>
+  <!-- Credit Card Amount Input Modal -->
+     <!-- Update Price Modal -->
+  <UDashboardModal 
+    v-model="modalMeta.isCreditCardAmountInputModalOpen"
+    :ui="{
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
+      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
+      width: 'w-[300px]'
+    }"
+  >
+    <div>
+      <div class="flex flex-row space-x-5">
+        <div class="flex items-center">Amount: </div>
+        <div class="flex-1 mr-4">
+          <UInput type="number" v-model="formData.total"></UInput>
+        </div>
+      </div>
+      <div class="flex flex-row-reverse mt-2">
+        <div class="min-w-[60px]">
+          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onProcessCreditCard"/>
+        </div>
+        <div class="min-w-[60px] mr-3">
+          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="modalMeta.isCreditCardAmountInputModalOpen = false"/>
+        </div>
+      </div>
+    </div>
   </UDashboardModal>
 </template>

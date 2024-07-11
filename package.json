@@ -20,6 +20,7 @@
     "@unovis/ts": "^1.4.0",
     "@unovis/vue": "^1.4.0",
     "@vueuse/nuxt": "^10.9.0",
+    "authorizenet": "^1.0.8",
     "axios": "^1.7.1",
     "date-fns": "^3.6.0",
     "exceljs": "^4.4.0",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^0.3.10",
+    "@types/authorizenet": "^1.0.2",
     "eslint": "^9.2.0",
     "vue-tsc": "^2.0.16"
   }
