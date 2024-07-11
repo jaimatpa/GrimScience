@@ -1,4 +1,4 @@
-import { createOrganization, getAllOrganization, getNumberOfOrganization } from "~/server/controller/employees";
+import { createNewJob, getAllJobs } from "~/server/controller/jobs";
 
 export default eventHandler(async (event) => {
   try {
@@ -7,12 +7,12 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getAllOrganization(page, pageSize, sortBy, sortOrder, filterParams);
+        const list = await getAllJobs(page, pageSize, sortBy, sortOrder, filterParams);
         return { body: list, message: '' }
       case 'POST':
         const data = await readBody(event)
-        const newCustomer = await createOrganization(data)
-        return { body: { newCustomer }, message: 'New Organization created successfully!'}
+        const newCustomer = await createNewJob(data)
+        return { body: { newCustomer }, message: 'New Job created successfully!'}
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

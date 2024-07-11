@@ -1,14 +1,13 @@
-import { getAllOrganization } from "~/server/controller/employees";
+import { getPerType } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
-    const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;
     
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getAllOrganization(page, pageSize, sortBy, sortOrder, filterParams);
-        return { body: list, message: '' }
+        const jobTypes = await getPerType()
+        return { body: jobTypes, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

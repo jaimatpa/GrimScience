@@ -1,11 +1,13 @@
 <script lang="ts" setup>
+import type jobCat from "~/server/api/jobs/jobCat";
 import type { UTableColumn } from "~/types";
+
+useSeoMeta({
+  title: "Grimm-Employees Organization",
+});
 
 onMounted(() => {
   init();
-});
-useSeoMeta({
-  title: "Grimm-Employees List",
 });
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
@@ -15,66 +17,97 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 const route = useRoute();
 const toast = useToast();
 
-const selectStatus = ref("Active");
-
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "payrollno",
-      label: "Payroll #",
+      key: "UniqueID",
+      label: "UniqueID",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "fname",
-      label: "First",
+      key: "NUMBER",
+      label: "Job #",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "lname",
-      label: "Last",
+      key: "QUANTITY",
+      label: "Quantity",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "address",
-      label: "Address",
+      key: "MODEL",
+      label: "Description",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "city",
-      label: "City",
+      key: "PerType",
+      label: "Type",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "state",
-      label: "State",
+      key: "DATEOPENED",
+      label: "Openend",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "zip",
-      label: "Zip",
+      key: "DATECLOSED",
+      label: "Closed",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "homephone",
-      label: "Home Cell Phone",
+      key: "PercentageComplete",
+      label: "% Complete",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
+    {
+      key: "Cost",
+      label: "Job Cost",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "Catagory",
+      label: "Category",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "SubCatagory",
+      label: "Sub Category",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "ProductionDate",
+      label: "Production Date",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    // {
+    //   key: "view",
+    //   label: "View Position Details",
+    //   kind: "actions",
+    // },
     {
       key: "edit",
       label: "Edit",
@@ -88,30 +121,48 @@ const gridMeta = ref({
   ],
   page: 1,
   pageSize: 50,
-  numberOfEmployee: 0,
-  employess: [],
-  selectedEmpployeeId: null,
+  numberOfOrganization: 0,
+  organization: [],
+  selectedJobId: null,
   sort: {
     column: "UniqueID",
     direction: "asc",
   },
   isLoading: false,
 });
-const modalMeta = ref({
-  isEmployeeModalOpen: false,
-  modalTitle: "New Employee",
-  modalDescription: "Add a new Employee",
+
+const headerFilters = ref({
+  jobCat: {
+    label: "Category",
+    filter: "jobCat",
+    options: [],
+  },
+  jobTypes: {
+    label: "Sub Category",
+    filter: "JobType",
+    options: [],
+  },
 });
+
+const modalMeta = ref({
+  isJobFormModalOpen: false,
+  modalTitle: "New Job",
+  modalDescription: "Add New Job",
+  isPositionModalOpen: false,
+});
+
 const filterValues = ref({
-  ACTIVE: "1",
-  payrollno: null,
-  fname: null,
-  lname: null,
-  address: null,
-  city: null,
-  state: null,
-  zip: null,
-  homephone: null,
+  UniqueID: null,
+  NUMBER: null,
+  QUANTITY: null,
+  MODEL: null,
+  PerType: null,
+  DATEOPENED: null,
+  DATECLOSED: null,
+  PercentageComplete: null,
+  Cost: null,
+  jobcat: null,
+  jobsubcat: null,
 });
 
 const selectedColumns = ref(gridMeta.value.defaultColumns);
@@ -140,36 +191,48 @@ Object.entries(route.query).forEach(([key, value]) => {
 
 const init = async () => {
   fetchGridData();
+  for (const key in headerFilters.value) {
+    const apiURL = `/api/jobs/${key}`;
+    await useApiFetch(apiURL, {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          headerFilters.value[key].options = [null, ...response._data.body];
+        }
+      },
+    });
+  }
 };
+
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
-
-  // handle number of emoloyees and pagination
-  await useApiFetch("/api/employees/numbers", {
+  // // handle number of jobs and pagination
+  await useApiFetch("/api/jobs/numbers", {
     method: "GET",
     params: {
       ...filterValues.value,
     },
     onResponse({ response }) {
       if (response.status === 200) {
-        gridMeta.value.numberOfEmployee = response._data.body;
+        gridMeta.value.numberOfOrganization = response._data.body;
       }
     },
   });
-  if (gridMeta.value.numberOfEmployee === 0) {
-    gridMeta.value.employess = [];
-    gridMeta.value.numberOfEmployee = 0;
+  if (gridMeta.value.numberOfOrganization === 0) {
+    gridMeta.value.organization = [];
+    gridMeta.value.numberOfOrganization = 0;
     gridMeta.value.isLoading = false;
     return;
   }
   if (
     gridMeta.value.page * gridMeta.value.pageSize >
-    gridMeta.value.numberOfEmployee
+    gridMeta.value.numberOfOrganization
   ) {
     gridMeta.value.page =
-      Math.ceil(gridMeta.value.numberOfEmployee / gridMeta.value.pageSize) | 1;
+      Math.ceil(gridMeta.value.numberOfOrganization / gridMeta.value.pageSize) |
+      1;
   }
-  await useApiFetch("/api/employees", {
+  await useApiFetch("/api/jobs", {
     method: "GET",
     params: {
       page: gridMeta.value.page,
@@ -180,67 +243,15 @@ const fetchGridData = async () => {
     },
     onResponse({ response }) {
       if (response.status === 200) {
-        gridMeta.value.employess = response._data.body;
+        gridMeta.value.organization = response._data.body;
       }
       gridMeta.value.isLoading = false;
     },
   });
 };
 
-const handleSelectChange = () => {
-  if (selectStatus.value === "Active") {
-    filterValues.value.ACTIVE = "1";
-  } else {
-    filterValues.value.ACTIVE = "0";
-  }
-
-  fetchGridData();
-};
-
 const handlePageChange = async () => {
   fetchGridData();
-};
-
-const onCreate = () => {
-  gridMeta.value.selectedEmpployeeId = null;
-  modalMeta.value.modalTitle = "New Employee";
-  modalMeta.value.modalDescription = "Add a new employee";
-  modalMeta.value.isEmployeeModalOpen = true;
-};
-
-const onEdit = (row) => {
-  gridMeta.value.selectedEmpployeeId = row?.UniqueID;
-  modalMeta.value.modalTitle = "Edit";
-  modalMeta.value.modalDescription = "Edit Employee information";
-  modalMeta.value.isEmployeeModalOpen = true;
-};
-
-const onSelect = async (row) => {
-  gridMeta.value.selectedEmpployeeId = row?.UniqueID;
-};
-const onDblClick = async () => {
-  if (gridMeta.value.selectedEmpployeeId) {
-    modalMeta.value.modalTitle = "Edit";
-    modalMeta.value.modalDescription = "Edit Employee information";
-    modalMeta.value.isEmployeeModalOpen = true;
-  }
-};
-
-const onDelete = async (row: any) => {
-  await useApiFetch(`/api/employees/${row?.UniqueID}`, {
-    method: "DELETE",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        toast.add({
-          title: "Success",
-          description: response._data.message,
-          icon: "i-heroicons-trash-solid",
-          color: "green",
-        });
-        fetchGridData();
-      }
-    },
-  });
 };
 
 const handleSortingButton = async (btnName: string) => {
@@ -285,40 +296,90 @@ const handleFilterInputChange = async (event, name) => {
 };
 
 const handleModalClose = () => {
-  modalMeta.value.isEmployeeModalOpen = false;
+  modalMeta.value.isJobFormModalOpen = false;
+};
+
+const handleFilterChange = () => {
+  gridMeta.value.page = 1;
+  fetchGridData();
 };
 
 const handleModalSave = async () => {
   handleModalClose();
   fetchGridData();
 };
+
+const onCreate = () => {
+  gridMeta.value.selectedJobId = null;
+  modalMeta.value.modalTitle = "New Job";
+  modalMeta.value.modalDescription = "Add New Job";
+  modalMeta.value.isJobFormModalOpen = true;
+};
+
+const onEdit = (row) => {
+  gridMeta.value.selectedJobId = row?.UniqueID;
+  modalMeta.value.modalTitle = "Edit";
+  modalMeta.value.modalDescription = "Edit Job information";
+  modalMeta.value.isJobFormModalOpen = true;
+};
+
+const onSelect = async (row) => {
+  gridMeta.value.selectedJobId = row?.UniqueID;
+};
+
+const onDblClick = async () => {
+  if (gridMeta.value.selectedJobId) {
+    modalMeta.value.modalTitle = "Edit";
+    modalMeta.value.modalDescription = "Edit Job information";
+    modalMeta.value.isJobFormModalOpen = true;
+  }
+};
+
+const onDelete = async (row: any) => {
+  await useApiFetch(`/api/jobs/${row?.UniqueID}`, {
+    method: "DELETE",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: "i-heroicons-trash-solid",
+          color: "green",
+        });
+        fetchGridData();
+      }
+    },
+  });
+};
 </script>
 
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar class="gmsTealHeader" title="Employee List">
-      </UDashboardNavbar>
-
-      <div class="px-4 py-2 gmsTealTitlebar">
-        <h2>Sorting</h2>
-      </div>
-
-      <UDashboardToolbar class="gmsTealToolbar">
+      <UDashboardToolbar>
         <template #left>
-          <UFormGroup label="Employee Status" name="state">
-            <USelect
-              v-model="selectStatus"
-              :options="['Active', 'Inactive']"
-              @change="handleSelectChange"
-              searchable="false"
-            />
-          </UFormGroup>
-          <div class="flex flex-row space-x-3 ml-5">
+          <template
+            v-for="[key, value] in Object.entries(headerFilters)"
+            :key="key"
+          >
+            <template v-if="value.options.length > 1">
+              <div class="basis-1/7 max-w-[200px]">
+                <UFormGroup :label="value.label" :name="key">
+                  <USelect
+                    v-model="filterValues[`${value.filter}`]"
+                    :options="value.options"
+                    @change="handleFilterChange()"
+                  />
+                </UFormGroup>
+              </div>
+            </template>
+          </template>
+
+          <div class="flex flex-row space-x-3">
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup label="Quantity" name="Quantity">
                 <div class="text-center text-bold">
-                  {{ gridMeta.numberOfEmployee }}
+                  {{ gridMeta.numberOfOrganization }}
                 </div>
               </UFormGroup>
             </div>
@@ -326,39 +387,16 @@ const handleModalSave = async () => {
         </template>
         <template #right>
           <UButton
-            variant="outline"
-            label="New Employee"
-            class="bg-gmsTealHeader"
+            label="Add New Job"
+            color="gray"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
         </template>
       </UDashboardToolbar>
 
-      <!-- New Employee Detail Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isEmployeeModalOpen"
-        :title="modalMeta.modalTitle"
-        :description="modalMeta.modalDescription"
-        :ui="{
-          width: 'w-[1600px] sm:max-w-8xl',
-          body: { padding: 'py-0 sm:pt-0' },
-        }"
-      >
-        <EmployeeForm
-          @close="handleModalClose"
-          @save="handleModalSave"
-          :selected-employee="gridMeta.selectedEmpployeeId"
-          :is-modal="true"
-        />
-      </UDashboardModal>
-
-      <div class="px-4 py-2 gmsTealTitlebar">
-        <h2>Lookup</h2>
-      </div>
-
       <UTable
-        :rows="gridMeta.employess"
+        :rows="gridMeta.organization"
         :columns="columns"
         :loading="gridMeta.isLoading"
         class="w-full"
@@ -433,7 +471,7 @@ const handleModalSave = async () => {
           <UPagination
             :max="7"
             :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfEmployee || 0"
+            :total="gridMeta.numberOfOrganization || 0"
             v-model="gridMeta.page"
             @update:model-value="handlePageChange()"
           />
@@ -441,25 +479,21 @@ const handleModalSave = async () => {
       </div>
     </UDashboardPanel>
   </UDashboardPage>
-  <!-- New Employee Detail Modal -->
+
+  <!-- New Organization Detail Modal -->
   <UDashboardModal
-    v-model="modalMeta.isEmployeeModalOpen"
+    v-model="modalMeta.isJobFormModalOpen"
     :title="modalMeta.modalTitle"
     :description="modalMeta.modalDescription"
     :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1600px] sm:max-w-8xl',
+      width: 'w-[1000px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <EmployeeForm
+    <JobForm
       @close="handleModalClose"
       @save="handleModalSave"
-      :selected-employee="gridMeta.selectedEmpployeeId"
+      :selected-job="gridMeta.selectedJobId"
       :is-modal="true"
     />
   </UDashboardModal>

@@ -1,14 +1,13 @@
-import { getAllEmployees } from "~/server/controller/employees";
+import { getProductionUsers } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
-    const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;
     
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getAllEmployees(page, pageSize, sortBy, sortOrder, filterParams);
-        return { body: list, message: '' }
+        const users = await getProductionUsers()
+        return { body: users, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

@@ -1,13 +1,14 @@
-import {  getSOCategories } from '~/server/controller/service';
+import { getAllOperation } from "~/server/controller/jobs";
 
 export default eventHandler(async (event) => {
   try {
+    const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;
     
     switch(method.toUpperCase()){
       case 'GET':
-        const categories = await getSOCategories()
-        return { body: categories, message: '' }
+        const list = await getAllOperation(page, pageSize, sortBy, sortOrder, filterParams);
+        return { body: list, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
