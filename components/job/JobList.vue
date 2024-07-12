@@ -19,13 +19,13 @@ const toast = useToast();
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
-    {
-      key: "UniqueID",
-      label: "UniqueID",
-      sortable: true,
-      sortDirection: "none",
-      filterable: true,
-    },
+    // {
+    //   key: "UniqueID",
+    //   label: "UniqueID",
+    //   sortable: true,
+    //   sortDirection: "none",
+    //   filterable: true,
+    // },
     {
       key: "NUMBER",
       label: "Job #",
@@ -486,7 +486,7 @@ const onDelete = async (row: any) => {
     :title="modalMeta.modalTitle"
     :description="modalMeta.modalDescription"
     :ui="{
-      width: 'w-[1000px] sm:max-w-7xl',
+      width: 'w-[1100px] sm:max-w-7xl',
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
