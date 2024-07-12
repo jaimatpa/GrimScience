@@ -363,6 +363,7 @@ export const processCreditCard = async (merchantinfo, orderInfo) => {
         message: '',
         transactionID: ''
       }
+      console.log(response.getTransactionResponse().getErrors())
       if (response != null) {
         if (response.getMessages().getResultCode() == APIContracts.MessageTypeEnum.OK) {
           if (response.getTransactionResponse().getMessages() != null) {

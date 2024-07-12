@@ -121,13 +121,13 @@
     shipdate: null,
     subtotal: 0.0,
     total: 0.0,
-    lessdiscount: 0.0,
-    lessdown: 0.0,
-    tax: 0.0,
-    cod: 0.0,
+    lessdiscount: '0.0',
+    lessdown: '0.0',
+    tax: '0.0',
+    cod: '0.0',
     exempt: null,
     checking: null, 
-    shipping: 0.0,
+    shipping: '0.0',
     authorization: null,
     TrackingNumbers: null,
     quotenumber: 0,
@@ -184,6 +184,8 @@
   const mdetStyle = ref('outline-none')
   const codStyle = ref('outline-none')
   const shippingStyle = ref('outline-none')
+  const checkingStyle = ref('outline-none')
+  const checknoStyle = ref('outline-none')
   const cardnumberStyle = ref('outline-none')
   const expirationmonthStyle = ref('outline-none')
   const expirationyearStyle = ref('outline-none')
@@ -471,32 +473,38 @@
   const onCalculateInvoiceValues = () => {
     let flag = 1;
     if(!orderList.value.length) flag = 0;
-    if(formData.lessdiscount < 0) {
+    if(Number(formData.lessdiscount) < 0) {
       flag = 0
       lessdiscountStyle.value = 'outline outline-2 outline-[red]'
     } else lessdiscountStyle.value = 'outline-none'
-    if(formData.lessdown < 0) {
+    if(Number(formData.lessdown) < 0) {
+      console.log(Number(formData.lessdown))
       flag = 0
       lessdownStyle.value = 'outline outline-2 outline-[red]'
     } else lessdownStyle.value = 'outline-none'
-    if(formData.tax < 0) {
+    if(Number(formData.tax) < 0) {
       flag = 0
       taxStyle.value = 'outline outline-2 outline-[red]'
     } else taxStyle.value = 'outline-none'
-    if(formData.MDET < 0) {
+    if(Number(formData.MDET) < 0) {
       flag = 0
       mdetStyle.value = 'outline outline-2 outline-[red]'
     } else mdetStyle.value = 'outline-none'
-    if(formData.cod < 0) {
+    if(Number(formData.cod) < 0) {
       flag = 0
       codStyle.value = 'outline outline-2 outline-[red]'
     } else codStyle.value = 'outline-none'
-    if(formData.shipping < 0) {
+    if(Number(formData.shipping) < 0) {
       flag = 0
       shippingStyle.value = 'outline outline-2 outline-[red]'
     } else shippingStyle.value = 'outline-none'
-    if(!flag) return
 
+    formData.lessdiscount = Number(formData.lessdiscount).toFixed(2)
+    formData.lessdown = Number(formData.lessdown).toFixed(2)
+    formData.tax = Number(formData.tax).toFixed(2)
+    formData.MDET = Number(formData.MDET).toFixed(2)
+    formData.cod = Number(formData.cod).toFixed(2)
+    formData.shipping = Number(formData.shipping).toFixed(2)
     itemsTotal.value = 0.0
     orderList.value.forEach((order) => {
       itemsTotal.value += (order?.quantity??0 as number) * (order?.PRIMARYPRICE1??0 as number)
@@ -511,7 +519,8 @@
   const onProcessCreditCardBtnClick = () => {
     modalMeta.value.isCreditCardInfoInputModalOpen = true
   }
-  const onCreditCardInfoOkBtnClick = () => {
+  const onProcessCreditCard = async () => {
+    creditCardMeta.value.amount = formData.total
     if(creditCardMeta.value.cardnumber.length === 19) {
       cardnumberStyle.value = 'outline-none'
     } else {
@@ -530,12 +539,6 @@
       ccvStyle.value = 'outline outline-2 outline-[red]'
       return
     } else ccvStyle.value = 'outline-none'
-    creditCardMeta.value.amount = formData.total
-
-    modalMeta.value.isCreditCardInfoInputModalOpen = false
-    modalMeta.value.isCreditCardAmountInputModalOpen = true
-  }
-  const onProcessCreditCard = async () => {
     await useApiFetch(`/api/invoices/creditcard/`, {
       method: 'POST',
       body: {
@@ -562,13 +565,14 @@
             icon: 'i-heroicons-shopping-cart',
             color: 'green'
           })
-        } else {
-          toast.add({
-            description: response._data.error,
-            icon: 'i-heroicons-exclamation-triangle',
-            color: 'red'
-          })
         }
+      },
+      onResponseError({response}) {
+        toast.add({
+          description: response._data?.error??response._data?.message??'',
+          icon: 'i-heroicons-exclamation-triangle',
+          color: 'red'
+        })
       }
     })
   }
@@ -1178,7 +1182,13 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.lessdiscount"
-                    type="number"
+                    v-maska="{
+                      mask: '0.99',
+                      tokens: {
+                        0: { pattern: /[0-9]/, multiple: true },
+                        9: { pattern: /[0-9]/, optional: true },
+                      }
+                    }"
                     :ui="{
                       base: lessdiscountStyle + ' text-right'
                     }"
@@ -1193,7 +1203,13 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.lessdown"
-                    type="number"
+                    v-maska="{
+                      mask: '0.99',
+                      tokens: {
+                        0: { pattern: /[0-9]/, multiple: true },
+                        9: { pattern: /[0-9]/, optional: true },
+                      }
+                    }"
                     :ui="{
                       base: lessdownStyle + ' text-right'
                     }"
@@ -1222,7 +1238,13 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.tax"
-                    type="number"
+                    v-maska="{
+                      mask: '0.99',
+                      tokens: {
+                        0: { pattern: /[0-9]/, multiple: true },
+                        9: { pattern: /[0-9]/, optional: true },
+                      }
+                    }"
                     :ui="{
                       base: taxStyle + ' text-right'
                     }"
@@ -1251,7 +1273,13 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.MDET"
-                    type="number"
+                    v-maska="{
+                      mask: '0.99',
+                      tokens: {
+                        0: { pattern: /[0-9]/, multiple: true },
+                        9: { pattern: /[0-9]/, optional: true },
+                      }
+                    }"
                     :ui="{
                       base: mdetStyle + ' text-right'
                     }"
@@ -1266,7 +1294,13 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.cod"
-                    type="number"
+                    v-maska="{
+                      mask: '0.99',
+                      tokens: {
+                        0: { pattern: /[0-9]/, multiple: true },
+                        9: { pattern: /[0-9]/, optional: true },
+                      }
+                    }"
                     :ui="{
                       base: codStyle + ' text-right'
                     }"
@@ -1281,7 +1315,13 @@
                 <div class="basis-1/2">
                   <UInput
                     v-model="formData.shipping"
-                    type="number"
+                    v-maska="{
+                      mask: '0.99',
+                      tokens: {
+                        0: { pattern: /[0-9]/, multiple: true },
+                        9: { pattern: /[0-9]/, optional: true },
+                      }
+                    }"
                     :ui="{
                       base: shippingStyle + ' text-right'
                     }"
@@ -1335,10 +1375,21 @@
             </div>
             <div class="basis-1/2">
               <UFormGroup 
-                label="Check #"
+                label="Check#"
               >
                 <UInput
                   v-model="formData.checking"
+                  v-maska="'####'"
+                  :ui="{
+                    base: checkingStyle
+                  }"
+                  @change="() => {
+                    if(formData.checking < 4) {
+                      checkingStyle = 'outline outline-2 outline-[red]'
+                    } else {
+                      checkingStyle = 'outline-none'
+                    }
+                  }"
                 />
               </UFormGroup>
             </div>
@@ -1358,6 +1409,15 @@
                   <div class="basis-1/2">
                     <UInput
                       v-model="formData.checknoorcreditcardinfo"
+                      v-maska="'####'"
+                      :ui="{
+                        base: checknoStyle
+                      }"
+                      @change="() => {
+                        if(formData.checknoorcreditcardinfo.length < 4) {
+                          checknoStyle = 'outline outline-2 outline-[red]'
+                        } else checknoStyle = 'outline-none'
+                      }"
                     />
                   </div>
                 </div>
@@ -1450,19 +1510,34 @@
     }"
   >
     <div>
-      <UFormGroup label="Card Number">
-        <div class="w-full">
-          <UInput 
-            v-model="creditCardMeta.cardnumber" 
-            placeholder="1234 5678 9012 3456" 
-            type="text" 
-            :maxlength="19" 
-            v-maska="'#### #### #### ####'"
-            :ui="{base: cardnumberStyle}"
-            autofocus
-          />
-        </div>
-      </UFormGroup>
+      <div>
+        <UFormGroup label="Amount">
+          <UInput type="number" v-model="creditCardMeta.amount" disabled/>
+        </UFormGroup>
+      </div>
+      <div class="mt-2">
+        <UFormGroup label="Card Number">
+          <div class="w-full">
+            <UInput 
+              v-model="creditCardMeta.cardnumber" 
+              placeholder="1234 5678 9012 3456" 
+              type="text" 
+              :maxlength="19" 
+              v-maska="'#### #### #### ####'"
+              :ui="{base: cardnumberStyle}"
+              autofocus
+              @change="() => {
+                if(creditCardMeta.cardnumber.length === 19) {
+                  cardnumberStyle = 'outline-none'
+                } else {  
+                  cardnumberStyle = 'outline outline-2 outline-[red]'
+                  return
+                }
+              }"
+            />
+          </div>
+        </UFormGroup>
+      </div>
       <div class="mt-2 flex justify-between">
         <UFormGroup label="Expiration Date">
           <div class="flex flex-row space-x-2">
@@ -1475,6 +1550,12 @@
                 :ui="{
                   base: expirationmonthStyle
                 }"
+                @change="() => {
+                  if(creditCardMeta.expirationmonth < 1 || creditCardMeta.expirationmonth > 13) {
+                    expirationmonthStyle = 'outline outline-2 outline-[red]'
+                    return
+                  } else expirationmonthStyle = 'outline-none'
+                }"
               />
             </div>
             <div class="w-[100px]">
@@ -1484,6 +1565,12 @@
                 type="number" 
                 :ui="{
                   base: expirationyearStyle
+                }"
+                @change="() => {
+                  if(creditCardMeta.expirationyear < 1) {
+                    expirationyearStyle = 'outline outline-2 outline-[red]'
+                    return
+                  } else expirationyearStyle = 'outline-none'
                 }"
               />
             </div>
@@ -1503,7 +1590,7 @@
       </div>
       <div class="flex flex-row-reverse mt-2">
         <div class="min-w-[60px]">
-          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onCreditCardInfoOkBtnClick"/>
+          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onProcessCreditCard"/>
         </div>
         <div class="min-w-[60px] mr-3">
           <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="modalMeta.isCreditCardInfoInputModalOpen = false"/>
@@ -1512,7 +1599,6 @@
     </div>    
   </UDashboardModal>
   <!-- Credit Card Amount Input Modal -->
-     <!-- Update Price Modal -->
   <UDashboardModal 
     v-model="modalMeta.isCreditCardAmountInputModalOpen"
     :ui="{
