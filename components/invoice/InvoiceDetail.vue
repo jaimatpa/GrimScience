@@ -539,40 +539,143 @@
       ccvStyle.value = 'outline outline-2 outline-[red]'
       return
     } else ccvStyle.value = 'outline-none'
-    await useApiFetch(`/api/invoices/creditcard/`, {
+    // await useApiFetch(`/api/invoices/creditcard/`, {
+    //   method: 'POST',
+    //   body: {
+    //     merchantinfo: {
+    //       ...creditCardMeta.value,
+    //       cardnumber: creditCardMeta.value.cardnumber.replaceAll(' ', '')
+    //     },
+    //     orderinfo: {
+    //       fname: customerData.fname,
+    //       lname: customerData.lname,
+    //       company: customerData.company1,
+    //       country: customerData.country,
+    //       state: customerData.state,
+    //       city: customerData.city,
+    //       address: customerData.address,
+    //       zip: customerData.zip
+    //     }
+    //   },
+    //   onResponse({response}) {
+    //     if(response.status === 200) {
+    //       toast.add({
+    //         title: "Success",
+    //         description: response._data.message,
+    //         icon: 'i-heroicons-shopping-cart',
+    //         color: 'green'
+    //       })
+    //     }
+    //   },
+    //   onResponseError({response}) {
+    //     toast.add({
+    //       description: response._data?.error??response._data?.message??'',
+    //       icon: 'i-heroicons-exclamation-triangle',
+    //       color: 'red'
+    //     })
+    //   }
+    // })
+    $fetch('https://apitest.authorize.net/xml/v1/request.api', {
       method: 'POST',
       body: {
-        merchantinfo: {
-          ...creditCardMeta.value,
-          cardnumber: creditCardMeta.value.cardnumber.replaceAll(' ', '')
-        },
-        orderinfo: {
-          fname: customerData.fname,
-          lname: customerData.lname,
-          company: customerData.company1,
-          country: customerData.country,
-          state: customerData.state,
-          city: customerData.city,
-          address: customerData.address,
-          zip: customerData.zip
+        "createTransactionRequest": {
+            "merchantAuthentication": {
+                "name": "5J2Snp5s",
+                "transactionKey": "6zL9453dp7t2WR4S"
+            },
+            "transactionRequest": {
+                "transactionType": "authCaptureTransaction",
+                "amount": creditCardMeta.value.amount,
+                "payment": {
+                    "creditCard": {
+                        "cardNumber": creditCardMeta.value.cardnumber.replaceAll(' ', ''),
+                        "expirationDate": `${creditCardMeta.value.expirationyear}-${creditCardMeta.value.expirationmonth}`,
+                        "cardCode": creditCardMeta.value.ccv
+                    }
+                },
+                "lineItems": {
+                    "lineItem": {
+                        "itemId": "1",
+                        "name": "vase",
+                        "description": "Cannes logo",
+                        "quantity": "1",
+                        "unitPrice": "45.00"
+                    }
+                },
+                "tax": {
+                    "amount": "4.26",
+                    "name": "level2 tax name",
+                    "description": "level2 tax"
+                },
+                "duty": {
+                    "amount": "8.55",
+                    "name": "duty name",
+                    "description": "duty description"
+                },
+                "shipping": {
+                    "amount": "4.26",
+                    "name": "level2 tax name",
+                    "description": "level2 tax"
+                },
+                "poNumber": "456654",
+                "customer": {
+                    "id": "99999456654"
+                },
+                "billTo": {
+                    "firstName": "Ellen",
+                    "lastName": "Johnson",
+                    "company": "Souveniropolis",
+                    "address": "14 Main Street",
+                    "city": "Pecan Springs",
+                    "state": "TX",
+                    "zip": "44628",
+                    "country": "US"
+                },
+                "shipTo": {
+                    "firstName": "China",
+                    "lastName": "Bayles",
+                    "company": "Thyme for Tea",
+                    "address": "12 Main Street",
+                    "city": "Pecan Springs",
+                    "state": "TX",
+                    "zip": "44628",
+                    "country": "US"
+                },
+                "customerIP": "192.168.1.1",
+                "transactionSettings": {
+                    "setting": {
+                        "settingName": "testRequest",
+                        "settingValue": "false"
+                    }
+                },
+                "userFields": {
+                    "userField": [
+                        {
+                            "name": "MerchantDefinedFieldName1",
+                            "value": "MerchantDefinedFieldValue1"
+                        },
+                        {
+                            "name": "favorite_color",
+                            "value": "blue"
+                        }
+                    ]
+                },
+          "processingOptions": {
+                "isSubsequentAuth": "true"
+                },
+                "subsequentAuthInformation": {
+                "originalNetworkTransId": "123456789NNNH",
+                "originalAuthAmount": "45.00",
+                "reason": "resubmission"         
+                },			
+                "authorizationIndicatorType": {
+                "authorizationIndicator": "final"
+              }
+            }
         }
       },
-      onResponse({response}) {
-        if(response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: 'i-heroicons-shopping-cart',
-            color: 'green'
-          })
-        }
-      },
-      onResponseError({response}) {
-        toast.add({
-          description: response._data?.error??response._data?.message??'',
-          icon: 'i-heroicons-exclamation-triangle',
-          color: 'red'
-        })
+      onResponse: (response) => {
+        console.log(response);
       }
     })
   }
