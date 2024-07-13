@@ -1,3 +1,5 @@
+@import "@bryntum/calendar/calendar.stockholm.css";
+
 .white-divider div {
   border-color: #fff !important;
 }

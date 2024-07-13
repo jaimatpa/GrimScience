@@ -12,6 +12,8 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
+    "@bryntum/calendar": "npm:@bryntum/calendar-trial@^6.0.1",
+    "@bryntum/calendar-vue-3": "^6.0.1",
     "@iconify-json/f7": "^1.1.0",
     "@iconify-json/heroicons": "^1.1.21",
     "@iconify-json/simple-icons": "^1.1.101",
