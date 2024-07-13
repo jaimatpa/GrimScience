@@ -748,6 +748,9 @@ else
           </div>
           <div class="flex space-x-6 mt-4">
             <div class="w-[120px]">
+              <UButton label="Label" color="green" variant="outline" icon="i-heroicons-tag" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}"/>
+            </div>
+            <div class="w-[120px]">
               <UButton label="Order" color="green" variant="outline" icon="i-heroicons-shopping-cart" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" @click="onOrderDetail()"/>
             </div>
             <div class="w-[120px]">
