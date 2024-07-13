@@ -517,10 +517,10 @@
     formData.total = Math.round(formData.total * 100) / 100;
   }
   const onProcessCreditCardBtnClick = () => {
+    creditCardMeta.value.amount = formData.total
     modalMeta.value.isCreditCardInfoInputModalOpen = true
   }
   const onProcessCreditCard = async () => {
-    creditCardMeta.value.amount = formData.total
     if(creditCardMeta.value.cardnumber.length === 19) {
       cardnumberStyle.value = 'outline-none'
     } else {

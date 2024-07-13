@@ -44,7 +44,6 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^0.3.10",
-    "@types/authorizenet": "^1.0.2",
     "eslint": "^9.2.0",
     "vue-tsc": "^2.0.16"
   }
