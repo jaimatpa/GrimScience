@@ -20,7 +20,8 @@
   })
   
   const toast = useToast()
-  
+  const config = useRuntimeConfig()
+
   const productColumns = ref([{
     key: 'PRODUCTLINE',
     label: 'Product Line',
@@ -228,8 +229,11 @@
         }
       }
     })
-    await useApiFetch(`/api/invoices/detail/${props.selectedOrder}`, {
+    await useApiFetch(`/api/invoices/detail/`, {
       method: 'GET',
+      params: {
+        orderid: props.selectedOrder
+      },
       onResponse({ response }) {
         if(response.status === 200) {
           for (let i = 0; i < response._data.body.length; i++) {
@@ -248,7 +252,6 @@
       }
     })
     await propertiesInit()
-    onCalculateInvoiceValues()
   }
   const propertiesInit = async () => {
     loadingOverlay.value = true
@@ -539,49 +542,13 @@
       ccvStyle.value = 'outline outline-2 outline-[red]'
       return
     } else ccvStyle.value = 'outline-none'
-    // await useApiFetch(`/api/invoices/creditcard/`, {
-    //   method: 'POST',
-    //   body: {
-    //     merchantinfo: {
-    //       ...creditCardMeta.value,
-    //       cardnumber: creditCardMeta.value.cardnumber.replaceAll(' ', '')
-    //     },
-    //     orderinfo: {
-    //       fname: customerData.fname,
-    //       lname: customerData.lname,
-    //       company: customerData.company1,
-    //       country: customerData.country,
-    //       state: customerData.state,
-    //       city: customerData.city,
-    //       address: customerData.address,
-    //       zip: customerData.zip
-    //     }
-    //   },
-    //   onResponse({response}) {
-    //     if(response.status === 200) {
-    //       toast.add({
-    //         title: "Success",
-    //         description: response._data.message,
-    //         icon: 'i-heroicons-shopping-cart',
-    //         color: 'green'
-    //       })
-    //     }
-    //   },
-    //   onResponseError({response}) {
-    //     toast.add({
-    //       description: response._data?.error??response._data?.message??'',
-    //       icon: 'i-heroicons-exclamation-triangle',
-    //       color: 'red'
-    //     })
-    //   }
-    // })
     $fetch('https://apitest.authorize.net/xml/v1/request.api', {
       method: 'POST',
       body: {
         "createTransactionRequest": {
             "merchantAuthentication": {
-                "name": "5J2Snp5s",
-                "transactionKey": "6zL9453dp7t2WR4S"
+                "name": config.public.AUTHORIZE_API_LOGIN_KEY,
+                "transactionKey": config.public.AUTHORIZE_TRANSACTION_KEY
             },
             "transactionRequest": {
                 "transactionType": "authCaptureTransaction",
@@ -603,45 +570,45 @@
                     }
                 },
                 "tax": {
-                    "amount": "4.26",
+                    "amount": formData.tax,
                     "name": "level2 tax name",
                     "description": "level2 tax"
                 },
                 "duty": {
-                    "amount": "8.55",
+                    "amount": formData.MDET,
                     "name": "duty name",
                     "description": "duty description"
                 },
                 "shipping": {
-                    "amount": "4.26",
+                    "amount": formData.shipping,
                     "name": "level2 tax name",
                     "description": "level2 tax"
                 },
-                "poNumber": "456654",
+                "poNumber": "",
                 "customer": {
-                    "id": "99999456654"
+                    "id": customerData.customerID
                 },
                 "billTo": {
-                    "firstName": "Ellen",
-                    "lastName": "Johnson",
-                    "company": "Souveniropolis",
-                    "address": "14 Main Street",
-                    "city": "Pecan Springs",
-                    "state": "TX",
-                    "zip": "44628",
-                    "country": "US"
+                    "firstName": customerData.fname,
+                    "lastName": customerData.lname,
+                    "company": customerData.company1,
+                    "address": customerData.address,
+                    "city": customerData.city,
+                    "state": customerData.state,
+                    "zip": customerData.zip,
+                    "country": customerData.country
                 },
                 "shipTo": {
-                    "firstName": "China",
-                    "lastName": "Bayles",
-                    "company": "Thyme for Tea",
-                    "address": "12 Main Street",
-                    "city": "Pecan Springs",
-                    "state": "TX",
-                    "zip": "44628",
-                    "country": "US"
+                    "firstName": customerData.fname,
+                    "lastName": customerData.lname,
+                    "company": customerData.company1,
+                    "address": customerData.address,
+                    "city": customerData.city,
+                    "state": customerData.state,
+                    "zip": customerData.zip,
+                    "country": customerData.country
                 },
-                "customerIP": "192.168.1.1",
+                "customerIP": "",
                 "transactionSettings": {
                     "setting": {
                         "settingName": "testRequest",
@@ -664,8 +631,8 @@
                 "isSubsequentAuth": "true"
                 },
                 "subsequentAuthInformation": {
-                "originalNetworkTransId": "123456789NNNH",
-                "originalAuthAmount": "45.00",
+                "originalNetworkTransId": config.public.AUTHORIZE_TRANSACTION_KEY,
+                "originalAuthAmount": formData.subtotal,
                 "reason": "resubmission"         
                 },			
                 "authorizationIndicatorType": {
@@ -674,8 +641,22 @@
             }
         }
       },
-      onResponse: (response) => {
-        console.log(response);
+      onResponse({response}) {
+        if(response._data.messages.resultCode === 'Ok') {
+          toast.add({
+            title: 'Success',
+            description: response._data?.transactionResponse?.messages[0]?.description??'',
+            icon: 'i-heroicons-shopping-cart',
+            color: 'green'
+          })
+        } else {
+          toast.add({
+            title: 'Fail',
+            description: response._data?.transactionResponse?.errors[0]?.errorText ?? response._data?.messages?.message[0]?.text,
+            icon: 'i-heroicons-exclamation-triangle',
+            color: 'red'
+          })
+        }
       }
     })
   }
@@ -690,7 +671,16 @@
     if(!props.selectedOrder) { // Create Order
       await useApiFetch('/api/invoices', {
         method: 'POST',
-        body: {...formData, orderDetail: orderList.value},
+        body: {
+          ...formData, 
+          lessdiscount: Number(formData.lessdiscount),
+          lessdown: Number(formData.lessdown),
+          tax: Number(formData.tax),
+          cod: Number(formData.cod),
+          shipping: Number(formData.shipping),
+          MDET: formData.MDET ? Number(formData.MDET) : null,
+          orderDetail: orderList.value
+        },
         onResponse({ response }) {
           if(response.status === 201) {
             toast.add({
@@ -707,7 +697,16 @@
     } else {  // Update Order
       await useApiFetch(`/api/invoices/${props.selectedOrder}`, { 
         method: 'PUT',
-        body: {...formData, orderDetail: orderList.value},
+        body: {
+          ...formData, 
+          lessdiscount: Number(formData.lessdiscount),
+          lessdown: Number(formData.lessdown),
+          tax: Number(formData.tax),
+          cod: Number(formData.cod),
+          shipping: Number(formData.shipping),
+          MDET: formData.MDET ? Number(formData.MDET) : null,
+          orderDetail: orderList.value
+        },
         onResponse({ response }) {
           if(response.status === 200) {
             toast.add({
@@ -1028,7 +1027,7 @@
                   <div class="flex flex-row space-x-3">
                     <div class="flex items-center">Serial:</div>
                     <div class="min-w-[150px]">
-                      <USelect
+                      <UInputMenu
                         v-model="formData.serial"
                         :options="[]"
                       />
@@ -1469,7 +1468,7 @@
               <UFormGroup 
                 label="Terms"
               >
-                <UInputMenu
+                <USelect
                   v-model="formData.terms"
                   v-model:query="formData.terms"
                   :options="termOptions"
@@ -1647,7 +1646,9 @@
             <div class="w-[100px]">
               <UInput 
                 v-model="creditCardMeta.expirationmonth" 
-                placeholder="MM" type="number" 
+                placeholder="MM" 
+                type="number"
+                v-maska="'##'"
                 :max="12" 
                 :min="1" 
                 :ui="{
@@ -1664,8 +1665,9 @@
             <div class="w-[100px]">
               <UInput 
                 v-model="creditCardMeta.expirationyear" 
-                placeholder="YY" 
+                placeholder="YYYY" 
                 type="number" 
+                v-maska="'####'"
                 :ui="{
                   base: expirationyearStyle
                 }"
@@ -1700,31 +1702,5 @@
         </div>
       </div>
     </div>    
-  </UDashboardModal>
-  <!-- Credit Card Amount Input Modal -->
-  <UDashboardModal 
-    v-model="modalMeta.isCreditCardAmountInputModalOpen"
-    :ui="{
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' }, 
-      body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
-      width: 'w-[300px]'
-    }"
-  >
-    <div>
-      <div class="flex flex-row space-x-5">
-        <div class="flex items-center">Amount: </div>
-        <div class="flex-1 mr-4">
-          <UInput type="number" v-model="creditCardMeta.amount"  autofocus />
-        </div>
-      </div>
-      <div class="flex flex-row-reverse mt-2">
-        <div class="min-w-[60px]">
-          <UButton label="OK" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onProcessCreditCard"/>
-        </div>
-        <div class="min-w-[60px] mr-3">
-          <UButton label="Cancel" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="modalMeta.isCreditCardAmountInputModalOpen = false"/>
-        </div>
-      </div>
-    </div>
   </UDashboardModal>
 </template>
