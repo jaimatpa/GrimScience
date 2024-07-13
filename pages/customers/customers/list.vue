@@ -94,32 +94,12 @@
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'label',
-        label: 'Label',
-        kind: 'actions'
-      }, {
-        key: 'order',
-        label: 'Order',
-        kind: 'actions'
-      }, {
-        key: 'quote',
-        label: 'Quote',
-        kind: 'actions'
-      }, {
-        key: 'serviceOrder',
-        label: 'Service Order',
-        kind: 'actions'
-      }, {
-        key: 'siteVisit',
-        label: 'Site Visit',
-        kind: 'actions'
-      }, {
         key: 'edit',
         label: 'Edit',
         kind: 'actions'
       }, {
         key: 'delete',
-        label: 'Del',
+        label: 'Delete',
         kind: 'actions'
       }
     ],
@@ -239,22 +219,6 @@
     gridMeta.value.selectedCustomerId = row?.UniqueID
     modalMeta.value.modalTitle = "Edit";
     modalMeta.value.isCustomerModalOpen = true
-  }
-  const onOrderDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
-    modalMeta.value.isOrderDetailModalOpen = true
-  }
-  const onQuoteDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
-    modalMeta.value.isQuoteDetailModalOpen = true
-  }
-  const onServiceOrderDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
-    modalMeta.value.isServiceOrderDetailModalOpen = true
-  }
-  const onSiteVisitDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
-    modalMeta.value.isSiteVisitModalOpen = true
   }
   const onDelete = async (row: any) => {
     await useApiFetch(`/api/customers/${row?.UniqueID}`, {
@@ -466,31 +430,6 @@
               </div>
             </template>
         </template>
-        <template #label-data="{row}">
-          <UTooltip text="Label" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-tag" @click=""/>
-          </UTooltip>
-        </template>
-        <template #order-data="{row}">
-          <UTooltip text="Order" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-shopping-cart" @click="onOrderDetail(row)"/>
-          </UTooltip>
-        </template>
-        <template #quote-data="{row}">
-          <UTooltip text="Quote" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-currency-dollar" @click="onQuoteDetail(row)"/>
-          </UTooltip>
-        </template>
-        <template #serviceOrder-data="{row}">
-          <UTooltip text="Service Order" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-chat-bubble-left-ellipsis" @click="onServiceOrderDetail(row)"/>
-          </UTooltip>
-        </template>
-        <template #siteVisit-data="{row}">
-          <UTooltip text="Site Visit" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-clipboard-document-list" @click="onSiteVisitDetail(row)"/>
-          </UTooltip>
-        </template>
         <template #edit-data="{row}">
           <UTooltip text="Edit" class="flex justify-center">
             <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)"/>
@@ -521,58 +460,6 @@
     }"
   >
     <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId" :is-modal="true"/>
-  </UDashboardModal>
-  <!-- Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isOrderDetailModalOpen"
-    title="Invoice"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl', 
-    }"
-  >
-    <InvoiceDetail :selected-customer="gridMeta.selectedCustomerId" @close="modalMeta.isOrderDetailModalOpen = false"/>
-  </UDashboardModal>      
-  <!-- Quote Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isQuoteDetailModalOpen"
-    title="Quote"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1000px] sm:max-w-7xl'
-    }"
-  >
-    <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId"/>
-  </UDashboardModal>
-  <!-- Service Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isServiceOrderDetailModalOpen"
-    title="Service Order"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl'
-    }"
-  >
-    <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId"/>
-  </UDashboardModal>
-  <!-- Site Visit Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isSiteVisitModalOpen"
-    title="Site Visit"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl'
-    }"
-  >
-    <CustomersSiteVisitDetail :selected-customer="gridMeta.selectedCustomerId"/>
   </UDashboardModal>
 </template>
 <style scoped>

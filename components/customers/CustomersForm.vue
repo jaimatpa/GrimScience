@@ -204,6 +204,28 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   emit('save')
 }
 
+  const modalMeta = ref({
+      isCustomerModalOpen: false,
+      isOrderDetailModalOpen: false,
+      isQuoteDetailModalOpen: false,
+      isServiceOrderDetailModalOpen: false,
+      isSiteVisitModalOpen: false,
+      modalTitle: "New Customer",
+  })
+
+  const onOrderDetail = () => {
+      modalMeta.value.isOrderDetailModalOpen = true
+  }
+  const onQuoteDetail = () => {
+    modalMeta.value.isQuoteDetailModalOpen = true
+  }
+    const onServiceOrderDetail = () => {
+    modalMeta.value.isServiceOrderDetailModalOpen = true
+  }
+    const onSiteVisitDetail = () => {
+    modalMeta.value.isSiteVisitModalOpen = true
+  }
+
 if(props.selectedCustomer !== null) 
   editInit()
 else 
@@ -696,16 +718,103 @@ else
         </div>
       </div>
   
-      <div class="flex justify-end gap-3">
+      <div class="flex justify-start gap-3">
+        <UButton 
+          color="cyan" 
+          variant="outline"
+          type="submit"
+          :icon="selectedCustomer !== null ? 'i-heroicons-pencil-square': 'i-heroicons-plus'"
+          :label="selectedCustomer !== null ? 'Modify Customer' : 'Add Customer'"
+        />
         <UButton color="red" variant="outline"
           :label="!isModal ? 'Go back': 'Cancel'"
           @click="handleClose"
         />
-        <UButton color="cyan" variant="outline"
-          type="submit"
-          label="Save"
-        />
       </div>
     </UForm>
+    <template v-if="selectedCustomer !== null">
+      <div class="flex gap-x-4">
+        <div>
+          <div class="px-4 py-2 gmsPurpleTitlebar mt-4">
+            <h2>Serial Record</h2>
+          </div>
+          <div class="w-[180px] mt-4">
+            <UButton label="View Serial Record" color="green" variant="outline" icon="i-heroicons-eye" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}"/>
+          </div>
+        </div>
+        <div class="flex flex-col w-full">
+          <div class="px-4 py-2 gmsPurpleTitlebar mt-4">
+            <h2>Create New</h2>
+          </div>
+          <div class="flex space-x-6 mt-4">
+            <div class="w-[120px]">
+              <UButton label="Order" color="green" variant="outline" icon="i-heroicons-shopping-cart" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" @click="onOrderDetail()"/>
+            </div>
+            <div class="w-[120px]">
+              <UButton label="Quote" color="green" variant="outline" icon="i-heroicons-currency-dollar" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" @click="onQuoteDetail()"/>
+            </div>
+            <div class="w-[140px]">
+              <UButton label="Service Order" color="green" variant="outline" icon="i-heroicons-chat-bubble-left-ellipsis" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" @click="onServiceOrderDetail()"/>
+            </div>
+            <div class="w-[120px]">
+              <UButton label="Site Visit" color="green" variant="outline" icon="i-heroicons-clipboard-document-list" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" @click="onSiteVisitDetail()"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Order Modal -->
+    <UDashboardModal
+      v-model="modalMeta.isOrderDetailModalOpen"
+      title="Invoice"
+      :ui="{
+        title: 'text-lg',
+        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1800px] sm:max-w-9xl', 
+      }"
+    >
+      <InvoiceDetail :selected-customer="selectedCustomer" @close="modalMeta.isOrderDetailModalOpen = false"/>
+    </UDashboardModal>      
+    <!-- Quote Modal -->
+    <UDashboardModal
+      v-model="modalMeta.isQuoteDetailModalOpen"
+      title="Quote"
+      :ui="{
+        title: 'text-lg',
+        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1000px] sm:max-w-7xl'
+      }"
+    >
+      <CustomersQuoteDetail :selected-customer="selectedCustomer"/>
+    </UDashboardModal>
+    <!-- Service Order Modal -->
+    <UDashboardModal
+      v-model="modalMeta.isServiceOrderDetailModalOpen"
+      title="Service Order"
+      :ui="{
+        title: 'text-lg',
+        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1800px] sm:max-w-9xl'
+      }"
+    >
+      <ServiceOrderDetail :selected-customer="selectedCustomer"/>
+    </UDashboardModal>
+    <!-- Site Visit Modal -->
+    <UDashboardModal
+      v-model="modalMeta.isSiteVisitModalOpen"
+      title="Site Visit"
+      :ui="{
+        title: 'text-lg',
+        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1800px] sm:max-w-9xl'
+      }"
+    >
+      <CustomersSiteVisitDetail :selected-customer="selectedCustomer"/>
+    </UDashboardModal>
   </template>
 </template>
