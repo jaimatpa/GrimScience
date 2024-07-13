@@ -1,9 +1,17 @@
 <script lang="ts" setup>
 import { format } from "date-fns";
+// import "~/components/service/ScheduleView.vue";
+import {
+    BryntumSchedulerProjectModel,
+    BryntumScheduler
+} from '@bryntum/scheduler-vue-3';
+import "@bryntum/scheduler/scheduler.stockholm.css";
+
 import type { UTableColumn } from "~/types";
 
+
 useSeoMeta({
-  title: "Grimm-Service schedule",
+  title: "Grimm Scentific Schedule",
 });
 
 onMounted(() => {
@@ -17,6 +25,7 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 const route = useRoute();
 const toast = useToast();
 const exportIsLoading = ref(false);
+const schedulerView = ref(false)
 
 const headerCheckboxes = ref({
   field: {
@@ -482,6 +491,54 @@ const excelExport = async () => {
   location.href = `/api/service/schedule/exportlist?${paramsString}`;
   exportIsLoading.value = false;
 };
+
+
+  // Scheduler
+  const scheduler = ref(null);
+  const project = ref(null);
+
+  const useSchedulerConfig = () => {
+      return {
+          columns   : [{ text : 'Name', field : 'name',  width : 160 }],
+          startDate : new Date(2022, 0, 1),
+          endDate   : new Date(2022, 0, 10)
+      };
+  };
+  const useProjectConfig = () => {
+      return {
+      };
+  };
+
+  const schedulerConfig = reactive(useSchedulerConfig());
+  const projectConfig = reactive(useProjectConfig());
+
+  const resources = ref(null);
+  const events = ref(null);
+  const scColumns = ref(null);
+  const assignments = ref(null);
+  const dependencies = ref(null);
+
+  scColumns.value  = [{ text : 'Name', field : 'name',  width : 160 }];
+
+  resources.value = [
+      { id : 1, name : 'Dylan Downs' },
+      { id : 2, name : 'Chandler Lang' }
+  ];
+
+  events.value = [
+      { resourceId : 1, startDate : '2022-01-01', endDate : '2022-01-10' },
+      { resourceId : 2, startDate : '2022-01-02', endDate : '2022-01-09' }
+  ];
+  
+  assignments.value = [
+      { event : 1, resource : 1 },
+      { event : 2, resource : 2 }
+  ];
+
+  dependencies.value = [
+      { fromEvent : 1, toEvent : 2 }
+  ];
+
 </script>
 
 <template>
@@ -534,6 +591,11 @@ const excelExport = async () => {
           </div> -->
         </template>
         <template #right>
+            <div class="h-5">
+                List
+                <UToggle color="primary" xsize="2xl" v-model="schedulerView" />
+                Scheduler
+              </div>
           <UButton
             :loading="exportIsLoading"
             label="Export to Excel"
@@ -551,108 +613,119 @@ const excelExport = async () => {
         </template>
       </UDashboardToolbar>
 
-      <UTable
-        :rows="gridMeta.schedules"
-        :columns="columns"
-        :loading="gridMeta.isLoading"
-        class="w-full"
-        :ui="{
-          divide: 'divide-gray-200 dark:divide-gray-800',
-          th: {
-            base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
-            padding: 'p-0',
-          },
-          td: {
-            padding: 'py-1',
-          },
-        }"
-        :empty-state="{
-          icon: 'i-heroicons-circle-stack-20-solid',
-          label: 'No items.',
-        }"
-        @select="onSelect"
-        @dblclick="onDblClick"
-      >
-        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-          <template v-if="column.kind !== 'actions'">
-            <div class="px-4 py-3.5">
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
-                    ? noneIcon
-                    : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
-              />
-            </div>
-          </template>
-          <template v-else class="bg-slate-400">
-            <div class="flex justify-center text-center w-[53px]">
-              {{ column.label }}
-            </div>
-          </template>
-        </template>
-
-        <template
-          v-for="column in gridMeta.schedules"
-          v-slot:[`cell-${column.key}`]="{ row }"
+      <div v-if="!schedulerView">
+        <UTable
+          :rows="gridMeta.schedules"
+          :columns="columns"
+          :loading="gridMeta.isLoading"
+          class="w-full"
+          :ui="{
+            divide: 'divide-gray-200 dark:divide-gray-800',
+            th: {
+              base: 'sticky top-0 z-10',
+              color: 'bg-white dark:text-gray dark:bg-[#111827]',
+              padding: 'p-0',
+            },
+            td: {
+              padding: 'py-1',
+            },
+          }"
+          :empty-state="{
+            icon: 'i-heroicons-circle-stack-20-solid',
+            label: 'No items.',
+          }"
+          @select="onSelect"
+          @dblclick="onDblClick"
         >
-          <template v-if="column.kind !== 'actions'">
-            <div class="px-4 py-3.5">
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
-                    ? noneIcon
-                    : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
+          <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+            <template v-if="column.kind !== 'actions'">
+              <div class="px-4 py-3.5">
+                <CommonSortAndInputFilter
+                  @handle-sorting-button="handleSortingButton"
+                  @handle-input-change="handleFilterInputChange"
+                  :label="column.label"
+                  :sortable="column.sortable"
+                  :sort-key="column.key"
+                  :sort-icon="
+                    column?.sortDirection === 'none'
+                      ? noneIcon
+                      : column?.sortDirection === 'asc'
+                      ? ascIcon
+                      : descIcon
+                  "
+                  :filterable="column.filterable"
+                  :filter-key="column.key"
+                />
+              </div>
+            </template>
+            <template v-else class="bg-slate-400">
+              <div class="flex justify-center text-center w-[53px]">
+                {{ column.label }}
+              </div>
+            </template>
+          </template>
+
+          <template
+            v-for="column in gridMeta.schedules"
+            v-slot:[`cell-${column.key}`]="{ row }"
+          >
+            <template v-if="column.kind !== 'actions'">
+              <div class="px-4 py-3.5">
+                <CommonSortAndInputFilter
+                  @handle-sorting-button="handleSortingButton"
+                  @handle-input-change="handleFilterInputChange"
+                  :label="column.label"
+                  :sortable="column.sortable"
+                  :sort-key="column.key"
+                  :sort-icon="
+                    column?.sortDirection === 'none'
+                      ? noneIcon
+                      : column?.sortDirection === 'asc'
+                      ? ascIcon
+                      : descIcon
+                  "
+                  :filterable="column.filterable"
+                  :filter-key="column.key"
+                />
+              </div>
+            </template>
+            <template v-else class="bg-slate-400">
+              <div class="flex justify-center text-center w-[53px]">
+                {{ column.label }}
+              </div>
+            </template>
+          </template>
+          <template #edit-data="{ row }">
+            <UTooltip text="Delete" class="flex justify-center">
+              <UButton
+                color="gray"
+                variant="ghost"
+                icon="i-heroicons-eye"
+                @click="onReportView(row)"
               />
-            </div>
+            </UTooltip>
           </template>
-          <template v-else class="bg-slate-400">
-            <div class="flex justify-center text-center w-[53px]">
-              {{ column.label }}
-            </div>
-          </template>
-        </template>
-        <template #edit-data="{ row }">
-          <UTooltip text="Delete" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-eye"
-              @click="onReportView(row)"
+        </UTable>
+        <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+          <div class="flex flex-row justify-end mr-20 mt-1">
+            <UPagination
+              :max="7"
+              :page-count="gridMeta.pageSize"
+              :total="gridMeta.numberOfOSchedule || 0"
+              v-model="gridMeta.page"
+              @update:model-value="handlePageChange()"
             />
-          </UTooltip>
-        </template>
-      </UTable>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
-        <div class="flex flex-row justify-end mr-20 mt-1">
-          <UPagination
-            :max="7"
-            :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfOSchedule || 0"
-            v-model="gridMeta.page"
-            @update:model-value="handlePageChange()"
-          />
+          </div>
         </div>
+      </div>
+      <div v-else style="height: 100%">
+        <bryntum-scheduler ref="scheduler"
+          :columns="scColumns"
+          :resources="resources"
+          :events="events"
+          :assignments="assignments"
+          :dependencies="dependencies"
+            />
       </div>
     </UDashboardPanel>
   </UDashboardPage>
