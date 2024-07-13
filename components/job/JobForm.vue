@@ -1593,6 +1593,6 @@ else propertiesInit();
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobPartsList @close="handleModalClose" :is-modal="true" />
+    <JobPartsList :selected-job="selectedJob" @close="handleModalClose" :is-modal="true" />
   </UDashboardModal>
 </template>

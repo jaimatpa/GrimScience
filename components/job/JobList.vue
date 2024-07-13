@@ -19,13 +19,13 @@ const toast = useToast();
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
-    // {
-    //   key: "UniqueID",
-    //   label: "UniqueID",
-    //   sortable: true,
-    //   sortDirection: "none",
-    //   filterable: true,
-    // },
+    {
+      key: "UniqueID",
+      label: "UniqueID",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
     {
       key: "NUMBER",
       label: "Job #",

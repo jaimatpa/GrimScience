@@ -1,14 +1,29 @@
-import { tblJobs } from "~/server/models";
+import { tblJobDetail, tblJobs } from "~/server/models";
 import { Sequelize ,Op} from "sequelize";
 
 const applyFilters = (params) => {
-  const filterParams = ['UniqueID','NUMBER','QUANTITY', 'MODEL','PerType','DATEOPENED', 'DATECLOSED','PercentageComplete','Catagory','SubCatagory','Cost','jobcat','jobsubcat','ProductionDate'];  
+  const filterParams = ['UniqueID','NUMBER','QUANTITY', 'MODEL','PerType','DATEOPENED', 'DATECLOSED','PercentageComplete','Catagory','SubCatagory','Cost','jobcat','jobsubcat','ProductionDate', 'JobID'];  
   const whereClause = {};
 
 filterParams.forEach(param => {
   if (params[param]) {
     whereClause[param] = {
       [Op.like]: `%${params[param]}%`
+    };
+  }
+});
+
+  return whereClause;
+};
+
+const applyCusFilters = (params) => {
+  const filterParams = ['JobID'];  
+  const whereClause = {};
+
+filterParams.forEach(param => {
+  if (params[param]) {
+    whereClause[param] = {
+      [Op.in]: Array.isArray(params[param]) ? params[param] : [params[param]]
     };
   }
 });
@@ -53,6 +68,22 @@ export const JobExistByID = async (id: number | string) => {
 export const getJobDetail = async (id) => {
   const tableDetail = await tblJobs.findByPk(id);
   return tableDetail
+}
+
+export const getAllJobDetail = async (page, pageSize, sortBy, sortOrder, filterParams) => {
+  const limit = parseInt(pageSize as string, 10) || 10;
+  const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
+  
+  const whereClause = applyCusFilters(filterParams);
+  
+  const list = await tblJobDetail.findAll({
+    attributes: ['UniqueID','JobID','PartsList'],
+    where: whereClause,
+    order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
+    offset,
+    limit
+  });
+  return list;
 }
 
 export const updateJob = async (id, reqData) => {
