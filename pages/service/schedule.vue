@@ -493,39 +493,43 @@ const excelExport = async () => {
 };
 
 
-// Scheduler
-const scheduler = ref(null);
-const project = ref(null);
+  // Scheduler
+  const scheduler = ref(null);
+  const project = ref(null);
 
-const useSchedulerConfig = () => {
-    return {
-        columns   : [{ text : 'Name', field : 'name',  width : 160 }],
-        startDate : new Date(2022, 0, 1),
-        endDate   : new Date(2022, 0, 10)
-    };
-};
-const useProjectConfig = () => {
-    return {
-    };
-};
+  const useSchedulerConfig = () => {
+      return {
+          columns   : [{ text : 'Name', field : 'name',  width : 160 }],
+          startDate : new Date(2022, 0, 1),
+          endDate   : new Date(2022, 0, 10)
+      };
+  };
+  const useProjectConfig = () => {
+      return {
+      };
+  };
 
-const schedulerConfig = reactive(useSchedulerConfig());
+  const schedulerConfig = reactive(useSchedulerConfig());
   const projectConfig = reactive(useProjectConfig());
 
   const resources = ref(null);
   const events = ref(null);
+  const scColumns = ref(null);
   const assignments = ref(null);
   const dependencies = ref(null);
 
+  scColumns.value  = [{ text : 'Name', field : 'name',  width : 160 }];
+
   resources.value = [
-      { id : 1, name : 'Dan Stevenson' },
-      { id : 2, name : 'Talisha Babin' }
+      { id : 1, name : 'Dylan Downs' },
+      { id : 2, name : 'Chandler Lang' }
   ];
 
   events.value = [
       { resourceId : 1, startDate : '2022-01-01', endDate : '2022-01-10' },
       { resourceId : 2, startDate : '2022-01-02', endDate : '2022-01-09' }
   ];
+  
   assignments.value = [
       { event : 1, resource : 1 },
       { event : 2, resource : 2 }
@@ -715,18 +719,13 @@ const schedulerConfig = reactive(useSchedulerConfig());
         </div>
       </div>
       <div v-else style="height: 100%">
-        <bryntum-scheduler-project-model
-                ref="project"
-                v-bind="projectConfig"
-                :resources="resources"
-                :events="events"
-                :assignments="assignments"
-                :dependencies="dependencies"
-        />
-        <bryntum-scheduler
-            ref="scheduler"
-            v-bind="schedulerConfig"
-        />
+        <bryntum-scheduler ref="scheduler"
+          :columns="scColumns"
+          :resources="resources"
+          :events="events"
+          :assignments="assignments"
+          :dependencies="dependencies"
+            />
       </div>
     </UDashboardPanel>
   </UDashboardPage>
