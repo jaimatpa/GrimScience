@@ -27,7 +27,8 @@ const tblOperationHoursWorked = sequelize.define('tblOperationHoursWorked', {
       type: DataTypes.FLOAT,
    },
 }, {
-   timestamps: false
+   timestamps: false,
+   tableName: "tblOperationHoursWorked"
 });
 
 export default tblOperationHoursWorked;

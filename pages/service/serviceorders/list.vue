@@ -21,29 +21,34 @@
     productLines: {
       label: 'Product Line',
       filter: 'productLine',
-      api: '/api/product/productlines',
+      api: '/api/materials/productlines',
       options: []
     }
   })
   const headerCheckboxes = ref({
     open: {
       label: 'Open',
+      filterKey: 'OPENCASE',
       isChecked: true
     }, 
     cryotherm: {
       label: 'CRYOTherm Checkup',
+      filterKey: 'kind',
       isChecked: false
     }, 
     nonMedical: {
       label: 'Non-Medical Device',
+      filterKey: 'medicalKind',
       isChecked: false
     }, 
     complaints: {
       label: 'Complaints',
+      filterKey: 'ValidComplaint',
       isChecked: false
     }, 
     injury: {
       label: 'Injury',
+      filterKey: 'INJURYREPORTNO',
       isChecked: false
     }
   })
@@ -113,7 +118,12 @@
     SERIALNO: null,
     COMPLAINTDATE: null,
     FAILINVEST: null,
-    company: null,
+    company1: null,
+    OPENCASE: true,
+    kind: false, 
+    medicalKind: false,
+    ValidComplaint: false, 
+    INJURYREPORTNO: false
   })
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
@@ -154,7 +164,7 @@
       gridMeta.value.isLoading = false
       return;
     }
-    await useApiFetch('/api/service/orders/list', {
+    await useApiFetch('/api/service/orders/', {
       method: 'GET',
       params: {
         page: gridMeta.value.page,
@@ -237,8 +247,12 @@
         return `${key}=${value}`
       })
       .join("&")
-    location.href = `/api/customers/exportorder?${paramsString}`
+    location.href = `/api/service/orders/exportorder?${paramsString}`
     exportIsLoading.value = false
+  }
+  const onPrevieOrderBtnClick = () => {
+    // location.href = `/api/service/orders/exportcomplaints`
+    window.open(`/api/service/orders/exportcomplaints`)
   }
   const onSelect = async (row) => {
     gridMeta.value.selectedOrderId = row?.UniqueID;
@@ -253,10 +267,14 @@
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar
+      <UDashboardNavbar class="gmsPurpleHeader"
         title="Service Order"
       >
       </UDashboardNavbar>
+
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+        <h2>Sort</h2>
+      </div>
 
       <UDashboardToolbar>
         <template #left>
@@ -306,33 +324,26 @@
           </div>
         </template>
         <template #right>
-          <UButton 
-            :loading="exportIsLoading"
-            label="Export to Excel" 
-            color="gray"
-            @click="excelExport"
-          >
-            <template #trailing>
-              <UIcon name="i-heroicons-document-text" class="text-green-500 w-5 h-5" />
-            </template>
-          </UButton>
+          <div class="flex flex-row space-x-2">
+            <div>
+              <UButton icon="i-heroicons-document-text" label="Export to Excel" color="green" variant="outline" :ui="{base: 'min-w-[210px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="excelExport"/>
+            </div>
+            <div>
+              <UButton icon="i-heroicons-eye-20-solid" label="Preview Order Summary" variant="outline" :ui="{base: 'min-w-[210px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="onPrevieOrderBtnClick"/>
+            </div>
+          </div>
         </template>
       </UDashboardToolbar>
-      
-      <UDashboardModal
-        v-model="modalMeta.isServiceOrderModalOpen"
-        title="Service Order List"
-        :ui="{width: 'w-[1800px] sm:max-w-9xl', body: {padding: 'py-0 sm:pt-0'}}"
-      >
-        <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
-      </UDashboardModal>
-
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+        <h2>Order Lookup</h2>
+      </div>
       <div class="flex flex-row px-10 mt-4">
         <template v-for="checkbox in headerCheckboxes">
           <div class="basis-1/5">
             <UCheckbox
-              v-model="checkbox.isChecked"
+              v-model="filterValues[checkbox.filterKey]"
               :label="checkbox.label"
+              @update:model-value="handleFilterChange"
             />
           </div>
         </template>
@@ -392,4 +403,17 @@
       </div>
     </UDashboardPanel>
   </UDashboardPage>
+        
+  <UDashboardModal
+    v-model="modalMeta.isServiceOrderModalOpen"
+    title="Service Order"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl'
+    }"
+  >
+    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
+  </UDashboardModal>
 </template>

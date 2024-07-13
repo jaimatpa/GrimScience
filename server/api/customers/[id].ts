@@ -4,12 +4,17 @@ export default eventHandler(async (event) => {
   try {
     const id = event.context.params.id;
     const method = event._method;
+console.log('id.....',id);
 
     const idExist = await customerExistByID(id);
     switch(method.toUpperCase()){
       case 'GET':
         if (idExist){
+          console.log('idididid',id);
+          
           const detail = await getCustomerDetail(id)
+          console.log('detaildetaildetail',detail);
+          
           return { body: detail, message: '' };
         } else {
           setResponseStatus(event, 404);

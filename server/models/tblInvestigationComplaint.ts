@@ -15,6 +15,7 @@ const tblInvestigationComplaint = sequelize.define('tblInvestigationComplaint', 
       type: DataTypes.INTEGER,
    },
 }, {
+   tableName: 'tblInvestigationComplaint',
    timestamps: false
 });
 

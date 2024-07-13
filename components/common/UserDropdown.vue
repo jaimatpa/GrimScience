@@ -46,13 +46,14 @@ const loginUserInfo = ref({
 })
 
 const items = computed(() => [
-  [{
+[{
     slot: 'account',
     label: '',
     disabled: true
-  }], [{
+  }],
+  [{
     label: 'Settings',
-    icon: 'i-heroicons-cog-8-tooth',
+    icon: 'i-heroicons-cog',
     to: '/settings'
   }, {
     label: 'Command menu',
@@ -159,7 +160,11 @@ onMounted(async () => {
         <p class="truncate font-medium text-gray-900 dark:text-white">
           {{ loginUserInfo.email ?? '' }}
         </p>
+        <p class="truncate font-small text-gray-900 dark:text-white">
+          Commit ID {COMMIT}
+        </p>
       </div>
     </template>
+
   </UDropdown>
 </template>

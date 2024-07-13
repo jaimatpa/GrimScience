@@ -259,32 +259,24 @@
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar
+      <UDashboardNavbar class="gmsPurpleHeader"
         title="Customer Messages"
       >
       </UDashboardNavbar>
 
-      <UDashboardToolbar>
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+    <h2>Lookup</h2>
+      </div>
+
+      <UDashboardToolbar class="gmsPurpleToolbar">
         <template #right>
-          <UButton
+          <UButton color="green" variant="outline"
             label="New message"
-            color="gray"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
         </template>
       </UDashboardToolbar>
-      
-      <!-- New Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isCustomerModalOpen"
-        :title="modalMeta.modalTitle"
-        :description="modalMeta.modalDescription"
-        :ui="{width: 'w-[1000px] sm:max-w-7xl'}"
-      >
-        <CustomersMessageForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedMessageId" :is-modal="true"/>
-      </UDashboardModal>
-
       <UTable
         :rows="gridMeta.messages"
         :columns="columns"
@@ -342,6 +334,20 @@
       </div>
     </UDashboardPanel>
   </UDashboardPage>
+  <!-- New Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isCustomerModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1000px] sm:max-w-7xl'
+    }"
+  >
+    <CustomersMessageForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedMessageId" :is-modal="true"/>
+  </UDashboardModal>
 </template>
 <style scoped>
 </style>

@@ -14,6 +14,9 @@ const props = defineProps({
   sortIcon: {
     type: [String]
   }, 
+  value: {
+    type: [String, Number, null]
+  },
   filterable: {
     type: [Boolean, null]
   }, 
@@ -44,6 +47,7 @@ const props = defineProps({
   <template v-if="props.filterable">
     <div class="flex justify-center">
       <UInput
+        :model-value="props.value"
         @update:model-value="event => emit('handleInputChange', event, props.filterKey)"
         :ui="{wrapper: 'w-full', base: 'w-full'}"
       />

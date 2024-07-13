@@ -2,7 +2,7 @@ import { verifyToken } from '../utils/Token';
 
 export default defineEventHandler(async (event) => {
   try {
-    const path = event._path;
+    const path = event._path.split('?')[0];
     const headers = getHeaders(event);
     const excludePages = [
       '/login',
@@ -13,13 +13,15 @@ export default defineEventHandler(async (event) => {
       '/api/auth/login',
       '/api/auth/employees', 
       '/api/customers/exportlist',
-      '/api/customers/exportorder'
+      '/api/service/orders/exportorder',
+      '/api/service/schedule/exportlist',
+      '/api/service/orders/exportcomplaints',
     ];
 
     if(path.startsWith('/api/')){
       console.log("--API REQUEST--", path);
 
-      if (!excludeAPIs.includes(path) && !excludeAPIs.includes(path.split('?')[0])) {
+      if (excludeAPIs.find((exAPI)=>path.includes(exAPI)) && !excludeAPIs.find((exAPI)=>path.includes(exAPI))) {
         const authHeader = getHeader(event, 'Authorization');
   
         if (!authHeader) {
@@ -47,7 +49,7 @@ export default defineEventHandler(async (event) => {
     }else if(headers['accept']?.includes('text/html')){
       console.log("--DOCUMENT REQUEST--", path);
 
-      if (!excludePages.includes(path) && !excludeAPIs.includes(path)) {
+      if (!excludePages.find((exAPI)=>path.includes(exAPI)) && !excludeAPIs.find((exAPI)=>path.includes(exAPI))) {
         const cookies = parseCookies(event);
         console.log(cookies.token);
         if(!cookies.token || verifyToken(cookies.token) === false){

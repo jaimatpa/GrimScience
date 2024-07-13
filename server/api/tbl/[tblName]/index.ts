@@ -25,8 +25,6 @@ export default eventHandler(async (event) => {
             })
             delete query.orderdirection;
           }
-          console.log(query);
-          console.log(orderby);
           list = await getTableWhere({tblName, where:query, orderby});
         }else list = await getTableList({ tblName });
         return { body: list, message: "Table list retrieved successfully." };
