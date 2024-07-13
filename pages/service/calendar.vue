@@ -14,6 +14,8 @@
     return {
     };
   };
+  const config = useRuntimeConfig() 
+  console.log(config.AUTHORIZE_API_LOGIN_KEY)
   const calendar = ref(null);
   const project = ref(null);
 
