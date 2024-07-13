@@ -722,6 +722,7 @@ const links = [
   },
 ];
 
+
 const footerLinks = [
   {
     label: "Invite people",
@@ -792,6 +793,24 @@ const getUiConfig = (link) => {
     },
   };
 };
+
+const Logout = () => {
+  const token = useCookie('token');
+  token.value = null;
+  navigateTo('/login');
+}
+
+let currentTime = ref('');
+
+const getCurrentTime = () => {
+  currentTime.value = new Date().toLocaleTimeString();
+};
+
+onMounted(() => {
+  getCurrentTime();
+  setInterval(getCurrentTime, 1000);
+});
+
 </script>
 
 <template>
@@ -823,8 +842,17 @@ const getUiConfig = (link) => {
         }"
       >
         <template #header>
-          <div class="text-center text-white mt-5">
-            <!-- {{userInfo.fname + " " + userInfo.lname}} -->
+          <div class="text-center text-white mt-5 mb-1">
+            Logged in as Leith Stetson
+          </div>
+          <div class="text-center text-white mb-3 font-bold text-2xl">
+            {{ currentTime }}
+          </div>
+          <div class="text-center text-white mb-5">
+             <UButtonGroup>
+              <UButton label="Time Entry" icon="i-heroicons-plus"  color="green" />
+              <UButton label="Log Out" color="white" icon="i-heroicons-arrow-left-on-rectangle" @click="Logout" />
+             </UButtonGroup>
           </div>
           <UDashboardSearchButton />
         </template>
@@ -863,6 +891,18 @@ const getUiConfig = (link) => {
       <LazyUDashboardSearch :groups="groups" />
     </ClientOnly>
   </UDashboardLayout>
+  <UDashboardModal
+    title="Time Entry"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-9xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <ServiceReportDetail
+      :selected-complaint="null"
+    />
+  </UDashboardModal>
+  
 </template>
 
 <style scoped>
