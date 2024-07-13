@@ -613,7 +613,7 @@ const excelExport = async () => {
         </template>
       </UDashboardToolbar>
 
-      <div v-if="!schedulerView">
+      <template v-if="!schedulerView">
         <UTable
           :rows="gridMeta.schedules"
           :columns="columns"
@@ -717,8 +717,8 @@ const excelExport = async () => {
             />
           </div>
         </div>
-      </div>
-      <div v-else style="height: 100%">
+      </template>
+      <template v-else style="height: 100%">
         <bryntum-scheduler ref="scheduler"
           :columns="scColumns"
           :resources="resources"
@@ -726,7 +726,7 @@ const excelExport = async () => {
           :assignments="assignments"
           :dependencies="dependencies"
             />
-      </div>
+      </template>
     </UDashboardPanel>
   </UDashboardPage>
 
