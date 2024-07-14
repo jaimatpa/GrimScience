@@ -66,7 +66,7 @@ const formData = reactive({
   PRODUCTLINE: null,
   MODEL: null,
 });
-
+const date = new Date()
 const editInit = async () => {
   loadingOverlay.value = true;
   await useApiFetch(`/api/jobs/${props.selectedJob}`, {
@@ -173,6 +173,24 @@ const editInit = async () => {
     onResponseError() {
       prodOperationGridMeta.value.operations = [];
       subOperationGridMeta.value.subOperations = [];
+    },
+  });
+
+  await useApiFetch(`/api/jobs/details`, {
+    method: "GET",
+    params: { ...jobFilters.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        if (formData.JobType === "Product") {
+          productsSerialGridMeta.value.products = response._data.body;
+        } else {
+          productsSBSerialGridMeta.value.products = response._data.body;
+        }
+      }
+    },
+    onResponseError({}) {
+      productsSerialGridMeta.value.products = [];
+      productsSBSerialGridMeta.value.products = [];
     },
   });
 
@@ -388,6 +406,10 @@ const emploeeFilterValues = ref({
   OperationID: 8226,
 });
 
+const jobFilters = ref({
+  JobID: [props.selectedJob],
+});
+
 const prodOperationGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
@@ -508,6 +530,46 @@ const subEmployeeGridMeta = ref({
   isLoading: false,
 });
 
+const productsSerialGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "Serial",
+      label: "Serial",
+    },
+    {
+      key: "dateEntered",
+      label: "Date Completed",
+    },
+    {
+      key: "material_cost",
+      label: "Material Cost",
+    },
+  ],
+  products: [],
+  selectedProduct: null,
+  isLoading: false,
+});
+
+const productsSBSerialGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "Serial",
+      label: "Serial",
+    },
+    {
+      key: "dateEntered",
+      label: "Date Completed",
+    },
+    {
+      key: "material_cost",
+      label: "Material Cost",
+    },
+  ],
+  products: [],
+  selectedProduct: null,
+  isLoading: false,
+});
+
 // Use a computed property for tabitems
 const tabitems = computed(() => [
   {
@@ -522,90 +584,6 @@ const tabitems = computed(() => [
   {
     slot: "operations",
     label: "Operation",
-  },
-]);
-
-const productColumns = ref([
-  {
-    key: "serial",
-    label: "Serial",
-  },
-  {
-    key: "date_serialized",
-    label: "Date Serialized",
-  },
-  {
-    key: "material_cost",
-    label: "Material Cost",
-  },
-]);
-
-const asssemblyColumns = ref([
-  {
-    key: "serial",
-    label: "#",
-  },
-  {
-    key: "date_completed",
-    label: "Date Completed",
-  },
-  {
-    key: "material_cost",
-    label: "Material Cost",
-  },
-]);
-
-const operationsColumns = ref([
-  {
-    key: "serial",
-    label: "#",
-  },
-  {
-    key: "week",
-    label: "Week",
-  },
-  {
-    key: "operation",
-    label: "Operation",
-  },
-  {
-    key: "work_center",
-    label: "Work Center",
-  },
-  {
-    key: "hrs",
-    label: "Hrs",
-  },
-  {
-    key: "rework_hours",
-    label: "Rework Hours",
-  },
-  {
-    key: "rework_hours",
-    label: "Rework Hours",
-  },
-  {
-    key: "verified",
-    label: "Verified",
-  },
-  {
-    key: "scheduled",
-    label: "Scheduled",
-  },
-]);
-
-const employeeSchColumns = ref([
-  {
-    key: "date",
-    label: "Date",
-  },
-  {
-    key: "employees",
-    label: "Employees",
-  },
-  {
-    key: "hrs",
-    label: "Hrs.",
   },
 ]);
 
@@ -1020,14 +998,23 @@ else propertiesInit();
               <div class="w-full flex">
                 <div class="w-1/2 mt-5">
                   <UTable
-                    :columns="productColumns"
+                    v-if="formData.JobType === 'Product'"
+                    :columns="productsSerialGridMeta.defaultColumns"
+                    :rows="productsSerialGridMeta.products"
                     :ui="{
                       wrapper:
-                        'h-40 border-2 border-gray-300 dark:border-gray-700',
+                        'h-52 border-2 border-gray-300 dark:border-gray-700',
+                      tr: {
+                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                      },
                       th: {
                         base: 'sticky top-0 z-10',
                         color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                        padding: 'p-1',
+                        padding: 'px-2 py-0',
+                      },
+                      td: {
+                        base: 'h-[31px]',
+                        padding: 'px-2 py-0',
                       },
                     }"
                   >
@@ -1071,8 +1058,8 @@ else propertiesInit();
                     <UButton
                       icon="i-heroicons-calendar-days-20-solid"
                       :label="
-                        formData.DATEOPENED &&
-                        format(formData.DATEOPENED, 'MM/dd/yyyy')
+                        date &&
+                        format(date, 'MM/dd/yyyy')
                       "
                       variant="outline"
                       :ui="{
@@ -1083,7 +1070,7 @@ else propertiesInit();
                     />
                     <template #panel="{ close }">
                       <CommonDatePicker
-                        v-model="formData.DATEOPENED"
+                        v-model="date"
                         is-required
                         @close="close"
                       />
@@ -1135,6 +1122,30 @@ else propertiesInit();
               <div class="w-full flex">
                 <div class="w-1/2 mt-5">
                   <UTable
+                    :columns="productsSBSerialGridMeta.defaultColumns"
+                    :rows="productsSBSerialGridMeta.products"
+                    :ui="{
+                      wrapper:
+                        'h-52 border-2 border-gray-300 dark:border-gray-700',
+                      tr: {
+                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                      },
+                      th: {
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                        padding: 'px-2 py-0',
+                      },
+                      td: {
+                        base: 'h-[31px]',
+                        padding: 'px-2 py-0',
+                      },
+                    }"
+                  >
+                    <template #empty-state>
+                      <div></div>
+                    </template>
+                  </UTable>
+                  <!-- <UTable
                     :columns="asssemblyColumns"
                     :ui="{
                       wrapper:
@@ -1149,7 +1160,7 @@ else propertiesInit();
                     <template #empty-state>
                       <div></div>
                     </template>
-                  </UTable>
+                  </UTable> -->
                 </div>
               </div>
               <div class="mt-5">
@@ -1177,8 +1188,8 @@ else propertiesInit();
                     <UButton
                       icon="i-heroicons-calendar-days-20-solid"
                       :label="
-                        formData.DATEOPENED &&
-                        format(formData.DATEOPENED, 'MM/dd/yyyy')
+                        date &&
+                        format(date, 'MM/dd/yyyy')
                       "
                       variant="outline"
                       :ui="{
@@ -1189,7 +1200,7 @@ else propertiesInit();
                     />
                     <template #panel="{ close }">
                       <CommonDatePicker
-                        v-model="formData.DATEOPENED"
+                        v-model="date"
                         is-required
                         @close="close"
                       />
@@ -1593,6 +1604,10 @@ else propertiesInit();
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobPartsList :selected-job="selectedJob" @close="handleModalClose" :is-modal="true" />
+    <JobPartsList
+      :selected-job="selectedJob"
+      @close="handleModalClose"
+      :is-modal="true"
+    />
   </UDashboardModal>
 </template>

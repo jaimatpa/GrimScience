@@ -33,7 +33,6 @@ filterParams.forEach(param => {
 
 export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams) => {
   
-  
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
   
@@ -70,18 +69,13 @@ export const getJobDetail = async (id) => {
   return tableDetail
 }
 
-export const getAllJobDetail = async (page, pageSize, sortBy, sortOrder, filterParams) => {
-  const limit = parseInt(pageSize as string, 10) || 10;
-  const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
-  
+export const getAllJobDetail = async (sortBy, sortOrder, filterParams) => {
   const whereClause = applyCusFilters(filterParams);
   
   const list = await tblJobDetail.findAll({
-    attributes: ['UniqueID','JobID','PartsList'],
+    attributes: ['UniqueID','JobID','PartsList','Serial','ShipDate','SingleMaterialCost','dateEntered','ScheduledDate','SingleLaborCost'],
     where: whereClause,
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
-    offset,
-    limit
   });
   return list;
 }
