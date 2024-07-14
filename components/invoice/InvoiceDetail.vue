@@ -206,6 +206,7 @@
   })
   const updatedPrice = ref(null)
   const mdetChecked = ref(false)
+  const processCreditCardSuccess = ref(false)
 
   const editInit = async () => {
     loadingOverlay.value = true
@@ -542,123 +543,48 @@
       ccvStyle.value = 'outline outline-2 outline-[red]'
       return
     } else ccvStyle.value = 'outline-none'
-    $fetch('https://apitest.authorize.net/xml/v1/request.api', {
-      method: 'POST',
-      body: {
-        "createTransactionRequest": {
-            "merchantAuthentication": {
-                "name": config.public.AUTHORIZE_API_LOGIN_KEY,
-                "transactionKey": config.public.AUTHORIZE_TRANSACTION_KEY
-            },
-            "transactionRequest": {
-                "transactionType": "authCaptureTransaction",
-                "amount": creditCardMeta.value.amount,
-                "payment": {
-                    "creditCard": {
-                        "cardNumber": creditCardMeta.value.cardnumber.replaceAll(' ', ''),
-                        "expirationDate": `${creditCardMeta.value.expirationyear}-${creditCardMeta.value.expirationmonth}`,
-                        "cardCode": creditCardMeta.value.ccv
-                    }
-                },
-                "lineItems": {
-                    "lineItem": {
-                        "itemId": "1",
-                        "name": "vase",
-                        "description": "Cannes logo",
-                        "quantity": "1",
-                        "unitPrice": "45.00"
-                    }
-                },
-                "tax": {
-                    "amount": formData.tax,
-                    "name": "level2 tax name",
-                    "description": "level2 tax"
-                },
-                "duty": {
-                    "amount": formData.MDET,
-                    "name": "duty name",
-                    "description": "duty description"
-                },
-                "shipping": {
-                    "amount": formData.shipping,
-                    "name": "level2 tax name",
-                    "description": "level2 tax"
-                },
-                "poNumber": "",
-                "customer": {
-                    "id": customerData.customerID
-                },
-                "billTo": {
-                    "firstName": customerData.fname,
-                    "lastName": customerData.lname,
-                    "company": customerData.company1,
-                    "address": customerData.address,
-                    "city": customerData.city,
-                    "state": customerData.state,
-                    "zip": customerData.zip,
-                    "country": customerData.country
-                },
-                "shipTo": {
-                    "firstName": customerData.fname,
-                    "lastName": customerData.lname,
-                    "company": customerData.company1,
-                    "address": customerData.address,
-                    "city": customerData.city,
-                    "state": customerData.state,
-                    "zip": customerData.zip,
-                    "country": customerData.country
-                },
-                "customerIP": "",
-                "transactionSettings": {
-                    "setting": {
-                        "settingName": "testRequest",
-                        "settingValue": "false"
-                    }
-                },
-                "userFields": {
-                    "userField": [
-                        {
-                            "name": "MerchantDefinedFieldName1",
-                            "value": "MerchantDefinedFieldValue1"
-                        },
-                        {
-                            "name": "favorite_color",
-                            "value": "blue"
-                        }
-                    ]
-                },
-          "processingOptions": {
-                "isSubsequentAuth": "true"
-                },
-                "subsequentAuthInformation": {
-                "originalNetworkTransId": config.public.AUTHORIZE_TRANSACTION_KEY,
-                "originalAuthAmount": formData.subtotal,
-                "reason": "resubmission"         
-                },			
-                "authorizationIndicatorType": {
-                "authorizationIndicator": "final"
-              }
-            }
+    await useChargeCreditCard(
+      {
+        cardInfo: {
+          cardnumber: creditCardMeta.value.cardnumber.replaceAll(' ', ''),
+          expirationyear: creditCardMeta.value.expirationyear,
+          expirationmonth: creditCardMeta.value.expirationmonth,
+          amount: creditCardMeta.value.amount
+        },
+        orderInfo: {
+          ...formData
+        },
+        customerInfo: {
+          ...customerData
         }
-      },
-      onResponse({response}) {
-        if(response._data.messages.resultCode === 'Ok') {
-          toast.add({
-            title: 'Success',
-            description: response._data?.transactionResponse?.messages[0]?.description??'',
-            icon: 'i-heroicons-shopping-cart',
-            color: 'green'
-          })
-        } else {
-          toast.add({
-            title: 'Fail',
-            description: response._data?.transactionResponse?.errors[0]?.errorText ?? response._data?.messages?.message[0]?.text,
-            icon: 'i-heroicons-exclamation-triangle',
-            color: 'red'
-          })
+      }, 
+      {
+        onResponse({response}) {
+          if(response._data.messages.resultCode === 'Ok') {
+            toast.add({
+              title: 'Success',
+              description: response._data?.transactionResponse?.messages[0]?.description??'',
+              icon: 'i-heroicons-shopping-cart',
+              color: 'green'
+            })
+            processCreditCardSuccess.value = true
+          } else {
+            toast.add({
+              title: 'Fail',
+              description: response._data?.transactionResponse?.errors[0]?.errorText ?? response._data?.messages?.message[0]?.text,
+              icon: 'i-heroicons-exclamation-triangle',
+              color: 'red'
+            })
+          }
+          modalMeta.value.isCreditCardInfoInputModalOpen = false
+          creditCardMeta.value.cardnumber = ''
+          creditCardMeta.value.expirationmonth = ''
+          creditCardMeta.value.expirationyear = ''
+          creditCardMeta.value.ccv = ''
+          creditCardMeta.value.amount = 0
         }
       }
-    })
+    )
   }
   const validate = (state: any): FormError[] => {
     const errors = []
@@ -673,6 +599,7 @@
         method: 'POST',
         body: {
           ...formData, 
+          terms: processCreditCardSuccess.value ? formData.terms : null,
           lessdiscount: Number(formData.lessdiscount),
           lessdown: Number(formData.lessdown),
           tax: Number(formData.tax),
@@ -699,6 +626,7 @@
         method: 'PUT',
         body: {
           ...formData, 
+          terms: processCreditCardSuccess.value ? formData.terms : null,
           lessdiscount: Number(formData.lessdiscount),
           lessdown: Number(formData.lessdown),
           tax: Number(formData.tax),
