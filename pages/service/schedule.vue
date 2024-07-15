@@ -715,26 +715,30 @@ const excelExport = async () => {
       <template v-else style="height: 100%">
         <bryntum-gantt
           ref="gantt"
-          :project="{
-            startDate : new Date(2020, 0, 1),
-            eventsData : [
-                {
-                    id       : 1,
-                    name     : 'Write docs',
-                    expanded : true,
-                    children : [
-                        { 
-                            id : 2, 
-                            name : 'Proof-read docs', 
-                            expanded: true,
-                            startDate : '2020-01-03', 
-                                    endDate : '2020-01-05' 
-                        },
-                        { id : 3, name : 'Release docs', startDate : '2020-01-09', endDate : '2020-01-10' }
-                    ]
-                }
-            ]
-          }"
+          :tasks="[
+            {
+              id       : 1,
+              name     : 'Write docs',
+              expanded : true,
+              children : [
+                  { 
+                    id : 2, 
+                    name : 'Proof-read docs', 
+                    expanded: true,
+                    startDate : '2020-01-03', 
+                    endDate : '2020-01-05',
+                    duration: 2
+                  },
+                  { 
+                    id : 3, 
+                    name : 'Release docs', 
+                    startDate : '2020-01-05', 
+                    endDate : '2020-01-10',
+                    duration: 5 
+                  }
+              ]
+            }
+          ]"
           :startDate="new Date(2019, 11, 31)"
           :endDate="new Date(2020, 0, 11)"
           :height="100"
