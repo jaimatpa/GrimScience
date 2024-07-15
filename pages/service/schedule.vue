@@ -325,7 +325,8 @@ const init = async () => {
           return {
             name: employee,
             expanded: !index ? true : false,
-            children: serviceOrders
+            children: serviceOrders,
+            eventColor: '#BB8ABC'
           }
         })
       }
@@ -539,6 +540,26 @@ const excelExport = async () => {
   location.href = `/api/service/schedule/exportlist?${paramsString}`;
   exportIsLoading.value = false;
 };
+const onScheduletaskDblClick = async (event) => {
+  let serviceReportID = 0;
+  if(!event.taskRecord.originalData.children) {
+    await useApiFetch(`/api/service/servicereports/`, {
+      method: 'GET',
+      params: {
+        CANO: event.taskRecord.originalData?.name??''
+      },
+      onResponse({response}) {
+        if(response.status === 200) {
+          serviceReportID = response._data.body[0]?.uniqueID??0
+        }
+      }
+    })
+    gridMeta.value.selectedServiceId = serviceReportID;
+    modalMeta.value.modalTitle = "Service Report";
+    modalMeta.value.modalDescription = "Service Report";
+    modalMeta.value.isReportModalOpen = true;
+  }
+}
 
 </script>
 
@@ -728,6 +749,10 @@ const excelExport = async () => {
           :height="100"
           :parentAreaFeature="true"
           :scrollButtonsFeature="true"
+          :taskEditFeature="false"
+          :taskDragFeature="false"
+          :taskCopyPasteFeature="false"
+          @taskDblClick="onScheduletaskDblClick"
         />
       </template>
     </UDashboardPanel>
