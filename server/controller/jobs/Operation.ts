@@ -77,3 +77,16 @@ export const getJobOperationsById = async (params) => {
   })
   return reports
 }
+
+export const OperationExistByID = async (id: number | string) => {
+  const tableDetail = await tblJobOperations.findByPk(id);
+  if (tableDetail)
+    return true;
+  else
+    return false;
+}
+
+export const deleteOperation = async (id) => {
+  await tblJobOperations.destroy({ where: { UniqueID: id } });
+  return id;
+}

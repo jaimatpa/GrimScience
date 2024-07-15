@@ -157,7 +157,63 @@ const editInit = async () => {
     },
   });
 
+  await fetchJobOperation();
+
+  await useApiFetch(`/api/jobs/details`, {
+    method: "GET",
+    params: { ...jobFilters.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        const totalAmount = formData.Cost;
+        const numericAmount = parseFloat(totalAmount.replace("$", ""));
+
+        // Filter objects that have a dateEntered value
+        const validEntries = response._data.body.filter(
+          (item) => item.dateEntered
+        );
+
+        // Calculate the cost per valid entry
+        const costPerEntry = numericAmount / validEntries.length;
+
+        unitCost.value = `$${costPerEntry.toFixed(2)}`;
+
+        // Map over the data to create the new structure
+        const transformedData = response._data.body.map((item) => {
+          if (item.dateEntered) {
+            return {
+              ...item,
+              cost: `$${costPerEntry.toFixed(2)}`, // Keep 2 decimal places
+              SingleMaterialCost: null,
+            };
+          } else {
+            return {
+              ...item,
+              cost: "$0.00",
+              SingleMaterialCost: null,
+            };
+          }
+        });
+
+        if (formData.JobType === "Product") {
+          productsSerialGridMeta.value.products = transformedData;
+        } else {
+          productsSBSerialGridMeta.value.products = transformedData;
+        }
+      }
+    },
+    onResponseError({}) {
+      productsSerialGridMeta.value.products = [];
+      productsSBSerialGridMeta.value.products = [];
+    },
+  });
+
+  await propertiesInit();
+  loadingOverlay.value = false;
+};
+
+const fetchJobOperation = async () => {
   // get job operation
+  loadingOverlay.value = true;
   await useApiFetch("/api/jobs/operations", {
     method: "GET",
     params: { ...operationFilterValues.value },
@@ -182,56 +238,6 @@ const editInit = async () => {
     },
   });
 
-  await useApiFetch(`/api/jobs/details`, {
-    method: "GET",
-    params: { ...jobFilters.value },
-    onResponse({ response }) {
-      if (response.status === 200) {
-        if (formData.JobType === "Product") {
-          const totalAmount = formData.Cost;
-          const numericAmount = parseFloat(totalAmount.replace("$", ""));
-
-          // Filter objects that have a dateEntered value
-          const validEntries = response._data.body.filter(
-            (item) => item.dateEntered
-          );
-
-          // Calculate the cost per valid entry
-          const costPerEntry = numericAmount / validEntries.length;
-
-          unitCost.value = `$${costPerEntry.toFixed(2)}`;
-
-          // Map over the data to create the new structure
-          const transformedData = response._data.body.map((item) => {
-            if (item.dateEntered) {
-              return {
-                ...item,
-                cost: `$${costPerEntry.toFixed(2)}`, // Keep 2 decimal places
-                SingleMaterialCost: null,
-              };
-            } else {
-              return {
-                ...item,
-                cost: "$0.00",
-                SingleMaterialCost: null,
-              };
-            }
-          });
-
-          console.log("transformedData", transformedData);
-          productsSerialGridMeta.value.products = transformedData;
-        } else {
-          productsSBSerialGridMeta.value.products = response._data.body;
-        }
-      }
-    },
-    onResponseError({}) {
-      productsSerialGridMeta.value.products = [];
-      productsSBSerialGridMeta.value.products = [];
-    },
-  });
-
-  await propertiesInit();
   loadingOverlay.value = false;
 };
 
@@ -454,6 +460,64 @@ const emploeeFilterValues = ref({
 const jobFilters = ref({
   JobID: [props.selectedJob],
 });
+
+const handleDeleteOperation = async () => {
+  if (
+    subOperationGridMeta.value.selectedSubOperation === null &&
+    prodOperationGridMeta.value.selectedOperation === null
+  ) {
+    toast.add({
+      title: "Failed",
+      description: "Please Select rouge Operation",
+      icon: "i-heroicons-check-circle",
+      color: "green",
+    });
+  }
+
+  if (subOperationGridMeta.value.selectedSubOperation !== null) {
+    if (subEmployeeGridMeta.value.subEmployees.length > 0) {
+      toast.add({
+        title: "Failed",
+        description:
+          "A rouge job operation cannot be deleted while it has a time enteries. Move time enteries and try delete operation again.",
+        icon: "i-heroicons-check-circle",
+        color: "red",
+      });
+    } else {
+      const id = subOperationGridMeta.value.selectedSubOperation.UniqueID;
+      const data = subOperationGridMeta.value.selectedSubOperation.filter(
+        (item) => item.UniqueID !== id
+      );
+
+      subOperationGridMeta.value.selectedSubOperation = data;
+    }
+  }
+
+  if (prodOperationGridMeta.value.selectedOperation !== null) {
+    if (prodEmployeeGridMeta.value.employees.length > 0) {
+      toast.add({
+        title: "Failed",
+        description:
+          "A rouge job operation cannot be deleted while it has a time enteries. Move time enteries and try delete operation again.",
+        icon: "i-heroicons-check-circle",
+        color: "red",
+      });
+    } else {
+      const id = prodOperationGridMeta.value.selectedOperation.UniqueID;
+      const data = prodOperationGridMeta.value.operations.filter(
+        (item) => item.UniqueID !== id
+      );
+
+      prodOperationGridMeta.value.operations = data;
+      console.log("data", data);
+    }
+  }
+};
+
+const handleDeleteAll = () => {
+  console.log("cccc");
+  prodOperationGridMeta.value.operations = [];
+};
 
 const prodOperationGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -714,7 +778,7 @@ else propertiesInit();
                   label="Unit Material Cost"
                   name="Unit Material Cost"
                 >
-                  <UInput v-model="unitCost" placeholder="" />
+                  <UInput placeholder="" />
                 </UFormGroup>
               </div>
               <div class="basis-1/5">
@@ -1308,7 +1372,7 @@ else propertiesInit();
           </template>
 
           <template #operations="{ item }">
-            <div class="flex space-x-2 mt-4">
+            <div class="flex space-x-2 justify-between mt-4">
               <div class="basis-1/4">
                 <UButton
                   icon="i-heroicons-pencil-square"
@@ -1319,10 +1383,11 @@ else propertiesInit();
                     base: 'w-full',
                     truncate: 'flex justify-center w-full',
                   }"
+                  @click="fetchJobOperation()"
                   truncate
                 />
               </div>
-              <div class="basis-1/4">
+              <div v-if="formData.JobType === 'Product'" class="basis-1/4">
                 <UButton
                   icon="i-heroicons-pencil-square"
                   variant="outline"
@@ -1345,6 +1410,7 @@ else propertiesInit();
                     base: 'w-full',
                     truncate: 'flex justify-center w-full',
                   }"
+                  @click="handleDeleteOperation"
                   truncate
                 />
               </div>
@@ -1358,6 +1424,7 @@ else propertiesInit();
                     base: 'w-full',
                     truncate: 'flex justify-center w-full',
                   }"
+                  @click="handleDeleteAll"
                   truncate
                 />
               </div>
