@@ -320,7 +320,7 @@
         }
       }
     })
-    if(formData.REPAIRDATE && !formData.Week) {
+    if(formData.REPAIRDATE) {
       formData.REPAIRDATE = new Date(formData.REPAIRDATE)
       formData.Week = `${new Date(formData.REPAIRDATE).getFullYear().toString().substring(2)}-${getWeekNumber(formData.REPAIRDATE)}`
     }

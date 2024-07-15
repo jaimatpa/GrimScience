@@ -535,6 +535,23 @@
   resolved "https://npm.bryntum.com/@bryntum%2fcore-vue-3-thin/-/core-vue-3-thin-6.0.1.tgz"
   integrity sha512-Y+pmxD/tMwcAGlqTMzKR4fxa0jpgFH9+S+NggBiqJJVVSJYiDQF18BvKMXGIeuDwSHaxmv++jNJ/cbjbOAgaNg==
 
+"@bryntum/gantt-trial-lib@1.0.0":
+  version "1.0.0"
+  resolved "https://npm.bryntum.com/@bryntum%2fgantt-trial-lib/-/gantt-trial-lib-1.0.0.tgz"
+  integrity sha512-Dz1Z9M1vT3o6jSPYx2FVCKONeiVb38/XbE/ti1aR0+De50nFMlVrasFTeQPJ3Kl9L9bxj5++oSfMT/lRRqqq6w==
+
+"@bryntum/gantt-vue-3@^6.0.1":
+  version "6.0.1"
+  resolved "https://npm.bryntum.com/@bryntum%2fgantt-vue-3/-/gantt-vue-3-6.0.1.tgz"
+  integrity sha512-X/WdueB7fpHRr/o4VgXsouoTRxIMOynD4MzJlF0nAdsFQxT8sqWiwPcvaKkUx6JaCi4Mf4xnXIVP4DmzQ4yAoQ==
+
+"@bryntum/gantt@npm:@bryntum/gantt-trial@^6.0.1":
+  version "6.0.1"
+  resolved "https://npm.bryntum.com/@bryntum%2fgantt-trial/-/gantt-trial-6.0.1.tgz"
+  integrity sha512-QLcWJ43nD1rz7SuDPHBa5n3tnL1uJxThwxermAPobXX4dwBU4I9XlZBmmj2IF/06jr5Qbf2c1NmMPWo69ldeeQ==
+  optionalDependencies:
+    "@bryntum/gantt-trial-lib" "1.0.0"
+
 "@bryntum/scheduler-trial-lib@1.0.0":
   version "1.0.0"
   resolved "https://npm.bryntum.com/@bryntum%2fscheduler-trial-lib/-/scheduler-trial-lib-1.0.0.tgz"

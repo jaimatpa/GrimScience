@@ -1,11 +1,7 @@
 <script lang="ts" setup>
-import { format } from "date-fns";
-// import "~/components/service/ScheduleView.vue";
-import {
-    BryntumSchedulerProjectModel,
-    BryntumScheduler
-} from '@bryntum/scheduler-vue-3';
-import "@bryntum/scheduler/scheduler.stockholm.css";
+import { format, addDays } from "date-fns";
+import { BryntumGantt } from '@bryntum/gantt-vue-3'
+import "@bryntum/gantt/gantt.stockholm.css";
 
 import type { UTableColumn } from "~/types";
 
@@ -269,6 +265,11 @@ const filterValues = ref({
   REPAIRSMADE: null,
   WarrentyService: null,
 });
+const ganttMeta = ref({
+  tasks: [],
+  startDate: new Date(),
+  endDate: new Date()
+})
 
 const init = async () => {
   fetchGridData();
@@ -335,6 +336,20 @@ watch(
   }
 );
 
+// Watch for Toggle Button
+watch(
+  () => [
+    schedulerView.value
+  ], 
+  ([newValue]) => {
+    if(newValue) {
+      fetchScheduleData()
+    } else {
+      fetchGridData()
+    }
+  }
+) 
+
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
 
@@ -381,6 +396,69 @@ const fetchGridData = async () => {
     },
   });
 };
+
+const fetchScheduleData = async () => {
+  await useApiFetch("/api/service/schedule/allschedules", {
+    method: "GET",
+    params: {
+      "SO Type": filterValues.value["SO Type"],
+      Type: filterValues.value["Type"],
+      "Service Tech": filterValues.value["Service Tech"],
+      Week: filterValues.value["Week"],
+      WarrentyService: filterValues.value["WarrentyService"],
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        let schedules = response._data.body
+        let employees = []
+        schedules.forEach((schedule) => {
+          if(!employees.includes(schedule['Service Tech'])) {
+            employees.push(schedule['Service Tech'])
+          }
+        })
+        ganttMeta.value.startDate = new Date()
+        ganttMeta.value.endDate = new Date()
+        ganttMeta.value.tasks = employees.map((employee, index) => {
+          let schedulesForEmployee = schedules.filter(schedule => schedule['Service Tech'] === employee)
+          let serviceOrders = []
+          let serviceOrderList = []
+          schedulesForEmployee.forEach((schedule) => {
+            if(!serviceOrderList.includes(schedule['SO#'])) {
+              serviceOrderList.push(schedule['SO#'])
+            }
+          })
+          serviceOrders = serviceOrderList.map((serviceOrder) => {
+            let serviceReports = []
+            serviceReports = schedulesForEmployee
+              .filter(schedule => schedule['Service Tech'] === employee && schedule['SO#'] === serviceOrder)
+              .map((schedule) => {
+                if(new Date(ganttMeta.value.startDate) > new Date(schedule['SR Date']))
+                  ganttMeta.value.startDate = new Date(schedule['SR Date'])
+                if(new Date(ganttMeta.value.endDate) < new Date(schedule['SR Date']))
+                  ganttMeta.value.endDate = addDays(new Date(schedule['SR Date']), 1)
+                return {
+                  name: `${schedule['SR#']}`,
+                  startDate: schedule['SR Date'],
+                  duration: 1,
+                  manuallyScheduled: true
+                }
+              })
+            return {
+              name: serviceOrder,
+              children: serviceReports
+            }
+          })
+          return {
+            name: employee,
+            expanded: !index ? true : false,
+            children: serviceOrders,
+            eventColor: '#BB8ABC'
+          }
+        })
+      }
+    },
+  })
+}
 
 const handleSortingButton = async (btnName: string) => {
   gridMeta.value.page = 1;
@@ -463,16 +541,28 @@ const onDblClick = async () => {
 
 const onServiceReportSave = async () => {
   modalMeta.value.isReportModalOpen = false;
-  fetchGridData();
+  if(schedulerView.value) {
+    fetchScheduleData()
+  } else {
+    fetchGridData();
+  }
 };
 
 const handleFilterChange = () => {
   gridMeta.value.page = 1;
-  fetchGridData();
+  if(schedulerView.value) {
+    fetchScheduleData()
+  } else {
+    fetchGridData();
+  }
 };
 
 const handleCheckboxChange = () => {
-  fetchGridData();
+  if(schedulerView.value) {
+    fetchScheduleData()
+  } else {
+    fetchGridData();
+  }
 };
 
 const excelExport = async () => {
@@ -491,53 +581,26 @@ const excelExport = async () => {
   location.href = `/api/service/schedule/exportlist?${paramsString}`;
   exportIsLoading.value = false;
 };
-
-
-  // Scheduler
-  const scheduler = ref(null);
-  const project = ref(null);
-
-  const useSchedulerConfig = () => {
-      return {
-          columns   : [{ text : 'Name', field : 'name',  width : 160 }],
-          startDate : new Date(2022, 0, 1),
-          endDate   : new Date(2022, 0, 10)
-      };
-  };
-  const useProjectConfig = () => {
-      return {
-      };
-  };
-
-  const schedulerConfig = reactive(useSchedulerConfig());
-  const projectConfig = reactive(useProjectConfig());
-
-  const resources = ref(null);
-  const events = ref(null);
-  const scColumns = ref(null);
-  const assignments = ref(null);
-  const dependencies = ref(null);
-
-  scColumns.value  = [{ text : 'Name', field : 'name',  width : 160 }];
-
-  resources.value = [
-      { id : 1, name : 'Dylan Downs' },
-      { id : 2, name : 'Chandler Lang' }
-  ];
-
-  events.value = [
-      { resourceId : 1, startDate : '2022-01-01', endDate : '2022-01-10' },
-      { resourceId : 2, startDate : '2022-01-02', endDate : '2022-01-09' }
-  ];
-  
-  assignments.value = [
-      { event : 1, resource : 1 },
-      { event : 2, resource : 2 }
-  ];
-
-  dependencies.value = [
-      { fromEvent : 1, toEvent : 2 }
-  ];
+const onScheduletaskDblClick = async (event) => {
+  let serviceReportID = 0;
+  if(!event.taskRecord.originalData.children) {
+    await useApiFetch(`/api/service/servicereports/`, {
+      method: 'GET',
+      params: {
+        CANO: event.taskRecord.originalData?.name??''
+      },
+      onResponse({response}) {
+        if(response.status === 200) {
+          serviceReportID = response._data.body[0]?.uniqueID??0
+        }
+      }
+    })
+    gridMeta.value.selectedServiceId = serviceReportID;
+    modalMeta.value.modalTitle = "Service Report";
+    modalMeta.value.modalDescription = "Service Report";
+    modalMeta.value.isReportModalOpen = true;
+  }
+}
 
 </script>
 
@@ -719,13 +782,20 @@ const excelExport = async () => {
         </div>
       </template>
       <template v-else style="height: 100%">
-        <bryntum-scheduler ref="scheduler"
-          :columns="scColumns"
-          :resources="resources"
-          :events="events"
-          :assignments="assignments"
-          :dependencies="dependencies"
-            />
+        <bryntum-gantt
+          ref="gantt"
+          :tasks="ganttMeta.tasks"
+          :startDate="ganttMeta.startDate"
+          :endDate="ganttMeta.endDate"
+          :height="100"
+          :parentAreaFeature="true"
+          :scrollButtonsFeature="true"
+          :taskEditFeature="false"
+          :taskDragFeature="false"
+          :taskCopyPasteFeature="false"
+          :taskMenuFeature="false"
+          @taskDblClick="onScheduletaskDblClick"
+        />
       </template>
     </UDashboardPanel>
   </UDashboardPage>
@@ -746,3 +816,6 @@ const excelExport = async () => {
     />
   </UDashboardModal>
 </template>
+<style>
+
+</style>
