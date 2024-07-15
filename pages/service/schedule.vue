@@ -752,6 +752,7 @@ const onScheduletaskDblClick = async (event) => {
           :taskEditFeature="false"
           :taskDragFeature="false"
           :taskCopyPasteFeature="false"
+          :taskMenuFeature="false"
           @taskDblClick="onScheduletaskDblClick"
         />
       </template>
