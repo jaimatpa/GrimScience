@@ -4,6 +4,16 @@ export const useChargeCreditCard = async (chargeData, opts: UseFetchOptions<any>
   const toast = useToast();
   const config = useRuntimeConfig()
   const {cardInfo, orderInfo, customerInfo} = chargeData
+  let lineItems = []
+  lineItems = orderInfo.lineItems.map((item, index) => {
+    return {
+        "itemId": index + 1,
+        "name": !item.DESCRIPTION.length ? "no description" : item.DESCRIPTION,
+        "description": item.DESCRIPTION,
+        "quantity": item.quantity,
+        "unitPrice": item.PRIMARYPRICE1
+    }
+  })
   try {
     const apiFetch = $fetch.create({
       onResponseError({ response }) {
@@ -35,13 +45,7 @@ export const useChargeCreditCard = async (chargeData, opts: UseFetchOptions<any>
                       }
                   },
                   "lineItems": {
-                      "lineItem": {
-                          "itemId": "1",
-                          "name": "vase",
-                          "description": "Cannes logo",
-                          "quantity": "1",
-                          "unitPrice": "45.00"
-                      }
+                      "lineItem": lineItems
                   },
                   "tax": {
                       "amount": `${orderInfo.tax ?? 0}`,

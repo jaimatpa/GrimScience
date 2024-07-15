@@ -552,7 +552,8 @@
           amount: creditCardMeta.value.amount
         },
         orderInfo: {
-          ...formData
+          ...formData,
+          lineItems: orderList.value
         },
         customerInfo: {
           ...customerData
