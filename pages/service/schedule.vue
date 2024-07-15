@@ -265,6 +265,9 @@ const filterValues = ref({
   REPAIRSMADE: null,
   WarrentyService: null,
 });
+const ganttMeta = ref({
+  tasks: []
+})
 
 const init = async () => {
   fetchGridData();
@@ -279,6 +282,55 @@ const init = async () => {
       },
     });
   }
+  await useApiFetch("/api/service/schedule/allschedules", {
+    method: "GET",
+    params: {
+      ...filterValues.value,
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        let schedules = response._data.body
+        let employees = []
+        schedules.forEach((schedule) => {
+          if(!employees.includes(schedule['Service Tech'])) {
+            employees.push(schedule['Service Tech'])
+          }
+        })
+        ganttMeta.value.tasks = employees.map((employee, index) => {
+          let schedulesForEmployee = schedules.filter(schedule => schedule['Service Tech'] === employee)
+          let serviceOrders = []
+          let serviceOrderList = []
+          schedulesForEmployee.forEach((schedule) => {
+            if(!serviceOrderList.includes(schedule['SO#'])) {
+              serviceOrderList.push(schedule['SO#'])
+            }
+          })
+          serviceOrders = serviceOrderList.map((serviceOrder) => {
+            let serviceReports = []
+            serviceReports = schedulesForEmployee
+              .filter(schedule => schedule['Service Tech'] === employee && schedule['SO#'] === serviceOrder)
+              .map((schedule) => {
+                return {
+                  name: `${schedule['SR#']}`,
+                  startDate: schedule['SR Date'],
+                  duration: 1,
+                  manuallyScheduled: true
+                }
+              })
+            return {
+              name: serviceOrder,
+              children: serviceReports
+            }
+          })
+          return {
+            name: employee,
+            expanded: !index ? true : false,
+            children: serviceOrders
+          }
+        })
+      }
+    },
+  })
 };
 
 // Watcher to monitor changes in headerCheckboxes and update filterValues accordingly
@@ -715,33 +767,12 @@ const excelExport = async () => {
       <template v-else style="height: 100%">
         <bryntum-gantt
           ref="gantt"
-          :tasks="[
-            {
-              id       : 1,
-              name     : 'Write docs',
-              expanded : true,
-              children : [
-                  { 
-                    id : 2, 
-                    name : 'Proof-read docs', 
-                    expanded: true,
-                    startDate : '2020-01-03', 
-                    endDate : '2020-01-05',
-                    duration: 2
-                  },
-                  { 
-                    id : 3, 
-                    name : 'Release docs', 
-                    startDate : '2020-01-05', 
-                    endDate : '2020-01-10',
-                    duration: 5 
-                  }
-              ]
-            }
-          ]"
-          :startDate="new Date(2019, 11, 31)"
-          :endDate="new Date(2020, 0, 11)"
+          :tasks="ganttMeta.tasks"
+          :startDate="new Date(2006, 0, 1)"
+          :endDate="new Date(2025, 0, 11)"
           :height="100"
+          :parentAreaFeature="true"
+          :scrollButtonsFeature="true"
         />
       </template>
     </UDashboardPanel>
