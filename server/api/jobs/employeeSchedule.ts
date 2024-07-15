@@ -2,12 +2,12 @@ import { getEmployeeSchedules } from "~/server/controller/jobs";
 
 export default eventHandler(async (event) => {
   try {
-    const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
+    const { sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
-        const list = await getEmployeeSchedules(page, pageSize, sortBy, sortOrder, filterParams);
+        const list = await getEmployeeSchedules(sortBy, sortOrder, filterParams);
         return { body: list, message: '' }
       default:
         setResponseStatus(event, 405);

@@ -2,7 +2,7 @@ import { tblEmployee, tblJobOperations, tblOperationHoursWorked } from "~/server
 import { Sequelize, Op } from "sequelize";
 
 const applyFilters = (params) => {
-  const filterParams = ['JobID', 'week', 'Operation', 'WorkCenter', 'Hours', 'reworkhrs', 'verified', 'DateScheduled','OperationID'];
+  const filterParams = ['JobID', 'week', 'Operation', 'WorkCenter', 'Hours', 'reworkhrs', 'verified', 'DateScheduled', 'OperationID'];
   const whereClause = {};
 
   filterParams.forEach(param => {
@@ -16,11 +16,7 @@ const applyFilters = (params) => {
   return whereClause;
 };
 
-export const getAllOperation = async (page, pageSize, sortBy, sortOrder, filterParams) => {
-
-
-  const limit = parseInt(pageSize as string, 10) || 10;
-  const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
+export const getAllOperation = async (sortBy, sortOrder, filterParams) => {
 
   const whereClause = applyFilters(filterParams);
 
@@ -28,27 +24,23 @@ export const getAllOperation = async (page, pageSize, sortBy, sortOrder, filterP
     attributes: ['UniqueID', 'JobID', 'week', 'Operation', 'WorkCenter', 'Hours', 'reworkhrs', 'verified', 'DateScheduled'],
     where: whereClause,
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
-    offset,
-    limit
   });
   return list;
 }
 
 tblOperationHoursWorked.belongsTo(tblEmployee, { foreignKey: 'EmployeeID', targetKey: 'UniqueID' });
 
-export const getEmployeeSchedules = async (page, pageSize, sortBy, sortOrder, filterParams) => {
-  const limit = parseInt(pageSize, 10) || 10;
-  const offset = ((parseInt(page, 10) - 1) || 0) * limit;
+export const getEmployeeSchedules = async (sortBy, sortOrder, filterParams) => {
 
   const whereClause = applyFilters(filterParams);
 
   const list = await tblOperationHoursWorked.findAll({
     attributes: [
-      'UniqueID', 
-      'JobID', 
+      'UniqueID',
+      'JobID',
       'OperationID',
       'StartTime',
-      'Hours', 
+      'Hours',
       'StartTime'
     ],
     include: [
@@ -59,22 +51,29 @@ export const getEmployeeSchedules = async (page, pageSize, sortBy, sortOrder, fi
     ],
     where: whereClause,
     order: [[sortBy || 'UniqueID', sortOrder || 'ASC']],
-    offset,
-    limit
   });
 
   const formattedList = list.map((item: any) => {
     return {
-      UniqueID: item.UniqueID,                            
-      JobID: item.JobID,                            
-      OperationID: item.OperationID,                            
-      StartTime: item.StartTime,                           
-      Hours: item.Hours,       
-      employee: `#${item.tblEmployee.payrollnumber} ${item.tblEmployee.fname} ${item.tblEmployee.lname}`                 
+      UniqueID: item.UniqueID,
+      JobID: item.JobID,
+      OperationID: item.OperationID,
+      StartTime: item.StartTime,
+      Hours: item.Hours,
+      employee: `#${item.tblEmployee.payrollnumber} ${item.tblEmployee.fname} ${item.tblEmployee.lname}`
     }
   })
 
   return formattedList;
-
-    
 };
+
+export const getJobOperationsById = async (params) => {
+  const { JobID } = params
+  let where = {}
+  if (JobID) where['JobID'] = JobID
+  const reports = await tblJobOperations.findAll({
+    where: where,
+    raw: true
+  })
+  return reports
+}

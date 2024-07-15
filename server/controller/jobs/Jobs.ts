@@ -1,45 +1,45 @@
 import { tblJobDetail, tblJobs } from "~/server/models";
-import { Sequelize ,Op} from "sequelize";
+import { Sequelize, Op } from "sequelize";
 
 const applyFilters = (params) => {
-  const filterParams = ['UniqueID','NUMBER','QUANTITY', 'MODEL','PerType','DATEOPENED', 'DATECLOSED','PercentageComplete','Catagory','SubCatagory','Cost','jobcat','jobsubcat','ProductionDate', 'JobID'];  
+  const filterParams = ['UniqueID', 'NUMBER', 'QUANTITY', 'MODEL', 'PerType', 'DATEOPENED', 'DATECLOSED', 'PercentageComplete', 'Catagory', 'SubCatagory', 'Cost', 'jobcat', 'jobsubcat', 'ProductionDate', 'JobID'];
   const whereClause = {};
 
-filterParams.forEach(param => {
-  if (params[param]) {
-    whereClause[param] = {
-      [Op.like]: `%${params[param]}%`
-    };
-  }
-});
+  filterParams.forEach(param => {
+    if (params[param]) {
+      whereClause[param] = {
+        [Op.like]: `%${params[param]}%`
+      };
+    }
+  });
 
   return whereClause;
 };
 
 const applyCusFilters = (params) => {
-  const filterParams = ['JobID'];  
+  const filterParams = ['JobID'];
   const whereClause = {};
 
-filterParams.forEach(param => {
-  if (params[param]) {
-    whereClause[param] = {
-      [Op.in]: Array.isArray(params[param]) ? params[param] : [params[param]]
-    };
-  }
-});
+  filterParams.forEach(param => {
+    if (params[param]) {
+      whereClause[param] = {
+        [Op.in]: Array.isArray(params[param]) ? params[param] : [params[param]]
+      };
+    }
+  });
 
   return whereClause;
 };
 
 export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams) => {
-  
+
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
-  
+
   const whereClause = applyFilters(filterParams);
-  
+
   const list = await tblJobs.findAll({
-    attributes: ['UniqueID','NUMBER','QUANTITY', 'MODEL','PerType','DATEOPENED', 'DATECLOSED','PercentageComplete','Catagory','SubCatagory','Cost','jobcat','jobsubcat','ProductionDate'],
+    attributes: ['UniqueID', 'NUMBER', 'QUANTITY', 'MODEL', 'PerType', 'DATEOPENED', 'DATECLOSED', 'PercentageComplete', 'Catagory', 'SubCatagory', 'Cost', 'jobcat', 'jobsubcat', 'ProductionDate'],
     where: whereClause,
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
     offset,
@@ -49,16 +49,16 @@ export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams
 }
 
 export const getNumberOfJobs = async (filterParams) => {
-    const whereClause = applyFilters(filterParams);
-    const numberOfCustomers = await tblJobs.count({
-      where: whereClause
-    });
-    return numberOfCustomers;
+  const whereClause = applyFilters(filterParams);
+  const numberOfCustomers = await tblJobs.count({
+    where: whereClause
+  });
+  return numberOfCustomers;
 }
 
 export const JobExistByID = async (id: number | string) => {
   const tableDetail = await tblJobs.findByPk(id);
-  if(tableDetail)
+  if (tableDetail)
     return true;
   else
     return false;
@@ -71,9 +71,9 @@ export const getJobDetail = async (id) => {
 
 export const getAllJobDetail = async (sortBy, sortOrder, filterParams) => {
   const whereClause = applyCusFilters(filterParams);
-  
+
   const list = await tblJobDetail.findAll({
-    attributes: ['UniqueID','JobID','PartsList','Serial','ShipDate','SingleMaterialCost','dateEntered','ScheduledDate','SingleLaborCost'],
+    attributes: ['UniqueID', 'JobID', 'PartsList', 'Serial', 'ShipDate', 'SingleMaterialCost', 'dateEntered', 'ScheduledDate', 'SingleLaborCost'],
     where: whereClause,
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
   });
@@ -88,13 +88,13 @@ export const updateJob = async (id, reqData) => {
 }
 
 export const deleteJob = async (id) => {
-  await tblJobs.destroy({where: { UniqueID: id }});
+  await tblJobs.destroy({ where: { UniqueID: id } });
   return id;
 }
 
 export const createNewJob = async (data) => {
   const createReqData = {
-      ...data,
+    ...data,
   };
   const newCustomer = await tblJobs.create(createReqData);
   return newCustomer

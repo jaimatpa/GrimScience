@@ -39,6 +39,7 @@ const prodScheduleHrs = ref("0");
 const subScheduleHrs = ref("0");
 const prodHrs = ref(0);
 const subHrs = ref(0);
+const unitCost = ref();
 const formData = reactive({
   ReportsTo: null,
   Title: null,
@@ -66,7 +67,7 @@ const formData = reactive({
   PRODUCTLINE: null,
   MODEL: null,
 });
-const date = new Date()
+const date = new Date();
 const editInit = async () => {
   loadingOverlay.value = true;
   await useApiFetch(`/api/jobs/${props.selectedJob}`, {
@@ -77,7 +78,12 @@ const editInit = async () => {
 
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
-            formData[key] = response._data.body[key];
+            // formData[key] = response._data.body[key];
+            if (key === "Cost") {
+              formData[key] = `$${response._data.body[key]}`;
+            } else {
+              formData[key] = response._data.body[key];
+            }
           }
         }
       }
@@ -182,7 +188,38 @@ const editInit = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         if (formData.JobType === "Product") {
-          productsSerialGridMeta.value.products = response._data.body;
+          const totalAmount = formData.Cost;
+          const numericAmount = parseFloat(totalAmount.replace("$", ""));
+
+          // Filter objects that have a dateEntered value
+          const validEntries = response._data.body.filter(
+            (item) => item.dateEntered
+          );
+
+          // Calculate the cost per valid entry
+          const costPerEntry = numericAmount / validEntries.length;
+
+          unitCost.value = `$${costPerEntry.toFixed(2)}`;
+
+          // Map over the data to create the new structure
+          const transformedData = response._data.body.map((item) => {
+            if (item.dateEntered) {
+              return {
+                ...item,
+                cost: `$${costPerEntry.toFixed(2)}`, // Keep 2 decimal places
+                SingleMaterialCost: null,
+              };
+            } else {
+              return {
+                ...item,
+                cost: "$0.00",
+                SingleMaterialCost: null,
+              };
+            }
+          });
+
+          console.log("transformedData", transformedData);
+          productsSerialGridMeta.value.products = transformedData;
         } else {
           productsSBSerialGridMeta.value.products = response._data.body;
         }
@@ -327,12 +364,19 @@ const handleClose = async () => {
   }
 };
 const onSubmit = async (event: FormSubmitEvent<any>) => {
+  const totalAmount = event.data.Cost;
+  const numericAmount = parseFloat(totalAmount.replace("$", ""));
+  const data = {
+    ...event.data,
+    Cost: numericAmount,
+  };
+
   if (props.selectedJob === null) {
     // Create New Job
     isLoading.value = true;
     await useApiFetch("/api/jobs", {
       method: "POST",
-      body: event.data,
+      body: data,
       onResponse({ response }) {
         if (response.status === 200) {
           isLoading.value = false;
@@ -347,9 +391,10 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     });
   } else {
     // Update Job
+    isLoading.value = true;
     await useApiFetch(`/api/jobs/${props.selectedJob}`, {
       method: "PUT",
-      body: event.data,
+      body: data,
       onResponse({ response }) {
         if (response.status === 200) {
           toast.add({
@@ -541,7 +586,7 @@ const productsSerialGridMeta = ref({
       label: "Date Completed",
     },
     {
-      key: "material_cost",
+      key: "cost",
       label: "Material Cost",
     },
   ],
@@ -669,11 +714,7 @@ else propertiesInit();
                   label="Unit Material Cost"
                   name="Unit Material Cost"
                 >
-                  <UInput
-                    v-model="formData.Cost"
-                    type="number"
-                    placeholder=""
-                  />
+                  <UInput v-model="unitCost" placeholder="" />
                 </UFormGroup>
               </div>
               <div class="basis-1/5">
@@ -1057,10 +1098,7 @@ else propertiesInit();
                   <UPopover :popper="{ placement: 'bottom-start' }">
                     <UButton
                       icon="i-heroicons-calendar-days-20-solid"
-                      :label="
-                        date &&
-                        format(date, 'MM/dd/yyyy')
-                      "
+                      :label="date && format(date, 'MM/dd/yyyy')"
                       variant="outline"
                       :ui="{
                         base: 'w-full',
@@ -1187,10 +1225,7 @@ else propertiesInit();
                   <UPopover :popper="{ placement: 'bottom-start' }">
                     <UButton
                       icon="i-heroicons-calendar-days-20-solid"
-                      :label="
-                        date &&
-                        format(date, 'MM/dd/yyyy')
-                      "
+                      :label="date && format(date, 'MM/dd/yyyy')"
                       variant="outline"
                       :ui="{
                         base: 'w-full',
