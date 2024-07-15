@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { BryntumGantt } from '@bryntum/gantt-vue-3'
 import "@bryntum/gantt/gantt.stockholm.css";
 
@@ -266,7 +266,9 @@ const filterValues = ref({
   WarrentyService: null,
 });
 const ganttMeta = ref({
-  tasks: []
+  tasks: [],
+  startDate: new Date(),
+  endDate: new Date()
 })
 
 const init = async () => {
@@ -282,56 +284,6 @@ const init = async () => {
       },
     });
   }
-  await useApiFetch("/api/service/schedule/allschedules", {
-    method: "GET",
-    params: {
-      ...filterValues.value,
-    },
-    onResponse({ response }) {
-      if (response.status === 200) {
-        let schedules = response._data.body
-        let employees = []
-        schedules.forEach((schedule) => {
-          if(!employees.includes(schedule['Service Tech'])) {
-            employees.push(schedule['Service Tech'])
-          }
-        })
-        ganttMeta.value.tasks = employees.map((employee, index) => {
-          let schedulesForEmployee = schedules.filter(schedule => schedule['Service Tech'] === employee)
-          let serviceOrders = []
-          let serviceOrderList = []
-          schedulesForEmployee.forEach((schedule) => {
-            if(!serviceOrderList.includes(schedule['SO#'])) {
-              serviceOrderList.push(schedule['SO#'])
-            }
-          })
-          serviceOrders = serviceOrderList.map((serviceOrder) => {
-            let serviceReports = []
-            serviceReports = schedulesForEmployee
-              .filter(schedule => schedule['Service Tech'] === employee && schedule['SO#'] === serviceOrder)
-              .map((schedule) => {
-                return {
-                  name: `${schedule['SR#']}`,
-                  startDate: schedule['SR Date'],
-                  duration: 1,
-                  manuallyScheduled: true
-                }
-              })
-            return {
-              name: serviceOrder,
-              children: serviceReports
-            }
-          })
-          return {
-            name: employee,
-            expanded: !index ? true : false,
-            children: serviceOrders,
-            eventColor: '#BB8ABC'
-          }
-        })
-      }
-    },
-  })
 };
 
 // Watcher to monitor changes in headerCheckboxes and update filterValues accordingly
@@ -384,6 +336,20 @@ watch(
   }
 );
 
+// Watch for Toggle Button
+watch(
+  () => [
+    schedulerView.value
+  ], 
+  ([newValue]) => {
+    if(newValue) {
+      fetchScheduleData()
+    } else {
+      fetchGridData()
+    }
+  }
+) 
+
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
 
@@ -430,6 +396,69 @@ const fetchGridData = async () => {
     },
   });
 };
+
+const fetchScheduleData = async () => {
+  await useApiFetch("/api/service/schedule/allschedules", {
+    method: "GET",
+    params: {
+      "SO Type": filterValues.value["SO Type"],
+      Type: filterValues.value["Type"],
+      "Service Tech": filterValues.value["Service Tech"],
+      Week: filterValues.value["Week"],
+      WarrentyService: filterValues.value["WarrentyService"],
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        let schedules = response._data.body
+        let employees = []
+        schedules.forEach((schedule) => {
+          if(!employees.includes(schedule['Service Tech'])) {
+            employees.push(schedule['Service Tech'])
+          }
+        })
+        ganttMeta.value.startDate = new Date()
+        ganttMeta.value.endDate = new Date()
+        ganttMeta.value.tasks = employees.map((employee, index) => {
+          let schedulesForEmployee = schedules.filter(schedule => schedule['Service Tech'] === employee)
+          let serviceOrders = []
+          let serviceOrderList = []
+          schedulesForEmployee.forEach((schedule) => {
+            if(!serviceOrderList.includes(schedule['SO#'])) {
+              serviceOrderList.push(schedule['SO#'])
+            }
+          })
+          serviceOrders = serviceOrderList.map((serviceOrder) => {
+            let serviceReports = []
+            serviceReports = schedulesForEmployee
+              .filter(schedule => schedule['Service Tech'] === employee && schedule['SO#'] === serviceOrder)
+              .map((schedule) => {
+                if(new Date(ganttMeta.value.startDate) > new Date(schedule['SR Date']))
+                  ganttMeta.value.startDate = new Date(schedule['SR Date'])
+                if(new Date(ganttMeta.value.endDate) < new Date(schedule['SR Date']))
+                  ganttMeta.value.endDate = addDays(new Date(schedule['SR Date']), 1)
+                return {
+                  name: `${schedule['SR#']}`,
+                  startDate: schedule['SR Date'],
+                  duration: 1,
+                  manuallyScheduled: true
+                }
+              })
+            return {
+              name: serviceOrder,
+              children: serviceReports
+            }
+          })
+          return {
+            name: employee,
+            expanded: !index ? true : false,
+            children: serviceOrders,
+            eventColor: '#BB8ABC'
+          }
+        })
+      }
+    },
+  })
+}
 
 const handleSortingButton = async (btnName: string) => {
   gridMeta.value.page = 1;
@@ -512,16 +541,28 @@ const onDblClick = async () => {
 
 const onServiceReportSave = async () => {
   modalMeta.value.isReportModalOpen = false;
-  fetchGridData();
+  if(schedulerView.value) {
+    fetchScheduleData()
+  } else {
+    fetchGridData();
+  }
 };
 
 const handleFilterChange = () => {
   gridMeta.value.page = 1;
-  fetchGridData();
+  if(schedulerView.value) {
+    fetchScheduleData()
+  } else {
+    fetchGridData();
+  }
 };
 
 const handleCheckboxChange = () => {
-  fetchGridData();
+  if(schedulerView.value) {
+    fetchScheduleData()
+  } else {
+    fetchGridData();
+  }
 };
 
 const excelExport = async () => {
@@ -744,8 +785,8 @@ const onScheduletaskDblClick = async (event) => {
         <bryntum-gantt
           ref="gantt"
           :tasks="ganttMeta.tasks"
-          :startDate="new Date(2006, 0, 1)"
-          :endDate="new Date(2025, 0, 11)"
+          :startDate="ganttMeta.startDate"
+          :endDate="ganttMeta.endDate"
           :height="100"
           :parentAreaFeature="true"
           :scrollButtonsFeature="true"

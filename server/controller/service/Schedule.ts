@@ -84,7 +84,6 @@ export const getScheduleList = async (page, pageSize, sortBy, sortOrder, filterP
 
 export const getAllSchedules = async (sortBy, sortOrder, filterParams) => {
     const whereClause = applyFilters(filterParams);
-  
     const list = await vwServiceReportListing.findAll({
       attributes: ['uniqueID','SO#','SO Status','SN#','SO Date', 'Cust #', 'Company', 'city','ST','SO Type', 'Failure Comment', 'SR#', 'Status', 'Type', 'Service Tech', 'SR Date', 'Week','Invoice','REPAIRSMADE'],
       where: whereClause,
