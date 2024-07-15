@@ -540,51 +540,6 @@ const excelExport = async () => {
   exportIsLoading.value = false;
 };
 
-
-  // Scheduler
-  const useGanttConfig = () => {
-    return {
-
-        columns : [{ type : 'name', width : 160 }],
-
-        startDate : new Date(2022, 0, 1),
-        endDate   : new Date(2022, 0, 10)
-    };
-  };
-  const useProjectConfig = () => {
-    return {
-        // Automatically introduces a `startnoearlier` constraint for tasks that (a) have no predecessors,
-        // (b) do not use constraints and (c) aren't `manuallyScheduled`
-        autoSetConstraints : true,
-
-        startDate : new Date(2022, 0, 1)
-    };
-  };
-
-  const gantt = ref(null);
-  const project = ref(null);
-
-  const ganttConfig = reactive(useGanttConfig());
-  const projectConfig = reactive(useProjectConfig());
-
-  const tasks = ref(null);
-  const dependencies = ref(null);
-
-  // tasks.value = [
-  //     {
-  //         id       : 1,
-  //         name     : 'Write docs',
-  //         expanded : true,
-  //         children : [
-  //             { id : 6, name : 'Proof-read docs', startDate : '2022-01-02', endDate : '2022-01-09' },
-  //             { id : 3, name : 'Release docs', startDate : '2022-01-09', endDate : '2022-01-10' }
-  //         ]
-  //     }
-  // ];
-  dependencies.value = [
-      { fromTask : 6, toTask : 3 }
-  ];
-
 </script>
 
 <template>
