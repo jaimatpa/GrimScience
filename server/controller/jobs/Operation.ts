@@ -67,6 +67,45 @@ export const getEmployeeSchedules = async (sortBy, sortOrder, filterParams) => {
   return formattedList;
 };
 
+export const getEmployeeOperationSchedules = async (params) => {
+
+  const { JobID, OperationID } = params
+  let where = {}
+  if (JobID) where['JobID'] = JobID
+  if (OperationID) where['OperationID'] = OperationID
+
+  const list = await tblOperationHoursWorked.findAll({
+    attributes: [
+      'UniqueID',
+      'JobID',
+      'OperationID',
+      'StartTime',
+      'Hours',
+      'StartTime'
+    ],
+    include: [
+      {
+        model: tblEmployee,
+        attributes: ['UniqueID', 'payrollnumber', 'fname', 'lname'],
+      }
+    ],
+    where: where,
+  });
+
+  const formattedList = list.map((item: any) => {
+    return {
+      UniqueID: item.UniqueID,
+      JobID: item.JobID,
+      OperationID: item.OperationID,
+      StartTime: item.StartTime,
+      Hours: item.Hours,
+      employee: `#${item.tblEmployee.payrollnumber} ${item.tblEmployee.fname} ${item.tblEmployee.lname}`
+    }
+  })
+
+  return formattedList;
+};
+
 export const getJobOperationsById = async (params) => {
   const { JobID } = params
   let where = {}

@@ -362,13 +362,7 @@ const validate = (state: any): FormError[] => {
   const errors = [];
   return errors;
 };
-const handleClose = async () => {
-  if (organizationFormInstance?.vnode?.props.onClose) {
-    emit("close");
-  } else {
-    router.go(-1);
-  }
-};
+
 const onSubmit = async (event: FormSubmitEvent<any>) => {
   const totalAmount = event.data.Cost;
   const numericAmount = parseFloat(totalAmount.replace("$", ""));
@@ -454,7 +448,7 @@ const operationFilterValues = ref({
 
 const emploeeFilterValues = ref({
   JobID: props.selectedJob,
-  OperationID: 8226,
+  OperationID: null,
 });
 
 const jobFilters = ref({
@@ -707,7 +701,23 @@ const modalMeta = ref({
   isPartsModalOpen: false,
   modalTitle: "Parts Listing",
   modalDescription: "View Parts Listing",
+  isOperationModalOpen: false,
+  isReworkPartsModalOpen: false,
 });
+
+const onDblClick = () => {
+  modalMeta.value.isOperationModalOpen = true;
+  modalMeta.value.modalTitle = "Manufacturing Secquence";
+  modalMeta.value.modalDescription = `Manufacturing Secquence ${
+    formData.MODEL ? formData.MODEL : formData.PART
+  }`;
+};
+
+const handleRWClick = () => {
+  modalMeta.value.isReworkPartsModalOpen = true;
+  modalMeta.value.modalTitle = "Parts Used";
+  modalMeta.value.modalDescription = "";
+};
 
 const handleModalClose = () => {
   modalMeta.value.isPartsModalOpen = false;
@@ -1451,6 +1461,7 @@ else propertiesInit();
                   },
                 }"
                 @select="handleProdOperationSelect"
+                @dblclick="onDblClick"
               >
                 <template #empty-state>
                   <div></div>
@@ -1477,6 +1488,7 @@ else propertiesInit();
                   },
                 }"
                 @select="handleSubOperationSelect"
+                @dblclick="onDblClick"
               >
                 <template #empty-state>
                   <div></div>
@@ -1574,6 +1586,7 @@ else propertiesInit();
                                 truncate: 'flex justify-center w-full',
                               }"
                               truncate
+                              @click="handleRWClick"
                             />
                           </div>
                         </div>
@@ -1711,5 +1724,34 @@ else propertiesInit();
       @close="handleModalClose"
       :is-modal="true"
     />
+  </UDashboardModal>
+
+  <!-- Manufacturing Sequnce Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isOperationModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <JobManufacturingSequenceForm
+      :selected-job="selectedJob"
+      :is-modal="true"
+    />
+  </UDashboardModal>
+
+  <!-- Rework Parts Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isReworkPartsModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <JobReworkParts :selected-job="selectedJob" :is-modal="true" />
   </UDashboardModal>
 </template>
