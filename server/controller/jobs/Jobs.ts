@@ -39,13 +39,33 @@ export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams
   const whereClause = applyFilters(filterParams);
 
   const list = await tblJobs.findAll({
-    attributes: ['UniqueID', 'NUMBER', 'QUANTITY', 'MODEL', 'PerType', 'DATEOPENED', 'DATECLOSED', 'PercentageComplete', 'Catagory', 'SubCatagory', 'Cost', 'jobcat', 'jobsubcat', 'ProductionDate'],
+    attributes: ['UniqueID', 'NUMBER', 'QUANTITY', 'MODEL', 'PART', 'PerType', 'DATEOPENED', 'DATECLOSED', 'PercentageComplete', 'Catagory', 'SubCatagory', 'Cost', 'jobcat', 'jobsubcat', 'ProductionDate'],
     where: whereClause,
-    order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
+    order: [[sortBy as string || 'NUMBER', sortOrder as string || 'ASC']],
     offset,
     limit
   });
-  return list;
+
+  const formattedList = list.map((item: any) => {
+    return {
+      description: `${item.MODEL ? `#${item.MODEL}` : `#${item.PART}`}`,
+      UniqueID: item.UniqueID,
+      NUMBER: item.NUMBER,
+      QUANTITY: item.QUANTITY,
+      MODEL: item.MODEL,
+      PART: item.PART,
+      PerType: item.PerType,
+      DATEOPENED: item.DATEOPENED,
+      DATECLOSED: item.DATECLOSED,
+      PercentageComplete: item.PercentageComplete,
+      Cost: item.Cost,
+      Catagory: item.Catagory,
+      SubCatagory: item.SubCatagory,
+      ProductionDate: item.ProductionDate,
+
+    }
+  })
+  return formattedList;
 }
 
 export const getNumberOfJobs = async (filterParams) => {

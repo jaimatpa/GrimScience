@@ -25,37 +25,24 @@ const isLoading = ref(false);
 const perTypes = ref([]);
 const totalHours = ref("0");
 const subScheduleHrs = ref("0");
+const workCenters = ref([]);
 const formData = reactive({
-  ReportsTo: null,
-  Title: null,
-  Employee: null,
-  JobType: null,
-  JobDescription: null,
-  WorkCenters: null,
-
-  NUMBER: null,
-  QUANTITY: null,
-  DATEOPENED: null,
-  DATECLOSED: null,
-  JOBCLOSED: null,
-  jobcat: null,
-  jobsubcat: null,
-  Cost: null,
-  Catagory: null,
-  SubCatagory: null,
-  ClosedBy: null,
-  PerType: null,
-  ProductionDate: null,
-  ProductionBy: null,
-  PART: null,
-  ByEmployee: null,
-  PRODUCTLINE: null,
-  MODEL: null,
+  UniqueID: null,
+  Number: null,
+  week: null,
+  Operation: null,
+  WorkCenter: null,
+  Hours: null,
 });
 const date = new Date();
 const editInit = async () => {
   loadingOverlay.value = true;
+  await getOperations();
+  await propertiesInit();
+  loadingOverlay.value = false;
+};
 
+const getOperations = async () => {
   await useApiFetch("/api/jobs/operations", {
     method: "GET",
     params: { ...operationFilterValues.value },
@@ -73,25 +60,23 @@ const editInit = async () => {
       prodOperationGridMeta.value.operations = [];
     },
   });
-
-  loadingOverlay.value = false;
 };
 
 const propertiesInit = async () => {
   loadingOverlay.value = true;
 
-  // get subJobCat users
-  //   await useApiFetch("/api/jobs/jobsubcat", {
-  //     method: "GET",
-  //     onResponse({ response }) {
-  //       if (response.status === 200) {
-  //         jobsubcat.value = response._data.body;
-  //       }
-  //     },
-  //     onResponseError() {
-  //       jobsubcat.value = [];
-  //     },
-  //   });
+  // get operationList users
+  await useApiFetch("/api/jobs/operations/workcenter", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        workCenters.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      workCenters.value = [];
+    },
+  });
 
   loadingOverlay.value = false;
 };
@@ -108,12 +93,7 @@ const handleClose = async () => {
   }
 };
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  const totalAmount = event.data.Cost;
-  const numericAmount = parseFloat(totalAmount.replace("$", ""));
-  const data = {
-    ...event.data,
-    Cost: numericAmount,
-  };
+  console.log("ccccc");
 
   if (props.selectedJob === null) {
     // Create New Job
@@ -136,43 +116,47 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   } else {
     // Update Job
     isLoading.value = true;
-    // await useApiFetch(`/api/jobs/${props.selectedJob}`, {
-    //   method: "PUT",
-    //   body: data,
-    //   onResponse({ response }) {
-    //     if (response.status === 200) {
-    //       toast.add({
-    //         title: "Success",
-    //         description: response._data.message,
-    //         icon: "i-heroicons-check-circle",
-    //         color: "green",
-    //       });
-    //     }
-    //   },
-    // });
+    await useApiFetch(`/api/jobs/operations/${formData.UniqueID}`, {
+      method: "PUT",
+      body: event.data,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          getOperations();
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
   }
   emit("save");
 };
 
 const handleProdOperationSelect = (row) => {
-  //   prodOperationGridMeta.value.selectedOperation = { ...row, class: "" };
-  //   prodOperationGridMeta.value.operations.forEach((c) => {
-  //     if (c.UniqueID === row.UniqueID) {
-  //       c.class = "bg-gray-200";
-  //     } else {
-  //       delete c.class;
-  //     }
-  //   });
-  //   console.log(
-  //     " prodOperationGridMeta.value.selectedOperation",
-  //     prodOperationGridMeta.value.selectedOperation
-  //   );
-  //   for (const key in prodOperationGridMeta.value.selectedOperation) {
-  //     formData[key] = prodOperationGridMeta.value.selectedOperation[key];
-  //   }
-  //   emploeeFilterValues.value.OperationID =
-  //     prodOperationGridMeta.value.selectedOperation.UniqueID;
-  //   getSchedules();
+  prodOperationGridMeta.value.selectedOperation = { ...row, class: "" };
+  prodOperationGridMeta.value.operations.forEach((c) => {
+    if (c.UniqueID === row.UniqueID) {
+      c.class = "bg-gray-200";
+    } else {
+      delete c.class;
+    }
+  });
+  const data = prodOperationGridMeta.value.selectedOperation;
+  formData.UniqueID = data.UniqueID;
+  formData.Number = data.Number;
+  formData.week = data.week;
+  formData.Operation = data.Operation;
+  formData.WorkCenter = data.WorkCenter;
+  formData.Hours = data.Hours;
+};
+
+const handleClearCick = () => {
+  Object.keys(formData).forEach((key) => {
+    formData[key] = null;
+  });
 };
 
 const operationFilterValues = ref({
@@ -182,7 +166,7 @@ const operationFilterValues = ref({
 const prodOperationGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "#",
+      key: "Number",
       label: "#",
     },
     {
@@ -286,43 +270,31 @@ else propertiesInit();
         <div class="flex flex-row space-x-3 items-end mb-4 px-4">
           <div class="">
             <UFormGroup label="Number" name="ReportsTo">
-              <UInput v-model="formData.NUMBER" placeholder="" />
+              <UInput v-model="formData.Number" placeholder="" />
             </UFormGroup>
           </div>
           <div class="">
             <UFormGroup label="Week" name="Job Qty">
-              <UInput
-                v-model="formData.QUANTITY"
-                type="number"
-                placeholder=""
-              />
+              <UInput v-model="formData.week" type="number" placeholder="" />
             </UFormGroup>
           </div>
           <div class="">
             <UFormGroup label="Operation" name="Job Type">
-              <UInput
-                v-model="formData.QUANTITY"
-                type="number"
-                placeholder=""
-              />
+              <UInput v-model="formData.Operation" placeholder="" />
             </UFormGroup>
           </div>
           <div class="">
             <UFormGroup label="Work Center" name="Unit Material Cost">
               <UInputMenu
-                v-model="formData.PerType"
-                v-model:query="formData.PerType"
-                :options="perTypes"
+                v-model="formData.WorkCenter"
+                v-model:query="formData.WorkCenter"
+                :options="workCenters"
               />
             </UFormGroup>
           </div>
           <div class="">
             <UFormGroup label="Hours" name="Relieve Inventory Per">
-              <UInput
-                v-model="formData.QUANTITY"
-                type="number"
-                placeholder=""
-              />
+              <UInput v-model="formData.Hours" type="number" placeholder="" />
             </UFormGroup>
           </div>
 
@@ -350,6 +322,7 @@ else propertiesInit();
                 base: 'w-full',
                 truncate: 'flex justify-center w-full',
               }"
+              @click="handleClearCick"
               truncate
             />
           </div>
@@ -367,66 +340,6 @@ else propertiesInit();
             />
           </div>
         </div>
-        <!-- <div class="flex flex-col gap-4 justify-start mt-2">
-          <div class="">
-            <UButton
-              icon="i-heroicons-magnifying-glass"
-              variant="outline"
-              color="green"
-              label="View Parts List"
-              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-              truncate
-              @click="onPartsClick()"
-            />
-          </div>
-          <div class="">
-            <UButton
-              icon="i-heroicons-magnifying-glass"
-              variant="outline"
-              color="green"
-              label="View Operations"
-              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-              @click="handleViewOperationClick"
-              truncate
-            />
-          </div>
-          <div class="">
-            <UButton
-              icon="i-heroicons-magnifying-glass"
-              variant="outline"
-              color="green"
-              label="View Subassemblies"
-              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-              truncate
-            />
-          </div>
-          <div>
-            <UButton
-              icon="i-heroicons-printer"
-              label="Print Folder Label"
-              variant="outline"
-              color="purple"
-              :ui="{
-                base: 'min-w-[200px] w-full',
-                truncate: 'flex justify-center w-full',
-              }"
-              truncate
-            />
-          </div>
-          <div>
-            <UButton
-              icon="i-heroicons-printer"
-              label="Print Documents"
-              variant="outline"
-              color="purple"
-              :ui="{
-                base: 'min-w-[200px] w-full',
-                truncate: 'flex justify-center w-full',
-              }"
-              truncate
-            />
-          </div>
-        </div> -->
 
         <div class="flex">
           <div class="w-3/5">

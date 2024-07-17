@@ -37,6 +37,8 @@ const prodDesOperations = ref([]);
 const subDesOperations = ref([]);
 const prodScheduleHrs = ref("0");
 const subScheduleHrs = ref("0");
+const prodOperationIds = ref([]);
+const subOperationIds = ref([]);
 const prodHrs = ref(0);
 const subHrs = ref(0);
 const unitCost = ref();
@@ -406,8 +408,44 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       },
     });
+
+    // await deleteOperations();
   }
   emit("save");
+};
+
+const deleteOperations = async () => {
+  const operationIds =
+    formData.JobType === "Product"
+      ? prodOperationIds.value
+      : subOperationIds.value;
+
+  if (operationIds?.length > 0) {
+    for (let i = 0; i < operationIds.length; i++) {
+      const operationId = operationIds[i];
+      await useApiFetch(`/api/jobs/operations/${operationId}`, {
+        method: "DELETE",
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: "i-heroicons-check-circle",
+              color: "green",
+            });
+          }
+        },
+      });
+    }
+  }
+};
+
+const handleClearCick = () => {
+  Object.keys(formData).forEach((key) => {
+    if (key !== "JobType") {
+      formData[key] = null;
+    }
+  });
 };
 
 const handleProdOperationSelect = (row) => {
@@ -479,11 +517,11 @@ const handleDeleteOperation = async () => {
       });
     } else {
       const id = subOperationGridMeta.value.selectedSubOperation.UniqueID;
-      const data = subOperationGridMeta.value.selectedSubOperation.filter(
+
+      const data = subOperationGridMeta.value.subOperations.filter(
         (item) => item.UniqueID !== id
       );
-
-      subOperationGridMeta.value.selectedSubOperation = data;
+      subOperationGridMeta.value.subOperations = data;
     }
   }
 
@@ -509,14 +547,23 @@ const handleDeleteOperation = async () => {
 };
 
 const handleDeleteAll = () => {
-  console.log("cccc");
+  const uniqueIDs = prodOperationGridMeta.value.operations.map(
+    (item) => item.UniqueID
+  );
+
+  const uniqueIDs2 = subOperationGridMeta.value.subOperations.map(
+    (item) => item.UniqueID
+  );
+  prodOperationIds.value = uniqueIDs;
+  subOperationIds.value = uniqueIDs2;
   prodOperationGridMeta.value.operations = [];
+  subOperationGridMeta.value.subOperations = [];
 };
 
 const prodOperationGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "#",
+      key: "Number",
       label: "#",
     },
     {
@@ -556,7 +603,7 @@ const prodOperationGridMeta = ref({
 const subOperationGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "#",
+      key: "Number",
       label: "#",
     },
     {
@@ -977,6 +1024,7 @@ else propertiesInit();
                 color="red"
                 :label="'Clear'"
                 :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
+                @click="handleClearCick"
                 truncate
               />
             </div>

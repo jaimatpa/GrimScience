@@ -641,7 +641,7 @@ if (props.selectedOrganization !== null) editInit();
     :title="jobModalMeta.modalTitle"
     :description="jobModalMeta.modalDescription"
     :ui="{
-      width: 'w-[1000px] sm:max-w-7xl',
+      width: 'w-[1100px] sm:max-w-7xl',
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >

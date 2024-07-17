@@ -41,7 +41,7 @@ const gridMeta = ref({
       filterable: true,
     },
     {
-      key: "MODEL",
+      key: "description",
       label: "Description",
       sortable: true,
       sortDirection: "none",
@@ -362,17 +362,17 @@ const onDelete = async (row: any) => {
             v-for="[key, value] in Object.entries(headerFilters)"
             :key="key"
           >
-            <template v-if="value.options.length > 1">
-              <div class="basis-1/7 max-w-[200px]">
-                <UFormGroup :label="value.label" :name="key">
-                  <USelect
-                    v-model="filterValues[`${value.filter}`]"
-                    :options="value.options"
-                    @change="handleFilterChange()"
-                  />
-                </UFormGroup>
-              </div>
-            </template>
+            <!-- <template v-if="value.options.length > 1"> -->
+            <div class="basis-1/7 max-w-[200px]">
+              <UFormGroup :label="value.label" :name="key">
+                <USelect
+                  v-model="filterValues[`${value.filter}`]"
+                  :options="value.options"
+                  @change="handleFilterChange()"
+                />
+              </UFormGroup>
+            </div>
+            <!-- </template> -->
           </template>
 
           <div class="flex flex-row space-x-3">

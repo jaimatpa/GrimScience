@@ -214,7 +214,7 @@ else propertiesInit();
     >
       <div class="flex flex-col space-x-4">
         <div class="gmsPurpleTitlebar py-3 mb-2 pl-2">Parts Used</div>
-        <div class="w-full flex items-center mb-4">
+        <div class="w-full flex items-center mb-4 gap-x-4">
           <div class="flex flex-row items-center px-0 space-x-4 w-1/2">
             <div class="">
               <UFormGroup label="" name="ReportsTo">
@@ -237,10 +237,10 @@ else propertiesInit();
               </UFormGroup>
             </div>
           </div>
-          <div class="flex items-end justify-end ml-5">
+          <div class="flex items-end justify-start w-1/2">
             <div class="w-[120px]">
               <UButton
-                label="Save"
+                label="Remove Part"
                 class="gmsPurpleTitlebar"
                 :ui="{
                   base: 'w-full',
@@ -252,7 +252,7 @@ else propertiesInit();
           </div>
         </div>
 
-        <div class="flex">
+        <div class="flex gap-x-4">
           <div class="w-1/2">
             <UTable
               :columns="prodOperationGridMeta.defaultColumns"

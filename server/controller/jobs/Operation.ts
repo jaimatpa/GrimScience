@@ -21,9 +21,9 @@ export const getAllOperation = async (sortBy, sortOrder, filterParams) => {
   const whereClause = applyFilters(filterParams);
 
   const list = await tblJobOperations.findAll({
-    attributes: ['UniqueID', 'JobID', 'week', 'Operation', 'WorkCenter', 'Hours', 'reworkhrs', 'verified', 'DateScheduled'],
+    attributes: ['UniqueID', 'Number', 'JobID', 'week', 'Operation', 'WorkCenter', 'Hours', 'reworkhrs', 'verified', 'DateScheduled'],
     where: whereClause,
-    order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
+    order: [[sortBy as string || 'Number', sortOrder as string || 'ASC']],
   });
   return list;
 }
@@ -128,4 +128,35 @@ export const OperationExistByID = async (id: number | string) => {
 export const deleteOperation = async (id) => {
   await tblJobOperations.destroy({ where: { UniqueID: id } });
   return id;
+}
+
+export const getJobOperationDetail = async (id) => {
+  const tableDetail = await tblJobOperations.findByPk(id);
+  return tableDetail
+}
+
+export const updateJobOperation = async (id, reqData) => {
+  await tblJobOperations.update(reqData, {
+    where: { UniqueID: id }
+  });
+  return id;
+}
+
+export const getWorkCenter = async () => {
+  const result = await tblJobOperations.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('WorkCenter')), 'WorkCenter']
+    ],
+    where: {
+      [Op.and]: [
+        { 'WorkCenter': { [Op.ne]: null } },
+        { 'WorkCenter': { [Op.ne]: '' } }
+      ]
+    },
+    order: [['WorkCenter', 'ASC']],
+    raw: true
+  });
+
+  const distinctWorkCenter = result.map((item: any) => item['WorkCenter']);
+  return distinctWorkCenter;
 }
