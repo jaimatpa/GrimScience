@@ -200,10 +200,11 @@ export const getNumberOfServiceOrders = async (filterParams) => {
 }
 
 export const getServiceReports = async (params) => {
-  const { uniqueID, COMPLAINTID } = params
+  const { uniqueID, COMPLAINTID, CANO } = params
   let where = {}
   if(uniqueID) where['uniqueID'] = uniqueID
   if(COMPLAINTID) where['COMPLAINTID'] = COMPLAINTID
+  if(CANO) where['CANO'] = `${CANO}`
   const reports = await tblServiceReport.findAll({
     where: where,
     raw: true
