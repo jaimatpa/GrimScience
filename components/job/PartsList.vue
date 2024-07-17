@@ -7,10 +7,10 @@ import type { UTableColumn } from "~/types";
 
 const emit = defineEmits(["close", "save"]);
 const props = defineProps({
-  //   selectedJob: {
-  //     type: [String, Number, null],
-  //     required: true,
-  //   },
+    selectedJob: {
+      type: [String, Number, null],
+      required: true,
+    },
   isModal: {
     type: [Boolean],
   },
@@ -23,8 +23,32 @@ const loadingOverlay = ref(false);
 const JobExist = ref(true);
 const formData = reactive({});
 
+const jobFilters = ref({
+  JobID: [props.selectedJob],
+});
+
+
 const editInit = async () => {
   loadingOverlay.value = true;
+  await useApiFetch(`/api/jobs/details`, {
+    method: "GET",
+    params: { ...jobFilters.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        JobExist.value = true;
+console.log('response._data.body',response._data.body);
+
+        // for (const key in response._data.body) {
+        //   if (response._data.body[key] !== undefined) {
+        //     formData[key] = response._data.body[key];
+        //   }
+        // }
+      }
+    },
+    onResponseError({}) {
+      JobExist.value = false;
+    },
+  });
 
   //   await propertiesInit();
   loadingOverlay.value = false;
@@ -76,7 +100,7 @@ const productColumns = ref([
   },
 ]);
 
-// if (props.selectedJob !== null) editInit();
+if (props.selectedJob !== null) editInit();
 // else propertiesInit();
 </script>
 

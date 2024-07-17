@@ -105,6 +105,14 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     emit('save')
 }
 
+const modalMeta = ref({
+    modalTitle: "View Position",
+    modalDescription: "",
+    isPositionModalOpen: false,
+});
+
+
+
 if (props.selectedOrganization !== null)
     editInit()
 </script>
@@ -163,9 +171,9 @@ if (props.selectedOrganization !== null)
                         :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" @click="handleClose" truncate />
                 </div>
                 <div>
-                    <UButton icon="i-heroicons-eye" label="View Position Details" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                    <UButton :disabled="selectedOrganization === null && true " icon="i-heroicons-eye" label="View Position Details" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" @click="modalMeta.isPositionModalOpen = true" truncate/>
                 </div>
-                <div v-if="props.selectedOrganization === null" class="w-[180px]">
+                <div v-if="selectedOrganization === null" class="w-[180px]">
                     <UButton icon="i-heroicons-plus-20-solid" type="submit" variant="outline" color="green"
                     :disabled="isLoading" label="Add Employee" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
                 </div>
@@ -177,4 +185,22 @@ if (props.selectedOrganization !== null)
             </div>
         </UForm>
     </template>
+
+    <!-- New Positon  Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isPositionModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1600px] sm:max-w-8xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <EmployeeViewPositionForm
+      @close="{}"
+      @save="{}"
+      :selected-organization="selectedOrganization"
+      :is-modal="true"
+    />
+  </UDashboardModal>
 </template>
