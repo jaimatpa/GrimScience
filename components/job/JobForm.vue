@@ -812,7 +812,7 @@ else propertiesInit();
           <div class="flex flex-col space-y-4">
             <div class="flex flex-row space-x-3">
               <div class="basis-1/5">
-                <UFormGroup label="Job #" name="ReportsTo">
+                <UFormGroup label="Job #" name="Job #">
                   <UInput v-model="formData.NUMBER" placeholder="" />
                 </UFormGroup>
               </div>

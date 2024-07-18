@@ -227,7 +227,14 @@ const modalMeta = ref({
   isPartsModalOpen: false,
   modalTitle: "Parts Listing",
   modalDescription: "View Parts Listing",
+  isSkillModalOpen: false,
 });
+
+const handleSkillClick = () => {
+  modalMeta.value.isSkillModalOpen = true;
+  modalMeta.value.modalTitle = "Skills ";
+  modalMeta.value.modalDescription = "";
+};
 
 const handleModalClose = () => {
   modalMeta.value.isPartsModalOpen = false;
@@ -505,7 +512,7 @@ else propertiesInit();
                     :columns="skillGridMeta.defaultColumns"
                     :ui="{
                       wrapper:
-                        'h-[377px] border-2 border-gray-300 dark:border-gray-700',
+                        'h-[371px] border-2 border-gray-300 dark:border-gray-700',
                       tr: {
                         active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
                       },
@@ -537,6 +544,7 @@ else propertiesInit();
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
                       }"
+                      @click="handleSkillClick"
                       truncate
                     />
                   </div>
@@ -577,5 +585,18 @@ else propertiesInit();
       @close="handleModalClose"
       :is-modal="true"
     />
+  </UDashboardModal>
+
+  <!-- Job Skill Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isSkillModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1000px] sm:max-w-6xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <JobSkillForm :is-modal="true" />
   </UDashboardModal>
 </template>
