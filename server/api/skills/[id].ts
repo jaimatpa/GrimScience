@@ -1,4 +1,3 @@
-import { JobExistByID, deleteJob, getJobDetail, updateJob } from '~/server/controller/jobs';
 import { deleteSkill, getSkillDetail, SkillExistById, updateSkill } from '~/server/controller/skills';
 
 export default eventHandler(async (event) => {
