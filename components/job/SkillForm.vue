@@ -768,10 +768,6 @@ const handleModalClose = () => {
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobWorkCenterForm
-      :selected-job="null"
-      @close="handleModalClose"
-      :is-modal="true"
-    />
+    <JobWorkCenterForm @close="handleModalClose" :is-modal="true" />
   </UDashboardModal>
 </template>
