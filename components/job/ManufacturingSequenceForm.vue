@@ -228,12 +228,32 @@ const modalMeta = ref({
   modalTitle: "Parts Listing",
   modalDescription: "View Parts Listing",
   isSkillModalOpen: false,
+  isStepInformationModalOpen: false,
 });
+
+const handleStepClick = () => {
+  if (!prodOperationGridMeta.value.selectedOperation) {
+    toast.add({
+      title: "Failed",
+      description: "Please select the Operation",
+      icon: "i-heroicons-minus-circle",
+      color: "red",
+    });
+  } else {
+    modalMeta.value.isStepInformationModalOpen = true;
+    modalMeta.value.modalTitle = "Step Information";
+    modalMeta.value.modalDescription = "Step Information";
+  }
+};
 
 const handleSkillClick = () => {
   modalMeta.value.isSkillModalOpen = true;
   modalMeta.value.modalTitle = "Skills ";
   modalMeta.value.modalDescription = "";
+};
+
+const handleStepModalClose = () => {
+  modalMeta.value.isStepInformationModalOpen = false;
 };
 
 const handleModalClose = () => {
@@ -353,32 +373,33 @@ else propertiesInit();
             <div class="menuBlue text-white py-3 pl-2 opacity-75">
               Manufacturing Secquence
             </div>
-            <UTable
-              :columns="prodOperationGridMeta.defaultColumns"
-              :rows="prodOperationGridMeta.operations"
-              :ui="{
-                wrapper:
-                  'h-[868px] border-2 border-gray-300 dark:border-gray-700',
-                tr: {
-                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                },
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'px-2 py-0',
-                },
-                td: {
-                  base: 'h-[31px]',
-                  padding: 'px-2 py-0',
-                },
-              }"
-              @select="handleProdOperationSelect"
-            >
-              <template #empty-state>
-                <div></div>
-              </template>
-            </UTable>
-
+            <div class="mt-4">
+              <UTable
+                :columns="prodOperationGridMeta.defaultColumns"
+                :rows="prodOperationGridMeta.operations"
+                :ui="{
+                  wrapper:
+                    'h-[868px] border-2 border-gray-300 dark:border-gray-700',
+                  tr: {
+                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                  },
+                  th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'px-2 py-0',
+                  },
+                  td: {
+                    base: 'h-[31px]',
+                    padding: 'px-2 py-0',
+                  },
+                }"
+                @select="handleProdOperationSelect"
+              >
+                <template #empty-state>
+                  <div></div>
+                </template>
+              </UTable>
+            </div>
             <div class="flex mt-5 justify-between items-center">
               <UButton
                 icon="i-heroicons-eye"
@@ -498,6 +519,7 @@ else propertiesInit();
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
                       }"
+                      @click="handleStepClick"
                       truncate
                     />
                   </div>
@@ -598,5 +620,22 @@ else propertiesInit();
     }"
   >
     <JobSkillForm :is-modal="true" />
+  </UDashboardModal>
+
+  <!-- New Step Info Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isStepInformationModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1200px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <JobStepInformationForm
+      :operation-id="prodOperationGridMeta.selectedOperation.UniqueID"
+      @close="handleStepModalClose"
+      :is-modal="true"
+    />
   </UDashboardModal>
 </template>

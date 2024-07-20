@@ -215,7 +215,6 @@ const editInit = async () => {
 
 const fetchJobOperation = async () => {
   // get job operation
-  loadingOverlay.value = true;
   await useApiFetch("/api/jobs/operations", {
     method: "GET",
     params: { ...operationFilterValues.value },
@@ -239,8 +238,6 @@ const fetchJobOperation = async () => {
       subOperationGridMeta.value.subOperations = [];
     },
   });
-
-  loadingOverlay.value = false;
 };
 
 const propertiesInit = async () => {
