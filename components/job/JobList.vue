@@ -494,7 +494,6 @@ const onDelete = async (row: any) => {
       @close="handleModalClose"
       @save="handleModalSave"
       :selected-job="gridMeta.selectedJobId"
-      :is-modal="true"
     />
   </UDashboardModal>
 </template>

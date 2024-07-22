@@ -5,19 +5,22 @@ import "vue-loading-overlay/dist/css/index.css";
 import type { UTableColumn } from "~/types";
 
 const emit = defineEmits(["close", "save"]);
-const props = defineProps({
-  isModal: {
-    type: [Boolean],
-  },
-});
 
 const toast = useToast();
 const router = useRouter();
-const organizationFormInstance = getCurrentInstance();
+const workCenterFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false);
 const WorkCenterExist = ref(true);
 const responsibilities = ref([]);
 const isLoading = ref(false);
+const workCenters = ref([]);
+const props = defineProps({
+  selectedEmployee: {
+    type: Object,
+    required: true,
+  },
+});
+
 const formData = reactive({
   NAME: null,
   NUMBER: null,
@@ -28,10 +31,21 @@ onMounted(() => {
   init();
 });
 
+const employeeFilters = ref({
+  payrollnumber: props?.selectedEmployee?.payrollnumber,
+});
+
 const init = async () => {
   loadingOverlay.value = true;
 
+  fetchResponsibilities();
   fetchWorkCenters();
+  fetchEmployeeWorkCenters();
+
+  loadingOverlay.value = false;
+};
+
+const fetchResponsibilities = async () => {
   await useApiFetch(`/api/workcenter/responsibilities`, {
     method: "GET",
     onResponse({ response }) {
@@ -43,8 +57,6 @@ const init = async () => {
       responsibilities.value = [];
     },
   });
-
-  loadingOverlay.value = false;
 };
 
 const fetchWorkCenters = async () => {
@@ -63,17 +75,57 @@ const fetchWorkCenters = async () => {
   });
 };
 
+const fetchEmployeeWorkCenters = async () => {
+  await useApiFetch(`/api/employees/workCenter`, {
+    method: "GET",
+    params: { ...employeeFilters.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        response._data.body.forEach((obj) => {
+          const workCentersString = obj.WORKCENTERS;
+
+          // Step 2: Extract IDs from string
+          const ids = workCentersString
+            .split(",")
+            .filter((id) => id !== "")
+            .map((id) => parseInt(id));
+
+          // Step 3: Collect unique IDs using Set
+          ids.forEach((id) => {
+            if (!workCenters.value.includes(id)) {
+              workCenters.value.push(id.toString());
+            }
+          });
+        });
+
+        for (let i = 0; i < workCenterGridMeta.value.options.length; i++) {
+          const responseObject = workCenterGridMeta.value.options[i];
+
+          if (workCenters.value.includes(responseObject.uniqueID)) {
+            selected.value.push(responseObject);
+          }
+        }
+      }
+    },
+    onResponseError({}) {
+      workCenters.value = [];
+    },
+  });
+};
+
 const validate = (state: any): FormError[] => {
   const errors = [];
   return errors;
 };
+
 const handleClose = async () => {
-  if (organizationFormInstance?.vnode?.props.onClose) {
+  if (workCenterFormInstance?.vnode?.props?.onClose) {
     emit("close");
   } else {
     router.go(-1);
   }
 };
+
 const onSubmit = async (event: FormSubmitEvent<any>) => {
   const data = {
     TimeEntryWithoutJob: headerCheckboxes.value.time.isChecked ? 1 : 0,
@@ -81,13 +133,31 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     ...event.data,
   };
 
+  const uniqueIDs = selected.value.map((obj) => obj.uniqueID);
+  const result = `,${uniqueIDs.join(",")},`;
+
+  const edata = {
+    WORKCENTERS: result,
+  };
+
   if (!workCenterGridMeta.value.selectedWorkCenter) {
-    toast.add({
-      title: "Failed",
-      description: "Please select the Work Center to udpate.",
-      icon: "i-heroicons-minus-circle",
-      color: "red",
+    await useApiFetch(`/api/employees/${props?.selectedEmployee?.UniqueID}`, {
+      method: "PUT",
+      body: edata,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
     });
+
+    fetchWorkCenters();
+    handleClose();
   } else {
     isLoading.value = true;
     const id = workCenterGridMeta.value.selectedWorkCenter.uniqueID;
@@ -106,6 +176,22 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       },
     });
+
+    await useApiFetch(`/api/employees/${props?.selectedEmployee?.UniqueID}`, {
+      method: "PUT",
+      body: edata,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
+
     fetchWorkCenters();
     handleClose();
   }
@@ -136,8 +222,19 @@ const workCenterGridMeta = ref({
   selectedWorkCenter: null,
   isLoading: false,
 });
+const selected = ref([]);
 
 const handleWorkCenterSelect = (row) => {
+  const index = selected.value.findIndex(
+    (item) => item.uniqueID === row.uniqueID
+  );
+
+  if (index === -1) {
+    selected.value.push(row);
+  } else {
+    selected.value.splice(index, 1);
+  }
+
   workCenterGridMeta.value.selectedWorkCenter = { ...row, class: "" };
   workCenterGridMeta.value.options.forEach((c) => {
     if (c.uniqueID === row.uniqueID) {
@@ -148,8 +245,6 @@ const handleWorkCenterSelect = (row) => {
   });
 
   const data = workCenterGridMeta.value.selectedWorkCenter;
-  console.log("data", data);
-
   formData.NAME = data.NAME;
   formData.NUMBER = data.NUMBER;
   formData.position = data.position;
@@ -174,9 +269,6 @@ const headerCheckboxes = ref({
     isChecked: false,
   },
 });
-
-// if (props.selectedJob !== null) editInit();
-// else propertiesInit();
 </script>
 
 <template>
@@ -189,139 +281,134 @@ const headerCheckboxes = ref({
       loader="dots"
     />
   </div>
-  <template v-if="!props.isModal && !WorkCenterExist">
-    <CommonNotFound
-      :name="'Organization not found'"
-      :message="'The organization you are looking for does not exist'"
-      :to="'/employees/organization'"
-    />
-  </template>
-  <template v-else>
-    <UForm
-      :validate="validate"
-      :validate-on="['submit']"
-      :state="formData"
-      class="space-y-4"
-      @submit="onSubmit"
-    >
-      <div class="w-full flex flex-col">
-        <div class="grid grid-cols-2 gap-x-4">
-          <div class="w-full mt-5">
-            <div class="flex space-x-3 justify-between">
-              <div class="basis-1/2">
-                <UFormGroup label="Number" name="Number">
-                  <UInput v-model="formData.NUMBER" placeholder="" />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/2">
-                <UFormGroup label="Name" name="Name">
-                  <UInput v-model="formData.NAME" placeholder="" />
-                </UFormGroup>
-              </div>
+  <UForm
+    :validate="validate"
+    :validate-on="['submit']"
+    :state="formData"
+    class="space-y-4"
+    @submit="onSubmit"
+  >
+    <div class="w-full flex flex-col">
+      <div class="grid grid-cols-2 gap-x-4">
+        <div class="w-full mt-5">
+          <div class="flex space-x-3 justify-between">
+            <div class="basis-1/2">
+              <UFormGroup label="Number" name="Number">
+                <UInput v-model="formData.NUMBER" />
+              </UFormGroup>
             </div>
-            <div class="w-full my-3 flex space-x-4">
-              <template v-for="checkbox in headerCheckboxes">
-                <div class="">
-                  <UCheckbox
-                    v-model="checkbox.isChecked"
-                    :label="checkbox.label"
-                  />
-                </div>
+            <div class="basis-1/2">
+              <UFormGroup label="Name" name="Name">
+                <UInput v-model="formData.NAME" />
+              </UFormGroup>
+            </div>
+          </div>
+          <div class="w-full my-3 flex space-x-4">
+            <template v-for="checkbox in headerCheckboxes">
+              <div class="">
+                <UCheckbox
+                  v-model="checkbox.isChecked"
+                  :label="checkbox.label"
+                />
+              </div>
+            </template>
+          </div>
+          <div class="">
+            <UButton
+              icon="i-heroicons-document-text"
+              type="submit"
+              variant="outline"
+              color="green"
+              label="Save"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
+              truncate
+            />
+          </div>
+          <div class="mt-4">
+            <UTable
+              v-model="selected"
+              v-model:selected="selected"
+              :columns="workCenterGridMeta.defaultColumns"
+              :rows="workCenterGridMeta.options"
+              :ui="{
+                wrapper:
+                  'h-[528px] border-2 border-gray-300 dark:border-gray-700',
+                tr: {
+                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                },
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'px-2 py-0',
+                },
+                td: {
+                  base: 'h-[31px]',
+                  padding: 'px-2 py-0',
+                },
+              }"
+              @select="handleWorkCenterSelect"
+            >
+              <template #empty-state>
+                <div></div>
               </template>
-            </div>
-            <div class="">
-              <UButton
-                icon="i-heroicons-document-text"
-                type="submit"
-                variant="outline"
-                color="green"
-                label="Save"
-                :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-                truncate
+            </UTable>
+          </div>
+        </div>
+
+        <div class="w-full mt-5">
+          <div class="">
+            <UFormGroup
+              label="Position Responsibilites"
+              name="Position Responsibilites"
+            >
+              <UInputMenu
+                v-model="formData.position"
+                v-model:query="formData.position"
+                :options="responsibilities"
               />
+            </UFormGroup>
+          </div>
+
+          <div class="flex items-end gap-x-4 mt-5">
+            <div class="w-3/4">
+              <UFormGroup label="Account" name="Account">
+                <UInputMenu :options="[]" />
+              </UFormGroup>
             </div>
-            <div class="mt-4">
-              <UTable
-                :columns="workCenterGridMeta.defaultColumns"
-                :rows="workCenterGridMeta.options"
+            <div class="w-1/4">
+              <UButton
+                color="blue"
+                variant="outline"
                 :ui="{
-                  wrapper: 'h-96 border-2 border-gray-300 dark:border-gray-700',
-                  tr: {
-                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                  },
-                  th: {
-                    base: 'sticky top-0 z-10',
-                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'px-2 py-0',
-                  },
-                  td: {
-                    base: 'h-[31px]',
-                    padding: 'px-2 py-0',
-                  },
+                  base: 'w-full',
+                  truncate: 'flex justify-center w-full',
                 }"
-                @select="handleWorkCenterSelect"
-              >
-                <template #empty-state>
-                  <div></div>
-                </template>
-              </UTable>
+                label="Load QB"
+                icon="i-heroicons-pencil-square"
+              />
             </div>
           </div>
 
-          <div class="w-full mt-5">
-            <div class="">
-              <UFormGroup
-                label="Position Responsibilites"
-                name="Position Responsibilites"
-              >
-                <UInputMenu
-                  v-model="formData.position"
-                  v-model:query="formData.position"
-                  :options="responsibilities"
-                />
-              </UFormGroup>
-            </div>
-
-            <div class="flex items-end gap-x-4 mt-5">
-              <div class="w-3/4">
-                <UFormGroup label="Account" name="Account">
-                  <UInputMenu :options="[]" />
-                </UFormGroup>
-              </div>
-              <div class="w-1/4">
-                <UButton
-                  color="blue"
-                  variant="outline"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  label="Load QB"
-                  icon="i-heroicons-pencil-square"
-                />
-              </div>
-            </div>
-
-            <div class="mt-4">
-              <UTable
-                :columns="workCenterColumns"
-                :ui="{
-                  wrapper: 'h-96 border-2 border-gray-300 dark:border-gray-700',
-                  th: {
-                    base: 'sticky top-0 z-10',
-                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'p-1',
-                  },
-                }"
-              >
-                <template #empty-state>
-                  <div></div>
-                </template>
-              </UTable>
-            </div>
+          <div class="mt-4">
+            <UTable
+              :columns="workCenterColumns"
+              :ui="{
+                wrapper:
+                  'h-[528px] border-2 border-gray-300 dark:border-gray-700',
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'p-1',
+                },
+              }"
+            >
+              <template #empty-state>
+                <div></div>
+              </template>
+            </UTable>
           </div>
         </div>
       </div>
-    </UForm>
-  </template>
+    </div>
+  </UForm>
 </template>
