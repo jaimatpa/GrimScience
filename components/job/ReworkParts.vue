@@ -11,16 +11,12 @@ const props = defineProps({
     type: [String, Number, null],
     required: true,
   },
-  isModal: {
-    type: [Boolean],
-  },
 });
 
 const toast = useToast();
 const router = useRouter();
-const organizationFormInstance = getCurrentInstance();
+const reworkFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false);
-const JobExist = ref(true);
 const isLoading = ref(false);
 const formData = reactive({
   ReportsTo: null,
@@ -98,7 +94,7 @@ const validate = (state: any): FormError[] => {
   return errors;
 };
 const handleClose = async () => {
-  if (organizationFormInstance?.vnode?.props.onClose) {
+  if (reworkFormInstance?.vnode?.props.onClose) {
     emit("close");
   } else {
     router.go(-1);
@@ -197,130 +193,42 @@ else propertiesInit();
       loader="dots"
     />
   </div>
-  <template v-if="!props.isModal && !JobExist">
-    <CommonNotFound
-      :name="'Organization not found'"
-      :message="'The organization you are looking for does not exist'"
-      :to="'/employees/organization'"
-    />
-  </template>
-  <template v-else>
-    <UForm
-      :validate="validate"
-      :validate-on="['submit']"
-      :state="formData"
-      class="space-y-4"
-      @submit="onSubmit"
-    >
-      <div class="flex flex-col space-x-4">
-        <div class="gmsPurpleTitlebar py-3 mb-2 pl-2">Parts Used</div>
-        <div class="w-full flex items-center mb-4 gap-x-4">
-          <div class="flex flex-row items-center px-0 space-x-4 w-1/2">
-            <div class="">
-              <UFormGroup label="" name="ReportsTo">
-                <UInputMenu :options="[]" />
-              </UFormGroup>
-            </div>
-            <div class="">
-              <UFormGroup label="" name="Job Qty">
-                <UInputMenu :options="[]" />
-              </UFormGroup>
-            </div>
-            <div class="">
-              <UFormGroup label="" name="Job Type">
-                <UInput placeholder="" />
-              </UFormGroup>
-            </div>
-            <div class="">
-              <UFormGroup label="" name="Unit Material Cost">
-                <UInput placeholder="" />
-              </UFormGroup>
-            </div>
+  <UForm
+    :validate="validate"
+    :validate-on="['submit']"
+    :state="formData"
+    class="space-y-4"
+    @submit="onSubmit"
+  >
+    <div class="flex flex-col space-x-4">
+      <div class="gmsPurpleTitlebar py-3 mb-2 pl-2">Parts Used</div>
+      <div class="w-full flex items-center mb-4 gap-x-4">
+        <div class="flex flex-row items-center px-0 space-x-4 w-1/2">
+          <div class="">
+            <UFormGroup label="" name="ReportsTo">
+              <UInputMenu :options="[]" />
+            </UFormGroup>
           </div>
-          <div class="flex items-end justify-start w-1/2">
-            <div class="w-[120px]">
-              <UButton
-                label="Remove Part"
-                class="gmsPurpleTitlebar"
-                :ui="{
-                  base: 'w-full',
-                  truncate: 'flex justify-center w-full',
-                }"
-                truncate
-              />
-            </div>
+          <div class="">
+            <UFormGroup label="" name="Job Qty">
+              <UInputMenu :options="[]" />
+            </UFormGroup>
+          </div>
+          <div class="">
+            <UFormGroup label="" name="Job Type">
+              <UInput />
+            </UFormGroup>
+          </div>
+          <div class="">
+            <UFormGroup label="" name="Unit Material Cost">
+              <UInput />
+            </UFormGroup>
           </div>
         </div>
-
-        <div class="flex gap-x-4">
-          <div class="w-1/2">
-            <UTable
-              :columns="prodOperationGridMeta.defaultColumns"
-              :rows="prodOperationGridMeta.operations"
-              :ui="{
-                wrapper:
-                  'h-[168px] border-2 border-gray-300 dark:border-gray-700',
-                tr: {
-                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                },
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'px-2 py-0',
-                },
-                td: {
-                  base: 'h-[31px]',
-                  padding: 'px-2 py-0',
-                },
-              }"
-            >
-              <template #empty-state>
-                <div></div>
-              </template>
-            </UTable>
-
-            <div class="flex">
-              <span class="text-sm text-left w-full italic">
-                Parts (Double-click To Select)</span
-              >
-            </div>
-          </div>
-          <div class="w-1/2">
-            <UTable
-              :columns="prodOperationGridMeta.defaultColumns"
-              :rows="prodOperationGridMeta.operations"
-              :ui="{
-                wrapper:
-                  'h-[168px] border-2 border-gray-300 dark:border-gray-700',
-                tr: {
-                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                },
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'px-2 py-0',
-                },
-                td: {
-                  base: 'h-[31px]',
-                  padding: 'px-2 py-0',
-                },
-              }"
-            >
-              <template #empty-state>
-                <div></div>
-              </template>
-            </UTable>
-
-            <div class="flex items-end">
-              <span class="text-sm text-right w-full"> Total Cost: 0</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex items-end justify-end mt-5">
+        <div class="flex items-end justify-start w-1/2">
           <div class="w-[120px]">
             <UButton
-              label="Save"
+              label="Remove Part"
               class="gmsPurpleTitlebar"
               :ui="{
                 base: 'w-full',
@@ -331,6 +239,85 @@ else propertiesInit();
           </div>
         </div>
       </div>
-    </UForm>
-  </template>
+
+      <div class="flex gap-x-4">
+        <div class="w-1/2">
+          <UTable
+            :columns="prodOperationGridMeta.defaultColumns"
+            :rows="prodOperationGridMeta.operations"
+            :ui="{
+              wrapper:
+                'h-[168px] border-2 border-gray-300 dark:border-gray-700',
+              tr: {
+                active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+              },
+              th: {
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                padding: 'px-2 py-0',
+              },
+              td: {
+                base: 'h-[31px]',
+                padding: 'px-2 py-0',
+              },
+            }"
+          >
+            <template #empty-state>
+              <div></div>
+            </template>
+          </UTable>
+
+          <div class="flex">
+            <span class="text-sm text-left w-full italic">
+              Parts (Double-click To Select)</span
+            >
+          </div>
+        </div>
+        <div class="w-1/2">
+          <UTable
+            :columns="prodOperationGridMeta.defaultColumns"
+            :rows="prodOperationGridMeta.operations"
+            :ui="{
+              wrapper:
+                'h-[168px] border-2 border-gray-300 dark:border-gray-700',
+              tr: {
+                active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+              },
+              th: {
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                padding: 'px-2 py-0',
+              },
+              td: {
+                base: 'h-[31px]',
+                padding: 'px-2 py-0',
+              },
+            }"
+          >
+            <template #empty-state>
+              <div></div>
+            </template>
+          </UTable>
+
+          <div class="flex items-end">
+            <span class="text-sm text-right w-full"> Total Cost: 0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-end justify-end mt-5">
+        <div class="w-[120px]">
+          <UButton
+            label="Save"
+            class="gmsPurpleTitlebar"
+            :ui="{
+              base: 'w-full',
+              truncate: 'flex justify-center w-full',
+            }"
+            truncate
+          />
+        </div>
+      </div>
+    </div>
+  </UForm>
 </template>
