@@ -93,8 +93,6 @@ const handleClose = async () => {
   }
 };
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  console.log("ccccc");
-
   if (props.selectedJob === null) {
     // Create New Job
     isLoading.value = true;

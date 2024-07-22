@@ -1,17 +1,17 @@
 import { tblEmployee } from "~/server/models";
-import { Sequelize ,Op} from "sequelize";
+import { Sequelize, Op } from "sequelize";
 
 const applyFilters = (params) => {
-  const filterParams = ['ACTIVE','payrollno', 'fname', 'lname','address','city', 'state', 'zip', 'homephone'];  
+  const filterParams = ['ACTIVE', 'payrollno', 'fname', 'lname', 'address', 'city', 'state', 'zip', 'homephone', 'payrollnumber'];
   const whereClause = {};
 
-filterParams.forEach(param => {
-  if (params[param]) {
-    whereClause[param] = {
-      [Op.like]: `%${params[param]}%`
-    };
-  }
-});
+  filterParams.forEach(param => {
+    if (params[param]) {
+      whereClause[param] = {
+        [Op.like]: `%${params[param]}%`
+      };
+    }
+  });
 
   return whereClause;
 };
@@ -28,21 +28,21 @@ export const getEmployeeFullNames = async () => {
       }
     });
     return list.map(employee => employee.get('fullName'));
-  } catch(err) {
+  } catch (err) {
     return err.message;
   }
 };
 
 export const getAllEmployees = async (page, pageSize, sortBy, sortOrder, filterParams) => {
-  
-  
+
+
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
-  
+
   const whereClause = applyFilters(filterParams);
-  
+
   const list = await tblEmployee.findAll({
-    attributes: ['UniqueID','payrollno', 'fname', 'lname','address','city', 'state', 'zip', 'homephone'],
+    attributes: ['UniqueID', 'payrollno', 'fname', 'lname', 'address', 'city', 'state', 'zip', 'homephone', 'payrollnumber'],
     where: whereClause,
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
     offset,
@@ -69,7 +69,7 @@ export const createEmployee = async (data) => {
 
 export const EmployeeExistByID = async (id: number | string) => {
   const tableDetail = await tblEmployee.findByPk(id);
-  if(tableDetail)
+  if (tableDetail)
     return true;
   else
     return false;
@@ -88,6 +88,19 @@ export const updateEmployee = async (id, reqData) => {
 }
 
 export const deleteEmployee = async (id) => {
-  await tblEmployee.destroy({where: { UniqueID: id }});
+  await tblEmployee.destroy({ where: { UniqueID: id } });
   return id;
+}
+
+export const getEmployeeWorkCenter = async (filterParams) => {
+  const { payrollnumber } = filterParams
+
+  let where = {}
+  if (payrollnumber) where['payrollnumber'] = payrollnumber
+
+  const list = await tblEmployee.findAll({
+    attributes: ['WORKCENTERS'],
+    where: where,
+  });
+  return list;
 }
