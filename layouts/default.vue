@@ -402,7 +402,7 @@ const links = [
   {
     id: "employees",
     label: "Employees",
-    icon: "i-heroicons-user-group",
+    icon: "i-heroicons-user",
     to: "/employees",
     defaultOpen: route.path.startsWith("/employees"),
     tooltip: {
@@ -470,7 +470,7 @@ const links = [
   {
     id: "engineering",
     label: "Engineering",
-    icon: "i-heroicons-user-group",
+    icon: "i-heroicons-cog-8-tooth",
     to: "/engineering",
     defaultOpen: route.path.startsWith("/engineering"),
     tooltip: {
@@ -598,7 +598,7 @@ const links = [
   {
     id: "maintenance",
     label: "Maintenance",
-    icon: "i-heroicons-wrench",
+    icon: "i-heroicons-wrench-screwdriver",
     to: "/maintenance",
     defaultOpen: route.path.startsWith("/maintenance"),
     tooltip: {
