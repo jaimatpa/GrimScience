@@ -91,7 +91,6 @@ const gridMeta = ref({
   numberOfEmployee: 0,
   employess: [],
   selectedEmpployee: null,
-  selectedEmpployeePayrollId: null,
   sort: {
     column: "UniqueID",
     direction: "asc",
@@ -210,10 +209,7 @@ const onCreate = () => {
 };
 
 const onEdit = (row) => {
-  console.log("row", row);
-
   gridMeta.value.selectedEmpployee = row;
-  gridMeta.value.selectedEmpployeePayrollId = row?.payrollnumber;
   modalMeta.value.modalTitle = "Edit";
   modalMeta.value.modalDescription = "Edit Employee information";
   modalMeta.value.isEmployeeModalOpen = true;
@@ -221,7 +217,6 @@ const onEdit = (row) => {
 
 const onSelect = async (row) => {
   gridMeta.value.selectedEmpployee = row;
-  gridMeta.value.selectedEmpployeePayrollId = row?.payrollnumber;
 };
 const onDblClick = async () => {
   if (gridMeta.value.selectedEmpployee) {
@@ -447,6 +442,7 @@ const handleModalSave = async () => {
       @close="handleModalClose"
       @save="handleModalSave"
       :selected-employee="gridMeta.selectedEmpployee"
+      :is-modal="true"
     />
   </UDashboardModal>
 </template>

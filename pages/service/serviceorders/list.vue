@@ -119,12 +119,35 @@
     COMPLAINTDATE: null,
     FAILINVEST: null,
     company1: null,
-    OPENCASE: true,
-    kind: false, 
-    medicalKind: false,
-    ValidComplaint: false, 
-    INJURYREPORTNO: false
+    OPENCASE: null,
+    kind: null, 
+    medicalKind: null,
+    ValidComplaint: null, 
+    INJURYREPORTNO: null
   })
+
+  function watchCheckbox(property, filterKey) {
+    watch(
+      () => headerCheckboxes.value[property].isChecked,
+      (newCheckedValue) => {
+        filterValues.value[filterKey] = newCheckedValue ? "1" : "0";
+      }
+    );
+  }
+
+  // Watch for each checkbox
+  watchCheckbox('injury', 'INJURYREPORTNO');
+  watchCheckbox('open', 'OPENCASE');
+  watchCheckbox('cryotherm', 'kind');
+  watchCheckbox('nonMedical', 'medicalKind');
+
+  watch(
+  () => headerCheckboxes.value.complaints.isChecked,
+    (newCheckedValue) => {
+      filterValues.value.ValidComplaint = newCheckedValue ? "1" : "0";
+    }
+  );
+
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
 
@@ -158,11 +181,12 @@
         }
       }
     })
-    if(gridMeta.value.numberOfServiceOrders === 0){
-      gridMeta.value.orders = []
-      gridMeta.value.numberOfServiceOrders = 0
-      gridMeta.value.isLoading = false
-      return;
+    if (
+      gridMeta.value.page * gridMeta.value.pageSize >
+      gridMeta.value.numberOfServiceOrders
+    ) {
+      gridMeta.value.page =
+        Math.ceil(gridMeta.value.numberOfServiceOrders / gridMeta.value.pageSize) | 1;
     }
     await useApiFetch('/api/service/orders/', {
       method: 'GET',
@@ -186,14 +210,14 @@
   }
   const handleModalSave = async () => {
     handleModalClose()
-    init()
+    fetchGridData()
   }
   const handlePageChange = async () => {
-    init()
+    fetchGridData()
   }
   const handleFilterChange = () => {
     gridMeta.value.page = 1
-    init()
+    fetchGridData()
   }
   const handleSortingButton = async (btnName: string) => {
     gridMeta.value.page = 1
@@ -307,7 +331,7 @@
                 name="totalOrders"
               >
                 <div class="text-bold">
-                  {{ totalOrders }}
+                  {{ gridMeta.numberOfServiceOrders }}
                 </div>
               </UFormGroup>
             </div>
@@ -398,7 +422,7 @@
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1" >
-          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfServiceOrders | 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
+          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfServiceOrders || 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
         </div>
       </div>
     </UDashboardPanel>

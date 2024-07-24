@@ -8,6 +8,9 @@ const fileRef = ref<HTMLInputElement>();
 
 const emit = defineEmits(["close", "save"]);
 const props = defineProps({
+  isModal: {
+        type: [Boolean]
+    },
   selectedEmployee: {
     type: Object,
     required: true,
@@ -28,25 +31,25 @@ const markets = ref([
 ]);
 const usstates = ref([]);
 const formData = reactive({
-  UniqueID: "",
-  PAYROLLNO: "",
-  payrollnumber: "",
-  SSNO: "",
-  fname: "",
-  mi: "",
-  lname: "",
-  address: "",
-  city: "",
-  state: "",
-  zip: "",
+  UniqueID: null,
+  PAYROLLNO: null,
+  payrollnumber: null,
+  SSNO: null,
+  fname: null,
+  mi: null,
+  lname: null,
+  address: null,
+  city: null,
+  state: null,
+  zip: null,
   HoursPerWeek: null,
   HourlyWage: null,
-  SECURITYCODE: null, //
+  SECURITYCODE: null,
   department: null,
   email: null,
   SPEMAIL: null,
-  HIREDATE: null, //
-  DOB: null, //
+  HIREDATE: null,
+  DOB: null,
   AnnualSalary: null,
   SpouseName: null,
   SPWPHONE: null,
@@ -85,7 +88,7 @@ const convertToDate = (dateString) => {
 
 const editInit = async () => {
   loadingOverlay.value = true;
-  await useApiFetch(`/api/employees/${props.selectedEmployee.UniqueID}`, {
+  await useApiFetch(`/api/employees/${props?.selectedEmployee?.UniqueID}`, {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
@@ -99,8 +102,6 @@ const editInit = async () => {
             } else {
               formData[key] = response._data.body[key];
             }
-
-            // formData[key] = response._data.body[key];
           }
         }
       }
@@ -211,7 +212,7 @@ const handleClose = async () => {
   }
 };
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  if (props.selectedEmployee.UniqueID === null) {
+  if (props.selectedEmployee === null) {
     // Create Employee
 
     await useApiFetch("/api/employees", {
@@ -325,7 +326,7 @@ const handleWCModalClose = () => {
   modalMeta.value.isWorkCenterModalOpen = false;
 };
 
-if (props.selectedEmployee !== null) editInit();
+if (props?.selectedEmployee !== null) editInit();
 else propertiesInit();
 </script>
 
@@ -377,7 +378,7 @@ else propertiesInit();
               />
             </UFormGroup>
           </div>
-          <!-- {{ formData }} -->
+
           <div class="basis-1/5">
             <UFormGroup label="Payroll(#)" name="PAYROLLNO">
               <UInput v-model="formData.PAYROLLNO" />
@@ -768,7 +769,7 @@ else propertiesInit();
           truncate
         />
       </div>
-      <div v-if="props.selectedEmployee.UniqueID === null" class="w-[180px]">
+      <div v-if="props.selectedEmployee === null" class="w-[180px]">
         <UButton
           icon="i-heroicons-plus-20-solid"
           type="submit"
