@@ -265,7 +265,6 @@ else
           >
             <UInput
               v-model="formData.fname"
-              placeholder="John"
             />
           </UFormGroup>
         </div>
@@ -276,7 +275,6 @@ else
           >
             <UInput
               v-model="formData.mi"
-              placeholder="John"
             />
           </UFormGroup>
         </div>
@@ -287,7 +285,6 @@ else
           >
             <UInput
               v-model="formData.lname"
-              placeholder="Doe"
             />
           </UFormGroup>
         </div>
@@ -298,7 +295,6 @@ else
           >
             <UInput
               v-model="formData.title"
-              placeholder="Full-Stack Developer"
             />
           </UFormGroup>
         </div>
@@ -309,7 +305,6 @@ else
           >
             <UInput
               v-model="formData.position"
-              placeholder="CTO"
             />
           </UFormGroup>
         </div>
@@ -335,7 +330,6 @@ else
           >
             <UInput
               v-model="formData.number"
-              placeholder=""
             />
           </UFormGroup>
         </div>
@@ -353,7 +347,7 @@ else
         </div>
         <div class="basis-1/5">
           <UFormGroup
-            label="Categories"
+            label="Category"
             name="categories"
           >
             <UInputMenu
@@ -398,7 +392,6 @@ else
                 >
                   <UInput
                     v-model="formData.company1"
-                    placeholder="Company1"
                   />
                 </UFormGroup>
               </div>
@@ -409,7 +402,6 @@ else
                 >
                   <UInput
                     v-model="formData.company2"
-                    placeholder="Company2"
                   />
                 </UFormGroup>
               </div>
@@ -422,7 +414,6 @@ else
                 >
                   <UInput
                     v-model="formData.country"
-                    placeholder="Country"
                   />
                 </UFormGroup>
               </div>
@@ -435,7 +426,6 @@ else
                 >
                   <UInput
                     v-model="formData.address"
-                    placeholder="Address"
                   />
                 </UFormGroup>
               </div>
@@ -448,7 +438,6 @@ else
                 >
                   <UInput
                     v-model="formData.city"
-                    placeholder="Dallas"
                   />
                 </UFormGroup>
               </div>
@@ -470,7 +459,6 @@ else
                 >
                   <UInput
                     v-model="formData.zip"
-                    placeholder="65254"
                   />
                 </UFormGroup>
               </div>
@@ -483,7 +471,6 @@ else
                 >
                   <UInput
                     v-model="formData.fax"
-                    placeholder="Fax"
                   />
                 </UFormGroup>
               </div>
@@ -494,7 +481,6 @@ else
                 >
                   <UInput
                     v-model="formData.homephone"
-                    placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
               </div>
@@ -508,7 +494,6 @@ else
                   <UInput
                     v-model="formData.email"
                     type="email"
-                    placeholder="email"
                   />
                 </UFormGroup>
               </div>
@@ -519,7 +504,6 @@ else
                 >
                   <UInput
                     v-model="formData.workphone"
-                    placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
               </div>
@@ -530,7 +514,6 @@ else
                 >
                   <UInput
                     v-model="formData.Extension"
-                    placeholder="1"
                   />
                 </UFormGroup>
               </div>
@@ -543,7 +526,6 @@ else
                 >
                   <UInput
                     v-model="formData.website"
-                    placeholder="website"
                   />
                 </UFormGroup>
               </div>
@@ -554,7 +536,6 @@ else
                 >
                   <UInput
                     v-model="formData.cellphone"
-                    placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
               </div>
@@ -569,7 +550,6 @@ else
                     v-model="formData.notes"
                     :rows="3"
                     type="text"
-                    placeholder=""
                   />
                 </UFormGroup>
               </div>
@@ -580,6 +560,18 @@ else
           <!-- Billing Information -->
           <div class="flex flex-col space-y-2">
             <div class="flex flex-row space-x-3">
+              <div class="w-full">
+                <UFormGroup
+                  label="Attn"
+                  name="attn"
+                >
+                  <UInput
+                    v-model="formData.attn"
+                  />
+                </UFormGroup>
+              </div>
+            </div>
+            <div class="flex flex-row space-x-3">
               <div class="basis-1/2">
                 <UFormGroup
                   label="Company1"
@@ -587,7 +579,6 @@ else
                 >
                   <UInput
                     v-model="formData.billcompany1"
-                    placeholder="Bill Company1"
                   />
                 </UFormGroup>
               </div>
@@ -598,7 +589,6 @@ else
                 >
                   <UInput
                     v-model="formData.billcompany2"
-                    placeholder="Bill Company2"
                   />
                 </UFormGroup>
               </div>
@@ -611,7 +601,6 @@ else
                 >
                   <UInput
                     v-model="formData.billcountry"
-                    placeholder="Bill Country"
                   />
                 </UFormGroup>
               </div>
@@ -624,7 +613,6 @@ else
                 >
                   <UInput
                     v-model="formData.billaddress"
-                    placeholder="Bill Address"
                   />
                 </UFormGroup>
               </div>
@@ -637,7 +625,6 @@ else
                 >
                   <UInput
                     v-model="formData.billcity"
-                    placeholder="Dallas"
                   />
                 </UFormGroup>
               </div>
@@ -659,7 +646,6 @@ else
                 >
                   <UInput
                     v-model="formData.billzip"
-                    placeholder="65254"
                   />
                 </UFormGroup>
               </div>
@@ -672,7 +658,6 @@ else
                 >
                   <UInput
                     v-model="formData.billfax"
-                    placeholder="Fax"
                   />
                 </UFormGroup>
               </div>
@@ -683,7 +668,6 @@ else
                 >
                   <UInput
                     v-model="formData.billphone"
-                    placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
               </div>
@@ -696,20 +680,6 @@ else
                 >
                   <UInput
                     v-model="formData.ExtensionBill"
-                    placeholder=""
-                  />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup
-                  label="Attn"
-                  name="attn"
-                >
-                  <UInput
-                    v-model="formData.attn"
-                    placeholder="Attn"
                   />
                 </UFormGroup>
               </div>

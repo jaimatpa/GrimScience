@@ -155,7 +155,7 @@
     isInjuryReport2ModalOpen: false,
   })
   const selectedServiceReportID = ref(null)
-  const date = ref(new Date())
+  const date = ref(null)
   const statusGroup = ref([
     {value: 'open', label: 'Open'}, 
     {value: 'close', label: 'Close'}
@@ -922,7 +922,7 @@
                 <UPopover :popper="{ placement: 'bottom-start' }">
                   <UButton icon="i-heroicons-calendar-days-20-solid" :label="serviceOrderInfo.COMPLAINTDATE && format(serviceOrderInfo.COMPLAINTDATE, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
-                    <CommonDatePicker v-model="date" is-required @close="close" />
+                    <CommonDatePicker v-model="serviceOrderInfo.COMPLAINTDATE" is-required @close="close" />
                   </template>
                 </UPopover>
               </div>
@@ -981,48 +981,52 @@
           </div>
         </div>
         <div class="px-3 py-0 mt-1">
-          <div class="flex flex-row space-x-3 border border-gray rounded-md px-2 py-1">
-            <div class="basis-3/12">
-              <UFormGroup
-                label="Received"
-                name="received"
-              >
-                <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'd MMM, yyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
-                  <template #panel="{ close }">
-                    <CommonDatePicker v-model="receivedDate" is-required @close="close" />
-                  </template>
-                </UPopover>
-              </UFormGroup>
-            </div>
-            <div class="basis-2/12">
-              <UFormGroup
-                label="NC#"
-                name="nc"
-              >
-                <UInput 
-                  v-model="serviceOrderInfo.NONCONFORMANCE"
+          <div class="flex flex-col border border-gray rounded-md px-2 py-1">
+            <span class="text-sm font-semibold">Product Returned</span>
+            <div class="flex flex-row space-x-3">
+              <div class="basis-3/12">
+                <UFormGroup
+                  label="Received"
+                  name="received"
+                >
+                  <UPopover :popper="{ placement: 'bottom-start' }">
+                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="date && format(date, 'd MMM, yyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                    <template #panel="{ close }">
+                      <CommonDatePicker v-model="receivedDate" is-required @close="close" />
+                    </template>
+                  </UPopover>
+                </UFormGroup>
+              </div>
+              <div class="basis-2/12">
+                <UFormGroup
+                  label="NC#"
+                  name="nc"
+                >
+                  <UInput 
+                    v-model="serviceOrderInfo.NONCONFORMANCE"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-5/12">
+                <UFormGroup
+                  label="Accessories Received"
+                  name="accessories received"
+                >
+                  <UInput 
+                    v-model="accessories"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-2/12 flex items-end">
+                <UButton 
+                  icon="i-heroicons-plus-20-solid"
+                  label="Receive"
+                  :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
+                  @click="onReceiveBtnClick"
                 />
-              </UFormGroup>
+              </div>
             </div>
-            <div class="basis-5/12">
-              <UFormGroup
-                label="Accessories Received"
-                name="accessories received"
-              >
-                <UInput 
-                  v-model="accessories"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-2/12 flex items-end">
-              <UButton 
-                icon="i-heroicons-plus-20-solid"
-                label="Receive"
-                :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
-                @click="onReceiveBtnClick"
-              />
-            </div>
+            
           </div>
           <div class="flex flex-row space-x-3 px-4 mt-2">
             <div class="basis-1/4">

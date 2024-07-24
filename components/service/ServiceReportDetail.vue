@@ -21,6 +21,7 @@
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
   const loadingOverlay = ref(false)
+  const partsTotalAmount= ref('0.00')
   const formData = reactive({
     uniqueID: null,
     REPAIRSMADE: null,
@@ -461,8 +462,9 @@
       if(index < 0) {
         if(!warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1)
           warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1 = 0
-        let amount = Math.round(Number.parseFloat(warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) /100
+        let amount = Math.round(Number.parseFloat(warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) /100        
         selectedWarrantyMaterialGridMeta.value.warrantyMaterials.push({...warrantyMaterialGridMeta.value.selectedWarrantyMaterial, Quantity: addModalMeta.value.quantity, Amount: amount})
+        warrantyMaterialInfo.value.total = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
       } 
     } else if(addModalMeta.value.title === 'Part') {
       const index = selectedPartGridMeta.value.parts.findIndex((value) => value?.UniqueID === partGridMeta.value.selectedPart?.UniqueID)
@@ -471,6 +473,7 @@
           partGridMeta.value.selectedPart.PRIMARYPRICE1 = 0
         let amount = Math.round(Number.parseFloat(partGridMeta.value.selectedPart.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) /100
         selectedPartGridMeta.value.parts.push({...partGridMeta.value.selectedPart, Quantity: addModalMeta.value.quantity, Amount: amount, Nonconformance: 0})
+        partsTotalAmount.value = selectedPartGridMeta.value.parts.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
       }
     } else if(addModalMeta.value.title === 'EditWarranty') {
       selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial.Quantity = addModalMeta.value.quantity
@@ -519,6 +522,7 @@
   const onRemoveWarranty = () => {
     if(selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial) {
       selectedWarrantyMaterialGridMeta.value.warrantyMaterials = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.filter((item) => item?.UniqueID !== selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial?.UniqueID)
+      warrantyMaterialInfo.value.total = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.reduce((sum, item) => sum + parseFloat(item.Amount), 0);
     }
   }
   const onNonConformanceBtnClick = () => {
@@ -1115,7 +1119,7 @@
               Total:  
             </div>
             <div class="flex items-center">
-              0.00
+              {{partsTotalAmount}}
             </div>
           </div>
         </div>

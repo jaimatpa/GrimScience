@@ -183,7 +183,6 @@ else
           <div class="w-full">
             <UInput
               v-model="formData.customer"
-              placeholder="Doe"
             />
           </div>
         </div>
@@ -194,7 +193,6 @@ else
           <div class="w-full">
             <UInput
               v-model="formData.customer"
-              placeholder="Doe"
             />
           </div>
         </div>
