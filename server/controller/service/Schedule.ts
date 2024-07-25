@@ -10,7 +10,11 @@ const applyFilters = (params) => {
             if (param === 'Type') {
                 whereClause[param] = {
                     [Op.in]: Array.isArray(params[param]) ? params[param] : [params[param]]
-                };
+                };    
+            } else if(param === 'SO Type'){
+              whereClause[param] = {
+                [Op.in]: Array.isArray(params[param]) ? params[param] : [params[param]]
+              };
             } else if (param === 'SO Date' || param === 'SR Date') {
                 const dateColumn = param === 'SO Date' ? 'SO Date' : 'SR Date';
                 whereClause[dateColumn] = Sequelize.where(

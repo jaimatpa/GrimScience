@@ -308,13 +308,11 @@ watch(
     headerCheckboxes.value.nonWarranty.isChecked,
   ],
   ([newOpenValue, newClosedValue]) => {
-    if (newOpenValue && !newClosedValue) {
-      filterValues.value["SO Type"] = "Warranty";
-    } else if (!newOpenValue && newClosedValue) {
-      filterValues.value["SO Type"] = null;
-    } else {
-      filterValues.value["SO Type"] = null;
-    }
+    const typeArray = [];
+    if (newOpenValue) typeArray.push("Warranty");
+    if (newClosedValue) typeArray.push(" Non-warranty");
+
+    filterValues.value["SO Type"] = typeArray.length > 0 ? typeArray : null;
   }
 );
 
