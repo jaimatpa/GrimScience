@@ -748,7 +748,7 @@
               <div class="flex-1">
                 <UTextarea 
                   v-model="formData.REPAIRSMADE"
-                  :rows="1"
+                  :rows="2"
                 />
               </div>
             </div>    

@@ -76,7 +76,7 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
       }
     ] 
   // console.log(queryOptions)
-  const list = await tblOrder.findAll(queryOptions);
+  const list = await tblOrder.findAll(queryOptions);  
   const formattedList = list.map((item: any) => {
     const parsedOrderDate = new Date(item.orderdate);
     let formattedOrderDate = `${(parsedOrderDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedOrderDate.getDate().toString().padStart(2, '0')}/${parsedOrderDate.getFullYear()}`;
@@ -93,6 +93,8 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
       customer: `${item.tblCustomer.fname} ${item.tblCustomer.lname}`,
       company: item.tblCustomer.company1,
       zip: item.tblCustomer.zip,
+      price: item.total,
+      totalPrice: item.tblOrderDetails
     }
   })
   return formattedList;
