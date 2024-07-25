@@ -1,5 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblCustomers } from "~/server/models";
+import { tblCustomers, tblTerritories } from "~/server/models";
 
 const applyFilters = (params) => {
   const filterParams = ['number', 'fname', 'lname', 'company1', 'homephone', 'workphone', 'state', 'zip', 'market', 'source', 'SourceConfrence', 'ParadynamixCatagory'];
@@ -173,4 +173,23 @@ export const getConferences = async () => {
 
   const distinctCategories = result.map((item: any) => item.SourceConfrence);
   return distinctCategories;
+}
+
+export const getTerritories = async () => {
+  const result = await tblTerritories.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('Name')), 'Name']
+    ],
+    where: {
+      [Op.and]: [
+        { Name: { [Op.ne]: null } },
+        { Name: { [Op.ne]: '' } }
+      ]
+    },
+    order: [['Name', 'ASC']],
+    raw: true
+  });
+
+  const distinctName = result.map((item: any) => item.Name);
+  return distinctName;
 }

@@ -47,3 +47,28 @@ export const getNumberOfMessages = async (filterParams) => {
   });
   return numberOfMessages;
 }
+
+export const customerMessageByID = async (id) => {
+  const tableDetail = await tblMessages.findByPk(id);
+  if(tableDetail)
+    return true;
+  else
+    return false;
+}
+
+export const getMessageDetail = async (id) => {
+  const tableDetail = await tblMessages.findByPk(id);
+  return tableDetail
+}
+
+export const updateMessage = async (id, reqData) => {
+  await tblMessages.update(reqData, {
+    where: { UniqueID: id }
+  });
+  return id;
+}
+
+export const deleteMessage = async (id) => {
+  await tblMessages.destroy({where: { UniqueID: id }});
+  return id;
+}

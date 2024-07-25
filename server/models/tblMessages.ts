@@ -35,7 +35,7 @@ const tblMessages = sequelize.define('tblMessages', {
    MESSAGE: {
       type: DataTypes.STRING,
    },
-   '[For]': {
+   For: {
       type: DataTypes.STRING,
    },
    OPENCLOSED: {

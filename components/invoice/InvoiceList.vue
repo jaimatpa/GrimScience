@@ -105,6 +105,9 @@
     modalDescription: "Add a new invoice to your database"
   })
   const today = new Date()
+  const oneMonthAgo = new Date(today);
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
   const filterValues = ref({
     UniqueID: null,
     orderdate: null,
@@ -117,7 +120,7 @@
     source: null,
     sourcedescription: null, 
     // from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
-    from: new Date('2006-01-02'),
+    from: oneMonthAgo,
     to: today,
     serial: null
   })
@@ -347,6 +350,14 @@
                   v-model="filterValues.serial"
                   @update:model-value="handleFilterChange()"
                 />
+              </UFormGroup>
+            </div>
+
+            <div>
+              <UFormGroup label="Total Sales on Search">
+                <div class="text-center text-bold">
+                  0000
+                </div>
               </UFormGroup>
             </div>
           </div>

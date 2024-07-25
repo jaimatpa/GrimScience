@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { format, addDays } from "date-fns";
-import { BryntumGantt } from '@bryntum/gantt-vue-3'
+import { BryntumGantt } from "@bryntum/gantt-vue-3";
 import "@bryntum/gantt/gantt.stockholm.css";
 
 import type { UTableColumn } from "~/types";
-
 
 useSeoMeta({
   title: "Grimm Scentific Schedule",
@@ -21,7 +20,7 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 const route = useRoute();
 const toast = useToast();
 const exportIsLoading = ref(false);
-const schedulerView = ref(false)
+const schedulerView = ref(false);
 
 const headerCheckboxes = ref({
   field: {
@@ -268,8 +267,8 @@ const filterValues = ref({
 const ganttMeta = ref({
   tasks: [],
   startDate: new Date(),
-  endDate: new Date()
-})
+  endDate: new Date(),
+});
 
 const init = async () => {
   fetchGridData();
@@ -309,13 +308,11 @@ watch(
     headerCheckboxes.value.nonWarranty.isChecked,
   ],
   ([newOpenValue, newClosedValue]) => {
-    if (newOpenValue && !newClosedValue) {
-      filterValues.value.WarrentyService = "1";
-    } else if (!newOpenValue && newClosedValue) {
-      filterValues.value.WarrentyService = "0";
-    } else {
-      filterValues.value.WarrentyService = null;
-    }
+    const typeArray = [];
+    if (newOpenValue) typeArray.push("Warranty");
+    if (newClosedValue) typeArray.push(" Non-warranty");
+
+    filterValues.value["SO Type"] = typeArray.length > 0 ? typeArray : null;
   }
 );
 
@@ -338,17 +335,15 @@ watch(
 
 // Watch for Toggle Button
 watch(
-  () => [
-    schedulerView.value
-  ], 
+  () => [schedulerView.value],
   ([newValue]) => {
-    if(newValue) {
-      fetchScheduleData()
+    if (newValue) {
+      fetchScheduleData();
     } else {
-      fetchGridData()
+      fetchGridData();
     }
   }
-) 
+);
 
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
@@ -409,56 +404,71 @@ const fetchScheduleData = async () => {
     },
     onResponse({ response }) {
       if (response.status === 200) {
-        let schedules = response._data.body
-        let employees = []
+        let schedules = response._data.body;
+        let employees = [];
         schedules.forEach((schedule) => {
-          if(!employees.includes(schedule['Service Tech'])) {
-            employees.push(schedule['Service Tech'])
+          if (!employees.includes(schedule["Service Tech"])) {
+            employees.push(schedule["Service Tech"]);
           }
-        })
-        ganttMeta.value.startDate = new Date()
-        ganttMeta.value.endDate = new Date()
+        });
+        ganttMeta.value.startDate = new Date();
+        ganttMeta.value.endDate = new Date();
         ganttMeta.value.tasks = employees.map((employee, index) => {
-          let schedulesForEmployee = schedules.filter(schedule => schedule['Service Tech'] === employee)
-          let serviceOrders = []
-          let serviceOrderList = []
+          let schedulesForEmployee = schedules.filter(
+            (schedule) => schedule["Service Tech"] === employee
+          );
+          let serviceOrders = [];
+          let serviceOrderList = [];
           schedulesForEmployee.forEach((schedule) => {
-            if(!serviceOrderList.includes(schedule['SO#'])) {
-              serviceOrderList.push(schedule['SO#'])
+            if (!serviceOrderList.includes(schedule["SO#"])) {
+              serviceOrderList.push(schedule["SO#"]);
             }
-          })
+          });
           serviceOrders = serviceOrderList.map((serviceOrder) => {
-            let serviceReports = []
+            let serviceReports = [];
             serviceReports = schedulesForEmployee
-              .filter(schedule => schedule['Service Tech'] === employee && schedule['SO#'] === serviceOrder)
+              .filter(
+                (schedule) =>
+                  schedule["Service Tech"] === employee &&
+                  schedule["SO#"] === serviceOrder
+              )
               .map((schedule) => {
-                if(new Date(ganttMeta.value.startDate) > new Date(schedule['SR Date']))
-                  ganttMeta.value.startDate = new Date(schedule['SR Date'])
-                if(new Date(ganttMeta.value.endDate) < new Date(schedule['SR Date']))
-                  ganttMeta.value.endDate = addDays(new Date(schedule['SR Date']), 1)
+                if (
+                  new Date(ganttMeta.value.startDate) >
+                  new Date(schedule["SR Date"])
+                )
+                  ganttMeta.value.startDate = new Date(schedule["SR Date"]);
+                if (
+                  new Date(ganttMeta.value.endDate) <
+                  new Date(schedule["SR Date"])
+                )
+                  ganttMeta.value.endDate = addDays(
+                    new Date(schedule["SR Date"]),
+                    1
+                  );
                 return {
-                  name: `${schedule['SR#']}`,
-                  startDate: schedule['SR Date'],
+                  name: `${schedule["SR#"]}`,
+                  startDate: schedule["SR Date"],
                   duration: 1,
-                  manuallyScheduled: true
-                }
-              })
+                  manuallyScheduled: true,
+                };
+              });
             return {
               name: serviceOrder,
-              children: serviceReports
-            }
-          })
+              children: serviceReports,
+            };
+          });
           return {
             name: employee,
             expanded: !index ? true : false,
             children: serviceOrders,
-            eventColor: '#BB8ABC'
-          }
-        })
+            eventColor: "#BB8ABC",
+          };
+        });
       }
     },
-  })
-}
+  });
+};
 
 const handleSortingButton = async (btnName: string) => {
   gridMeta.value.page = 1;
@@ -541,8 +551,8 @@ const onDblClick = async () => {
 
 const onServiceReportSave = async () => {
   modalMeta.value.isReportModalOpen = false;
-  if(schedulerView.value) {
-    fetchScheduleData()
+  if (schedulerView.value) {
+    fetchScheduleData();
   } else {
     fetchGridData();
   }
@@ -550,16 +560,16 @@ const onServiceReportSave = async () => {
 
 const handleFilterChange = () => {
   gridMeta.value.page = 1;
-  if(schedulerView.value) {
-    fetchScheduleData()
+  if (schedulerView.value) {
+    fetchScheduleData();
   } else {
     fetchGridData();
   }
 };
 
 const handleCheckboxChange = () => {
-  if(schedulerView.value) {
-    fetchScheduleData()
+  if (schedulerView.value) {
+    fetchScheduleData();
   } else {
     fetchGridData();
   }
@@ -583,25 +593,24 @@ const excelExport = async () => {
 };
 const onScheduletaskDblClick = async (event) => {
   let serviceReportID = 0;
-  if(!event.taskRecord.originalData.children) {
+  if (!event.taskRecord.originalData.children) {
     await useApiFetch(`/api/service/servicereports/`, {
-      method: 'GET',
+      method: "GET",
       params: {
-        CANO: event.taskRecord.originalData?.name??''
+        CANO: event.taskRecord.originalData?.name ?? "",
       },
-      onResponse({response}) {
-        if(response.status === 200) {
-          serviceReportID = response._data.body[0]?.uniqueID??0
+      onResponse({ response }) {
+        if (response.status === 200) {
+          serviceReportID = response._data.body[0]?.uniqueID ?? 0;
         }
-      }
-    })
+      },
+    });
     gridMeta.value.selectedServiceId = serviceReportID;
     modalMeta.value.modalTitle = "Service Report";
     modalMeta.value.modalDescription = "Service Report";
     modalMeta.value.isReportModalOpen = true;
   }
-}
-
+};
 </script>
 
 <template>
@@ -613,37 +622,39 @@ const onScheduletaskDblClick = async (event) => {
         <h2>Service Report List</h2>
       </div>
       <UDashboardToolbar>
-        <template #left>
-          <template
-            v-for="[key, value] in Object.entries(headerFilters)"
-            :key="key"
-          >
-            <template v-if="value.options.length > 1">
-              <div class="basis-1/7 max-w-[200px]">
-                <UFormGroup :label="value.label" :name="key">
-                  <USelect
-                    v-model="filterValues[`${value.filter}`]"
-                    :options="value.options"
-                    @change="handleFilterChange()"
-                  />
-                </UFormGroup>
-              </div>
-            </template>
-          </template>
+        <div class="flex flex-col w-full">
+          <div class="flex justify-between items-center w-full">
+            <div class="flex space-x-2">
+              <template
+                v-for="[key, value] in Object.entries(headerFilters)"
+                :key="key"
+              >
+                <template v-if="value.options.length > 1">
+                  <div class="basis-1/7 max-w-[200px]">
+                    <UFormGroup :label="value.label" :name="key">
+                      <USelect
+                        v-model="filterValues[`${value.filter}`]"
+                        :options="value.options"
+                        @change="handleFilterChange()"
+                      />
+                    </UFormGroup>
+                  </div>
+                </template>
+              </template>
 
-          <div class="grid grid-cols-3 ml-10">
-            <template v-for="checkbox in headerCheckboxes">
-              <div class="basis-1/5">
-                <UCheckbox
-                  v-model="checkbox.isChecked"
-                  :label="checkbox.label"
-                  @change="handleCheckboxChange"
-                />
+              <div class="grid grid-cols-3 ml-10">
+                <template v-for="checkbox in headerCheckboxes">
+                  <div class="basis-1/5">
+                    <UCheckbox
+                      v-model="checkbox.isChecked"
+                      :label="checkbox.label"
+                      @change="handleCheckboxChange"
+                    />
+                  </div>
+                </template>
               </div>
-            </template>
-          </div>
 
-          <!-- <div class="flex flex-row space-x-3">
+              <!-- <div class="flex flex-row space-x-3">
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup label="Quantity" name="Quantity">
                 <div class="text-center text-bold">
@@ -652,28 +663,56 @@ const onScheduletaskDblClick = async (event) => {
               </UFormGroup>
             </div>
           </div> -->
-        </template>
-        <template #right>
-            <div class="h-5">
+            </div>
+            <div class="flex item space-x-2 items-center">
+              <!-- <template #right> -->
+              <div class="h-5">
                 List
                 <UToggle color="primary" xsize="2xl" v-model="schedulerView" />
                 Scheduler
               </div>
-          <UButton
-            :loading="exportIsLoading"
-            label="Export to Excel"
-            color="gray"
-            :disabled="exportIsLoading"
-            @click="excelExport"
-          >
-            <template #trailing>
-              <UIcon
-                name="i-heroicons-document-text"
-                class="text-green-500 w-5 h-5"
-              />
-            </template>
-          </UButton>
-        </template>
+              <UButton
+                :loading="exportIsLoading"
+                label="Export to Excel"
+                color="gray"
+                class="h-fit"
+                :disabled="exportIsLoading"
+                @click="excelExport"
+              >
+                <template #trailing>
+                  <UIcon
+                    name="i-heroicons-document-text"
+                    class="text-green-500 w-5 h-5"
+                  />
+                </template>
+              </UButton>
+              <!-- </template> -->
+            </div>
+          </div>
+
+          <div class="flex gap-x-10 mt-4">
+            <div class="inline-flex space-x-2">
+              <span>Total Travel Cost:</span>
+              <span>0</span>
+            </div>
+
+            <div class="inline-flex space-x-2">
+              <span>Total Onsite Cost:</span>
+              <span>0</span>
+            </div>
+
+            <div class="inline-flex space-x-2">
+              <span>Total Parts Cost:</span>
+              <span>0</span>
+            </div>
+
+            <div class="inline-flex space-x-2">
+              <span>Total Cost:</span>
+              <span>0</span>
+            </div>
+
+          </div>
+        </div>
       </UDashboardToolbar>
 
       <template v-if="!schedulerView">
@@ -816,6 +855,4 @@ const onScheduletaskDblClick = async (event) => {
     />
   </UDashboardModal>
 </template>
-<style>
-
-</style>
+<style></style>

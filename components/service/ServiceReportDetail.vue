@@ -284,9 +284,12 @@
           })
         }
       }
-    }
+    }    
     selectedWarrantyMaterialGridMeta.value.warrantyMaterials = parsedParts
+    warrantyMaterialInfo.value.total = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
     selectedPartGridMeta.value.parts = parsedPartReceived
+    partsTotalAmount.value = selectedPartGridMeta.value.parts.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
+
     await propertiesInit()
   }
   const propertiesInit = async () => {
@@ -458,6 +461,8 @@
       return;
     } else qtyStyle.value = 'outline-none'
     if(addModalMeta.value.title === 'Warranty') {
+      console.log('ccccc');
+      
       const index = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.findIndex((value) => value?.UniqueID === warrantyMaterialGridMeta.value.selectedWarrantyMaterial?.UniqueID)
       if(index < 0) {
         if(!warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1)
@@ -748,7 +753,7 @@
               <div class="flex-1">
                 <UTextarea 
                   v-model="formData.REPAIRSMADE"
-                  :rows="1"
+                  :rows="2"
                 />
               </div>
             </div>    
