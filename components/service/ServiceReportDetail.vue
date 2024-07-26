@@ -241,7 +241,9 @@
         if(response.status === 200) {
           for (const key in response._data.body[0]) {
             if (response._data.body[0][key] !== undefined) {
-              formData[key] = response._data.body[0][key]
+              if (key !== 'DATESHIPPED') {
+                formData[key] = response._data.body[0][key]
+              }
             }
           }
         }

@@ -25,15 +25,15 @@ const schedulerView = ref(false);
 const headerCheckboxes = ref({
   field: {
     label: "Field",
-    isChecked: false,
+    isChecked: true,
   },
   open: {
     label: "Open",
-    isChecked: false,
+    isChecked: true,
   },
   nonWarranty: {
     label: "Non-warranty",
-    isChecked: false,
+    isChecked: true,
   },
   customer: {
     label: "Customer",
@@ -45,7 +45,7 @@ const headerCheckboxes = ref({
   },
   warranty: {
     label: "Warranty",
-    isChecked: false,
+    isChecked: true,
   },
   factory: {
     label: "Factory",
@@ -255,8 +255,8 @@ const filterValues = ref({
   "SO Type": null,
   "Failure Comment": null,
   "SR#": null,
-  Status: null,
-  Type: null,
+  Status: 'Open',
+  Type: ['Field'],
   "Service Tech": null,
   "SR Date": null,
   Week: null,
