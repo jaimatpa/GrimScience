@@ -53,6 +53,7 @@ export default eventHandler(async (event) => {
         const pdfOptions: any = {
           path: 'Complaints.pdf',
           format: 'letter',
+          landscape: true, // Set landscape orientation
           margin: {
             top: '40px',
             bottom: '40px',

@@ -20,14 +20,15 @@ export default eventHandler(async (event) => {
         const customerDetail = await getCustomerDetail(customerID)
         const serviceOrderInvoices = await getServiceOrderInvoices({COMPLAINTID: id})
         const serviceReports = await getServiceReports({COMPLAINTID: id})
+        
         let warrantyMaterials = []
         for(let i = 0; i < serviceReports.length; i++) {
           if(serviceReports[i].PARTS) {
             const tmp = serviceReports[i].PARTS.split('=')
             for(let j = 0; j < tmp.length; j++) {
-              if(tmp[i] !== '' && i % 3 === 0) {
-                const tempPartsDetail = await getParts({UniqueID: tmp[i]})
-                warrantyMaterials.push({...tempPartsDetail[0], Quantity: tmp[i+1]??0, Amount: Number.parseFloat(tempPartsDetail[0]['PRIMARYPRICE1'] || 0) * (Number.parseFloat(tmp[i+1]) || 0)})
+              if(tmp[j] !== '' && j % 3 === 0) {
+                const tempPartsDetail = await getParts({UniqueID: tmp[j]})
+                warrantyMaterials.push({...tempPartsDetail[0], Quantity: tmp[j+1]??0, Amount: Number.parseFloat(tempPartsDetail[0]['PRIMARYPRICE1'] || 0) * (Number.parseFloat(tmp[j+1]) || 0)})
                 console.log(warrantyMaterials)
               }
             }
@@ -35,34 +36,55 @@ export default eventHandler(async (event) => {
         }
         let receievedParts = []
         for(let i = 0; i < serviceReports.length; i++) {
-          if(serviceReports[i].PARTS) {
+          if(serviceReports[i].PARTSRECEIVED) {
             const tmp = serviceReports[i].PARTSRECEIVED.split('=')
             for(let j = 0; j < tmp.length; j++) {
-              if(tmp[i] !== '' && i % 3 === 0) {
-                const tempPartsDetail = await getParts({UniqueID: tmp[i]})
-                receievedParts.push({...tempPartsDetail[0], Quantity: tmp[i+1]??0, Amount: Number.parseFloat(tempPartsDetail[0]['PRIMARYPRICE1'] || 0) * (Number.parseFloat(tmp[i+1]) || 0)})
-              }
+              if(tmp[j] !== '' && j % 3 === 0) {
+                const tempPartsDetail = await getParts({UniqueID: tmp[j]})
+                // Ensure tempPartsDetail is not empty and has at least one element
+                if (tempPartsDetail.length > 0 && tempPartsDetail[0]) {
+                  // Access PRIMARYPRICE1 safely with default value 0
+                  const primaryPrice = Number.parseFloat(tempPartsDetail[0]['PRIMARYPRICE1']) || 0;
+                  const quantity = Number.parseFloat(tmp[j + 1]) || 0;
+
+                  // Compute Amount
+                  const amount = primaryPrice * quantity;
+
+                  // Push to receievedParts with safety checks
+                  receievedParts.push({
+                      ...tempPartsDetail[0],
+                      Quantity: quantity,
+                      Amount: amount
+                  });
+                } else {
+                  console.error("tempPartsDetail is empty or undefined.");
+                }
+                // receievedParts.push({...tempPartsDetail[0], Quantity: tmp[j+1]??0, Amount: Number.parseFloat(tempPartsDetail[0]['PRIMARYPRICE1'] || 0) * (Number.parseFloat(tmp[j+1]) || 0)})
+              } 
             }
           }
         }
         const investigations = await getInvestigationsOfComplaint({ComplaintID: id})
+        
         const serviceOrderInvoiceSummary = {
           OnsiteHours: 0,
           TravelHours: 0,
           FactoryHours: 0,
           Miles: 0,
-          PerDiem: 0
+          PerDiem: 0,
+          performsnotext: ''
         }
-        serviceOrderInvoices.forEach((invoice) => {
-          serviceOrderInvoiceSummary.OnsiteHours += invoice['OnSiteHours']??0
+        serviceReports.forEach((invoice) => {
           serviceOrderInvoiceSummary.TravelHours += invoice['TravelHours']??0
           serviceOrderInvoiceSummary.FactoryHours += invoice['FactoryHours']??0
           serviceOrderInvoiceSummary.Miles += invoice['Miles']??0
           serviceOrderInvoiceSummary.PerDiem += invoice['PerDiem']??0
+          serviceOrderInvoiceSummary.performsnotext += invoice['performsnotext']??0
+          serviceOrderInvoiceSummary.OnsiteHours += invoice['OnsiteHours']??0
         })
         let htmlContent = ''
         htmlContent += `
-          <body style="font-family: sans-serif;">
+          <body style="font-family: Arial;">
             <header style="border-bottom: 3px solid black;">
               <div style="display:flex; justify-content:space-between;">
                 <h3>Customer Service Order</h3>
@@ -186,10 +208,10 @@ export default eventHandler(async (event) => {
         })
         htmlContent += `
               <tr style="padding-top: 10px;">
-                <td style="padding-top: 10px;"><b>To Spec?</b></td>
-                <td style="padding-top: 10px;"><b>No</td>
+                <td style="padding-top: 10px;"><b>To Spec?</b><br/></td>
+                <td style="padding-top: 10px;"><b>No</b><br/></td>
                 <td></td>
-                <td>Comment</td>
+                <td><b>Comment<br/></b>${serviceOrderInvoiceSummary.performsnotext}</td>
               </tr>
             </tbody>
           </table>`

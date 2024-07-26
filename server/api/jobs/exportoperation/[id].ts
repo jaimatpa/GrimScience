@@ -37,7 +37,7 @@ export default eventHandler(async (event) => {
 
         let htmlContent = "";
         htmlContent += `
-        <body style="font-family: Arial, sans-serif; max-width: 1024px; margin: 0 auto;">
+        <body style="font-family: Arial; max-width: 1024px; margin: 0 auto;">
           <div style="display: flex; justify-content: space-between;">
               <div>
                   <h3 style="margin: 0;">${jobDetail["NUMBER"]}</h3>

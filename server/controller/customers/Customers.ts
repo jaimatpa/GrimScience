@@ -1,5 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblCustomers, tblTerritories } from "~/server/models";
+import { tblCustomers, tblOrder, tblTerritories } from "~/server/models";
 
 const applyFilters = (params) => {
   const filterParams = ['number', 'fname', 'lname', 'company1', 'homephone', 'workphone', 'state', 'zip', 'market', 'source', 'SourceConfrence', 'ParadynamixCatagory'];
@@ -18,7 +18,7 @@ const applyFilters = (params) => {
 
 export const customerExistByID = async (id) => {
   const tableDetail = await tblCustomers.findByPk(id);
-  if(tableDetail)
+  if (tableDetail)
     return true;
   else
     return false;
@@ -76,7 +76,7 @@ export const createCustomer = async (data) => {
 
 export const updateCustomer = async (id, reqData) => {
   let updatedReqData
-  if (typeof reqData.adddate === 'string'){
+  if (typeof reqData.adddate === 'string') {
     updatedReqData = {
       ...reqData,
       fullname: `${reqData.lname}, ${reqData.fname}`,
@@ -95,7 +95,7 @@ export const updateCustomer = async (id, reqData) => {
 }
 
 export const deleteCustomer = async (id) => {
-  await tblCustomers.destroy({where: { UniqueID: id }});
+  await tblCustomers.destroy({ where: { UniqueID: id } });
   return id;
 }
 
@@ -192,4 +192,16 @@ export const getTerritories = async () => {
 
   const distinctName = result.map((item: any) => item.Name);
   return distinctName;
+}
+
+
+export const getCustomerInvoices = async (filterParams) => {
+  let customerWhere = {}
+  if (filterParams.customerid) customerWhere['customerid'] = { [Op.like]: `%${filterParams.customerid}%` };
+
+  const list = await tblOrder.findAll({
+    attributes: ['UniqueID', 'invoicedate', 'orderid', 'status'],
+    where: customerWhere,
+  });
+  return list;
 }
