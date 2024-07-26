@@ -47,7 +47,7 @@ export default eventHandler(async (event) => {
             </table>
           </div>
         `
-        const browser = await puppeteer.launch({headless: 'shell'});
+        const browser = await puppeteer.launch();
         const page = await browser.newPage(); 
 
         const pdfOptions: any = {

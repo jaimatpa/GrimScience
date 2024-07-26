@@ -305,7 +305,7 @@ export default eventHandler(async (event) => {
               </div>  
             </body>`
 
-        const browser = await puppeteer.launch({headless: 'shell'});
+        const browser = await puppeteer.launch();
         const page = await browser.newPage(); 
 
         const pdfOptions: any = {
