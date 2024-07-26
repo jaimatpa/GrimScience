@@ -23,6 +23,11 @@ const toast = useToast();
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
 const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
+const activeTab = ref("lookup");
+
+function setActiveTab(tab) {
+  activeTab.value = tab;
+}
 
 const headerFilters = ref({
   markets: {
@@ -331,18 +336,98 @@ const excelExport = async () => {
   location.href = `/api/customers/exportlist?${paramsString}`;
   exportIsLoading.value = false;
 };
+
+const getCustomerInvoices = async () => {
+  await useApiFetch("/api/customers/invoices", {
+    method: "GET",
+    params: {
+      customerid: gridMeta.value.selectedCustomerId,
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        invoicesGridMeta.value.invoices = response._data.body;
+      }
+    },
+  });
+};
+
+const getCustomerSiteVisit = async () => {
+  await useApiFetch("/api/sitevisit/sitevisit", {
+    method: "GET",
+    params: {
+      CustomerID: gridMeta.value.selectedCustomerId,
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        sitevisitGridMeta.value.options = response._data.body;
+      }
+    },
+  });
+};
+
 const onSelect = async (row) => {
   gridMeta.value.selectedCustomerId = row?.UniqueID;
 
-  if (!props.isPage) {
-    gridMeta.value.customers.forEach((cus) => {
-      if (cus.UniqueID === row.UniqueID) {
-        cus.class = "bg-gray-200";
-      } else {
-        delete cus.class;
-      }
-    });
-    gridMeta.value.selectCustomer = row;
+  gridMeta.value.customers.forEach((cus) => {
+    if (cus.UniqueID === row.UniqueID) {
+      cus.class = "bg-gray-200";
+    } else {
+      delete cus.class;
+    }
+  });
+  gridMeta.value.selectCustomer = row;
+
+  await getCustomerInvoices();
+  await getCustomerSiteVisit();
+};
+
+const invoicesGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "invoicedate",
+      label: "Date",
+    },
+    {
+      key: "orderid",
+      label: "#",
+    },
+    {
+      key: "status",
+      label: "Status",
+    },
+  ],
+  invoices: [],
+  selectedInvoice: null,
+  isLoading: false,
+});
+
+const sitevisitGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "VisitDate",
+      label: "Date",
+    },
+    {
+      key: "VisitNumber",
+      label: "#",
+    },
+    {
+      key: "Status",
+      label: "Status",
+    },
+  ],
+  options: [],
+  selectedOption: null,
+  isLoading: false,
+});
+
+const onInvoicesSelect = (row) => {
+  invoicesGridMeta.value.selectedInvoice = row;
+};
+
+const onDblInvoicesClick = () => {
+  if (invoicesGridMeta.value.selectedInvoice) {
+    modalMeta.value.isOrderDetailModalOpen = true;
   }
 };
 
@@ -358,6 +443,21 @@ const onDblClick = async () => {
     modalMeta.value.isCustomerModalOpen = true;
   }
 };
+
+const routinesColumns = ref([
+  {
+    key: "id",
+    label: "Date",
+  },
+  {
+    key: "period",
+    label: "#",
+  },
+  {
+    key: "title",
+    label: "Status",
+  },
+]);
 </script>
 
 <template>
@@ -431,9 +531,29 @@ const onDblClick = async () => {
       </UDashboardToolbar>
 
       <div v-if="props.isPage" class="px-4 py-2 gmsPurpleTitlebar">
-        <h2>Lookup</h2>
+        <button
+          :class="{
+            'bg-white text-black': activeTab === 'lookup',
+            gmsPurpleTitlebar: activeTab !== 'lookup',
+          }"
+          @click="setActiveTab('lookup')"
+          class="px-4 py-0.5 focus:outline-none rounded-md"
+        >
+          Lookup
+        </button>
+        <button
+          :class="{
+            'bg-white text-black': activeTab === 'history',
+            gmsPurpleTitlebar: activeTab !== 'history',
+          }"
+          @click="setActiveTab('history')"
+          class="px-4 py-0.5 ml-2 focus:outline-none rounded-md"
+        >
+          Customer History
+        </button>
       </div>
       <UTable
+        v-if="activeTab === 'lookup'"
         :rows="gridMeta.customers"
         :columns="columns"
         :loading="gridMeta.isLoading"
@@ -504,8 +624,103 @@ const onDblClick = async () => {
           </UTooltip>
         </template>
       </UTable>
+      <div v-else class="flex flex-col overflow-scroll">
+        <div class="w-full mt-4 flex items-end justify-end pr-5">
+          <UButton
+            icon="i-f7-arrow-clockwise"
+            variant="outline"
+            color="green"
+            label="Refresh"
+            :ui="{ base: 'w-fit', truncate: 'flex justify-center w-full' }"
+            truncate
+          />
+        </div>
+        <div class="grid grid-cols-2 gap-5 px-5">
+          <div>
+            <span>Service Order</span>
+            <UTable
+              :columns="routinesColumns"
+              :rows="[]"
+              :ui="{
+                wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'p-1',
+                },
+              }"
+            />
+          </div>
+          <div>
+            <span>Quotes</span>
+            <UTable
+              :columns="routinesColumns"
+              :rows="[]"
+              :ui="{
+                wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'p-1',
+                },
+              }"
+            />
+          </div>
+          <div>
+            <span>Invoices</span>
+            <UTable
+              :columns="invoicesGridMeta.defaultColumns"
+              :rows="invoicesGridMeta.invoices"
+              :ui="{
+                wrapper:
+                  'h-56 border-[1px] border-gray-400 dark:border-gray-700',
+                tr: {
+                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                },
+                th: {
+                  padding: 'p-1',
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                },
+                td: {
+                  padding: 'p-1',
+                },
+                checkbox: { padding: 'p-1 w-[10px]' },
+              }"
+              @select="onInvoicesSelect"
+              @dblclick="onDblInvoicesClick"
+            />
+          </div>
+          <div>
+            <span>Site Visits</span>
+            <UTable
+              :columns="sitevisitGridMeta.defaultColumns"
+              :rows="sitevisitGridMeta.options"
+              :ui="{
+                wrapper:
+                  'h-56 border-[1px] border-gray-400 dark:border-gray-700',
+                tr: {
+                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                },
+                th: {
+                  padding: 'p-1',
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                },
+                td: {
+                  padding: 'p-1',
+                },
+                checkbox: { padding: 'p-1 w-[10px]' },
+              }"
+            />
+          </div>
+        </div>
+      </div>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
-        <div v-if="props.isPage" class="flex flex-row justify-end mr-20 mt-1">
+        <div
+          v-if="props.isPage && activeTab === 'lookup'"
+          class="flex flex-row justify-end mr-20 mt-1"
+        >
           <UPagination
             :max="7"
             :page-count="gridMeta.pageSize"
@@ -554,6 +769,27 @@ const onDblClick = async () => {
       @save="handleModalSave"
       :selected-customer="gridMeta.selectedCustomerId"
       :is-modal="true"
+    />
+  </UDashboardModal>
+
+  <!-- Order Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isOrderDetailModalOpen"
+    title="Order"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl',
+    }"
+  >
+    <InvoiceDetail
+      :selected-customer="gridMeta.selectedCustomerId"
+      :selected-order="invoicesGridMeta.selectedInvoice.orderid"
+      @close="handleModalClose"
     />
   </UDashboardModal>
 </template>

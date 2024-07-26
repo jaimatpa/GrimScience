@@ -181,7 +181,10 @@ export const getNumberOfServiceOrders = async (filterParams) => {
       })
     ]
   if(filterParams.FAILINVEST) whereClause['FAILINVEST'] = {[Op.like]: `%${filterParams.FAILINVEST}%`};
-  if(filterParams.company) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company}%`};
+  if(filterParams.OPENCASE === 'true') whereClause['OPENCASE'] = 0
+  if(filterParams.ValidComplaint === 'true') whereClause['ValidComplaint'] = -1
+  if(filterParams.INJURYREPORTNO === 'true') whereClause['INJURYREPORTNO'] = 1
+  if(filterParams.company1) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company1}%`};
   tblComplaints.hasOne(tblCustomers, {foreignKey: 'UniqueID', sourceKey: 'CustomerID'})
   const numberOfServiceOrders = await tblComplaints.count({
     include: [

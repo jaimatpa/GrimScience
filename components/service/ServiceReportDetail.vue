@@ -249,6 +249,8 @@
     })
     let parsedParts = []
     if(formData.PARTS) {
+      console.log('formData.PARTS',formData.PARTS);
+      
       const tmp = formData.PARTS.split('=')
       for(let i=0; i < tmp.length ; i++) {
         if(tmp[i] !== '' && i % 3 === 0) {
@@ -267,6 +269,8 @@
       }
     }
     let parsedPartReceived = []
+    console.log('formData.PARTSRECEIVED',formData.PARTSRECEIVED);
+    
     if(formData.PARTSRECEIVED) {
       const tmp = formData.PARTSRECEIVED.split('=')
       for(let i=0; i < tmp.length ; i++) {
@@ -530,6 +534,13 @@
       warrantyMaterialInfo.value.total = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.reduce((sum, item) => sum + parseFloat(item.Amount), 0);
     }
   }
+  const onPartsRemoved = ()=>{
+    if(selectedPartGridMeta.value.selectedPart) {
+      selectedPartGridMeta.value.parts = selectedPartGridMeta.value.parts.filter((item) => item?.UniqueID !== selectedPartGridMeta.value.selectedPart?.UniqueID)
+      partsTotalAmount.value = selectedPartGridMeta.value.parts.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
+    }
+  }
+
   const onNonConformanceBtnClick = () => {
     modalMeta.value.isNonConformanceModalOpen = true
   }
@@ -1113,7 +1124,7 @@
           <UButton icon="i-heroicons-currency-dollar" label="Quickbooks" variant="outline" color="primary" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
         </div>
         <div class="basis-1/6 w-full">
-          <UButton icon="i-heroicons-minus-circle" label="Remove Part" variant="outline" color="red" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+          <UButton icon="i-heroicons-minus-circle" label="Remove Part" variant="outline" color="red" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" @click="onPartsRemoved" truncate/>
         </div>
         <div class="">
           <UButton icon="i-heroicons-document" label="Non-Conformance Create/View" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onNonConformanceBtnClick"/>
