@@ -201,6 +201,40 @@ const gridMeta = ref({
   isLoading: false,
 });
 
+function getISOWeekNumber(date) {
+    const target = new Date(date.valueOf());
+    const dayNr = (date.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNr + 3);
+    const firstThursday = target.valueOf();
+    target.setMonth(0, 1);
+    if (target.getDay() !== 4) {
+        target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+    }
+    return {
+        year: target.getFullYear(),
+        week: Math.ceil((firstThursday - target) / 86400000 / 7 + 1)
+    };
+}
+
+const currentDate = new Date();
+const currentWeekInfo = getISOWeekNumber(currentDate);
+
+function getLastTwoDigitsOfCurrentYear() {
+    const currentYear = new Date().getFullYear(); // Get current year
+    return currentYear % 100; // Last two digits of the current year
+}
+
+// Function to format week and last two digits of the year
+function formatWeekYear(data) {
+    const week = data.week;  // Week number
+    const shortYear = getLastTwoDigitsOfCurrentYear();  // Get last two digits of the current year
+    
+    // Format as "week-shortYear"
+    return `${shortYear}-${week}`;
+}
+
+// Get formatted value
+const formattedValue = formatWeekYear(currentWeekInfo);
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 
 const columns = computed(() =>
@@ -259,7 +293,7 @@ const filterValues = ref({
   Type: ['Field'],
   "Service Tech": null,
   "SR Date": null,
-  Week: null,
+  Week: formattedValue,
   Invoice: null,
   REPAIRSMADE: null,
   WarrentyService: null,
