@@ -103,6 +103,7 @@
     orders: [],
     selectedOrderId: null,
     selectedCustomerId: null,
+    selectedCompaintNumber: null,
     sort: {
       column: 'COMPLAINTNUMBER', 
       direction: 'desc'
@@ -279,11 +280,12 @@
     window.open(`/api/service/orders/exportcomplaints`)
   }
   const onSelect = async (row) => {
-    gridMeta.value.selectedOrderId = row?.UniqueID;
+    gridMeta.value.selectedOrderId = row?.uniqueID;
     gridMeta.value.selectedCustomerId = row?.customerID;
+    gridMeta.value.selectedCompaintNumber = row?.COMPLAINTNUMBER;
   }
   const onDblClick = async () =>{
-    if(gridMeta.value.selectedCustomerId){
+    if(gridMeta.value.selectedCustomerId && gridMeta.value.selectedCompaintNumber){
       modalMeta.value.isServiceOrderModalOpen = true
     }
   }
@@ -438,6 +440,6 @@
       width: 'w-[1800px] sm:max-w-9xl'
     }"
   >
-    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
+    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId" :selected-complaint="gridMeta.selectedCompaintNumber"  :selected-order="gridMeta.selectedOrderId"  />
   </UDashboardModal>
 </template>

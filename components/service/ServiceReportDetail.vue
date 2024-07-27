@@ -31,7 +31,7 @@
     CANO: null,
     COMPLAINTID: props.selectedComplaint,
     Week: null,
-    ServiceStatus: 'Closed',
+    ServiceStatus: null,
     type: 0,
     FactoryHours: null,
     TravelHours: 0,
@@ -196,10 +196,9 @@
     MODEL: null,
     DESCRIPTION: null
   })
-  const selectedStatus = ref('open')
   const statusGroup = ref([
     {value: 'open', label: 'Open'}, 
-    {value: 'close', label: 'Closed'}
+    {value: 'Closed', label: 'Closed'}
   ])
   const typeGroup = ref([
     {value: 1, label: 'Factory'}, 
@@ -239,7 +238,7 @@
       },
       onResponse({response}) {
         if(response.status === 200) {
-          for (const key in response._data.body[0]) {
+          for (const key in response._data.body[0]) {            
             if (response._data.body[0][key] !== undefined) {
               if (key !== 'DATESHIPPED') {
                 formData[key] = response._data.body[0][key]
@@ -250,9 +249,7 @@
       }
     })
     let parsedParts = []
-    if(formData.PARTS) {
-      console.log('formData.PARTS',formData.PARTS);
-      
+    if(formData.PARTS) {      
       const tmp = formData.PARTS.split('=')
       for(let i=0; i < tmp.length ; i++) {
         if(tmp[i] !== '' && i % 3 === 0) {
@@ -270,9 +267,7 @@
         }
       }
     }
-    let parsedPartReceived = []
-    console.log('formData.PARTSRECEIVED',formData.PARTSRECEIVED);
-    
+    let parsedPartReceived = []    
     if(formData.PARTSRECEIVED) {
       const tmp = formData.PARTSRECEIVED.split('=')
       for(let i=0; i < tmp.length ; i++) {
@@ -672,7 +667,7 @@
                   <URadio 
                     v-for="status of statusGroup"
                     :key = 'status.value'
-                    v-model="selectedStatus"
+                    v-model="formData.ServiceStatus"
                     v-bind="status"
                   />
                 </div>

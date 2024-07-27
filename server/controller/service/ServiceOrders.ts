@@ -324,9 +324,10 @@ export const updateServiceReport = async (id, reqData) => {
 }
 
 export const  getComplaints = async (params) => {
-  const { SERIALNO } = params
+  const { SERIALNO,COMPLAINTNUMBER } = params
   let where = {}
   if(SERIALNO) where['SERIALNO'] = SERIALNO
+  if(COMPLAINTNUMBER) where['COMPLAINTNUMBER'] = COMPLAINTNUMBER
   const list = await tblComplaints.findAll({
     attributes: [
       'uniqueID',
@@ -339,7 +340,10 @@ export const  getComplaints = async (params) => {
       'COMPLAINTNUMBER',
       'SERIALNO',
       'FAILINVEST',
-      'ValidComplaintReason'
+      'ValidComplaintReason',
+      'OPENCASE',
+      'INJURYREPORTNO',
+      'WARRANTYUNTIL'
     ],
     where: where,
     raw: true
