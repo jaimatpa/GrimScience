@@ -102,7 +102,7 @@ export default eventHandler(async (event) => {
                 <h3 style="font-size: 20px;">Customer Service Order</h3>
                 <div style="width:250px;">
                   <p style="margin-left: -30px;">Warranty</p>
-                  <p><b>#:</b>${complaintDetail['COMPLAINTNUMBER']} <b style="margin-left:50px;">Date:</b> ${complaintDetail['COMPLAINTDATE']?format(complaintDetail['COMPLAINTDATE'], 'MM/dd/yyyy'):''}</p>
+                  <p><b>#:</b>${complaintDetail['COMPLAINTNUMBER']} <b style="margin-left:50px;">Date:</b> ${complaintDetail['COMPALINTDATE']?format(complaintDetail['COMPALINTDATE'], 'MM/dd/yyyy'):''}</p>
                 </div>
               </div>
               <div>
@@ -238,9 +238,9 @@ export default eventHandler(async (event) => {
                 <th width="110px" style="text-align: left; font-size: 13px;">Quantity</th>
                 <th width="110px" style="text-align: left; font-size: 13px;">Stock#</th>
                 <th width="550px" style="text-align: left; font-size: 13px;">Description</th>
-                <th width="180px" style="text-align: left; font-size: 13px;">Price</th>
-                <th width="200px" style="text-align: left; font-size: 13px;">Unit</th>
-                <th width="200px" style="text-align: left; font-size: 13px;">Amount</th>
+                <th width="170px" style="text-align: left; font-size: 13px;">Price</th>
+                <th width="260px" style="text-align: left; font-size: 13px;">Unit</th>
+                <th width="150px" style="text-align: left; font-size: 13px;">Amount</th>
               </tr>
             </thead>
             <tbody>`
