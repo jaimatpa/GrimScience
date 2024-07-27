@@ -15,6 +15,17 @@ export default eventHandler(async (event) => {
     const method = event._method;
     const id = event.context.params.id
 
+    function escapeHTML(text) {
+      const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+      };
+      return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
     switch(method){
       case 'GET':
         const complaintDetail = await getComplaintDetail(id)        
@@ -42,7 +53,7 @@ export default eventHandler(async (event) => {
         const shippingCost = 35.30;
 
         let totalCost = Number(totalWarrantyMaterialCost) + shippingCost;
-        
+
         let receievedParts = []
         for(let i = 0; i < serviceReports.length; i++) {
           if(serviceReports[i].PARTSRECEIVED) {
@@ -339,10 +350,12 @@ export default eventHandler(async (event) => {
           htmlContent += `
                   </tbody>
                 </table>`
-          htmlContent += `
-                <h4 style="margin: 40px 0px"><center>${reviewedBy}</center></h4>
-              </div>  
-            </body>`
+          if (reviewedBy) {
+              htmlContent += `
+                <h4 style="margin: 40px 0px"><center>${escapeHTML(reviewedBy)}</center></h4>
+                </div>  
+            </body>`;
+          }
 
         const browser = await puppeteer.launch();
         const page = await browser.newPage(); 
