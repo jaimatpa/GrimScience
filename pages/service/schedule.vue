@@ -627,7 +627,7 @@ const excelExport = async () => {
 };
 const onScheduletaskDblClick = async (event) => {
   let serviceReportID = 0;
-  if (!event.taskRecord.originalData.children) {
+  if (!event.taskRecord.originalData.children) {    
     await useApiFetch(`/api/service/servicereports/`, {
       method: "GET",
       params: {
