@@ -11,7 +11,17 @@
       type: [Number, String, null],
       required: true
     },
-  })
+    selectedComplaint: {
+      type: [Number, String, null],
+      required: true
+    },
+    selectedOrder: {
+      type: [Number, String, null],
+      required: true
+    },
+  })  
+
+  const complaintUniquueId = ref(props.selectedOrder)
   const toast = useToast()
   const loadingOverlay = ref(false)
   const formData = reactive({
@@ -137,8 +147,11 @@
     SERIALNO: null,
     COMPLAINT: null,
     PRODUCTDESC: null,
-    NONCONFORMANCE: null
+    NONCONFORMANCE: null,
+    OPENCASE: null,
+    INJURYREPORTNO: null
   })
+  const WARRANTYUNTIL = ref(null)
   const typeOfServiceInfo = ref({
     reason: null, 
     failure: null,
@@ -156,16 +169,17 @@
   })
   const selectedServiceReportID = ref(null)
   const date = ref(null)
+  const initialComplaint=ref(null)
   const statusGroup = ref([
-    {value: 'open', label: 'Open'}, 
-    {value: 'close', label: 'Close'}
+    {value: '0', label: 'Open'}, 
+    {value: '1', label: 'Close'}
   ])
-  const selectedStatus = ref('open')
+  const OPENCASE = ref(null)
   const riskStatusGroup = ref([
-    {value: 'no', label: 'No'}, 
-    {value: 'yes', label: 'Yes'}
+    {value: '0', label: 'No'}, 
+    {value: '1', label: 'Yes'}
   ])
-  const selectedRiskStatus = ref('no')
+  const INJURYREPORTNO = ref(null)
   const receivedDate = ref(null)
   const nc = ref(null)
   const accessories = ref(null)
@@ -173,7 +187,33 @@
   const editInit = async () => {
     loadingOverlay.value = true
     await propertiesInit()
+
+    await useApiFetch(`/api/service/complaints/`, {
+      method: 'GET',
+      params: {
+        COMPLAINTNUMBER: props.selectedComplaint
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+            initialComplaint.value = response._data.body[0]
+            serviceOrderInfo.value.SERIALNO = initialComplaint.value.SERIALNO
+            serviceOrderInfo.value.COMPLAINTNUMBER = initialComplaint.value.COMPLAINTNUMBER
+            serviceOrderInfo.value.COMPLAINTDATE = initialComplaint.value.COMPLAINTDATE
+            serviceOrderInfo.value.COMPLAINT = initialComplaint.value.COMPLAINT
+            serviceOrderInfo.value.PRODUCTDESC = initialComplaint.value.PRODUCTDESC
+            serviceOrderInfo.value.RECBY = initialComplaint.value.RECBY
+            serviceOrderInfo.value.RECBYOptions = [initialComplaint.value.RECBY]
+            typeOfServiceInfo.value.reason = initialComplaint.value.ValidComplaintReason
+            typeOfServiceInfo.value.failure = initialComplaint.value.FAILINVEST
+
+            serviceOrderInfo.value.OPENCASE = initialComplaint.value.OPENCASE
+            serviceOrderInfo.value.INJURYREPORTNO = initialComplaint.value.INJURYREPORTNO
+            WARRANTYUNTIL.value = initialComplaint.value.WARRANTYUNTIL
+        }
+      }
+    })
   }
+  
   const propertiesInit = async () => {
     loadingOverlay.value = true
     await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
@@ -305,16 +345,16 @@
       })
       invoiceGridMeta.value.invoices = []
       invoiceGridMeta.value.selectedInvoice = null
-      serviceReportGridMeta.value.serviceReports = []
-      serviceReportGridMeta.value.selectedServiceReport = null    
-      serviceOrderInfo.value.SERIALNO = null
-      serviceOrderInfo.value.COMPLAINTNUMBER = null
-      serviceOrderInfo.value.COMPLAINTDATE = null
-      serviceOrderInfo.value.COMPLAINT = null
-      serviceOrderInfo.value.PRODUCTDESC = null
-      serviceOrderInfo.value.RECBY = null
-      typeOfServiceInfo.value.reason = null
-      typeOfServiceInfo.value.failure = null
+      // serviceReportGridMeta.value.serviceReports = []
+      // serviceReportGridMeta.value.selectedServiceReport = null    
+      // serviceOrderInfo.value.SERIALNO = null
+      // serviceOrderInfo.value.COMPLAINTNUMBER = null
+      // serviceOrderInfo.value.COMPLAINTDATE = null
+      // serviceOrderInfo.value.COMPLAINT = null
+      // serviceOrderInfo.value.PRODUCTDESC = null
+      // serviceOrderInfo.value.RECBY = null
+      // typeOfServiceInfo.value.reason = null
+      // typeOfServiceInfo.value.failure = null
       if(serialGridMeta.value.selectedSerial) {
         await fetchComplaintList()
         let tmpRECBYOptions = complaintGridMeta.value.complaints.map((item: any) => item.RECBY)
@@ -354,6 +394,7 @@
       }
     })
     if(complaintGridMeta.value.selectedComplaint) {
+      complaintUniquueId.value = complaintGridMeta.value.selectedComplaint.uniqueID
       serviceOrderInfo.value.SERIALNO = complaintGridMeta.value.selectedComplaint.SERIALNO
       serviceOrderInfo.value.COMPLAINTNUMBER = complaintGridMeta.value.selectedComplaint.COMPLAINTNUMBER
       serviceOrderInfo.value.COMPLAINTDATE = complaintGridMeta.value.selectedComplaint.COMPLAINTDATE
@@ -362,6 +403,9 @@
       serviceOrderInfo.value.RECBY = complaintGridMeta.value.selectedComplaint.RECBY
       typeOfServiceInfo.value.reason = complaintGridMeta.value.selectedComplaint.ValidComplaintReason
       typeOfServiceInfo.value.failure = complaintGridMeta.value.selectedComplaint.FAILINVEST
+      serviceOrderInfo.value.OPENCASE = complaintGridMeta.value.selectedComplaint.OPENCASE
+      serviceOrderInfo.value.INJURYREPORTNO = complaintGridMeta.value.selectedComplaint.INJURYREPORTNO
+      WARRANTYUNTIL.value = complaintGridMeta.value.selectedComplaint.WARRANTYUNTIL
       await fetchInvoiceList()
       await fetchServiceReportList()
       await fetchInvestigationList()
@@ -372,6 +416,9 @@
       serviceOrderInfo.value.COMPLAINT = null
       serviceOrderInfo.value.PRODUCTDESC = null
       serviceOrderInfo.value.RECBY = null
+      serviceOrderInfo.value.OPENCASE = null
+      serviceOrderInfo.value.INJURYREPORTNO = null
+      WARRANTYUNTIL.value = null
       invoiceGridMeta.value.invoices = []
       serviceReportGridMeta.value.serviceReports = []
     }
@@ -594,8 +641,23 @@
     return errors
   }
   async function onSubmit(event: FormSubmitEvent<any>) {
-    emit('save', event.data)
-    emit('close')
+    const {RECBYOptions, ...data} = event.data
+    await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
+      method: "PUT",
+      body: data,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+          emit('close')
+        }
+      },
+    });
+    
   }
   if(props.selectedCustomer) 
     editInit()
@@ -616,7 +678,7 @@
   <UForm
     :validate="validate"
     :validate-on="['submit']"
-    :state="formData"
+    :state="serviceOrderInfo"
     @submit="onSubmit"
   >
     <div class="w-full px-3 py-1 bg-slate-400">
@@ -942,12 +1004,12 @@
               <URadio 
                 v-for="status of statusGroup"
                 :key = 'status.value'
-                v-model="selectedStatus"
+                v-model="serviceOrderInfo.OPENCASE"
                 v-bind="status"
               />
             </div>
             <div class="mt-6 flex items-center">
-              Warranty Period
+              Warranty Period: {{  WARRANTYUNTIL }}
             </div>
           </div>
         </div>
@@ -957,7 +1019,7 @@
             name="description"
           >
             <UTextarea
-              :model-value="serviceOrderInfo.COMPLAINT"
+              v-model="serviceOrderInfo.COMPLAINT"
             />
           </UFormGroup>
         </div>
@@ -970,7 +1032,7 @@
               <URadio 
                 v-for="riskStatus of riskStatusGroup"
                 :key = 'riskStatus.value'
-                v-model="selectedRiskStatus"
+                v-model="serviceOrderInfo.INJURYREPORTNO"
                 v-bind="riskStatus"
               />
             </div>
@@ -1030,7 +1092,7 @@
           </div>
           <div class="flex flex-row space-x-3 px-4 mt-2">
             <div class="basis-1/4">
-              <UButton icon="i-heroicons-document-text-20-solid" label="Save" color="green" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton type="submit" icon="i-heroicons-document-text-20-solid" label="Save" color="green" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/4">
               <UButton icon="i-heroicons-eye-20-solid" label="Preview Order" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onPreviewOrderViewBtnClick"/>
