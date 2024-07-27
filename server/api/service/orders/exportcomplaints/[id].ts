@@ -30,7 +30,7 @@ export default eventHandler(async (event) => {
       case 'GET':
         const complaintDetail = await getComplaintDetail(id)        
         const customerID=  complaintDetail['CustomerID']
-        const reviewedBy=  complaintDetail['ClosedOutBy']
+        const reviewedBy=  complaintDetail['ClosedOutBy'] ? complaintDetail['ClosedOutBy'] : "";
         const customerDetail = await getCustomerDetail(customerID)
         const serviceOrderInvoices = await getServiceOrderInvoices({COMPLAINTID: id})
         const serviceReports = await getServiceReports({COMPLAINTID: id})
