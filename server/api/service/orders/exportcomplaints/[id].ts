@@ -93,73 +93,73 @@ export default eventHandler(async (event) => {
         })
         let htmlContent = ''
         htmlContent += `
-          <body style="font-family: Arial;">
+          <body style="font-family: Arial; font-size: 14px; margin: 0;">
             <header style="border-bottom: 3px solid black;">
               <div style="display:flex; justify-content:space-between; align-items:center;">
               <div class="flex justify-center items-center">
-                <img src="data:image/png;base64,${base64Image}" alt="Grimm Avatar" />
+                <img style="width: 110px;" src="data:image/png;base64,${base64Image}" alt="Grimm Avatar" />
               </div>
-                <h3>Customer Service Order</h3>
+                <h3 style="font-size: 20px;">Customer Service Order</h3>
                 <div style="width:250px;">
                   <p style="margin-left: -30px;">Warranty</p>
-                  <p><b>#:</b>${complaintDetail['COMPLAINTNUMBER']} <b style="margin-left:50px;">Date:</b> ${complaintDetail['COMPALINTDATE']?format(complaintDetail['COMPALINTDATE'], 'MM/dd/yyyy'):''}</p>
+                  <p><b>#:</b>${complaintDetail['COMPLAINTNUMBER']} <b style="margin-left:50px;">Date:</b> ${complaintDetail['COMPLAINTDATE']?format(complaintDetail['COMPLAINTDATE'], 'MM/dd/yyyy'):''}</p>
                 </div>
               </div>
               <div>
                 <div>
-                  <div style="display:flex; justify-content: space-between;">
+                  <div style="display:flex; justify-content: space-between; margin-top: -5px;">
                     <p style="width:250px; margin-top: 0px;"><b>Serial #:</b> ${complaintDetail['SERIALNO']}</p>  
                     <p style="width:250px; margin-top: 0px;"><b>Shipped:</b> ${complaintDetail['ORIGSHIPDATE']?format(complaintDetail['ORIGSHIPDATE'], 'MM/dd/yyyy'):''}</p>  
                     <p style="width:250px; margin-top: 0px; margin-left: -55px"><b>Warranty:</b> ${complaintDetail['WarrentyService']==='0'?'No':'Yes'}</p>  
                   </div>
-                  <div style="display:flex; justify-content: space-between;">
+                  <div style="display:flex; justify-content: space-between; margin-top: -10px;">
                     <p style="width:250px; margin-top: 0px;"><b>By #:</b> ${complaintDetail['RECBY']}</p>  
                     <p style="width:250px; margin-top: 0px;"><b>Status:</b> ${complaintDetail['WarrentyService']===0?'Open':'Closed'}</p>
                   </div>
-                  <div style="display:flex; justify-content: flex-end;">
+                  <div style="display:flex; justify-content: flex-end; margin-top: -10px;">
                     <p style="width:250px; margin-top: 0px;"><b>Valid Complaint:</b> ${complaintDetail['ValidComplaint']===0?'No':'Yes'}</p>
                   </div>
                 </div>
               </div>
-              <h4 style="margin: 6px 0px;"><center>${complaintDetail['PRODUCTDESC']}</center></h4>
+              <h4 style="margin: -10px 0px 10px -110px;"><center>${complaintDetail['PRODUCTDESC']}</center></h4>
             </header>`
         htmlContent += `
           <div>
             <div style="display: flex; flex-direction: row;">
               <div style="flex-basis: 50%;">
                 <p><b style="border-bottom: 2px solid black">Customer (Ship To)</b></p>
-                <p style="margin-top: 10px; margin-bottom: 10px">Customer#: ${customerDetail['number']}</p>
-                <p style="margin-top: 10px; margin-bottom: 10px">${customerDetail['company1']}</p>
-                <p style="margin-top: 10px; margin-bottom: 10px">${customerDetail['fname']} ${customerDetail['lname']}</p>
-                <p style="margin-top: 10px; margin-bottom: 10px">${customerDetail['address']}</p>
-                <p style="margin-top: 10px; margin-bottom: 10px">${customerDetail['city']}, ${customerDetail['state']} ${customerDetail['zip']}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px">Customer#: ${customerDetail['number']}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px">${customerDetail['company1']}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px">${customerDetail['fname']} ${customerDetail['lname']}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px">${customerDetail['address']}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px">${customerDetail['city']}, ${customerDetail['state']} ${customerDetail['zip']}</p>
               </div> 
               <div style="flex-basis: 50%;">
                 <p><b style="border-bottom: 2px solid black">Customer Description</b></p>
-                <p style="margin-top: 10px; margin-bottom: 10px"><b>Patient Injury:</b> ${complaintDetail['INJURYREPORTNO'] === 0 ?'No':'Yes'}</p>
-                <p style="margin-top: 10px; margin-bottom: 10px">${complaintDetail['COMPLAINT']}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px"><b>Patient Injury:</b> ${complaintDetail['INJURYREPORTNO'] === 0 ?'No':'Yes'}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px">${complaintDetail['COMPLAINT']}</p>
               </div>
             </div>`
         htmlContent += `
-          <div style="display: flex; padding-left: 50%;">
+          <div style="display: flex; padding-left: 50%; margin-top: -14px">
             <div style="flex-basis: 50%">
               <div style="display: flex; flex-direction: row">
-                <p><b style="border-bottom: 2px solid black">Received</b></p>
-                <p style="margin-left: 80px;"><b style="border-bottom: 2px solid black">Accessories</b></p>
+                <p><b style="border-bottom: 2px solid black; font-size: 13px;">Received</b></p>
+                <p style="margin-left: 80px;"><b style="border-bottom: 2px solid black; font-size: 13px;">Accessories</b></p>
               </div>
             </div>
           </div>`
         htmlContent += `
-          <div>
-            <p style="margin-top: 10px; margin-bottom: 10px"><b>W:</b> ${customerDetail['workphone']}</p>
-            <p style="margin-top: 10px; margin-bottom: 10px"><b>C:</b> ${customerDetail['homephone']}</p>
-            <p style="margin-top: 10px; margin-bottom: 10px"><b>H:</b> ${customerDetail['cellphone']}</p>
+          <div style="margin-top: -20px">
+            <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>W:</b> ${customerDetail['workphone']}</p>
+            <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>C:</b> ${customerDetail['homephone']}</p>
+            <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>H:</b> ${customerDetail['cellphone']}</p>
           </div>
               `
         htmlContent += `    
-          <div style="display: flex; padding-left: 50%;">
+          <div style="display: flex; padding-left: 50%; margin-top: -20px">
             <div style="flex-basis: 50%">
-              <p><b style="border-bottom: 2px solid black">Failure Investigation</b></p>
+              <p><b style="border-bottom: 2px solid black; font-size: 13px">Failure Investigation</b></p>
               <p>${complaintDetail['FAILINVEST']}</p>
             </div>
           </div>`
@@ -167,34 +167,34 @@ export default eventHandler(async (event) => {
           <table>
             <thead>
               <tr>
-                <th width="500px" style="text-align: left;"><span style="border-bottom: 2px solid black;">Invoice #: </span><span style="font-weight: normal; margin-left: 20px;">${serviceOrderInvoices.length?serviceOrderInvoices[0]['invoicenumber']:'' }</span></th>
-                <th width="400px" style="text-align: left;"><span style="border-bottom: 2px solid black;">Onsite Hrs.</span></th>
-                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black;">Travel Hrs.</span></th>
-                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black;">Factory Hrs.</span></th>
-                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black;">Miles</span></th>
-                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black;">Per Diem</span></th>
+                <th width="500px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Invoice #: </span><span style="font-weight: normal; margin-left: 20px;">${serviceOrderInvoices.length?serviceOrderInvoices[0]['invoicenumber']:'' }</span></th>
+                <th width="400px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Onsite Hrs.</span></th>
+                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Travel Hrs.</span></th>
+                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Factory Hrs.</span></th>
+                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Miles</span></th>
+                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Per Diem</span></th>
               </tr>
             </thead>
             <tbody>        
               <tr>
                 <td></td>
-                <td>${serviceOrderInvoiceSummary.OnsiteHours}</td>
-                <td>${serviceOrderInvoiceSummary.TravelHours}</td>
-                <td>${serviceOrderInvoiceSummary.FactoryHours}</td>
-                <td>${serviceOrderInvoiceSummary.Miles}</td>
-                <td>${serviceOrderInvoiceSummary.PerDiem}</td>
+                <td style="font-size: 13px;">${serviceOrderInvoiceSummary.OnsiteHours}</td>
+                <td style="font-size: 13px;">${serviceOrderInvoiceSummary.TravelHours}</td>
+                <td style="font-size: 13px;">${serviceOrderInvoiceSummary.FactoryHours}</td>
+                <td style="font-size: 13px;">${serviceOrderInvoiceSummary.Miles}</td>
+                <td style="font-size: 13px;">${serviceOrderInvoiceSummary.PerDiem}</td>
               </tr>
             </tbody>
           </table>`
         htmlContent += `
-          <p style="margin-top: 40px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Service Reports</b></p>
+          <p style="margin-top: 30px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Service Reports</b></p>
           <table style="border-spacing: 0px;">
-            <thead style="background-color: #FFF9CC;">
+            <thead>
               <tr>
-                <th width="200px" style="text-align: left;">Date</th>
-                <th width="200px" style="text-align: left;">Type</th>
-                <th width="400px" style="text-align: left;">By</th>
-                <th width="1084px" style="text-align: left;">Repairs Made</th>
+                <th width="200px" style="text-align: left; background-color: #f2eecc; font-size: 13px;">Date</th>
+                <th width="200px" style="text-align: left; background-color: #f2eecc; font-size: 13px;">Type</th>
+                <th width="400px" style="text-align: left; background-color: #f2eecc; font-size: 13px;">By</th>
+                <th width="1084px" style="text-align: left; background-color: #f2eecc; font-size: 13px;">Repairs Made</th>
               </tr>
             </thead>
             <tbody>`
@@ -212,44 +212,47 @@ export default eventHandler(async (event) => {
           }
           htmlContent += `
             <tr>
-              <td>${report['REPAIRDATE']}</td>
-              <td>${type}</td>
-              <td>${report['REPAIRSBY']??''}</td>
-              <td>${report['REPAIRSMADE']??''}</td>
+              <td style="font-size: 13px;">${report['REPAIRDATE']}</td>
+              <td style="font-size: 13px;">${type}</td>
+              <td style="font-size: 13px;">${report['REPAIRSBY']??''}</td>
+              <td style="font-size: 13px;">${report['REPAIRSMADE']??''}</td>
             </tr>`
         })
         htmlContent += `
-              <tr style="padding-top: 10px;">
-                <td style="padding-top: 10px;"><b>To Spec?</b><br/></td>
-                <td style="padding-top: 10px;"><b>No</b><br/></td>
+              <tr style="margin-top: 20px;">
+                <td style="font-size: 13px;"><b>To Spec?</b><br/></td>
+                <td style="font-size: 13px;"><b>No</b><br/></td>
                 <td></td>
-                <td><b>Comment<br/></b>${serviceOrderInvoiceSummary.performsnotext}</td>
+                <td style="font-size: 13px;"><b>Comment</b>
+                <br/>
+                ${serviceOrderInvoiceSummary.performsnotext}
+                </td>
               </tr>
             </tbody>
           </table>`
         htmlContent += `
-          <p style="margin-top: 40px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Warranty Materials</b></p>
+          <p style="margin-top: 30px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Warranty Materials</b></p>
           <table style="border-spacing: 0px;">
             <thead style="background: #FFF9CC;">
               <tr style="background-color: #f9f9f9; text-align: left;">
-                <th width="200px" style="text-align: left;">Quantity</th>
-                <th width="200px" style="text-align: left;">Stock#</th>
-                <th width="900px" style="text-align: left;">Description</th>
-                <th width="200px" style="text-align: left;">Price</th>
-                <th width="200px" style="text-align: left;">Unit</th>
-                <th width="200px" style="text-align: left;">Amount</th>
+                <th width="110px" style="text-align: left; font-size: 13px;">Quantity</th>
+                <th width="110px" style="text-align: left; font-size: 13px;">Stock#</th>
+                <th width="550px" style="text-align: left; font-size: 13px;">Description</th>
+                <th width="180px" style="text-align: left; font-size: 13px;">Price</th>
+                <th width="200px" style="text-align: left; font-size: 13px;">Unit</th>
+                <th width="200px" style="text-align: left; font-size: 13px;">Amount</th>
               </tr>
             </thead>
             <tbody>`
           warrantyMaterials.forEach((material) => {
             htmlContent += `
               <tr>
-                <td>${material['Quantity']}</td>
-                <td>${material['MODEL']}</td>
-                <td>${material['DESCRIPTION']}</td>
-                <td>${material['PRIMARYPRICE1']}</td>
-                <td>${material['UNIT']}</td>
-                <td>${material['Amount']}</td>
+                <td style="font-size: 13px;">${material['Quantity']}</td>
+                <td style="font-size: 13px;">${material['MODEL']}</td>
+                <td style="font-size: 13px;">${material['DESCRIPTION']}</td>
+                <td style="font-size: 13px;">${material['PRIMARYPRICE1']}</td>
+                <td style="font-size: 13px;">${material['UNIT']}</td>
+                <td style="font-size: 13px;">${material['Amount']}</td>
               </tr>`
           })
           htmlContent += `
@@ -257,18 +260,18 @@ export default eventHandler(async (event) => {
             </table>` 
 
           htmlContent+=`
-          <div style="display:flex;justify-content: flex-end; margin-right: 40px">
+          <div style="display:flex;justify-content: flex-end; margin-right: 40px; margin-top: 20px">
             <div>
                 <div style="display:flex;flex-direction:column; text-align: right;">
-                    <div style="display: flex; width: 250px; justify-content: space-between;">
+                    <div style="display: flex; width: 180px; justify-content: space-between;">
                         <span>Total Material Cost:</span>
                         <span><b>$${totalWarrantyMaterialCost || 0}</b></span>
                     </div>
-                    <div style="display: flex; width: 250px; justify-content: space-between;">
+                    <div style="display: flex; width: 180px; justify-content: space-between;">
                         <span>Shipping Cost:</span>
                         <span><b>$35.30</b></span>
                     </div>
-                    <div style="display: flex; width: 250px; justify-content: space-between;">
+                    <div style="display: flex; width: 180px; justify-content: space-between;">
                         <span>Total:</span>
                         <span><b>$${(totalCost).toFixed(2) || 0}</b></span>
                     </div>
@@ -277,49 +280,49 @@ export default eventHandler(async (event) => {
           </div>
                 `  
           htmlContent += `   
-            <p style="margin-top: 40px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Materials Received</b></p>
+            <p style="margin-top: 10px; margin-bottom: 10px"><b style="border-bottom: 2px solid black; font-size: 14px;">Materials Received</b></p>
             <table style="border-spacing: 0px;">
               <thead style="background: #FFF9CC;">
                 <tr>
-                  <th width="200px" style="text-align: left;">Quantity</th>
-                  <th width="200px" style="text-align: left;">Stock#</th>
-                  <th width="1478px" style="text-align: left;">Description</th>
+                  <th width="200px" style="text-align: left; font-size: 13px;">Quantity</th>
+                  <th width="200px" style="text-align: left; font-size: 13px;">Stock#</th>
+                  <th width="1478px" style="text-align: left; font-size: 13px;">Description</th>
                 </tr>
               </thead>
               <tbody>`
           receievedParts.forEach((material) => {
             htmlContent += `
               <tr>
-                <td>${material['Quantity']}</td>
-                <td>${material['MODEL']}</td>
-                <td>${material['DESCRIPTION']}</td>
-                <td></td>
+                <td style="font-size: 13px;">${material['Quantity']}</td>
+                <td style="font-size: 13px;">${material['MODEL']}</td>
+                <td style="font-size: 13px;">${material['DESCRIPTION']}</td>
+                <td style="font-size: 13px;"></td>
               </tr>`
           })
           htmlContent += `
               </tbody>
             </table>` 
           htmlContent += `
-            <p style="margin-top: 40px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Action</b></p>
+            <p style="margin-top: 10px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Action</b></p>
             <table style="border-spacing: 0px;">
               <thead style="background: #FFF9CC;">
                 <tr>
-                  <th width="200px" style="text-align: left;">Date</th>
-                  <th width="200px" style="text-align: left;">Type</th>
-                  <th width="1478px" style="text-align: left;">Description</th>
+                  <th width="200px" style="text-align: left; font-size: 13px;">Date</th>
+                  <th width="200px" style="text-align: left; font-size: 13px;">Type</th>
+                  <th width="1478px" style="text-align: left; font-size: 13px;">Description</th>
                 </tr>
               </thead>
               <tbody>
               </tbody>
             </table>`
           htmlContent += `
-            <p style="margin-top: 40px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Investigations</b></p>
+            <p style="margin-top: 10px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Investigations</b></p>
             <table style="border-spacing: 0px;">
               <thead style="background: #FFF9CC;">
                 <tr>
-                  <th width="200px" style="text-align: left;">Date</th>
-                  <th width="200px" style="text-align: left;">Type</th>
-                  <th width="1478px" style="text-align: left;">Description</th>
+                  <th width="200px" style="text-align: left; font-size: 13px;">Date</th>
+                  <th width="200px" style="text-align: left; font-size: 13px;">Type</th>
+                  <th width="1478px" style="text-align: left; font-size: 13px;">Description</th>
                 </tr>
               </thead>
               <tbody>`
