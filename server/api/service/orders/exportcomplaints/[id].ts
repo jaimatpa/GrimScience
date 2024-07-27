@@ -17,11 +17,13 @@ export default eventHandler(async (event) => {
 
     switch(method){
       case 'GET':
-        const complaintDetail = await getComplaintDetail(id)
+        const complaintDetail = await getComplaintDetail(id)        
         const customerID=  complaintDetail['CustomerID']
+        const reviewedBy=  complaintDetail['ClosedOutBy']
         const customerDetail = await getCustomerDetail(customerID)
         const serviceOrderInvoices = await getServiceOrderInvoices({COMPLAINTID: id})
         const serviceReports = await getServiceReports({COMPLAINTID: id})
+        
         let totalWarrantyMaterialCost = 0
         let warrantyMaterials = []
         for(let i = 0; i < serviceReports.length; i++) {
@@ -40,9 +42,7 @@ export default eventHandler(async (event) => {
         const shippingCost = 35.30;
 
         let totalCost = Number(totalWarrantyMaterialCost) + shippingCost;
-
-        console.log('totalWarrantyMaterialCosttotalWarrantyMaterialCost',totalWarrantyMaterialCost);
-
+        
         let receievedParts = []
         for(let i = 0; i < serviceReports.length; i++) {
           if(serviceReports[i].PARTSRECEIVED) {
@@ -165,7 +165,7 @@ export default eventHandler(async (event) => {
           </div>`
         htmlContent += `
           <table>
-            <thead>
+            <thead style="background: #FFFACD;">
               <tr>
                 <th width="500px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Invoice #: </span><span style="font-weight: normal; margin-left: 20px;">${serviceOrderInvoices.length?serviceOrderInvoices[0]['invoicenumber']:'' }</span></th>
                 <th width="400px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Onsite Hrs.</span></th>
@@ -191,10 +191,10 @@ export default eventHandler(async (event) => {
           <table style="border-spacing: 0px;">
             <thead>
               <tr>
-                <th width="200px" style="text-align: left; background-color: #f2eecc; font-size: 13px;">Date</th>
-                <th width="200px" style="text-align: left; background-color: #f2eecc; font-size: 13px;">Type</th>
-                <th width="400px" style="text-align: left; background-color: #f2eecc; font-size: 13px;">By</th>
-                <th width="1084px" style="text-align: left; background-color: #f2eecc; font-size: 13px;">Repairs Made</th>
+                <th width="200px" style="text-align: left; font-size: 13px;">Date</th>
+                <th width="200px" style="text-align: left; font-size: 13px;">Type</th>
+                <th width="400px" style="text-align: left; font-size: 13px;">By</th>
+                <th width="1084px" style="text-align: left; font-size: 13px;">Repairs Made</th>
               </tr>
             </thead>
             <tbody>`
@@ -233,8 +233,8 @@ export default eventHandler(async (event) => {
         htmlContent += `
           <p style="margin-top: 30px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Warranty Materials</b></p>
           <table style="border-spacing: 0px;">
-            <thead style="background: #FFF9CC;">
-              <tr style="background-color: #f9f9f9; text-align: left;">
+            <thead style="background: #FFFACD;">
+              <tr>
                 <th width="110px" style="text-align: left; font-size: 13px;">Quantity</th>
                 <th width="110px" style="text-align: left; font-size: 13px;">Stock#</th>
                 <th width="550px" style="text-align: left; font-size: 13px;">Description</th>
@@ -258,31 +258,32 @@ export default eventHandler(async (event) => {
           htmlContent += `
               </tbody>
             </table>` 
-
-          htmlContent+=`
-          <div style="display:flex;justify-content: flex-end; margin-right: 40px; margin-top: 20px">
-            <div>
-                <div style="display:flex;flex-direction:column; text-align: right;">
-                    <div style="display: flex; width: 180px; justify-content: space-between;">
-                        <span>Total Material Cost:</span>
-                        <span><b>$${totalWarrantyMaterialCost || 0}</b></span>
-                    </div>
-                    <div style="display: flex; width: 180px; justify-content: space-between;">
-                        <span>Shipping Cost:</span>
-                        <span><b>$35.30</b></span>
-                    </div>
-                    <div style="display: flex; width: 180px; justify-content: space-between;">
-                        <span>Total:</span>
-                        <span><b>$${(totalCost).toFixed(2) || 0}</b></span>
-                    </div>
-                </div>
-            </div>
-          </div>
-                `  
+            if (totalWarrantyMaterialCost > 0) {
+              htmlContent += `
+                  <div style="display:flex;justify-content: flex-end; margin-right: 40px; margin-top: 20px">
+                      <div>
+                          <div style="display:flex;flex-direction:column; text-align: right;">
+                              <div style="display: flex; width: 180px; justify-content: space-between;">
+                                  <span>Total Material Cost:</span>
+                                  <span><b>$${totalWarrantyMaterialCost}</b></span>
+                              </div>
+                              <div style="display: flex; width: 180px; justify-content: space-between;">
+                                  <span>Shipping Cost:</span>
+                                  <span><b>$35.30</b></span>
+                              </div>
+                              <div style="display: flex; width: 180px; justify-content: space-between;">
+                                  <span>Total:</span>
+                                  <span><b>$${totalCost.toFixed(2)}</b></span>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              `;
+          }
           htmlContent += `   
             <p style="margin-top: 10px; margin-bottom: 10px"><b style="border-bottom: 2px solid black; font-size: 14px;">Materials Received</b></p>
             <table style="border-spacing: 0px;">
-              <thead style="background: #FFF9CC;">
+              <thead style="background: #FFFACD;">
                 <tr>
                   <th width="200px" style="text-align: left; font-size: 13px;">Quantity</th>
                   <th width="200px" style="text-align: left; font-size: 13px;">Stock#</th>
@@ -305,7 +306,7 @@ export default eventHandler(async (event) => {
           htmlContent += `
             <p style="margin-top: 10px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Action</b></p>
             <table style="border-spacing: 0px;">
-              <thead style="background: #FFF9CC;">
+              <thead style="background: #FFFACD;">
                 <tr>
                   <th width="200px" style="text-align: left; font-size: 13px;">Date</th>
                   <th width="200px" style="text-align: left; font-size: 13px;">Type</th>
@@ -318,7 +319,7 @@ export default eventHandler(async (event) => {
           htmlContent += `
             <p style="margin-top: 10px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Investigations</b></p>
             <table style="border-spacing: 0px;">
-              <thead style="background: #FFF9CC;">
+              <thead style="background: #FFFACD;">
                 <tr>
                   <th width="200px" style="text-align: left; font-size: 13px;">Date</th>
                   <th width="200px" style="text-align: left; font-size: 13px;">Type</th>
@@ -337,7 +338,9 @@ export default eventHandler(async (event) => {
           })
           htmlContent += `
                   </tbody>
-                </table>
+                </table>`
+          htmlContent += `
+                <h4 style="margin: 40px 0px"><center>${reviewedBy}</center></h4>
               </div>  
             </body>`
 
@@ -347,6 +350,7 @@ export default eventHandler(async (event) => {
         const pdfOptions: any = {
           path: 'Complaints.pdf',
           format: 'letter',
+          printBackground: true,
           margin: {
             top: '40px',
             bottom: '40px',
