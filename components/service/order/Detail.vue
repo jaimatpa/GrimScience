@@ -149,7 +149,8 @@
     PRODUCTDESC: null,
     NONCONFORMANCE: null,
     OPENCASE: null,
-    INJURYREPORTNO: null
+    INJURYREPORTNO: null,
+    uniqueID: null
   })
   const WARRANTYUNTIL = ref(null)
   const typeOfServiceInfo = ref({
@@ -203,6 +204,7 @@
             serviceOrderInfo.value.PRODUCTDESC = initialComplaint.value.PRODUCTDESC
             serviceOrderInfo.value.RECBY = initialComplaint.value.RECBY
             serviceOrderInfo.value.RECBYOptions = [initialComplaint.value.RECBY]
+            serviceOrderInfo.value.uniqueID = initialComplaint.value.uniqueID
             typeOfServiceInfo.value.reason = initialComplaint.value.ValidComplaintReason
             typeOfServiceInfo.value.failure = initialComplaint.value.FAILINVEST
 
@@ -579,8 +581,9 @@
     }
   }
   const onPreviewOrderViewBtnClick = () => {
-    if(complaintGridMeta.value.selectedComplaint) {
-      window.open(`/api/service/orders/exportcomplaints/${complaintGridMeta.value.selectedComplaint?.uniqueID}`)
+    const uniqueID = complaintGridMeta.value.selectedComplaint?.uniqueID || serviceOrderInfo.value.uniqueID
+    if(uniqueID) {
+      window.open(`/api/service/orders/exportcomplaints/${uniqueID}`)
     } else {
       toast.add({
         description: 'Please select order first',
@@ -1095,7 +1098,7 @@
               <UButton type="submit" icon="i-heroicons-document-text-20-solid" label="Save" color="green" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/4">
-              <UButton icon="i-heroicons-eye-20-solid" label="Preview Order" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onPreviewOrderViewBtnClick"/>
+              <UButton icon="i-heroicons-eye-20-solid" :disabled="!serviceOrderInfo.uniqueID" label="Preview Order" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onPreviewOrderViewBtnClick"/>
             </div>
             <div class="basis-1/4">
               <UButton icon="i-heroicons-eye-20-solid" label="Preview Label" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>

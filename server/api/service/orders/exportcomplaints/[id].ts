@@ -364,6 +364,12 @@ export default eventHandler(async (event) => {
           path: 'Complaints.pdf',
           format: 'letter',
           printBackground: true,
+          displayHeaderFooter: true,
+          headerTemplate: `<span></span>`,
+          footerTemplate: `
+          <div style="width: 100%; font-family: arial; text-align: center; font-size: 16px; position: relative;">
+              Page <span class="pageNumber"></span> of <span class="totalPages"></span>
+          </div>`,
           margin: {
             top: '40px',
             bottom: '40px',
