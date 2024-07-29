@@ -104,6 +104,7 @@
     selectedOrderId: null,
     selectedCustomerId: null,
     selectedCompaintNumber: null,
+    selectedSerialNumber: null,
     sort: {
       column: 'COMPLAINTNUMBER', 
       direction: 'desc'
@@ -283,6 +284,7 @@
     gridMeta.value.selectedOrderId = row?.uniqueID;
     gridMeta.value.selectedCustomerId = row?.customerID;
     gridMeta.value.selectedCompaintNumber = row?.COMPLAINTNUMBER;
+    gridMeta.value.selectedSerialNumber = row?.SERIALNO;
   }
   const onDblClick = async () =>{
     if(gridMeta.value.selectedCustomerId && gridMeta.value.selectedCompaintNumber){
@@ -440,6 +442,6 @@
       width: 'w-[1800px] sm:max-w-9xl'
     }"
   >
-    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId" :selected-complaint="gridMeta.selectedCompaintNumber"  :selected-order="gridMeta.selectedOrderId"  />
+    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-serial="gridMeta.selectedSerialNumber":selected-customer="gridMeta.selectedCustomerId" :selected-complaint="gridMeta.selectedCompaintNumber" :selected-order="gridMeta.selectedOrderId"  />
   </UDashboardModal>
 </template>

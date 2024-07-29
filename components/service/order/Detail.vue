@@ -19,6 +19,10 @@
       type: [Number, String, null],
       required: true
     },
+    selectedSerial: {
+      type: [Number, String, null],
+      required: true
+    },
   })  
 
   const complaintUniquueId = ref(props.selectedOrder)
@@ -188,32 +192,31 @@
   const editInit = async () => {
     loadingOverlay.value = true
     await propertiesInit()
+    // await useApiFetch(`/api/service/complaints/`, {
+    //   method: 'GET',
+    //   params: {
+    //     COMPLAINTNUMBER: props.selectedComplaint
+    //   },
+    //   onResponse({ response }) {
+    //     if(response.status === 200) {
+    //         initialComplaint.value = response._data.body[0]
+    //         serviceOrderInfo.value.SERIALNO = initialComplaint.value.SERIALNO
+    //         serviceOrderInfo.value.COMPLAINTNUMBER = initialComplaint.value.COMPLAINTNUMBER
+    //         serviceOrderInfo.value.COMPLAINTDATE = initialComplaint.value.COMPLAINTDATE
+    //         serviceOrderInfo.value.COMPLAINT = initialComplaint.value.COMPLAINT
+    //         serviceOrderInfo.value.PRODUCTDESC = initialComplaint.value.PRODUCTDESC
+    //         serviceOrderInfo.value.RECBY = initialComplaint.value.RECBY
+    //         serviceOrderInfo.value.RECBYOptions = [initialComplaint.value.RECBY]
+    //         serviceOrderInfo.value.uniqueID = initialComplaint.value.uniqueID
+    //         typeOfServiceInfo.value.reason = initialComplaint.value.ValidComplaintReason
+    //         typeOfServiceInfo.value.failure = initialComplaint.value.FAILINVEST
 
-    await useApiFetch(`/api/service/complaints/`, {
-      method: 'GET',
-      params: {
-        COMPLAINTNUMBER: props.selectedComplaint
-      },
-      onResponse({ response }) {
-        if(response.status === 200) {
-            initialComplaint.value = response._data.body[0]
-            serviceOrderInfo.value.SERIALNO = initialComplaint.value.SERIALNO
-            serviceOrderInfo.value.COMPLAINTNUMBER = initialComplaint.value.COMPLAINTNUMBER
-            serviceOrderInfo.value.COMPLAINTDATE = initialComplaint.value.COMPLAINTDATE
-            serviceOrderInfo.value.COMPLAINT = initialComplaint.value.COMPLAINT
-            serviceOrderInfo.value.PRODUCTDESC = initialComplaint.value.PRODUCTDESC
-            serviceOrderInfo.value.RECBY = initialComplaint.value.RECBY
-            serviceOrderInfo.value.RECBYOptions = [initialComplaint.value.RECBY]
-            serviceOrderInfo.value.uniqueID = initialComplaint.value.uniqueID
-            typeOfServiceInfo.value.reason = initialComplaint.value.ValidComplaintReason
-            typeOfServiceInfo.value.failure = initialComplaint.value.FAILINVEST
-
-            serviceOrderInfo.value.OPENCASE = initialComplaint.value.OPENCASE
-            serviceOrderInfo.value.INJURYREPORTNO = initialComplaint.value.INJURYREPORTNO
-            WARRANTYUNTIL.value = initialComplaint.value.WARRANTYUNTIL
-        }
-      }
-    })
+    //         serviceOrderInfo.value.OPENCASE = initialComplaint.value.OPENCASE
+    //         serviceOrderInfo.value.INJURYREPORTNO = initialComplaint.value.INJURYREPORTNO
+    //         WARRANTYUNTIL.value = initialComplaint.value.WARRANTYUNTIL
+    //     }
+    //   }
+    // })
   }
   
   const propertiesInit = async () => {
@@ -581,9 +584,8 @@
     }
   }
   const onPreviewOrderViewBtnClick = () => {
-    const uniqueID = complaintGridMeta.value.selectedComplaint?.uniqueID || serviceOrderInfo.value.uniqueID
-    if(uniqueID) {
-      window.open(`/api/service/orders/exportcomplaints/${uniqueID}`)
+    if(complaintGridMeta.value.selectedComplaint?.uniqueID) {
+      window.open(`/api/service/orders/exportcomplaints/${complaintGridMeta.value.selectedComplaint?.uniqueID}`)
     } else {
       toast.add({
         description: 'Please select order first',
@@ -662,6 +664,21 @@
     });
     
   }
+
+  watch(() => serialGridMeta.value.serials, () => {
+    if(serialGridMeta.value.serials.length > 0) {
+      const uniqueIDFound = serialGridMeta.value?.serials.find(serial => serial?.serial === props.selectedSerial)
+      onSerialSelect({UniqueID: uniqueIDFound.UniqueID, class: "bg-gray-200", serial: props.selectedSerial})
+    }
+  })
+
+  watch(() => complaintGridMeta.value.complaints, () => {
+    if(complaintGridMeta.value.complaints.length > 0) {
+      const uniqueIDFound = complaintGridMeta.value?.complaints.find(complaint => complaint?.COMPLAINTNUMBER === props.selectedComplaint)
+      onComplaintSelect(uniqueIDFound)
+    }
+  })
+
   if(props.selectedCustomer) 
     editInit()
   else 
@@ -1098,7 +1115,7 @@
               <UButton type="submit" icon="i-heroicons-document-text-20-solid" label="Save" color="green" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/4">
-              <UButton icon="i-heroicons-eye-20-solid" :disabled="!serviceOrderInfo.uniqueID" label="Preview Order" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onPreviewOrderViewBtnClick"/>
+              <UButton icon="i-heroicons-eye-20-solid" label="Preview Order" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onPreviewOrderViewBtnClick"/>
             </div>
             <div class="basis-1/4">
               <UButton icon="i-heroicons-eye-20-solid" label="Preview Label" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
