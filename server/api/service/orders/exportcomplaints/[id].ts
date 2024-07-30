@@ -110,7 +110,7 @@ export default eventHandler(async (event) => {
               <div class="flex justify-center items-center">
                 <img style="width: 110px;" src="data:image/png;base64,${base64Image}" alt="Grimm Avatar" />
               </div>
-                <h3 style="font-size: 20px;">Customer Service Order</h3>
+                <h3 style="font-size: 18px;margin-left:-60px;margin-top:35px">Customer Service Order</h3>
                 <div style="width:250px;">
                   <p style="margin-left: -30px;">Warranty</p>
                   <p><b>#:</b>${complaintDetail['COMPLAINTNUMBER']} <b style="margin-left:50px;">Date:</b> ${complaintDetail['COMPLAINTDATE']?format(complaintDetail['COMPLAINTDATE'], 'MM/dd/yyyy'):''}</p>
@@ -371,10 +371,10 @@ export default eventHandler(async (event) => {
               Page <span class="pageNumber"></span> of <span class="totalPages"></span>
           </div>`,
           margin: {
-            top: '40px',
+            top: '16px',
             bottom: '40px',
-            left: '40px',
-            right: '40px'
+            left: '75px',
+            right: '105px'
           }
         };
         await page.setContent(htmlContent, {waitUntil: 'domcontentloaded'});
