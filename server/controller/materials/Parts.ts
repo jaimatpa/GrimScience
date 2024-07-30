@@ -147,3 +147,52 @@ export const getParts = async (filterParams) => {
 
   return productInfos;
 }
+
+export const getDistinctParts = async (filterParams) => {
+  const { UniqueID, PARTTYPE, SUBCATEGORY, MODEL, DESCRIPTION } = filterParams
+  let where = {}
+  if(UniqueID) where['UniqueID'] = UniqueID
+  if(PARTTYPE) where['PARTTYPE'] = PARTTYPE
+  if(SUBCATEGORY) where['SUBCATEGORY'] = SUBCATEGORY
+  if(MODEL) where['MODEL'] = {[Op.like]: `%${MODEL}%`}
+  if(DESCRIPTION) where['DESCRIPTION'] = {[Op.like]: `%${DESCRIPTION}%`}
+
+  const getDistinctByModelNumber = (data) => {
+    const uniquePrices = new Map();
+
+    data.forEach(item => {
+      if (!uniquePrices.has(item.MODEL)) {
+        uniquePrices.set(item.MODEL, item);
+      }
+    });
+  
+    return Array.from(uniquePrices.values());
+  };
+
+  const productInfos = await tblBP.findAll({
+    attributes: [
+      'UniqueID',
+      'instanceID',
+      'PARTTYPE',
+      'SUBCATEGORY',
+      'MODEL',
+      'DESCRIPTION',
+      'OnHand',
+      'PRIMARYPRICE1',
+      'UNIT'
+    ],
+    where: {
+      partflag: 1,
+      ...where
+    },
+    // limit: 50,
+    order: [
+      ['MODEL', 'ASC'],
+    ],
+    raw: true
+  });
+
+  const distinctFilteredData = getDistinctByModelNumber(productInfos);
+
+  return distinctFilteredData;
+}

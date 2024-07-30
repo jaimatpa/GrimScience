@@ -8,6 +8,7 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
   let whereClause = {}
   let customerWhereClause = {}
   if(filterParams.COMPLAINTNUMBER) whereClause['COMPLAINTNUMBER'] = {[Op.like]: `%${filterParams.COMPLAINTNUMBER}%`};
+  if(filterParams.PRODUCTDESC) whereClause['PRODUCTDESC'] = {[Op.like]: `%${filterParams.PRODUCTDESC}%`};
   if(filterParams.SERIALNO) whereClause['SERIALNO'] = {[Op.like]: `%${filterParams.SERIALNO}%`};
   if(filterParams.COMPLAINTDATE) whereClause[Op.and] = [
       Sequelize.where(Sequelize.fn('FORMAT', Sequelize.col('COMPLAINTDATE'), 'MM/dd/yyyy'), {
@@ -16,6 +17,7 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
     ]
   if(filterParams.FAILINVEST) whereClause['FAILINVEST'] = {[Op.like]: `%${filterParams.FAILINVEST}%`};
   if(filterParams.OPENCASE === 'true') whereClause['OPENCASE'] = 0
+  if(filterParams.OPENCASE === 'false') whereClause['OPENCASE'] = 1
   if(filterParams.ValidComplaint === 'true') whereClause['ValidComplaint'] = -1
   if(filterParams.INJURYREPORTNO === 'true') whereClause['INJURYREPORTNO'] = 1
   if(filterParams.company1) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company1}%`};
@@ -174,6 +176,7 @@ export const getNumberOfServiceOrders = async (filterParams) => {
   let whereClause = {}
   let customerWhereClause = {}
   if(filterParams.COMPLAINTNUMBER) whereClause['COMPLAINTNUMBER'] = {[Op.like]: `%${filterParams.COMPLAINTNUMBER}%`};
+  if(filterParams.PRODUCTDESC) whereClause['PRODUCTDESC'] = {[Op.like]: `%${filterParams.PRODUCTDESC}%`};
   if(filterParams.SERIALNO) whereClause['SERIALNO'] = {[Op.like]: `%${filterParams.SERIALNO}%`};
   if(filterParams.COMPLAINTDATE) whereClause[Op.and] = [
       Sequelize.where(Sequelize.fn('FORMAT', Sequelize.col('COMPLAINTDATE'), 'MM/dd/yyyy'), {
@@ -182,6 +185,7 @@ export const getNumberOfServiceOrders = async (filterParams) => {
     ]
   if(filterParams.FAILINVEST) whereClause['FAILINVEST'] = {[Op.like]: `%${filterParams.FAILINVEST}%`};
   if(filterParams.OPENCASE === 'true') whereClause['OPENCASE'] = 0
+  if(filterParams.OPENCASE === 'false') whereClause['OPENCASE'] = 1
   if(filterParams.ValidComplaint === 'true') whereClause['ValidComplaint'] = -1
   if(filterParams.INJURYREPORTNO === 'true') whereClause['INJURYREPORTNO'] = 1
   if(filterParams.company1) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company1}%`};

@@ -774,7 +774,7 @@ else
         width: 'w-[1800px] sm:max-w-9xl'
       }"
     >
-      <ServiceOrderDetail :selected-customer="selectedCustomer" :selected-complaint="null" :selected-order="null"  />
+      <ServiceOrderDetail :selected-customer="selectedCustomer" :selected-complaint="null" :selected-order="null" :selected-serial="null" />
     </UDashboardModal>
     <!-- Site Visit Modal -->
     <UDashboardModal

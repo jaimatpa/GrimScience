@@ -21,6 +21,7 @@ const route = useRoute();
 const toast = useToast();
 const exportIsLoading = ref(false);
 const schedulerView = ref(false);
+const curentWeeks = ref([]);
 
 const headerCheckboxes = ref({
   field: {
@@ -201,40 +202,40 @@ const gridMeta = ref({
   isLoading: false,
 });
 
-function getISOWeekNumber(date) {
-    const target = new Date(date.valueOf());
-    const dayNr = (date.getDay() + 6) % 7;
-    target.setDate(target.getDate() - dayNr + 3);
-    const firstThursday = target.valueOf();
-    target.setMonth(0, 1);
-    if (target.getDay() !== 4) {
-        target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
-    }
-    return {
-        year: target.getFullYear(),
-        week: Math.ceil((firstThursday - target) / 86400000 / 7 + 1)
-    };
-}
+// function getISOWeekNumber(date) {
+//     const target = new Date(date.valueOf());
+//     const dayNr = (date.getDay() + 6) % 7;
+//     target.setDate(target.getDate() - dayNr + 3);
+//     const firstThursday = target.valueOf();
+//     target.setMonth(0, 1);
+//     if (target.getDay() !== 4) {
+//         target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+//     }
+//     return {
+//         year: target.getFullYear(),
+//         week: Math.ceil((firstThursday - target) / 86400000 / 7 + 1)
+//     };
+// }
 
-const currentDate = new Date();
-const currentWeekInfo = getISOWeekNumber(currentDate);
+// const currentDate = new Date();
+// const currentWeekInfo = getISOWeekNumber(currentDate);
 
-function getLastTwoDigitsOfCurrentYear() {
-    const currentYear = new Date().getFullYear(); // Get current year
-    return currentYear % 100; // Last two digits of the current year
-}
+// function getLastTwoDigitsOfCurrentYear() {
+//     const currentYear = new Date().getFullYear(); // Get current year
+//     return currentYear % 100; // Last two digits of the current year
+// }
 
-// Function to format week and last two digits of the year
-function formatWeekYear(data) {
-    const week = data.week;  // Week number
-    const shortYear = getLastTwoDigitsOfCurrentYear();  // Get last two digits of the current year
-    
-    // Format as "week-shortYear"
-    return `${shortYear}-${week}`;
-}
+// // Function to format week and last two digits of the year
+// function formatWeekYear(data) {
+//     const week = data.week;  // Week number
+//     const shortYear = getLastTwoDigitsOfCurrentYear();  // Get last two digits of the current year
 
-// Get formatted value
-const formattedValue = formatWeekYear(currentWeekInfo);
+//     // Format as "week-shortYear"
+//     return `${shortYear}-${week}`;
+// }
+
+// // Get formatted value
+// const formattedValue = formatWeekYear(currentWeekInfo);
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 
 const columns = computed(() =>
@@ -289,11 +290,11 @@ const filterValues = ref({
   "SO Type": null,
   "Failure Comment": null,
   "SR#": null,
-  Status: 'Open',
-  Type: ['Field'],
+  Status: "Open",
+  Type: ["Field"],
   "Service Tech": null,
   "SR Date": null,
-  Week: formattedValue,
+  Week: null,
   Invoice: null,
   REPAIRSMADE: null,
   WarrentyService: null,
@@ -304,15 +305,52 @@ const ganttMeta = ref({
   endDate: new Date(),
 });
 
+const getCurrentYearWeeks = () => {
+  const currentYear = new Date().getFullYear();
+
+  // Function to get the number of weeks in a given year
+  function getWeeksInYear(year: number): number {
+    // Start date of the year
+    const startDate = new Date(year, 0, 1);
+    // End date of the year
+    const endDate = new Date(year + 1, 0, 1);
+
+    // Calculate the number of milliseconds in a week
+    const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
+
+    // Calculate the difference in milliseconds
+    const differenceInMillis = endDate.getTime() - startDate.getTime();
+
+    // Calculate the number of weeks and round up
+    const weeks = Math.ceil(differenceInMillis / millisecondsPerWeek);
+
+    return weeks;
+  }
+
+  const weeksInYear = getWeeksInYear(currentYear);
+  const weeksArray = [];
+  const lastTwoDigits = currentYear.toString().slice(-2);
+
+  for (let week = 1; week <= weeksInYear; week++) {
+    curentWeeks.value.push(`${lastTwoDigits}-${week}`);
+  }
+
+  return weeksArray;
+};
+
 const init = async () => {
   fetchGridData();
+  getCurrentYearWeeks();
   for (const key in headerFilters.value) {
     const apiURL = `/api/service/schedule/${key}`;
     await useApiFetch(apiURL, {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          headerFilters.value[key].options = [null, ...response._data.body];
+          if (key === "weeks") {
+            headerFilters.value[key].options = [null, ...curentWeeks.value];
+          } else
+            headerFilters.value[key].options = [null, ...response._data.body];
         }
       },
     });
@@ -453,11 +491,14 @@ const fetchScheduleData = async () => {
           );
           let serviceOrders = [];
           let serviceOrderList = [];
+          let comapanyName = "";
           schedulesForEmployee.forEach((schedule) => {
             if (!serviceOrderList.includes(schedule["SO#"])) {
               serviceOrderList.push(schedule["SO#"]);
             }
+            comapanyName = schedule["Company"];
           });
+
           serviceOrders = serviceOrderList.map((serviceOrder) => {
             let serviceReports = [];
             serviceReports = schedulesForEmployee
@@ -481,14 +522,14 @@ const fetchScheduleData = async () => {
                     1
                   );
                 return {
-                  name: `${schedule["SR#"]}`,
+                  name: schedule["SR#"],
                   startDate: schedule["SR Date"],
                   duration: 1,
                   manuallyScheduled: true,
                 };
               });
             return {
-              name: serviceOrder,
+              name: `${serviceOrder} ${comapanyName}`,
               children: serviceReports,
             };
           });
@@ -627,11 +668,27 @@ const excelExport = async () => {
 };
 const onScheduletaskDblClick = async (event) => {
   let serviceReportID = 0;
-  if (!event.taskRecord.originalData.children) {    
+  if (!event.taskRecord.originalData.children) {
     await useApiFetch(`/api/service/servicereports/`, {
       method: "GET",
       params: {
         CANO: event.taskRecord.originalData?.name ?? "",
+      },
+      onResponse({ response }) {
+        if (response.status === 200) {
+          serviceReportID = response._data.body[0]?.uniqueID ?? 0;
+        }
+      },
+    });
+    gridMeta.value.selectedServiceId = serviceReportID;
+    modalMeta.value.modalTitle = "Service Report";
+    modalMeta.value.modalDescription = "Service Report";
+    modalMeta.value.isReportModalOpen = true;
+  } else {
+    await useApiFetch(`/api/service/servicereports/`, {
+      method: "GET",
+      params: {
+        CANO: event.taskRecord.originalData?.children[0]?.name ?? "",
       },
       onResponse({ response }) {
         if (response.status === 200) {
@@ -744,7 +801,6 @@ const onScheduletaskDblClick = async (event) => {
               <span>Total Cost:</span>
               <span>0</span>
             </div>
-
           </div>
         </div>
       </UDashboardToolbar>

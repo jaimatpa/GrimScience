@@ -20,7 +20,7 @@
   const headerFilters = ref({
     productLines: {
       label: 'Product Line',
-      filter: 'productLine',
+      filter: 'PRODUCTDESC',
       api: '/api/materials/productlines',
       options: []
     }
@@ -104,6 +104,7 @@
     selectedOrderId: null,
     selectedCustomerId: null,
     selectedCompaintNumber: null,
+    selectedSerialNumber: null,
     sort: {
       column: 'COMPLAINTNUMBER', 
       direction: 'desc'
@@ -114,13 +115,13 @@
     isServiceOrderModalOpen: false,
   })
   const filterValues = ref({
-    productLine: null,
+    PRODUCTDESC: null,
     COMPLAINTNUMBER: null,
     SERIALNO: null,
     COMPLAINTDATE: null,
     FAILINVEST: null,
     company1: null,
-    OPENCASE: null,
+    OPENCASE: true,
     kind: null, 
     medicalKind: null,
     ValidComplaint: null, 
@@ -283,6 +284,7 @@
     gridMeta.value.selectedOrderId = row?.uniqueID;
     gridMeta.value.selectedCustomerId = row?.customerID;
     gridMeta.value.selectedCompaintNumber = row?.COMPLAINTNUMBER;
+    gridMeta.value.selectedSerialNumber = row?.SERIALNO;
   }
   const onDblClick = async () =>{
     if(gridMeta.value.selectedCustomerId && gridMeta.value.selectedCompaintNumber){
@@ -311,7 +313,7 @@
                 name="productLine"
               >
                 <USelect
-                  v-model="filterValues.productLine"
+                  v-model="filterValues.PRODUCTDESC"
                   :options="headerFilters.productLines.options"
                   @change="handleFilterChange()"
                 />
@@ -440,6 +442,6 @@
       width: 'w-[1800px] sm:max-w-9xl'
     }"
   >
-    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId" :selected-complaint="gridMeta.selectedCompaintNumber"  :selected-order="gridMeta.selectedOrderId"  />
+    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-serial="gridMeta.selectedSerialNumber":selected-customer="gridMeta.selectedCustomerId" :selected-complaint="gridMeta.selectedCompaintNumber" :selected-order="gridMeta.selectedOrderId"  />
   </UDashboardModal>
 </template>

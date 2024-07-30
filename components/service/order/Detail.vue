@@ -19,6 +19,10 @@
       type: [Number, String, null],
       required: true
     },
+    selectedSerial: {
+      type: [Number, String, null],
+      required: true
+    },
   })  
 
   const complaintUniquueId = ref(props.selectedOrder)
@@ -149,12 +153,15 @@
     PRODUCTDESC: null,
     NONCONFORMANCE: null,
     OPENCASE: null,
-    INJURYREPORTNO: null
+    INJURYREPORTNO: null,
+    uniqueID: null,
+    ValidComplaintReason: null,
+    FAILINVEST: null
   })
   const WARRANTYUNTIL = ref(null)
   const typeOfServiceInfo = ref({
-    reason: null, 
-    failure: null,
+    // reason: null, 
+    // failure: null,
     reasonOptions: []
   })
   const modalMeta = ref({
@@ -187,52 +194,31 @@
   const editInit = async () => {
     loadingOverlay.value = true
     await propertiesInit()
-
-    await useApiFetch(`/api/service/complaints/`, {
-      method: 'GET',
-      params: {
-        COMPLAINTNUMBER: props.selectedComplaint
-      },
-      onResponse({ response }) {
-        if(response.status === 200) {
-            initialComplaint.value = response._data.body[0]
-            serviceOrderInfo.value.SERIALNO = initialComplaint.value.SERIALNO
-            serviceOrderInfo.value.COMPLAINTNUMBER = initialComplaint.value.COMPLAINTNUMBER
-            serviceOrderInfo.value.COMPLAINTDATE = initialComplaint.value.COMPLAINTDATE
-            serviceOrderInfo.value.COMPLAINT = initialComplaint.value.COMPLAINT
-            serviceOrderInfo.value.PRODUCTDESC = initialComplaint.value.PRODUCTDESC
-            serviceOrderInfo.value.RECBY = initialComplaint.value.RECBY
-            serviceOrderInfo.value.RECBYOptions = [initialComplaint.value.RECBY]
-            typeOfServiceInfo.value.reason = initialComplaint.value.ValidComplaintReason
-            typeOfServiceInfo.value.failure = initialComplaint.value.FAILINVEST
-
-            serviceOrderInfo.value.OPENCASE = initialComplaint.value.OPENCASE
-            serviceOrderInfo.value.INJURYREPORTNO = initialComplaint.value.INJURYREPORTNO
-            WARRANTYUNTIL.value = initialComplaint.value.WARRANTYUNTIL
-        }
-      }
-    })
   }
   
   const propertiesInit = async () => {
-    loadingOverlay.value = true
+    // loadingOverlay.value = true
     await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
-          loadingOverlay.value = false
+          // loadingOverlay.value = false
           for (const key in response._data.body) {
             if (response._data.body[key]) {
               formData[key] = response._data.body[key]
             }
           }
         }
+      },
+      onResponseError() {
+        loadingOverlay.value = false
       }
     })
     await fetchSerialList();
-    loadingOverlay.value = false
+    // loadingOverlay.value = false
   }
   const fetchSerialList = async () => {
+    loadingOverlay.value = true
     await useApiFetch(`/api/invoices/serials/`, {
       method: 'GET',
       params: {
@@ -240,12 +226,17 @@
       },
       onResponse({ response }) {
         if(response.status === 200) {
+          loadingOverlay.value = false
           serialGridMeta.value.serials = response._data.body
         }
+      },
+      onResponseError() {
+        loadingOverlay.value = false
       }
     })
   }
   const fetchComplaintList = async () => {
+    loadingOverlay.value = true
     await useApiFetch(`/api/service/complaints/`, {
       method: 'GET',
       params: {
@@ -253,12 +244,17 @@
       },
       onResponse({ response }) {
         if(response.status === 200) {
+          loadingOverlay.value = false
           complaintGridMeta.value.complaints = response._data.body
         }
+      },
+      onResponseError() {
+        loadingOverlay.value = false
       }
     })
   }
   const fetchInvoiceList = async () => {
+    loadingOverlay.value = true
     await useApiFetch(`/api/invoices/serviceorderinvoices/`, {
       method: 'GET',
       params: {
@@ -266,12 +262,17 @@
       },
       onResponse({ response }) {
         if(response.status === 200) {
+          loadingOverlay.value = false
           invoiceGridMeta.value.invoices = response._data.body
         }
+      },
+      onResponseError() {
+        loadingOverlay.value = false
       }
     })
   }
   const fetchServiceReportList = async () => {
+    loadingOverlay.value = true
     await useApiFetch(`/api/service/servicereports/`, {
       method: 'GET',
       params: {
@@ -279,6 +280,7 @@
       },
       onResponse({ response }) {
         if(response.status === 200) {
+          loadingOverlay.value = false
           serviceReportGridMeta.value.serviceReports = response._data.body
           serviceReportGridMeta.value.serviceReports.forEach((item) => {
             let type;
@@ -298,10 +300,14 @@
             item.REPAIRDESC = type
           })
         }
+      },
+      onResponseError() {
+        loadingOverlay.value = false
       }
     })
   }
   const fetchInvestigationList = async () => {
+    loadingOverlay.value = true
     await useApiFetch(`/api/engineering/investigationcomplaints`, {
       method: 'GET',
       params: {
@@ -309,8 +315,12 @@
       },
       onResponse({ response }) {
         if(response.status === 200) {
+          loadingOverlay.value = false
           investigationGridMeta.value.investigations = response._data.body
         }
+      },
+      onResponseError() {
+        loadingOverlay.value = false
       }
     })
   }
@@ -342,19 +352,19 @@
         }else{
           delete serial.class
         }
-      })
+      })      
       invoiceGridMeta.value.invoices = []
       invoiceGridMeta.value.selectedInvoice = null
-      // serviceReportGridMeta.value.serviceReports = []
-      // serviceReportGridMeta.value.selectedServiceReport = null    
-      // serviceOrderInfo.value.SERIALNO = null
+      serviceReportGridMeta.value.serviceReports = []
+      serviceReportGridMeta.value.selectedServiceReport = null    
+      serviceOrderInfo.value.SERIALNO = serialGridMeta.value.selectedSerial.serial
       // serviceOrderInfo.value.COMPLAINTNUMBER = null
       // serviceOrderInfo.value.COMPLAINTDATE = null
       // serviceOrderInfo.value.COMPLAINT = null
       // serviceOrderInfo.value.PRODUCTDESC = null
       // serviceOrderInfo.value.RECBY = null
-      // typeOfServiceInfo.value.reason = null
-      // typeOfServiceInfo.value.failure = null
+      serviceOrderInfo.value.ValidComplaintReason = null
+      serviceOrderInfo.value.FAILINVEST = null
       if(serialGridMeta.value.selectedSerial) {
         await fetchComplaintList()
         let tmpRECBYOptions = complaintGridMeta.value.complaints.map((item: any) => item.RECBY)
@@ -367,10 +377,11 @@
           }
           return false
         })
+        serviceOrderInfo.value.PRODUCTDESC = complaintGridMeta.value.complaints[0].PRODUCTDESC
         serviceOrderInfo.value.RECBYOptions = filteredRECBYOptions
-        serviceOrderInfo.value.RECBYOptions.unshift(null)
+        serviceOrderInfo.value.RECBYOptions.unshift(null)        
         let tmpReasonOptions = complaintGridMeta.value.complaints.map((item: any) => item.ValidComplaintReason)
-        tmpReasonOptions = tmpReasonOptions.filter(item => item !== '' && item !== null)
+        tmpReasonOptions = tmpReasonOptions.filter(item => item !== '' && item !== null)        
         let uniqueReasonSet = new Set()
         let filteredReasonOptions = tmpReasonOptions.filter(item => {
           if(!uniqueReasonSet.has(item)) {
@@ -401,8 +412,8 @@
       serviceOrderInfo.value.COMPLAINT = complaintGridMeta.value.selectedComplaint.COMPLAINT
       serviceOrderInfo.value.PRODUCTDESC = complaintGridMeta.value.selectedComplaint.PRODUCTDESC
       serviceOrderInfo.value.RECBY = complaintGridMeta.value.selectedComplaint.RECBY
-      typeOfServiceInfo.value.reason = complaintGridMeta.value.selectedComplaint.ValidComplaintReason
-      typeOfServiceInfo.value.failure = complaintGridMeta.value.selectedComplaint.FAILINVEST
+      serviceOrderInfo.value.ValidComplaintReason = complaintGridMeta.value.selectedComplaint.ValidComplaintReason
+      serviceOrderInfo.value.FAILINVEST = complaintGridMeta.value.selectedComplaint.FAILINVEST
       serviceOrderInfo.value.OPENCASE = complaintGridMeta.value.selectedComplaint.OPENCASE
       serviceOrderInfo.value.INJURYREPORTNO = complaintGridMeta.value.selectedComplaint.INJURYREPORTNO
       WARRANTYUNTIL.value = complaintGridMeta.value.selectedComplaint.WARRANTYUNTIL
@@ -579,7 +590,7 @@
     }
   }
   const onPreviewOrderViewBtnClick = () => {
-    if(complaintGridMeta.value.selectedComplaint) {
+    if(complaintGridMeta.value.selectedComplaint?.uniqueID) {
       window.open(`/api/service/orders/exportcomplaints/${complaintGridMeta.value.selectedComplaint?.uniqueID}`)
     } else {
       toast.add({
@@ -659,6 +670,21 @@
     });
     
   }
+
+  watch(() => serialGridMeta.value.serials, () => {
+    if(serialGridMeta.value.serials.length > 0) {
+      const uniqueIDFound = serialGridMeta.value?.serials.find(serial => serial?.serial === props.selectedSerial)
+      onSerialSelect({UniqueID: uniqueIDFound.UniqueID, class: "bg-gray-200", serial: props.selectedSerial})
+    }
+  })
+
+  watch(() => complaintGridMeta.value.complaints, () => {
+    if(complaintGridMeta.value.complaints.length > 0) {
+      const uniqueIDFound = complaintGridMeta.value?.complaints.find(complaint => complaint?.COMPLAINTNUMBER === props.selectedComplaint)
+      onComplaintSelect(uniqueIDFound)
+    }
+  })
+
   if(props.selectedCustomer) 
     editInit()
   else 
@@ -1117,9 +1143,10 @@
               name="select"
             >
               <USelect 
-                v-model="typeOfServiceInfo.reason"
-                :options="typeOfServiceInfo.reasonOptions"
+                v-model="serviceOrderInfo.ValidComplaintReason"
+                :options="['','Warranty', 'Quote', 'Billable','Complaint', 'Installation', 'Checkup', 'Info Only']"
               />
+                <!-- :options="typeOfServiceInfo.reasonOptions" -->
             </UFormGroup>
           </div>
           <div class="w-1/2">
@@ -1128,7 +1155,7 @@
               name="failure"
             >
               <UInput 
-                v-model="typeOfServiceInfo.failure"
+                v-model="serviceOrderInfo.FAILINVEST"
               />
             </UFormGroup>
           </div>
@@ -1187,7 +1214,7 @@
       title: 'text-lg',
       header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl', 
+      width: 'w-[1700px] sm:max-w-9xl', 
     }"
   >
     <ServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
