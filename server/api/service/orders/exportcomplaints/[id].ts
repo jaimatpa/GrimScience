@@ -105,53 +105,54 @@ export default eventHandler(async (event) => {
         htmlContent += `
           <body style="font-family: Arial; font-size: 14px; margin: 0;">
             <header style="border-bottom: 3px solid black;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div class="flex justify-center items-center">
-                <img style="width: 110px;" src="data:image/png;base64,${base64Image}" alt="Grimm Avatar" />
-              </div>
-                <h3 style="font-size: 18px;margin-left:-60px;margin-top:35px">Customer Service Order</h3>
-                <div style="width:250px;">
-                  <p style="margin-left: -30px;">Warranty</p>
-                  <p><b>#:</b>${complaintDetail['COMPLAINTNUMBER']} <b style="margin-left:50px;">Date:</b> ${complaintDetail['COMPLAINTDATE']?format(complaintDetail['COMPLAINTDATE'], 'MM/dd/yyyy'):''}</p>
+              <div style="display:flex; justify-content:space-between; width: 100%;">
+                <div style="display:flex; margin-top: 2.5px; width: 100%;">
+                  <img style="width: 98px; height: 55px" src="data:image/png;base64,${base64Image}" alt="Grimm Avatar" />
+                  <h3 style="font-size: 19px; margin-left: 5px; margin-top: 25px">Customer Service Order</h3>
+                </div>
+                <div style="width: 75%;">
+                  <p style="font-size: 13px; margin-top: 15px; margin-left: 6px">Warranty</p>
+                  <p style="font-size: 13px; margin-top: -9px; margin-left: 50px">
+                    <b>#: </b>${complaintDetail['COMPLAINTNUMBER']} 
+                    <b style="margin-left: 22px">Date:</b> ${complaintDetail['COMPLAINTDATE']?format(complaintDetail['COMPLAINTDATE'], 'MM/dd/yyyy'):''}
+                  </p>
                 </div>
               </div>
-              <div>
-                <div>
-                  <div style="display:flex; justify-content: space-between; margin-top: -5px;">
-                    <p style="width:250px; margin-top: 0px;"><b>Serial #:</b> ${complaintDetail['SERIALNO']}</p>  
-                    <p style="width:250px; margin-top: 0px;"><b>Shipped:</b> ${complaintDetail['ORIGSHIPDATE']?format(complaintDetail['ORIGSHIPDATE'], 'MM/dd/yyyy'):''}</p>  
-                    <p style="width:250px; margin-top: 0px; margin-left: -55px"><b>Warranty:</b> ${complaintDetail['WarrentyService']==='0'?'No':'Yes'}</p>  
-                  </div>
-                  <div style="display:flex; justify-content: space-between; margin-top: -10px;">
-                    <p style="width:250px; margin-top: 0px;"><b>By #:</b> ${complaintDetail['RECBY']}</p>  
-                    <p style="width:250px; margin-top: 0px;"><b>Status:</b> ${complaintDetail['WarrentyService']===0?'Open':'Closed'}</p>
-                  </div>
-                  <div style="display:flex; justify-content: flex-end; margin-top: -10px;">
-                    <p style="width:250px; margin-top: 0px;"><b>Valid Complaint:</b> ${complaintDetail['ValidComplaint']===0?'No':'Yes'}</p>
-                  </div>
+              <div style="margin-top: -16px">
+                <div style="display:flex; justify-content: space-between; align-items: center;">
+                  <p style="width:270px; margin-top: 0px; margin-left: 7px; font-size: 13px;"><b>Serial #:</b> ${complaintDetail['SERIALNO']}</p>  
+                  <p style="width:250px; margin-top: 0px; font-size: 13px;"><b>Shipped:</b> ${complaintDetail['ORIGSHIPDATE']?format(complaintDetail['ORIGSHIPDATE'], 'MM/dd/yyyy'):''}</p>  
+                  <p style="width:290px; margin-top: 0px; font-size: 13px;"><b>Warranty:</b> ${complaintDetail['WarrentyService']==='0'?'No':'Yes'}</p>  
+                </div>
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-top: -6px;">
+                  <p style="width:270px; margin-top: 0px; font-size: 13px;"><b>By #:</b> ${complaintDetail['RECBY']}</p>  
+                  <p style="width:227px; margin-top: 0px; font-size: 13px;"><b>Status:</b> ${complaintDetail['WarrentyService']===0?'Open':'Closed'}</p>
+                </div>
+                <div style="display:flex; justify-content: flex-end; margin-top: -10px;">
+                  <p style="width:227px; margin-top: 0px; font-size: 13px;"><b>Valid Complaint:</b> ${complaintDetail['ValidComplaint']===0?'No':'Yes'}</p>
                 </div>
               </div>
-              <h4 style="margin: -10px 0px 10px -110px;"><center>${complaintDetail['PRODUCTDESC']}</center></h4>
+              <h4 style="margin: -18px 0px 10px -143px; font-size: 13px;"><center>${complaintDetail['PRODUCTDESC']}</center></h4>
             </header>`
         htmlContent += `
           <div>
-            <div style="display: flex; flex-direction: row;">
-              <div style="flex-basis: 50%;">
-                <p><b style="border-bottom: 2px solid black">Customer (Ship To)</b></p>
-                <p style="margin-top: 4px; margin-bottom: 4px">Customer#: ${customerDetail['number']}</p>
-                <p style="margin-top: 4px; margin-bottom: 4px">${customerDetail['company1']}</p>
-                <p style="margin-top: 4px; margin-bottom: 4px">${customerDetail['fname']} ${customerDetail['lname']}</p>
-                <p style="margin-top: 4px; margin-bottom: 4px">${customerDetail['address']}</p>
-                <p style="margin-top: 4px; margin-bottom: 4px">${customerDetail['city']}, ${customerDetail['state']} ${customerDetail['zip']}</p>
+            <div style="display: flex; flex-direction: row; margin-top: -2px">
+              <div style="flex-basis: 48.5%;">
+                <p><b style="font-size: 13px; border-bottom: 2px solid black">Customer (Ship To)</b></p>
+                <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px">Customer#: ${customerDetail['number']}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px">${customerDetail['company1']}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px">${customerDetail['fname']} ${customerDetail['lname']}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px">${customerDetail['address']}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px">${customerDetail['city']}, ${customerDetail['state']} ${customerDetail['zip']}</p>
               </div> 
-              <div style="flex-basis: 50%;">
+              <div style="flex-basis: 51.5%;">
                 <p><b style="border-bottom: 2px solid black">Customer Description</b></p>
-                <p style="margin-top: 4px; margin-bottom: 4px"><b>Patient Injury:</b> ${complaintDetail['INJURYREPORTNO'] === 0 ?'No':'Yes'}</p>
-                <p style="margin-top: 4px; margin-bottom: 4px">${complaintDetail['COMPLAINT']}</p>
+                <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px"><b>Patient Injury:</b> ${complaintDetail['INJURYREPORTNO'] === 0 ?'No':'Yes'}</p>
+                <p style="margin-top: 6px; margin-bottom: 4px; font-size: 13px">${complaintDetail['COMPLAINT']}</p>
               </div>
             </div>`
         htmlContent += `
-          <div style="display: flex; padding-left: 50%; margin-top: -14px">
+          <div style="display: flex; padding-left: 49.5%; margin-top: 10px;">
             <div style="flex-basis: 50%">
               <div style="display: flex; flex-direction: row">
                 <p><b style="border-bottom: 2px solid black; font-size: 13px;">Received</b></p>
@@ -160,14 +161,14 @@ export default eventHandler(async (event) => {
             </div>
           </div>`
         htmlContent += `
-          <div style="margin-top: -20px">
+          <div style="margin-top: -5px;">
             <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>W:</b> ${customerDetail['workphone']}</p>
             <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>C:</b> ${customerDetail['homephone']}</p>
             <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>H:</b> ${customerDetail['cellphone']}</p>
           </div>
               `
         htmlContent += `    
-          <div style="display: flex; padding-left: 50%; margin-top: -20px">
+          <div style="display: flex; padding-left: 49.5%; margin-top: -40px">
             <div style="flex-basis: 50%">
               <p><b style="border-bottom: 2px solid black; font-size: 13px">Failure Investigation</b></p>
               <p>${complaintDetail['FAILINVEST']}</p>
@@ -372,8 +373,8 @@ export default eventHandler(async (event) => {
           margin: {
             top: '16px',
             bottom: '40px',
-            left: '75px',
-            right: '105px'
+            left: '72px',
+            right: '110px'
           }
         };
         await page.setContent(htmlContent, {waitUntil: 'domcontentloaded'});
