@@ -352,17 +352,17 @@
         }else{
           delete serial.class
         }
-      })
+      })      
       invoiceGridMeta.value.invoices = []
       invoiceGridMeta.value.selectedInvoice = null
       serviceReportGridMeta.value.serviceReports = []
       serviceReportGridMeta.value.selectedServiceReport = null    
-      serviceOrderInfo.value.SERIALNO = null
-      serviceOrderInfo.value.COMPLAINTNUMBER = null
-      serviceOrderInfo.value.COMPLAINTDATE = null
-      serviceOrderInfo.value.COMPLAINT = null
-      serviceOrderInfo.value.PRODUCTDESC = null
-      serviceOrderInfo.value.RECBY = null
+      serviceOrderInfo.value.SERIALNO = serialGridMeta.value.selectedSerial.serial
+      // serviceOrderInfo.value.COMPLAINTNUMBER = null
+      // serviceOrderInfo.value.COMPLAINTDATE = null
+      // serviceOrderInfo.value.COMPLAINT = null
+      // serviceOrderInfo.value.PRODUCTDESC = null
+      // serviceOrderInfo.value.RECBY = null
       serviceOrderInfo.value.ValidComplaintReason = null
       serviceOrderInfo.value.FAILINVEST = null
       if(serialGridMeta.value.selectedSerial) {
@@ -377,6 +377,7 @@
           }
           return false
         })
+        serviceOrderInfo.value.PRODUCTDESC = complaintGridMeta.value.complaints[0].PRODUCTDESC
         serviceOrderInfo.value.RECBYOptions = filteredRECBYOptions
         serviceOrderInfo.value.RECBYOptions.unshift(null)        
         let tmpReasonOptions = complaintGridMeta.value.complaints.map((item: any) => item.ValidComplaintReason)
