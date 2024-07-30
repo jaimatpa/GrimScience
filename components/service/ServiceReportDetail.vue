@@ -332,11 +332,11 @@
     loadingOverlay.value = false
   }
   const warrantyMaterialFetchGridData = async () => {
-    await useApiFetch(`/api/materials/parts`, {
+    await useApiFetch(`/api/materials/distinctparts`, {
       method: 'GET',
       params: {...warrantyMaterialFilterValues.value},
       onResponse({ response }) {
-        if(response.status === 200) {
+        if(response.status === 200) {          
           warrantyMaterialGridMeta.value.warrantyMaterials = response._data.body;
         }
       }
@@ -365,7 +365,7 @@
     })
   }
   const partFetchGridData = async () => {
-    await useApiFetch(`/api/materials/parts`, {
+    await useApiFetch(`/api/materials/distinctparts`, {
       method: 'GET',
       params: {...partFilterValues.value},
       onResponse({ response }) {
@@ -462,8 +462,6 @@
       return;
     } else qtyStyle.value = 'outline-none'
     if(addModalMeta.value.title === 'Warranty') {
-      console.log('ccccc');
-      
       const index = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.findIndex((value) => value?.UniqueID === warrantyMaterialGridMeta.value.selectedWarrantyMaterial?.UniqueID)
       if(index < 0) {
         if(!warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1)
@@ -836,8 +834,8 @@
       <div class="w-full px-3 py-1 bg-slate-400">
           Warranty Material
       </div>
-      <div class="flex flex-row space-x-9 p-2">
-        <div class="basis-1/2">
+      <div class="flex flex-row space-x-5 p-2">
+        <div class="w-1/2 mt-4">
           <UTable
             :rows="warrantyMaterialGridMeta.warrantyMaterials"
             :columns="warrantyMaterialGridMeta.defaultColumns"
@@ -915,7 +913,7 @@
             </template>
           </UTable>
         </div>
-        <div class="basis-1/2">
+        <div class="w-1/2">
           <div class="flex flex-row space-x-4 py-1">
             <div class="basis-1/4 flex items-center">
               <div class="flex flex-row space-x-2 ">

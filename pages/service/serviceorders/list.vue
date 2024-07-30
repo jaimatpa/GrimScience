@@ -121,7 +121,7 @@
     COMPLAINTDATE: null,
     FAILINVEST: null,
     company1: null,
-    OPENCASE: null,
+    OPENCASE: true,
     kind: null, 
     medicalKind: null,
     ValidComplaint: null, 

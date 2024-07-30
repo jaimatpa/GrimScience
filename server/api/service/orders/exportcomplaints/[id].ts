@@ -113,7 +113,7 @@ export default eventHandler(async (event) => {
                 <h3 style="font-size: 20px;">Customer Service Order</h3>
                 <div style="width:250px;">
                   <p style="margin-left: -30px;">Warranty</p>
-                  <p><b>#:</b>${complaintDetail['COMPLAINTNUMBER']} <b style="margin-left:50px;">Date:</b> ${complaintDetail['COMPALINTDATE']?format(complaintDetail['COMPALINTDATE'], 'MM/dd/yyyy'):''}</p>
+                  <p><b>#:</b>${complaintDetail['COMPLAINTNUMBER']} <b style="margin-left:50px;">Date:</b> ${complaintDetail['COMPLAINTDATE']?format(complaintDetail['COMPLAINTDATE'], 'MM/dd/yyyy'):''}</p>
                 </div>
               </div>
               <div>
@@ -176,7 +176,7 @@ export default eventHandler(async (event) => {
           </div>`
         htmlContent += `
           <table>
-            <thead style="background: #FFFACD;">
+            <thead>
               <tr>
                 <th width="500px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Invoice #: </span><span style="font-weight: normal; margin-left: 20px;">${serviceOrderInvoices.length?serviceOrderInvoices[0]['invoicenumber']:'' }</span></th>
                 <th width="400px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Onsite Hrs.</span></th>
@@ -200,7 +200,7 @@ export default eventHandler(async (event) => {
         htmlContent += `
           <p style="margin-top: 30px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Service Reports</b></p>
           <table style="border-spacing: 0px;">
-            <thead>
+            <thead style="background: #FFFACD;">
               <tr>
                 <th width="200px" style="text-align: left; font-size: 13px;">Date</th>
                 <th width="200px" style="text-align: left; font-size: 13px;">Type</th>
