@@ -17,6 +17,7 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
     ]
   if(filterParams.FAILINVEST) whereClause['FAILINVEST'] = {[Op.like]: `%${filterParams.FAILINVEST}%`};
   if(filterParams.OPENCASE === 'true') whereClause['OPENCASE'] = 0
+  if(filterParams.OPENCASE === 'false') whereClause['OPENCASE'] = 1
   if(filterParams.ValidComplaint === 'true') whereClause['ValidComplaint'] = -1
   if(filterParams.INJURYREPORTNO === 'true') whereClause['INJURYREPORTNO'] = 1
   if(filterParams.company1) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company1}%`};
@@ -184,6 +185,7 @@ export const getNumberOfServiceOrders = async (filterParams) => {
     ]
   if(filterParams.FAILINVEST) whereClause['FAILINVEST'] = {[Op.like]: `%${filterParams.FAILINVEST}%`};
   if(filterParams.OPENCASE === 'true') whereClause['OPENCASE'] = 0
+  if(filterParams.OPENCASE === 'false') whereClause['OPENCASE'] = 1
   if(filterParams.ValidComplaint === 'true') whereClause['ValidComplaint'] = -1
   if(filterParams.INJURYREPORTNO === 'true') whereClause['INJURYREPORTNO'] = 1
   if(filterParams.company1) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company1}%`};
