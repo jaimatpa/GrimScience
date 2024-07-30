@@ -8,6 +8,7 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
   let whereClause = {}
   let customerWhereClause = {}
   if(filterParams.COMPLAINTNUMBER) whereClause['COMPLAINTNUMBER'] = {[Op.like]: `%${filterParams.COMPLAINTNUMBER}%`};
+  if(filterParams.PRODUCTDESC) whereClause['PRODUCTDESC'] = {[Op.like]: `%${filterParams.PRODUCTDESC}%`};
   if(filterParams.SERIALNO) whereClause['SERIALNO'] = {[Op.like]: `%${filterParams.SERIALNO}%`};
   if(filterParams.COMPLAINTDATE) whereClause[Op.and] = [
       Sequelize.where(Sequelize.fn('FORMAT', Sequelize.col('COMPLAINTDATE'), 'MM/dd/yyyy'), {
@@ -174,6 +175,7 @@ export const getNumberOfServiceOrders = async (filterParams) => {
   let whereClause = {}
   let customerWhereClause = {}
   if(filterParams.COMPLAINTNUMBER) whereClause['COMPLAINTNUMBER'] = {[Op.like]: `%${filterParams.COMPLAINTNUMBER}%`};
+  if(filterParams.PRODUCTDESC) whereClause['PRODUCTDESC'] = {[Op.like]: `%${filterParams.PRODUCTDESC}%`};
   if(filterParams.SERIALNO) whereClause['SERIALNO'] = {[Op.like]: `%${filterParams.SERIALNO}%`};
   if(filterParams.COMPLAINTDATE) whereClause[Op.and] = [
       Sequelize.where(Sequelize.fn('FORMAT', Sequelize.col('COMPLAINTDATE'), 'MM/dd/yyyy'), {

@@ -20,7 +20,7 @@
   const headerFilters = ref({
     productLines: {
       label: 'Product Line',
-      filter: 'productLine',
+      filter: 'PRODUCTDESC',
       api: '/api/materials/productlines',
       options: []
     }
@@ -115,7 +115,7 @@
     isServiceOrderModalOpen: false,
   })
   const filterValues = ref({
-    productLine: null,
+    PRODUCTDESC: null,
     COMPLAINTNUMBER: null,
     SERIALNO: null,
     COMPLAINTDATE: null,
@@ -313,7 +313,7 @@
                 name="productLine"
               >
                 <USelect
-                  v-model="filterValues.productLine"
+                  v-model="filterValues.PRODUCTDESC"
                   :options="headerFilters.productLines.options"
                   @change="handleFilterChange()"
                 />
