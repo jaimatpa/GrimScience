@@ -834,7 +834,7 @@
       <div class="w-full px-3 py-1 bg-slate-400">
           Warranty Material
       </div>
-      <div class="flex flex-row space-x-5 p-2">
+      <div class="flex flex-row space-x-3 p-2">
         <div class="w-1/2 mt-4">
           <UTable
             :rows="warrantyMaterialGridMeta.warrantyMaterials"
@@ -993,7 +993,7 @@
           Parts Received
       </div>
       <div class="flex flex-row space-x-3 p-2">
-        <div class="basis-1/2">
+        <div class="w-1/2">
           <UTable
             :rows="partGridMeta.parts"
             :columns="partGridMeta.defaultColumns"
@@ -1074,7 +1074,7 @@
             Parts(Double-Click To Select)
           </div>
         </div>
-        <div class="basis-1/2">
+        <div class="w-1/2">
           <UTable
             :rows="selectedPartGridMeta.parts"
             :columns="selectedPartGridMeta.defaultColumns"
