@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { format, addDays } from "date-fns";
+import { format, addDays, getISOWeeksInYear, getISOWeek } from "date-fns";
 import { BryntumGantt } from "@bryntum/gantt-vue-3";
 import "@bryntum/gantt/gantt.stockholm.css";
 
@@ -305,40 +305,52 @@ const ganttMeta = ref({
   endDate: new Date(),
 });
 
+const setCurrentWeekOfYear = () => {
+  const currentDate = new Date();
+  const currentYear = new Date().getFullYear();
+  const currentWeek = getISOWeek(currentDate);
+  const lastTwoDigits = currentYear.toString().slice(-2);
+  filterValues.value.Week = `${lastTwoDigits}-${currentWeek}`;
+};
+
 const getCurrentYearWeeks = () => {
   const currentYear = new Date().getFullYear();
 
-  // Function to get the number of weeks in a given year
-  function getWeeksInYear(year: number): number {
-    // Start date of the year
-    const startDate = new Date(year, 0, 1);
-    // End date of the year
-    const endDate = new Date(year + 1, 0, 1);
+  // // Function to get the number of weeks in a given year
+  // function getWeeksInYear(year: number): number {
+  //   // Start date of the year
+  //   const startDate = new Date(year, 0, 1);
+  //   // End date of the year
+  //   const endDate = new Date(year + 1, 0, 1);
 
-    // Calculate the number of milliseconds in a week
-    const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
+  //   // Calculate the number of milliseconds in a week
+  //   const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
 
-    // Calculate the difference in milliseconds
-    const differenceInMillis = endDate.getTime() - startDate.getTime();
+  //   // Calculate the difference in milliseconds
+  //   const differenceInMillis = endDate.getTime() - startDate.getTime();
 
-    // Calculate the number of weeks and round up
-    const weeks = Math.ceil(differenceInMillis / millisecondsPerWeek);
+  //   // Calculate the number of weeks and round up
+  //   const weeks = Math.ceil(differenceInMillis / millisecondsPerWeek);
 
-    return weeks;
-  }
+  //   return weeks;
+  // }
 
-  const weeksInYear = getWeeksInYear(currentYear);
-  const weeksArray = [];
+  // const weeksInYear = getWeeksInYear(currentYear);
+  // const weeksArray = [];
+  // const lastTwoDigits = currentYear.toString().slice(-2);
+
+  // Get the number of ISO weeks in the current year
+  const weeksInYear = getISOWeeksInYear(new Date(currentYear, 0, 1));
+
   const lastTwoDigits = currentYear.toString().slice(-2);
 
   for (let week = 1; week <= weeksInYear; week++) {
     curentWeeks.value.push(`${lastTwoDigits}-${week}`);
   }
-
-  return weeksArray;
 };
 
 const init = async () => {
+  setCurrentWeekOfYear()
   fetchGridData();
   getCurrentYearWeeks();
   for (const key in headerFilters.value) {
