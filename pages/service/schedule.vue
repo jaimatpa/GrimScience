@@ -480,11 +480,13 @@ const fetchScheduleData = async () => {
   await useApiFetch("/api/service/schedule/allschedules", {
     method: "GET",
     params: {
-      "SO Type": filterValues.value["SO Type"],
-      Type: filterValues.value["Type"],
-      "Service Tech": filterValues.value["Service Tech"],
-      Week: filterValues.value["Week"],
-      WarrentyService: filterValues.value["WarrentyService"],
+      // "SO Type": filterValues.value["SO Type"],
+      // Type: filterValues.value["Type"],
+      // "Service Tech": filterValues.value["Service Tech"],
+      // Week: filterValues.value["Week"],
+      // Status: filterValues.value["Status"],
+      // WarrentyService: filterValues.value["WarrentyService"],
+      ...filterValues.value,
     },
     onResponse({ response }) {
       if (response.status === 200) {
