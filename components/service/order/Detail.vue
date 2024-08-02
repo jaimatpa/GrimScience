@@ -157,7 +157,7 @@
     uniqueID: null,
     ValidComplaintReason: null,
     FAILINVEST: null,
-    CLOSEDOUTBY: null
+    CLOSEDOUTBY: null,
   })
   const WARRANTYUNTIL = ref(null)
   const typeOfServiceInfo = ref({
@@ -1213,7 +1213,8 @@
             </div>
           </div>
         </div>
-        <div v-if="serviceOrderInfo.CLOSEDOUTBY" class="w-full p-2 text-center">
+
+        <div v-if="serviceOrderInfo.OPENCASE > 0 && serviceOrderInfo.CLOSEDOUTBY" class="w-full text-center">
           {{ serviceOrderInfo.CLOSEDOUTBY }}
         </div>
       </div>
