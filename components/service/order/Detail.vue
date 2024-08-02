@@ -152,7 +152,7 @@
     COMPLAINT: null,
     PRODUCTDESC: null,
     NONCONFORMANCE: null,
-    OPENCASE: null,
+    OPENCASE: 0,
     INJURYREPORTNO: null,
     uniqueID: null,
     ValidComplaintReason: null,
@@ -1036,7 +1036,7 @@
             <div class="flex flex-row space-x-5">
               <URadio 
                 v-for="status of statusGroup"
-                :key = 'status.value'
+                :key='status.value'
                 v-model="serviceOrderInfo.OPENCASE"
                 v-bind="status"
               />
