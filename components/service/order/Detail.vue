@@ -202,7 +202,7 @@
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
-          // loadingOverlay.value = false
+          loadingOverlay.value = false
           for (const key in response._data.body) {
             if (response._data.body[key]) {
               formData[key] = response._data.body[key]
@@ -223,6 +223,7 @@
     await fetchSerialList();
     // loadingOverlay.value = false
   }
+  
   const fetchSerialList = async () => {
     loadingOverlay.value = true
     await useApiFetch(`/api/invoices/serials/`, {
@@ -678,16 +679,16 @@
   }
 
   watch(() => serialGridMeta.value.serials, () => {
-    if(serialGridMeta.value.serials.length > 0) {
+    if(serialGridMeta.value.serials.length > 0) {      
       const uniqueIDFound = serialGridMeta.value?.serials.find(serial => serial?.serial === props.selectedSerial)
-      onSerialSelect({UniqueID: uniqueIDFound.UniqueID, class: "bg-gray-200", serial: props.selectedSerial})
+      if(uniqueIDFound) onSerialSelect({UniqueID: uniqueIDFound.UniqueID, class: "bg-gray-200", serial: props.selectedSerial})
     }
   })
 
   watch(() => complaintGridMeta.value.complaints, () => {
     if(complaintGridMeta.value.complaints.length > 0) {
       const uniqueIDFound = complaintGridMeta.value?.complaints.find(complaint => complaint?.COMPLAINTNUMBER === props.selectedComplaint)
-      onComplaintSelect(uniqueIDFound)
+      if(uniqueIDFound) onComplaintSelect(uniqueIDFound)
     }
   })
 
