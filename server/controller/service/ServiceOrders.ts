@@ -347,7 +347,8 @@ export const  getComplaints = async (params) => {
       'ValidComplaintReason',
       'OPENCASE',
       'INJURYREPORTNO',
-      'WARRANTYUNTIL'
+      'WARRANTYUNTIL',
+      'ClosedOutBy'
     ],
     where: where,
     raw: true

@@ -156,7 +156,8 @@
     INJURYREPORTNO: null,
     uniqueID: null,
     ValidComplaintReason: null,
-    FAILINVEST: null
+    FAILINVEST: null,
+    CLOSEDOUTBY: null
   })
   const WARRANTYUNTIL = ref(null)
   const typeOfServiceInfo = ref({
@@ -423,6 +424,7 @@
       serviceOrderInfo.value.FAILINVEST = complaintGridMeta.value.selectedComplaint.FAILINVEST
       serviceOrderInfo.value.OPENCASE = complaintGridMeta.value.selectedComplaint.OPENCASE
       serviceOrderInfo.value.INJURYREPORTNO = complaintGridMeta.value.selectedComplaint.INJURYREPORTNO
+      serviceOrderInfo.value.CLOSEDOUTBY = complaintGridMeta.value.selectedComplaint.ClosedOutBy
       WARRANTYUNTIL.value = complaintGridMeta.value.selectedComplaint.WARRANTYUNTIL
       await fetchInvoiceList()
       await fetchServiceReportList()
@@ -436,6 +438,7 @@
       serviceOrderInfo.value.RECBY = null
       serviceOrderInfo.value.OPENCASE = null
       serviceOrderInfo.value.INJURYREPORTNO = null
+      serviceOrderInfo.value.CLOSEDOUTBY = null
       WARRANTYUNTIL.value = null
       invoiceGridMeta.value.invoices = []
       serviceReportGridMeta.value.serviceReports = []
@@ -1209,6 +1212,9 @@
               </div>
             </div>
           </div>
+        </div>
+        <div v-if="serviceOrderInfo.CLOSEDOUTBY" class="w-full p-2 text-center">
+          {{ serviceOrderInfo.CLOSEDOUTBY }}
         </div>
       </div>
     </div>

@@ -323,7 +323,7 @@
                 name="quoteDate"
               >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(filterValues.from, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate />
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(filterValues.from, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate />
                   <template #panel="{ close }">
                     <CommonDatePicker v-model="filterValues.from" is-required @close="close" />
                   </template>
@@ -335,7 +335,7 @@
                 label="To"
               >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(filterValues.to, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(filterValues.to, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
                     <CommonDatePicker v-model="filterValues.to" is-required @close="close" />
                   </template>

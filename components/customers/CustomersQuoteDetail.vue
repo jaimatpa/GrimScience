@@ -241,7 +241,7 @@
                     name="quoteDate"
                   >
                     <UPopover :popper="{ placement: 'bottom-start' }">
-                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="quoteDate &&format(quoteDate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full'}"/>
+                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="quoteDate &&format(quoteDate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full'}"/>
                       <template #panel="{ close }">
                         <CommonDatePicker v-model="quoteDate" is-required @close="close" />
                       </template>
@@ -254,7 +254,7 @@
                     name="expirationDate"
                   >
                     <UPopover :popper="{ placement: 'bottom-start' }">
-                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="expirationDate  && format(expirationDate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full'}"/>
+                      <UButton icon="i-heroicons-calendar-days-20-solid" :label="expirationDate  && format(expirationDate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full'}"/>
                       <template #panel="{ close }">
                         <CommonDatePicker v-model="expirationDate" is-required @close="close" />
                       </template>
@@ -294,7 +294,7 @@
                 name="bookingEst"
               >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="estimatedBooking && format(estimatedBooking, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full'}"/>
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="estimatedBooking && format(estimatedBooking, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full'}"/>
                   <template #panel="{ close }">
                     <CommonDatePicker v-model="estimatedBooking" is-required @close="close" />
                   </template>
@@ -307,7 +307,7 @@
                 name="shipEst"
               >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="estimatedShip && format(estimatedShip, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full'}"/>
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="estimatedShip && format(estimatedShip, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full'}"/>
                   <template #panel="{ close }">
                     <CommonDatePicker v-model="estimatedShip" is-required @close="close" />
                   </template>
