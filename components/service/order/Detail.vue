@@ -212,7 +212,13 @@
       },
       onResponseError() {
         loadingOverlay.value = false
-      }
+        toast.add({
+          title: 'Error',
+          description: 'Fail to get customer information',
+          icon: 'i-heroicons-exclamation-triangle',
+          color: 'red'
+        })
+      } 
     })
     await fetchSerialList();
     // loadingOverlay.value = false

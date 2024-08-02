@@ -195,6 +195,9 @@ const gridMeta = ref({
   numberOfOSchedule: 0,
   schedules: [],
   selectedServiceId: null,
+  selectedCompaintNumber: null,
+  selectedSerialNumber: null,
+  selectedCustomerId: null,
   sort: {
     column: "uniqueID",
     direction: "asc",
@@ -350,7 +353,7 @@ const getCurrentYearWeeks = () => {
 };
 
 const init = async () => {
-  setCurrentWeekOfYear()
+  setCurrentWeekOfYear();
   fetchGridData();
   getCurrentYearWeeks();
   for (const key in headerFilters.value) {
@@ -628,6 +631,9 @@ const handleModalSave = async () => {
 
 const onSelect = async (row) => {
   gridMeta.value.selectedServiceId = row?.uniqueID;
+  gridMeta.value.selectedCompaintNumber = row['SO#'];
+  gridMeta.value.selectedCustomerId = row['Cust #'];
+  gridMeta.value.selectedSerialNumber = row['SN#'];
 };
 
 const onDblClick = async () => {
@@ -952,11 +958,21 @@ const onScheduletaskDblClick = async (event) => {
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <ServiceReportDetail
+    <!-- <ServiceReportDetail
       :selected-complaint="null"
       :selected-service-report="gridMeta.selectedServiceId"
       @save="onServiceReportSave"
+    /> -->
+
+    <ServiceOrderDetail
+      @close="handleModalClose"
+      @save="onServiceReportSave"
+      :selected-serial="gridMeta.selectedSerialNumber"
+      :selected-customer="136539"
+      :selected-complaint="gridMeta.selectedCompaintNumber"
+      :selected-order="gridMeta.selectedServiceId"
     />
+
   </UDashboardModal>
 </template>
 <style></style>
