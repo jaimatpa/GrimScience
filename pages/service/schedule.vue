@@ -562,6 +562,25 @@ const fetchScheduleData = async () => {
   });
 };
 
+const getCustomerByUniqueID = async (uniqueID) => {
+  await useApiFetch(`/api/customers/${uniqueID}`, {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        gridMeta.value.selectedCustomerId = response._data.body.uniqueid;
+        if (
+          gridMeta.value.selectedServiceId &&
+          gridMeta.value.selectedCustomerId
+        ) {
+          modalMeta.value.modalTitle = "Service Report";
+          modalMeta.value.modalDescription = "Service Report";
+          modalMeta.value.isReportModalOpen = true;
+        }
+      }
+    },
+  });
+};
+
 const handleSortingButton = async (btnName: string) => {
   gridMeta.value.page = 1;
   for (const column of columns.value) {
@@ -622,6 +641,7 @@ const onReportView = (row) => {
 
 const handleModalClose = () => {
   modalMeta.value.isReportModalOpen = false;
+  gridMeta.value.selectedCustomerId = null;
 };
 
 const handleModalSave = async () => {
@@ -630,19 +650,15 @@ const handleModalSave = async () => {
 };
 
 const onSelect = async (row) => {
+  // gridMeta.value.selectedCustomerId = null;
+  await getCustomerByUniqueID(row["Cust #"]);
   gridMeta.value.selectedServiceId = row?.uniqueID;
-  gridMeta.value.selectedCompaintNumber = row['SO#'];
-  gridMeta.value.selectedCustomerId = row['Cust #'];
-  gridMeta.value.selectedSerialNumber = row['SN#'];
+  gridMeta.value.selectedCompaintNumber = row["SO#"];
+  // gridMeta.value.selectedCustomerId = row['Cust #'];
+  gridMeta.value.selectedSerialNumber = row["SN#"];
 };
 
-const onDblClick = async () => {
-  if (gridMeta.value.selectedServiceId) {
-    modalMeta.value.modalTitle = "Service Report";
-    modalMeta.value.modalDescription = "Service Report";
-    modalMeta.value.isReportModalOpen = true;
-  }
-};
+const onDblClick = async () => {};
 
 const onServiceReportSave = async () => {
   modalMeta.value.isReportModalOpen = false;
@@ -968,11 +984,10 @@ const onScheduletaskDblClick = async (event) => {
       @close="handleModalClose"
       @save="onServiceReportSave"
       :selected-serial="gridMeta.selectedSerialNumber"
-      :selected-customer="136539"
+      :selected-customer="gridMeta.selectedCustomerId"
       :selected-complaint="gridMeta.selectedCompaintNumber"
       :selected-order="gridMeta.selectedServiceId"
     />
-
   </UDashboardModal>
 </template>
 <style></style>

@@ -348,7 +348,8 @@ export const  getComplaints = async (params) => {
       'OPENCASE',
       'INJURYREPORTNO',
       'WARRANTYUNTIL',
-      'ClosedOutBy'
+      'ClosedOutBy',
+      "MODELNO"
     ],
     where: where,
     raw: true
@@ -456,4 +457,44 @@ export const updateComplaint = async (id, reqData) => {
     where: { uniqueID: id }
   })
   return id
+}
+
+export const createComplaint = async (reqData) => {
+  const { 
+    COMPLAINTDATE, 
+    DATEREPORTED, 
+    DATEINJURED, 
+    DEATH, 
+    REPORTBYDATE, 
+    REVIEWBYDATE, 
+    LASTVISIT,
+    DATEREPORTED2, 
+    DATEINJURED2,
+    DEATH2,
+    REPORTBYDATE2, 
+    REVIEWBYDATE2,
+    LASTVISIT2
+  } = reqData
+
+  let createReqData = null
+  
+  createReqData = {
+    ...reqData,
+    COMPLAINTDATE: COMPLAINTDATE ? Sequelize.literal(`CAST('${COMPLAINTDATE}' AS DATETIME)`): null,
+    DATEREPORTED: DATEREPORTED ? format(new Date(DATEREPORTED), 'MM/dd/yyyy'): null,
+    DATEINJURED: DATEINJURED ? format(new Date(DATEINJURED), 'MM/dd/yyyy'): null,
+    DEATH: DEATH ? format(new Date(DEATH), 'MM/dd/yyyy'): null,
+    REPORTBYDATE: REPORTBYDATE ? format(new Date(REPORTBYDATE), 'MM/dd/yyyy'): null,
+    REVIEWBYDATE: REVIEWBYDATE ? format(new Date(REVIEWBYDATE), 'MM/dd/yyyy'): null,
+    LASTVISIT: LASTVISIT ? format(new Date(LASTVISIT), 'MM/dd/yyyy'): null,
+    DATEREPORTED2: DATEREPORTED2 ? format(new Date(DATEREPORTED2), 'MM/dd/yyyy'): null,
+    DATEINJURED2: DATEINJURED2 ? format(new Date(DATEINJURED2), 'MM/dd/yyyy'): null,
+    DEATH2: DEATH2 ? format(new Date(DEATH2), 'MM/dd/yyyy'): null,
+    REPORTBYDATE2: REPORTBYDATE2 ? format(new Date(REPORTBYDATE2), 'MM/dd/yyyy'): null,
+    REVIEWBYDATE2: REVIEWBYDATE2 ? format(new Date(REVIEWBYDATE2), 'MM/dd/yyyy'): null,
+    LASTVISIT2: LASTVISIT2 ? Sequelize.literal(`CAST('${LASTVISIT2}' AS DATETIME)`): null,
+  }
+ 
+  const newComplaint = await tblComplaints.create(createReqData)
+  return newComplaint
 }
