@@ -20,7 +20,7 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 const route = useRoute();
 const toast = useToast();
 const exportIsLoading = ref(false);
-const schedulerView = ref(true);
+const schedulerView = ref(false);
 const curentWeeks = ref([]);
 
 const headerCheckboxes = ref({
