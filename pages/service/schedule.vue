@@ -20,7 +20,7 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 const route = useRoute();
 const toast = useToast();
 const exportIsLoading = ref(false);
-const schedulerView = ref(false);
+const schedulerView = ref(true);
 const curentWeeks = ref([]);
 
 const headerCheckboxes = ref({
@@ -313,7 +313,8 @@ const setCurrentWeekOfYear = () => {
   const currentYear = new Date().getFullYear();
   const currentWeek = getISOWeek(currentDate);
   const lastTwoDigits = currentYear.toString().slice(-2);
-  filterValues.value.Week = `${lastTwoDigits}-${currentWeek}`;
+  filterValues.value.Week = '24-31';//`${lastTwoDigits}-${currentWeek}`;//
+  console.log("check filterValues.value.Week",filterValues.value.Week)
 };
 
 const getCurrentYearWeeks = () => {
@@ -494,6 +495,7 @@ const fetchScheduleData = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         let schedules = response._data.body;
+        console.log("check schedules", schedules)
         let employees = [];
         schedules.forEach((schedule) => {
           if (!employees.includes(schedule["Service Tech"])) {
@@ -538,10 +540,15 @@ const fetchScheduleData = async () => {
                     new Date(schedule["SR Date"]),
                     1
                   );
+
+                  const serialNum = schedule["SN#"];
+                  const custNum = schedule["Cust #"];
                 return {
                   name: schedule["SR#"],
                   startDate: schedule["SR Date"],
                   duration: 1,
+                  "SrNo": serialNum, 
+                  "CustId": custNum, 
                   manuallyScheduled: true,
                 };
               });
@@ -574,7 +581,7 @@ const getCustomerByUniqueID = async (uniqueID) => {
         ) {
           modalMeta.value.modalTitle = "Service Report";
           modalMeta.value.modalDescription = "Service Report";
-          modalMeta.value.isReportModalOpen = true;
+          modalMeta.value.isSoOrderModalOpen = true;
         }
       }
     },
@@ -628,6 +635,7 @@ const handlePageChange = async () => {
 
 const modalMeta = ref({
   isReportModalOpen: false,
+  isSoOrderModalOpen: false,
   modalTitle: "Service Report",
   modalDescription: "Service Report",
 });
@@ -636,11 +644,11 @@ const onReportView = (row) => {
   gridMeta.value.selectedServiceId = row?.uniqueID;
   modalMeta.value.modalTitle = "Service Report";
   modalMeta.value.modalDescription = "Service Report";
-  modalMeta.value.isReportModalOpen = true;
+  modalMeta.value.isSoOrderModalOpen = true;
 };
 
 const handleModalClose = () => {
-  modalMeta.value.isReportModalOpen = false;
+  modalMeta.value.isSoOrderModalOpen = false;
   gridMeta.value.selectedCustomerId = null;
 };
 
@@ -661,8 +669,9 @@ const onSelect = async (row) => {
 const onDblClick = async () => {};
 
 const onServiceReportSave = async () => {
-  modalMeta.value.isReportModalOpen = false;
+  modalMeta.value.isSoOrderModalOpen = false;
   if (schedulerView.value) {
+    
     fetchScheduleData();
   } else {
     fetchGridData();
@@ -702,41 +711,88 @@ const excelExport = async () => {
   location.href = `/api/service/schedule/exportlist?${paramsString}`;
   exportIsLoading.value = false;
 };
+//old func
 const onScheduletaskDblClick = async (event) => {
+  const str = event.taskRecord?.originalData?.name;
+  const number = str.match(/\d+/)[0]; // \d+ matches one or more digits
+  let param = '';
+  let setParam = '';
   let serviceReportID = 0;
-  if (!event.taskRecord.originalData.children) {
-    await useApiFetch(`/api/service/servicereports/`, {
-      method: "GET",
-      params: {
-        CANO: event.taskRecord.originalData?.name ?? "",
-      },
-      onResponse({ response }) {
-        if (response.status === 200) {
-          serviceReportID = response._data.body[0]?.uniqueID ?? 0;
-        }
-      },
-    });
-    gridMeta.value.selectedServiceId = serviceReportID;
-    modalMeta.value.modalTitle = "Service Report";
-    modalMeta.value.modalDescription = "Service Report";
-    modalMeta.value.isReportModalOpen = true;
-  } else {
-    await useApiFetch(`/api/service/servicereports/`, {
-      method: "GET",
-      params: {
-        CANO: event.taskRecord.originalData?.children[0]?.name ?? "",
-      },
-      onResponse({ response }) {
-        if (response.status === 200) {
-          serviceReportID = response._data.body[0]?.uniqueID ?? 0;
-        }
-      },
-    });
-    gridMeta.value.selectedServiceId = serviceReportID;
-    modalMeta.value.modalTitle = "Service Report";
-    modalMeta.value.modalDescription = "Service Report";
-    modalMeta.value.isReportModalOpen = true;
-  }
+  if (Array.isArray(event.taskRecord?.originalData?.children)) {
+    if (event.taskRecord?.originalData?.eventColor){
+       param = 'emp#'
+       setParam = number
+       console.log(event.taskRecord?.originalData?.name)
+    }else{
+       param = 'so#'
+       console.log(event.taskRecord?.originalData?.name)
+       setParam = number
+
+       gridMeta.value.selectedServiceId = setParam;
+
+       await getCustomerByUniqueID(event.taskRecord?.originalData?.children[0]?.CustId);
+       gridMeta.value.selectedServiceId = setParam;
+       gridMeta.value.selectedCompaintNumber = setParam;
+       gridMeta.value.selectedSerialNumber =event.taskRecord?.originalData?.children[0]?.SrNo;
+       modalMeta.value.modalTitle = "So Service Report";
+       modalMeta.value.modalDescription = "so Service Report";
+       modalMeta.value.isSoOrderModalOpen = true;
+    }
+    } else {
+         param = 'sr#'
+         console.log(event.taskRecord?.originalData?.name)
+         setParam = number
+         await useApiFetch(`/api/service/servicereports/`, {
+            method: "GET",
+            params: {
+              CANO: number ?? "",
+            },
+            onResponse({ response }) {
+              if (response.status === 200) {
+                serviceReportID = response._data.body[0]?.uniqueID ?? 0;
+              }
+            },
+          });
+         gridMeta.value.selectedServiceId = serviceReportID;
+         modalMeta.value.modalTitle = " Sr Service Report";
+         modalMeta.value.modalDescription = "sr Service Report";
+         modalMeta.value.isReportModalOpen = true;
+    }
+      
+  
+  // if (!event.taskRecord.originalData.children) {
+  //   await useApiFetch(`/api/service/servicereports/`, {
+  //     method: "GET",
+  //     params: {
+  //       CANO: event.taskRecord.originalData?.name ?? "",
+  //     },
+  //     onResponse({ response }) {
+  //       if (response.status === 200) {
+  //         serviceReportID = response._data.body[0]?.uniqueID ?? 0;
+  //       }
+  //     },
+  //   });
+  //   gridMeta.value.selectedServiceId = serviceReportID;
+  //   modalMeta.value.modalTitle = "Service Report";
+  //   modalMeta.value.modalDescription = "Service Report";
+  //   //modalMeta.value.isSoOrderModalOpen = true;
+  // } else {
+  //   await useApiFetch(`/api/service/servicereports/`, {
+  //     method: "GET",
+  //     params: {
+  //       CANO: event.taskRecord.originalData?.children[0]?.name ?? "",
+  //     },
+  //     onResponse({ response }) {
+  //       if (response.status === 200) {
+  //         serviceReportID = response._data.body[0]?.uniqueID ?? 0;
+  //       }
+  //     },
+  //   });
+  //   gridMeta.value.selectedServiceId = serviceReportID;
+  //   modalMeta.value.modalTitle = "Service Report";
+  //   modalMeta.value.modalDescription = "Service Report";
+  //   //modalMeta.value.isSoOrderModalOpen = true;
+  // }
 };
 </script>
 
@@ -974,11 +1030,22 @@ const onScheduletaskDblClick = async (event) => {
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <!-- <ServiceReportDetail
+    <ServiceReportDetail
       :selected-complaint="null"
       :selected-service-report="gridMeta.selectedServiceId"
       @save="onServiceReportSave"
-    /> -->
+    />
+
+  </UDashboardModal>
+
+  <UDashboardModal
+    v-model="modalMeta.isSoOrderModalOpen"
+    title="Service Report"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-9xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
 
     <ServiceOrderDetail
       @close="handleModalClose"
