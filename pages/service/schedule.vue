@@ -570,6 +570,9 @@ const fetchScheduleData = async () => {
 };
 
 const getCustomerByUniqueID = async (uniqueID) => {
+  if(!uniqueID){
+    return true;
+  }
   await useApiFetch(`/api/customers/${uniqueID}`, {
     method: "GET",
     onResponse({ response }) {
