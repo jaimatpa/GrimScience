@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { FormError, FormSubmitEvent } from '#ui/types'
+  import type { FormError, FormSubmitEvent, FormErrorEvent } from '#ui/types'
   import Loading from 'vue-loading-overlay'
   import 'vue-loading-overlay/dist/css/index.css';   
   import type { UTableColumn } from '~/types';
@@ -28,6 +28,7 @@
   const complaintUniquueId = ref(props.selectedOrder)
   const toast = useToast()
   const loadingOverlay = ref(false)
+  const formValidationErrors = ref([])
   const formData = reactive({
     customerID: props.selectedCustomer,
     market: null,
@@ -152,11 +153,13 @@
     COMPLAINT: null,
     PRODUCTDESC: null,
     NONCONFORMANCE: null,
-    OPENCASE: null,
+    OPENCASE: "0",
     INJURYREPORTNO: null,
     uniqueID: null,
     ValidComplaintReason: null,
-    FAILINVEST: null
+    FAILINVEST: null,
+    CLOSEDOUTBY: null,
+    MODELNO: null
   })
   const WARRANTYUNTIL = ref(null)
   const typeOfServiceInfo = ref({
@@ -202,7 +205,7 @@
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
-          // loadingOverlay.value = false
+          loadingOverlay.value = false
           for (const key in response._data.body) {
             if (response._data.body[key]) {
               formData[key] = response._data.body[key]
@@ -212,11 +215,18 @@
       },
       onResponseError() {
         loadingOverlay.value = false
-      }
+        toast.add({
+          title: 'Error',
+          description: 'Fail to get customer information',
+          icon: 'i-heroicons-exclamation-triangle',
+          color: 'red'
+        })
+      } 
     })
     await fetchSerialList();
     // loadingOverlay.value = false
   }
+  
   const fetchSerialList = async () => {
     loadingOverlay.value = true
     await useApiFetch(`/api/invoices/serials/`, {
@@ -416,6 +426,7 @@
       serviceOrderInfo.value.FAILINVEST = complaintGridMeta.value.selectedComplaint.FAILINVEST
       serviceOrderInfo.value.OPENCASE = complaintGridMeta.value.selectedComplaint.OPENCASE
       serviceOrderInfo.value.INJURYREPORTNO = complaintGridMeta.value.selectedComplaint.INJURYREPORTNO
+      serviceOrderInfo.value.CLOSEDOUTBY = complaintGridMeta.value.selectedComplaint.ClosedOutBy
       WARRANTYUNTIL.value = complaintGridMeta.value.selectedComplaint.WARRANTYUNTIL
       await fetchInvoiceList()
       await fetchServiceReportList()
@@ -429,6 +440,7 @@
       serviceOrderInfo.value.RECBY = null
       serviceOrderInfo.value.OPENCASE = null
       serviceOrderInfo.value.INJURYREPORTNO = null
+      serviceOrderInfo.value.CLOSEDOUTBY = null
       WARRANTYUNTIL.value = null
       invoiceGridMeta.value.invoices = []
       serviceReportGridMeta.value.serviceReports = []
@@ -648,47 +660,69 @@
   }
   const validate = (state: any): FormError[] => {
     const errors = []
-
+    if (!state.COMPLAINTDATE) errors.push({ path: 'complaintDate', message: 'Required' })
+    if (state.INJURYREPORTNO === null) errors.push({ path: 'injuryReportNo', message: 'Required' })
+    if (state.OPENCASE === null) errors.push({ path: 'openCase', message: 'Required' })
+    if (!state.SERIALNO) errors.push({ path: 'serial', message: 'Required' })
+    formValidationErrors.value = errors  
     return errors
   }
   async function onSubmit(event: FormSubmitEvent<any>) {
-    const {RECBYOptions, ...data} = event.data
-    await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
-      method: "PUT",
-      body: data,
-      onResponse({ response }) {
-        if (response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: "i-heroicons-check-circle",
-            color: "green",
-          });
-          emit('close')
-        }
-      },
-    });
-    
+    const {RECBYOptions, ...data} = event.data    
+    // if(!complaintUniquueId.value){
+    //   await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
+    //     method: "POST",
+    //     body: data,
+    //     onResponse({ response }) {
+    //       if (response.status === 200) {
+    //         toast.add({
+    //           title: "Success",
+    //           description: response._data.message,
+    //           icon: "i-heroicons-check-circle",
+    //           color: "green",
+    //         });
+    //         emit('close')
+    //       }
+    //     },
+    //   });
+    // } else {
+      await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
+        method: "PUT",
+        body: data,
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: "i-heroicons-check-circle",
+              color: "green",
+            });
+            emit('close')
+          }
+        },
+      });
+    // }
   }
 
   watch(() => serialGridMeta.value.serials, () => {
-    if(serialGridMeta.value.serials.length > 0) {
+    if(serialGridMeta.value.serials.length > 0) {      
       const uniqueIDFound = serialGridMeta.value?.serials.find(serial => serial?.serial === props.selectedSerial)
-      onSerialSelect({UniqueID: uniqueIDFound.UniqueID, class: "bg-gray-200", serial: props.selectedSerial})
+      if(uniqueIDFound) onSerialSelect({UniqueID: uniqueIDFound.UniqueID, class: "bg-gray-200", serial: props.selectedSerial})
     }
   })
-
   watch(() => complaintGridMeta.value.complaints, () => {
     if(complaintGridMeta.value.complaints.length > 0) {
       const uniqueIDFound = complaintGridMeta.value?.complaints.find(complaint => complaint?.COMPLAINTNUMBER === props.selectedComplaint)
-      onComplaintSelect(uniqueIDFound)
+      if(uniqueIDFound) onComplaintSelect(uniqueIDFound)
     }
   })
 
-  if(props.selectedCustomer) 
-    editInit()
-  else 
+  if (props.selectedCustomer) { 
+    editInit() 
+  }
+  else {
     propertiesInit()
+   }
 </script>
 
 <template>
@@ -792,7 +826,7 @@
               <UTable
                 :columns="serialGridMeta.defaultColumns"
                 :rows="serialGridMeta.serials"
-                class="w-full"
+                :class="formValidationErrors?.find(e => e.path === 'serial') ? 'border-red-500 w-full' : 'w-full'"
                 :ui="{
                   wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
                   divide: 'divide-gray-200 dark:divide-gray-800',
@@ -1003,16 +1037,23 @@
             <div>{{ serviceOrderInfo.PRODUCTDESC }}</div>
             <div>{{ serviceOrderInfo.SERIALNO?`Serial ${serviceOrderInfo.SERIALNO}`: '' }}</div>
           </div>
+          <UFormGroup name="modelNo" class="hidden">
+            <UInput
+              v-model="serviceOrderInfo.MODELNO"
+              />
+            </UFormGroup>
           <div class="basis-4/12">
             <div class="flex flex-row">
               <div class="flex items-center w-[35px] font-medium">Date</div>
               <div class="flex-1 px-4">
+              <UFormGroup name="complaintDate">
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="serviceOrderInfo.COMPLAINTDATE && format(serviceOrderInfo.COMPLAINTDATE, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="serviceOrderInfo.COMPLAINTDATE && format(serviceOrderInfo.COMPLAINTDATE, 'MM/dd/yyyy')" variant="outline" :class="formValidationErrors?.find(e => e.path === 'complaintDate') ? 'ring-red-500' : ''" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
                     <CommonDatePicker v-model="serviceOrderInfo.COMPLAINTDATE" is-required @close="close" />
                   </template>
                 </UPopover>
+              </UFormGroup>
               </div>
             </div>
             <div class="flex flex-row mt-3">
@@ -1026,14 +1067,16 @@
             </div>
           </div>
           <div class="basis-3/12">
+            <UFormGroup name="openCase">
             <div class="flex flex-row space-x-5">
-              <URadio 
-                v-for="status of statusGroup"
-                :key = 'status.value'
-                v-model="serviceOrderInfo.OPENCASE"
-                v-bind="status"
-              />
-            </div>
+                <URadio 
+                  v-for="status of statusGroup"
+                  :key='status.value'
+                  v-model="serviceOrderInfo.OPENCASE"
+                  v-bind="status"
+                />
+              </div>
+            </UFormGroup>
             <div class="mt-6 flex items-center">
               Warranty Period: {{  WARRANTYUNTIL }}
             </div>
@@ -1054,14 +1097,16 @@
             <div class="basis-5/12 flex items-center ml-2">
               Death, Serious Injury, or Risk of Either?
             </div>
-            <div class="basis-3/12 flex flex-row space-x-5 items-center">
-              <URadio 
-                v-for="riskStatus of riskStatusGroup"
-                :key = 'riskStatus.value'
-                v-model="serviceOrderInfo.INJURYREPORTNO"
-                v-bind="riskStatus"
-              />
-            </div>
+            <UFormGroup name="injuryReportNo" class="basis-3/12 flex flex-row items-center">
+              <div class="flex flex-row space-x-5 items-center">
+                <URadio 
+                  v-for="riskStatus of riskStatusGroup"
+                  :key = 'riskStatus.value'
+                  v-model="serviceOrderInfo.INJURYREPORTNO"
+                  v-bind="riskStatus"
+                />
+              </div>
+            </UFormGroup>
             <div class="basis-4/12 flex flex-row space-x-5 justify-center">
               <UButton label="VIEW#1" @click="onView1BtnClick"/>
               <UButton label="VIEW#2" @click="onView2BtnClick"/>
@@ -1202,6 +1247,10 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <div v-if="serviceOrderInfo.OPENCASE === '1' && serviceOrderInfo.CLOSEDOUTBY" class="w-full text-center">
+          {{ serviceOrderInfo.CLOSEDOUTBY }}
         </div>
       </div>
     </div>

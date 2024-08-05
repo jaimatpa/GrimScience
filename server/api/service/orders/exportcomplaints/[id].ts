@@ -111,8 +111,8 @@ export default eventHandler(async (event) => {
                   <h3 style="font-size: 19px; margin-left: 5px; margin-top: 25px">Customer Service Order</h3>
                 </div>
                 <div style="width: 75%;">
-                  <p style="font-size: 13px; margin-top: 15px; margin-left: 6px">Warranty</p>
-                  <p style="font-size: 13px; margin-top: -9px; margin-left: 50px">
+                  <p style="font-size: 13px; margin-top: 15px; margin-left: 16px">Warranty</p>
+                  <p style="font-size: 13px; margin-top: -9px; margin-left: 60px">
                     <b>#: </b>${complaintDetail['COMPLAINTNUMBER']} 
                     <b style="margin-left: 22px">Date:</b> ${complaintDetail['COMPLAINTDATE']?format(complaintDetail['COMPLAINTDATE'], 'MM/dd/yyyy'):''}
                   </p>
@@ -120,70 +120,70 @@ export default eventHandler(async (event) => {
               </div>
               <div style="margin-top: -16px">
                 <div style="display:flex; justify-content: space-between; align-items: center;">
-                  <p style="width:270px; margin-top: 0px; margin-left: 7px; font-size: 13px;"><b>Serial #:</b> ${complaintDetail['SERIALNO']}</p>  
-                  <p style="width:250px; margin-top: 0px; font-size: 13px;"><b>Shipped:</b> ${complaintDetail['ORIGSHIPDATE']?format(complaintDetail['ORIGSHIPDATE'], 'MM/dd/yyyy'):''}</p>  
-                  <p style="width:290px; margin-top: 0px; font-size: 13px;"><b>Warranty:</b> ${complaintDetail['WarrentyService']==='0'?'No':'Yes'}</p>  
+                  <p style="width:275px; margin-top: 0px; margin-left: 7px; font-size: 13px;"><b>Serial #:</b> ${complaintDetail['SERIALNO']}</p>  
+                  <p style="width:255px; margin-top: 0px; font-size: 13px;"><b>Shipped:</b> ${complaintDetail['ORIGSHIPDATE']?format(complaintDetail['ORIGSHIPDATE'], 'MM/dd/yyyy'):''}</p>  
+                  <p style="width:270px; margin-top: 0px; font-size: 13px;"><b>Warranty:</b> ${complaintDetail['WarrentyService']==='0'?'No':'Yes'}</p>  
                 </div>
                 <div style="display:flex; justify-content: space-between; align-items: center; margin-top: -6px;">
-                  <p style="width:270px; margin-top: 0px; font-size: 13px;"><b>By #:</b> ${complaintDetail['RECBY']}</p>  
-                  <p style="width:227px; margin-top: 0px; font-size: 13px;"><b>Status:</b> ${complaintDetail['WarrentyService']===0?'Open':'Closed'}</p>
+                  <p style="width:270px; margin-top: 0px; font-size: 13px;"><b>By: </b> ${complaintDetail['RECBY']}</p>  
+                  <p style="width:209px; margin-top: 0px; font-size: 13px;"><b>Status:</b> ${complaintDetail['WarrentyService']===0?'Open':'Closed'}</p>
                 </div>
                 <div style="display:flex; justify-content: flex-end; margin-top: -10px;">
-                  <p style="width:227px; margin-top: 0px; font-size: 13px;"><b>Valid Complaint:</b> ${complaintDetail['ValidComplaint']===0?'No':'Yes'}</p>
+                  <p style="width:209px; margin-top: 0px; font-size: 13px;"><b>Valid Complaint:</b> ${complaintDetail['ValidComplaint']===0?'No':'Yes'}</p>
                 </div>
               </div>
-              <h4 style="margin: -18px 0px 10px -143px; font-size: 13px;"><center>${complaintDetail['PRODUCTDESC']}</center></h4>
+              <h4 style="margin: -18px 0px 10px -87px; font-size: 13px;"><center>${complaintDetail['PRODUCTDESC']}</center></h4>
             </header>`
         htmlContent += `
           <div>
             <div style="display: flex; flex-direction: row; margin-top: -2px">
-              <div style="flex-basis: 48.5%;">
-                <p><b style="font-size: 13px; border-bottom: 2px solid black">Customer (Ship To)</b></p>
-                <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px">Customer#: ${customerDetail['number']}</p>
+              <div style="flex-basis: 50%;">
+                <p><b style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Customer (Ship To)</b></p>
+                <p style="margin-top: 0px; margin-bottom: 4px; font-size: 13px">Cust #: ${customerDetail['number']}</p>
                 <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px">${customerDetail['company1']}</p>
                 <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px">${customerDetail['fname']} ${customerDetail['lname']}</p>
                 <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px">${customerDetail['address']}</p>
                 <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px">${customerDetail['city']}, ${customerDetail['state']} ${customerDetail['zip']}</p>
               </div> 
-              <div style="flex-basis: 51.5%;">
-                <p><b style="border-bottom: 2px solid black">Customer Description</b></p>
-                <p style="margin-top: 4px; margin-bottom: 4px; font-size: 13px"><b>Patient Injury:</b> ${complaintDetail['INJURYREPORTNO'] === 0 ?'No':'Yes'}</p>
+              <div style="flex-basis: 50%;">
+                <p><b style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Customer Description</b></p>
+                <p style="margin-top: 0px; margin-bottom: 4px; font-size: 13px"><b>Patient Injury:</b> ${complaintDetail['INJURYREPORTNO'] === 0 ?'No':'Yes'}</p>
                 <p style="margin-top: 6px; margin-bottom: 4px; font-size: 13px">${complaintDetail['COMPLAINT']}</p>
               </div>
             </div>`
         htmlContent += `
-          <div style="display: flex; padding-left: 49.5%; margin-top: 10px;">
+          <div style="display: flex; padding-left: 50%; margin-top: 10px;">
             <div style="flex-basis: 50%">
               <div style="display: flex; flex-direction: row">
-                <p><b style="border-bottom: 2px solid black; font-size: 13px;">Received</b></p>
-                <p style="margin-left: 80px;"><b style="border-bottom: 2px solid black; font-size: 13px;">Accessories</b></p>
+                <p><b style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Received</b></p>
+                <p style="margin-left: 40px;"><b style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Accessories</b></p>
               </div>
             </div>
           </div>`
         htmlContent += `
           <div style="margin-top: -5px;">
-            <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>W:</b> ${customerDetail['workphone']}</p>
-            <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>C:</b> ${customerDetail['homephone']}</p>
-            <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>H:</b> ${customerDetail['cellphone']}</p>
+            <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>W: </b> ${customerDetail['workphone']}</p>
+            <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>C: </b> ${customerDetail['homephone']}</p>
+            <p style="font-size: 13px; margin-top: 4px; margin-bottom: 4px"><b>H: </b> ${customerDetail['cellphone']}</p>
           </div>
               `
         htmlContent += `    
-          <div style="display: flex; padding-left: 49.5%; margin-top: -40px">
+          <div style="display: flex; padding-left: 50%; margin-top: -34px">
             <div style="flex-basis: 50%">
-              <p><b style="border-bottom: 2px solid black; font-size: 13px">Failure Investigation</b></p>
-              <p>${complaintDetail['FAILINVEST']}</p>
+              <p><b style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Failure Investigation</b></p>
+              <p style="font-size: 13px;">${complaintDetail['FAILINVEST']}</p>
             </div>
           </div>`
         htmlContent += `
-          <table>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
             <thead>
               <tr>
-                <th width="500px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Invoice #: </span><span style="font-weight: normal; margin-left: 20px;">${serviceOrderInvoices.length?serviceOrderInvoices[0]['invoicenumber']:'' }</span></th>
-                <th width="400px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Onsite Hrs.</span></th>
-                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Travel Hrs.</span></th>
-                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Factory Hrs.</span></th>
-                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Miles</span></th>
-                <th width="200px" style="text-align: left;"><span style="border-bottom: 2px solid black; font-size: 13px;">Per Diem</span></th>
+                <th width="670px" style="text-align: left;"><span style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Invoice #: </span><span style="font-weight: normal; margin-left: 20px;">${serviceOrderInvoices.length?serviceOrderInvoices[0]['invoicenumber']:'' }</span></th>
+                <th width="230px" style="text-align: left;"><span style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Onsite Hrs.</span></th>
+                <th width="200px" style="text-align: left;"><span style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Travel Hrs.</span></th>
+                <th width="200px" style="text-align: left;"><span style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Factory Hrs.</span></th>
+                <th width="160px" style="text-align: left;"><span style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Miles</span></th>
+                <th width="158px" style="text-align: left;"><span style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Per Diem</span></th>
               </tr>
             </thead>
             <tbody>        
@@ -198,13 +198,13 @@ export default eventHandler(async (event) => {
             </tbody>
           </table>`
         htmlContent += `
-          <p style="margin-top: 30px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Service Reports</b></p>
+          <p style="margin-top: 51px; text-decoration: underline; text-decoration-thickness: 2px; font-size: 15px; margin-bottom: 8px"><b>Service Reports</b></p>
           <table style="border-spacing: 0px;">
             <thead style="background: #FFFACD;">
               <tr>
-                <th width="200px" style="text-align: left; font-size: 13px;">Date</th>
-                <th width="200px" style="text-align: left; font-size: 13px;">Type</th>
-                <th width="400px" style="text-align: left; font-size: 13px;">By</th>
+                <th width="90px" style="text-align: left; font-size: 13px;">Date</th>
+                <th width="160px" style="text-align: left; font-size: 13px;">Type</th>
+                <th width="280px" style="text-align: left; font-size: 13px;">By</th>
                 <th width="1084px" style="text-align: left; font-size: 13px;">Repairs Made</th>
               </tr>
             </thead>
@@ -242,15 +242,15 @@ export default eventHandler(async (event) => {
             </tbody>
           </table>`
         htmlContent += `
-          <p style="margin-top: 30px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Warranty Materials</b></p>
+          <p style="margin-top: 30px; text-decoration: underline; text-decoration-thickness: 2px; font-size: 15px; margin-bottom: 10px"><b>Warranty Materials</b></p>
           <table style="border-spacing: 0px;">
             <thead style="background: #FFFACD;">
               <tr>
                 <th width="110px" style="text-align: left; font-size: 13px;">Quantity</th>
-                <th width="110px" style="text-align: left; font-size: 13px;">Stock#</th>
-                <th width="550px" style="text-align: left; font-size: 13px;">Description</th>
-                <th width="170px" style="text-align: left; font-size: 13px;">Price</th>
-                <th width="260px" style="text-align: left; font-size: 13px;">Unit</th>
+                <th width="115px" style="text-align: left; font-size: 13px;">Stock #</th>
+                <th width="400px" style="text-align: left; font-size: 13px;">Description</th>
+                <th width="110px" style="text-align: left; font-size: 13px;">Price</th>
+                <th width="280px" style="text-align: left; font-size: 13px;">Unit</th>
                 <th width="150px" style="text-align: left; font-size: 13px;">Amount</th>
               </tr>
             </thead>
@@ -260,7 +260,7 @@ export default eventHandler(async (event) => {
               <tr>
                 <td style="font-size: 13px;">${material['Quantity']}</td>
                 <td style="font-size: 13px;">${material['MODEL']}</td>
-                <td style="font-size: 13px;">${material['DESCRIPTION']}</td>
+                <td style="font-size: 12px;">${material['DESCRIPTION']}</td>
                 <td style="font-size: 13px;">${material['PRIMARYPRICE1']}</td>
                 <td style="font-size: 13px;">${material['UNIT']}</td>
                 <td style="font-size: 13px;">${material['Amount']}</td>
@@ -271,20 +271,20 @@ export default eventHandler(async (event) => {
             </table>` 
             if (totalWarrantyMaterialCost > 0) {
               htmlContent += `
-                  <div style="display:flex;justify-content: flex-end; margin-right: 40px; margin-top: 20px">
+                  <div style="display:flex;justify-content: flex-end; margin-right: 40px; margin-top: 10px">
                       <div>
-                          <div style="display:flex;flex-direction:column; text-align: right;">
-                              <div style="display: flex; width: 180px; justify-content: space-between;">
+                          <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; text-align: right;">
+                              <div style="display: flex; width: 175px; justify-content: space-between;">
                                   <span>Total Material Cost:</span>
-                                  <span><b>$${totalWarrantyMaterialCost}</b></span>
+                                  <span style="width: 50px; text-align: left; font-weight: 600;">$${totalWarrantyMaterialCost}</span>
                               </div>
-                              <div style="display: flex; width: 180px; justify-content: space-between;">
+                              <div style="display: flex; width: 175px; justify-content: space-between;">
                                   <span>Shipping Cost:</span>
-                                  <span><b>$35.30</b></span>
+                                  <span style="width: 50px; text-align: left; font-weight: 600;">$35.30</span>
                               </div>
-                              <div style="display: flex; width: 180px; justify-content: space-between;">
+                              <div style="display: flex; width: 175px; justify-content: space-between;">
                                   <span>Total:</span>
-                                  <span><b>$${totalCost.toFixed(2)}</b></span>
+                                  <span style="width: 50px; text-align: left; font-weight: 600;">$${totalCost.toFixed(2)}</span>
                               </div>
                           </div>
                       </div>
@@ -292,13 +292,14 @@ export default eventHandler(async (event) => {
               `;
           }
           htmlContent += `   
-            <p style="margin-top: 10px; margin-bottom: 10px"><b style="border-bottom: 2px solid black; font-size: 14px;">Materials Received</b></p>
+            <p style="margin-top: 10px; text-decoration: underline; text-decoration-thickness: 2px; font-size: 15px; margin-bottom: 10px"><b>Materials Received</b></p>
             <table style="border-spacing: 0px;">
               <thead style="background: #FFFACD;">
                 <tr>
                   <th width="200px" style="text-align: left; font-size: 13px;">Quantity</th>
                   <th width="200px" style="text-align: left; font-size: 13px;">Stock#</th>
-                  <th width="1478px" style="text-align: left; font-size: 13px;">Description</th>
+                  <th width="1323px" style="text-align: left; font-size: 13px;">Description</th>
+                  <th width="155px" style="text-align: left; font-size: 13px;">NC #</th>
                 </tr>
               </thead>
               <tbody>`
@@ -315,7 +316,7 @@ export default eventHandler(async (event) => {
               </tbody>
             </table>` 
           htmlContent += `
-            <p style="margin-top: 10px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Action</b></p>
+            <p style="margin-top: 10px; text-decoration: underline; text-decoration-thickness: 2px; font-size: 15px; margin-bottom: 10px"><b>Action</b></p>
             <table style="border-spacing: 0px;">
               <thead style="background: #FFFACD;">
                 <tr>
@@ -328,7 +329,7 @@ export default eventHandler(async (event) => {
               </tbody>
             </table>`
           htmlContent += `
-            <p style="margin-top: 10px; margin-bottom: 10px"><b style="border-bottom: 2px solid black;">Investigations</b></p>
+            <p style="margin-top: 10px; text-decoration: underline; text-decoration-thickness: 2px; font-size: 15px; margin-bottom: 10px"><b>Investigations</b></p>
             <table style="border-spacing: 0px;">
               <thead style="background: #FFFACD;">
                 <tr>
@@ -341,9 +342,9 @@ export default eventHandler(async (event) => {
           investigations.forEach((investigation) => {
             htmlContent += `
               <tr>
-                <td>${investigation['DIAGDATE']}</td>
-                <td>${investigation['ACTIONTYPE']??''}</td>
-                <td>${investigation['DESCRIPTION']}</td>
+                <td style="font-size: 13px;">${investigation['DIAGDATE']}</td>
+                <td style="font-size: 13px;">${investigation['ACTIONTYPE']??''}</td>
+                <td style="font-size: 13px;">${investigation['DESCRIPTION']}</td>
               </tr>
             `
           })
@@ -367,14 +368,14 @@ export default eventHandler(async (event) => {
           displayHeaderFooter: true,
           headerTemplate: `<span></span>`,
           footerTemplate: `
-          <div style="width: 100%; font-family: arial; text-align: center; font-size: 16px; position: relative;">
+          <div style="width: 100%; font-family: arial; text-align: center; margin-bottom: 7px; margin-right: 45px; font-size: 13px; position: relative;">
               Page <span class="pageNumber"></span> of <span class="totalPages"></span>
           </div>`,
           margin: {
             top: '16px',
             bottom: '40px',
             left: '72px',
-            right: '110px'
+            right: '121px'
           }
         };
         await page.setContent(htmlContent, {waitUntil: 'domcontentloaded'});

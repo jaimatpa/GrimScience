@@ -205,3 +205,14 @@ export const getCustomerInvoices = async (filterParams) => {
   });
   return list;
 }
+
+export const getCustomerUniqueId = async (customerNumber) => {
+  const customer = await tblCustomers.findOne({
+    attributes: ['uniqueid'],
+    where: {
+      number: customerNumber
+    }
+  });
+
+  return customer;
+}

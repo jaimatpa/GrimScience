@@ -1,4 +1,4 @@
-import { customerExistByID, deleteCustomer, getCustomerDetail, updateCustomer } from '~/server/controller/customers';
+import { customerExistByID, deleteCustomer, getCustomerDetail, updateCustomer, getCustomerUniqueId } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {
@@ -8,10 +8,14 @@ export default eventHandler(async (event) => {
     const idExist = await customerExistByID(id);
     switch(method.toUpperCase()){
       case 'GET':
-        if (idExist){          
+        if (idExist){     
           const detail = await getCustomerDetail(id)
           return { body: detail, message: '' };
         } else {
+          const getByNumId = await getCustomerUniqueId(id);
+          if(getByNumId) {
+            return { body: getByNumId, message: '' };
+          }
           setResponseStatus(event, 404);
           return { error: 'The customer does not exist' }
         }

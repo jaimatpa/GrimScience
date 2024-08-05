@@ -20,8 +20,9 @@ export default defineNuxtConfig({
   app: {
     head: {
       bodyAttrs: {
-        style: 'font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;',
+        style: 'font-family: "Arial", sans-serif;'
       }
+      // style: 'font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;',
     }
   },
 

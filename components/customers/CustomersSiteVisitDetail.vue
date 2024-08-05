@@ -547,7 +547,7 @@
                 label="Date"
               >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.siteVisitDate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.siteVisitDate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
                     <CommonDatePicker v-model="formData.siteVisitDate" is-required @close="close" />
                   </template>
@@ -792,7 +792,7 @@
             label="Date"
           >
             <UPopover  :popper="{ placement: 'bottom-start' }">
-              <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.siteVisitDate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.siteVisitDate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
               <template #panel="{ close }">
                 <CommonDatePicker v-model="formData.siteVisitDate" is-required @close="close" />
               </template>

@@ -1,4 +1,4 @@
-import { getComplaintDetail, updateComplaint } from '~/server/controller/service';
+import { createComplaint, getComplaintDetail, updateComplaint } from '~/server/controller/service';
 
 export default eventHandler(async (event) => {
   try {
@@ -13,6 +13,10 @@ export default eventHandler(async (event) => {
         const reqData = await readBody(event)
         const updateResult = await updateComplaint(id, reqData)
         return { body: updateResult, message: 'Order updated successfully' }
+      case 'POST':
+        const createReqData = await readBody(event)
+        const createdResult = await createComplaint(createReqData)
+        return { body: createdResult, message: 'Order created successfully' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
