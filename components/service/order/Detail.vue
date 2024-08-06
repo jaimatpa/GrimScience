@@ -28,6 +28,11 @@
   const complaintUniquueId = ref(props.selectedOrder)
   const toast = useToast()
   const loadingOverlay = ref(false)
+  const warnMsg = ref({
+    setSerReportCount : null,
+    warnMsgModalOpen: false,
+  })
+
   const formValidationErrors = ref([])
   const formData = reactive({
     customerID: props.selectedCustomer,
@@ -289,10 +294,16 @@
         COMPLAINTID: complaintGridMeta.value.selectedComplaint.uniqueID
       },
       onResponse({ response }) {
+        let openCount = 0;
         if(response.status === 200) {
           loadingOverlay.value = false
           serviceReportGridMeta.value.serviceReports = response._data.body
+          
           serviceReportGridMeta.value.serviceReports.forEach((item) => {
+         
+          if (item.ServiceStatus === 'open') {
+              openCount++;
+            }
             let type;
             switch(item.REPAIRDESC) {
               case 0:
@@ -310,6 +321,7 @@
             item.REPAIRDESC = type
           })
         }
+        warnMsg.value.setSerReportCount = openCount;
       },
       onResponseError() {
         loadingOverlay.value = false
@@ -686,6 +698,12 @@
     //     },
     //   });
     // } else {
+      if (warnMsg.value.setSerReportCount > 0) {
+        warnMsg.value.warnMsgModalOpen = true
+        return true;
+      }
+      warnMsg.value.warnMsgModalOpen = false
+      
       await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
         method: "PUT",
         body: data,
@@ -1359,5 +1377,20 @@
     }"
   >
     <ServiceOrderInjuryReport2 :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @close="onInjuryReport2ModalClose"/>
-  </UDashboardModal> 
+  </UDashboardModal>
+  
+  <UDashboardModal
+    v-model="warnMsg.warnMsgModalOpen"
+    description="You cannot close a service order that has open service reports. Please close any open service reports prior to closing this order."
+    :ui="{
+      description: { base: 'text-lg' }, // Increase description text size
+      footer: { base: 'flex  justify-end pr-6' } // Center footer content
+    }"
+  >
+    <template #footer>
+      <UButton  label="ok" variant="outline" color="red" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="warnMsg.warnMsgModalOpen = false"/>
+    </template>
+  </UDashboardModal>
+         
+
 </template>
