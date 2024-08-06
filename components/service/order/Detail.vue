@@ -32,6 +32,8 @@
     setSerReportCount : null,
     warnMsgModalOpen: false,
   })
+  const showOnSaveAlertModal = ref(false)
+  const formSubmitData = ref(null);
 
   const formValidationErrors = ref([])
   const formData = reactive({
@@ -681,30 +683,28 @@
   }
   async function onSubmit(event: FormSubmitEvent<any>) {
     const {RECBYOptions, ...data} = event.data    
-    // if(!complaintUniquueId.value){
-    //   await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
-    //     method: "POST",
-    //     body: data,
-    //     onResponse({ response }) {
-    //       if (response.status === 200) {
-    //         toast.add({
-    //           title: "Success",
-    //           description: response._data.message,
-    //           icon: "i-heroicons-check-circle",
-    //           color: "green",
-    //         });
-    //         emit('close')
-    //       }
-    //     },
-    //   });
-    // } else {
-      if (warnMsg.value.setSerReportCount > 0) {
-        warnMsg.value.warnMsgModalOpen = true
-        return true;
-      }
-      warnMsg.value.warnMsgModalOpen = false
-      
-      await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
+
+    if (warnMsg.value.setSerReportCount > 0) {
+      warnMsg.value.warnMsgModalOpen = true
+      return true;
+    }
+    warnMsg.value.warnMsgModalOpen = false 
+
+    if (data.OPENCASE == '1') {
+      formSubmitData.value = data; // Store the form data
+      showOnSaveAlertModal.value = true;
+    } else {
+      submitForm(data); // Proceed with form submission
+    }
+  }
+
+  const confirmSave = () => {
+    submitForm(formSubmitData.value);
+    showOnSaveAlertModal.value = false; 
+  };
+
+  const submitForm = async (data: any) => {
+    await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
         method: "PUT",
         body: data,
         onResponse({ response }) {
@@ -718,9 +718,8 @@
             emit('close')
           }
         },
-      });
-    // }
-  }
+    });
+  };
 
   watch(() => serialGridMeta.value.serials, () => {
     if(serialGridMeta.value.serials.length > 0) {      
@@ -1392,5 +1391,21 @@
     </template>
   </UDashboardModal>
          
+
+  <!-- Service Order On Save Modal -->
+  <UDashboardModal
+    v-model="showOnSaveAlertModal"
+    description="The System will now relieve inventory and close this complaint. Are you sure you wish to continue?"
+    :ui="{
+      description: { base: 'text-lg' }, // Increase description text size
+      footer: { base: 'flex  justify-end pr-6' } // Center footer content
+    }"
+  >
+    <template #footer>
+      <UButton  label="Yes" variant="outline" color="green" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="confirmSave"/>
+      <UButton  label="No" variant="outline" color="red" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="showOnSaveAlertModal = false"/>
+      <UButton  label="Cancel" variant="outline" color="black" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="showOnSaveAlertModal = false"/>
+    </template>
+  </UDashboardModal>
 
 </template>
