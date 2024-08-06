@@ -684,7 +684,7 @@
   async function onSubmit(event: FormSubmitEvent<any>) {
     const {RECBYOptions, ...data} = event.data    
 
-    if (warnMsg.value.setSerReportCount > 0) {
+    if (warnMsg.value.setSerReportCount > 0 && data.OPENCASE == '1' ) {
       warnMsg.value.warnMsgModalOpen = true
       return true;
     }
