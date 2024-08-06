@@ -21,6 +21,7 @@ const route = useRoute();
 const toast = useToast();
 const exportIsLoading = ref(false);
 const schedulerView = ref(false);
+const getCurrentYearName = ref()
 const curentWeeks = ref([]);
 
 const headerCheckboxes = ref({
@@ -311,10 +312,11 @@ const ganttMeta = ref({
 const setCurrentWeekOfYear = () => {
   const currentDate = new Date();
   const currentYear = new Date().getFullYear();
+  getCurrentYearName.value =currentDate.getFullYear().toString().slice(-2);
   const currentWeek = getISOWeek(currentDate);
   const lastTwoDigits = currentYear.toString().slice(-2);
-  filterValues.value.Week = '24-31';//`${lastTwoDigits}-${currentWeek}`;//
-  console.log("check filterValues.value.Week",filterValues.value.Week)
+  filterValues.value.Week = `${lastTwoDigits}-${currentWeek}`;//
+  
 };
 
 const getCurrentYearWeeks = () => {
@@ -357,6 +359,7 @@ const init = async () => {
   setCurrentWeekOfYear();
   fetchGridData();
   getCurrentYearWeeks();
+  
   for (const key in headerFilters.value) {
     const apiURL = `/api/service/schedule/${key}`;
     await useApiFetch(apiURL, {
@@ -436,7 +439,9 @@ watch(
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
 
-  // handle number of organization and pagination
+  
+  filterValues.value.Week = filterValues.value.Week ?  filterValues.value.Week : getCurrentYearName.value;
+   // handle number of organization and pagination
   await useApiFetch("/api/service/schedule/numbers", {
     method: "GET",
     params: {
