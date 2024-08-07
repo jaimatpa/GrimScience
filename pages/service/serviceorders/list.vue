@@ -442,6 +442,6 @@
       width: 'w-[1800px] sm:max-w-9xl'
     }"
   >
-    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-serial="gridMeta.selectedSerialNumber":selected-customer="gridMeta.selectedCustomerId" :selected-complaint="gridMeta.selectedCompaintNumber" :selected-order="gridMeta.selectedOrderId"  />
+    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :form-action ="null" :selected-serial="gridMeta.selectedSerialNumber" :selected-customer="gridMeta.selectedCustomerId" :selected-complaint="gridMeta.selectedCompaintNumber" :selected-order="gridMeta.selectedOrderId"  />
   </UDashboardModal>
 </template>

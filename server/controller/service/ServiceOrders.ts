@@ -1,5 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblCustomers, tblComplaints, tblServiceReport, tblInventoryTransactions, tblInventoryTransactionDetails } from "~/server/models";
+import { tblCustomers, tblComplaints, tblServiceReport, tblInventoryTransactions, tblInventoryTransactionDetails, tblCurrentInventory } from "~/server/models";
 import { format } from 'date-fns';
 
 export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filterParams) => {
@@ -459,7 +459,47 @@ export const updateComplaint = async (id, reqData) => {
   return id
 }
 
-export const createComplaint = async (reqData) => {
+
+export const getComplainNo = async () => {
+  console.log("result")
+  const result = await tblComplaints.findAll({
+      attributes: [
+        [Sequelize.literal('MAX(COMPLAINTNUMBER) + 1'), 'COMPLAINTNUMBER']
+      ],
+      
+      raw: true
+  });
+  const distinctCatagory = result.length > 0 && result[0]['COMPLAINTNUMBER'] 
+    ? result[0]['COMPLAINTNUMBER'] 
+    : null;
+  
+  return distinctCatagory;
+}
+
+
+export const getSerialByCustomer = async (customerId) => {
+  
+  const result = await tblCurrentInventory.findAll({
+    attributes: [
+      ['uniqueid', 'SERIALID'],
+      'descriptionstring',
+      'modelstring'
+    ],
+    where: {
+      Customer: customerId
+    },
+    raw: true
+  });
+  return result;
+}
+
+
+export const createComplaint = async (reqData,newCompId,getSerialRes) => {
+
+  const serialID = getSerialRes.length > 0 ? getSerialRes[0]['SERIALID'] : null;
+  const prodDesc =  getSerialRes.length > 0 ? getSerialRes[0]['descriptionstring'] : null;
+  const modelNo = getSerialRes.length > 0 ? getSerialRes[0]['modelstring'] : null;
+
   const { 
     COMPLAINTDATE, 
     DATEREPORTED, 
@@ -473,7 +513,9 @@ export const createComplaint = async (reqData) => {
     DEATH2,
     REPORTBYDATE2, 
     REVIEWBYDATE2,
-    LASTVISIT2
+    LASTVISIT2,
+    CustomerID,
+    RECBY
   } = reqData
 
   let createReqData = null
@@ -493,8 +535,14 @@ export const createComplaint = async (reqData) => {
     REPORTBYDATE2: REPORTBYDATE2 ? format(new Date(REPORTBYDATE2), 'MM/dd/yyyy'): null,
     REVIEWBYDATE2: REVIEWBYDATE2 ? format(new Date(REVIEWBYDATE2), 'MM/dd/yyyy'): null,
     LASTVISIT2: LASTVISIT2 ? Sequelize.literal(`CAST('${LASTVISIT2}' AS DATETIME)`): null,
+    CustomerID: CustomerID,
+    COMPLAINTNUMBER: newCompId,
+    SERIALID: serialID,
+    PRODUCTDESC: `#${modelNo} ${prodDesc} `,
+    MODELNO :  modelNo,
+    RECBY :RECBY
+
   }
- 
   const newComplaint = await tblComplaints.create(createReqData)
   return newComplaint
 }

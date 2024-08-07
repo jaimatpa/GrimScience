@@ -13,7 +13,7 @@ const props = defineProps({
     type: [Boolean]
   }
 })
-
+const action = ref('add')
 const toast = useToast()
 const router = useRouter()
 const customersFormInstance = getCurrentInstance();
@@ -774,7 +774,7 @@ else
         width: 'w-[1800px] sm:max-w-9xl'
       }"
     >
-      <ServiceOrderDetail :selected-customer="selectedCustomer" :selected-complaint="null" :selected-order="null" :selected-serial="null" />
+      <ServiceOrderDetail :selected-customer="selectedCustomer" :form-action ="action" :selected-complaint="null" :selected-order="null" :selected-serial="null" />
     </UDashboardModal>
     <!-- Site Visit Modal -->
     <UDashboardModal

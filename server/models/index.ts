@@ -1,5 +1,6 @@
 export { default as tbl } from "./tbl";
 export { default as tblAccounts } from "./tblAccounts";
+export { default as tblCurrentInventory } from "./tblCurrentInventory";
 export { default as tblBP } from "./tblBP";
 export { default as tblBP6 } from "./tblBP6";
 export { default as tblBPParts } from "./tblBPParts";
