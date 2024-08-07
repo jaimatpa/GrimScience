@@ -28,6 +28,13 @@
   const complaintUniquueId = ref(props.selectedOrder)
   const toast = useToast()
   const loadingOverlay = ref(false)
+  const warnMsg = ref({
+    setSerReportCount : null,
+    warnMsgModalOpen: false,
+  })
+  const showOnSaveAlertModal = ref(false)
+  const formSubmitData = ref(null);
+
   const formValidationErrors = ref([])
   const formData = reactive({
     customerID: props.selectedCustomer,
@@ -289,10 +296,16 @@
         COMPLAINTID: complaintGridMeta.value.selectedComplaint.uniqueID
       },
       onResponse({ response }) {
+        let openCount = 0;
         if(response.status === 200) {
           loadingOverlay.value = false
           serviceReportGridMeta.value.serviceReports = response._data.body
+          
           serviceReportGridMeta.value.serviceReports.forEach((item) => {
+         
+          if (item.ServiceStatus === 'open') {
+              openCount++;
+            }
             let type;
             switch(item.REPAIRDESC) {
               case 0:
@@ -310,6 +323,7 @@
             item.REPAIRDESC = type
           })
         }
+        warnMsg.value.setSerReportCount = openCount;
       },
       onResponseError() {
         loadingOverlay.value = false
@@ -669,24 +683,28 @@
   }
   async function onSubmit(event: FormSubmitEvent<any>) {
     const {RECBYOptions, ...data} = event.data    
-    // if(!complaintUniquueId.value){
-    //   await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
-    //     method: "POST",
-    //     body: data,
-    //     onResponse({ response }) {
-    //       if (response.status === 200) {
-    //         toast.add({
-    //           title: "Success",
-    //           description: response._data.message,
-    //           icon: "i-heroicons-check-circle",
-    //           color: "green",
-    //         });
-    //         emit('close')
-    //       }
-    //     },
-    //   });
-    // } else {
-      await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
+
+    if (warnMsg.value.setSerReportCount > 0 && data.OPENCASE == '1' ) {
+      warnMsg.value.warnMsgModalOpen = true
+      return true;
+    }
+    warnMsg.value.warnMsgModalOpen = false 
+
+    if (data.OPENCASE == '1') {
+      formSubmitData.value = data; // Store the form data
+      showOnSaveAlertModal.value = true;
+    } else {
+      submitForm(data); // Proceed with form submission
+    }
+  }
+
+  const confirmSave = () => {
+    submitForm(formSubmitData.value);
+    showOnSaveAlertModal.value = false; 
+  };
+
+  const submitForm = async (data: any) => {
+    await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
         method: "PUT",
         body: data,
         onResponse({ response }) {
@@ -700,9 +718,8 @@
             emit('close')
           }
         },
-      });
-    // }
-  }
+    });
+  };
 
   watch(() => serialGridMeta.value.serials, () => {
     if(serialGridMeta.value.serials.length > 0) {      
@@ -1359,5 +1376,36 @@
     }"
   >
     <ServiceOrderInjuryReport2 :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @close="onInjuryReport2ModalClose"/>
-  </UDashboardModal> 
+  </UDashboardModal>
+  
+  <UDashboardModal
+    v-model="warnMsg.warnMsgModalOpen"
+    description="You cannot close a service order that has open service reports. Please close any open service reports prior to closing this order."
+    :ui="{
+      description: { base: 'text-lg' }, // Increase description text size
+      footer: { base: 'flex  justify-end pr-6' } // Center footer content
+    }"
+  >
+    <template #footer>
+      <UButton  label="ok" variant="outline" color="red" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="warnMsg.warnMsgModalOpen = false"/>
+    </template>
+  </UDashboardModal>
+         
+
+  <!-- Service Order On Save Modal -->
+  <UDashboardModal
+    v-model="showOnSaveAlertModal"
+    description="The System will now relieve inventory and close this complaint. Are you sure you wish to continue?"
+    :ui="{
+      description: { base: 'text-lg' }, // Increase description text size
+      footer: { base: 'flex  justify-end pr-6' } // Center footer content
+    }"
+  >
+    <template #footer>
+      <UButton  label="Yes" variant="outline" color="green" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="confirmSave"/>
+      <UButton  label="No" variant="outline" color="red" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="showOnSaveAlertModal = false"/>
+      <UButton  label="Cancel" variant="outline" color="black" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="showOnSaveAlertModal = false"/>
+    </template>
+  </UDashboardModal>
+
 </template>
