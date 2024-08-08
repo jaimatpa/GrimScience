@@ -40,6 +40,14 @@ export const getMessages = async (page, pageSize, sortBy, sortOrder, filterParam
   return list;
 }
 
+export const createMessage = async (data) => {
+  const createReqData = {
+    ...data,
+  };
+  const newMessage = await tblMessages.create(createReqData);
+  return newMessage
+}
+
 export const getNumberOfMessages = async (filterParams) => {
   const whereClause = applyFilters(filterParams);
   const numberOfMessages = await tblMessages.count({
