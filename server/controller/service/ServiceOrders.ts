@@ -1,6 +1,32 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblCustomers, tblComplaints, tblServiceReport, tblInventoryTransactions, tblInventoryTransactionDetails, tblCurrentInventory } from "~/server/models";
+import { tblCustomers, tblComplaints, tblServiceReport, tblInventoryTransactions, tblInventoryTransactionDetails, tblCurrentInventory, tblInventory, tblBP } from "~/server/models";
 import { format } from 'date-fns';
+
+export const getServiceTotalBuilt = async (filterParams) => {
+  let whereClause = {}
+
+  if(filterParams.PRODUCTLINE) whereClause['ProductLine'] = {[Op.like]: `%${filterParams.PRODUCTLINE}%`};
+
+  const countDistinctSerials = await tblInventory.count({
+    distinct: true,
+    col: "serial",
+    include: [{
+        model: tblBP,
+        attributes: ['UniqueID'],
+        where: {
+          UniqueID: {
+            [Op.like]: Sequelize.col('tblInventory.bpid')
+          }
+        }
+      },
+    ],
+    where: {
+      ...whereClause
+    },
+  });
+
+  return countDistinctSerials;
+};
 
 export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filterParams) => {
   const limit = parseInt(pageSize as string, 10) || 10;
@@ -18,6 +44,8 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
   if(filterParams.FAILINVEST) whereClause['FAILINVEST'] = {[Op.like]: `%${filterParams.FAILINVEST}%`};
   if(filterParams.OPENCASE === 'true') whereClause['OPENCASE'] = 0
   if(filterParams.OPENCASE === 'false') whereClause['OPENCASE'] = 1
+  if(filterParams.CRYOThermCheckup === 'true') whereClause['ValidComplaintReason'] = {[Op.like]: `%CRYOTherm Checkup%`};
+  if(filterParams.NonMedicalDevice === 'true') whereClause['ValidComplaintReason'] = {[Op.like]: `%Non-Medical Device%`};
   if(filterParams.ValidComplaint === 'true') whereClause['ValidComplaint'] = -1
   if(filterParams.INJURYREPORTNO === 'true') whereClause['INJURYREPORTNO'] = 1
   if(filterParams.company1) customerWhereClause['company1'] = {[Op.like]: `%${filterParams.company1}%`};
@@ -33,6 +61,7 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
       'INJURYREPORTNO',
       'ValidComplaint',
       'WarrentyService',
+      'ValidComplaintReason',
       [Sequelize.col('tblCustomer.company1'), 'company1'],
       [Sequelize.col('tblCustomer.UniqueID'), 'customerID']
     ],

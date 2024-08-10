@@ -33,12 +33,12 @@
     }, 
     cryotherm: {
       label: 'CRYOTherm Checkup',
-      filterKey: 'kind',
+      filterKey: 'CRYOThermCheckup',
       isChecked: false
     }, 
     nonMedical: {
       label: 'Non-Medical Device',
-      filterKey: 'medicalKind',
+      filterKey: 'NonMedicalDevice',
       isChecked: false
     }, 
     complaints: {
@@ -122,8 +122,8 @@
     FAILINVEST: null,
     company1: null,
     OPENCASE: true,
-    kind: null, 
-    medicalKind: null,
+    CRYOThermCheckup: null, 
+    NonMedicalDevice: null,
     ValidComplaint: null, 
     INJURYREPORTNO: null
   })
@@ -140,15 +140,16 @@
   // Watch for each checkbox
   watchCheckbox('injury', 'INJURYREPORTNO');
   watchCheckbox('open', 'OPENCASE');
-  watchCheckbox('cryotherm', 'kind');
-  watchCheckbox('nonMedical', 'medicalKind');
+  watchCheckbox('cryotherm', 'CRYOThermCheckup');
+  watchCheckbox('nonMedical', 'NonMedicalDevice');
+  watchCheckbox('complaints', 'ValidComplaint');
 
-  watch(
-  () => headerCheckboxes.value.complaints.isChecked,
-    (newCheckedValue) => {
-      filterValues.value.ValidComplaint = newCheckedValue ? "1" : "0";
-    }
-  );
+// watch(
+//   () => filterValues.value.PRODUCTDESC,
+//   (newCheckedValue) => {
+//     fetchBuiltCount()
+//   }
+// );
 
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
@@ -158,6 +159,7 @@
   const init = async () => {
     gridMeta.value.isLoading = true
     fetchGridData()
+    // fetchBuiltCount()
     for(const key in headerFilters.value) {
       const apiURL = headerFilters.value[key]?.api?? `/api/service/orders/${key}`;
       await useApiFetch(apiURL, {
@@ -206,6 +208,19 @@
         gridMeta.value.isLoading = false
       }
     });
+  }
+  const fetchBuiltCount = async () => {
+    await useApiFetch('/api/service/orders/builtCount', {
+      method: 'GET',
+      params: {
+        PRODUCTLINE: `${filterValues.value.PRODUCTDESC}`
+      }, 
+      onResponse({ response }) {
+        if(response.status === 200) {
+          gridMeta.value.numberOfServiceOrders = response._data.body
+        }
+      }
+    })
   }
   const handleModalClose = () => {
     modalMeta.value.isServiceOrderModalOpen = false
