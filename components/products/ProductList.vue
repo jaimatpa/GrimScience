@@ -30,24 +30,25 @@ function setActiveTab(tab) {
 }
 
 const headerFilters = ref({
-  label: {
-    label: "Label",
-    filter: "label",
+  model: {
+    label: "Model",
+    filter: "MODEL",
     options: [],
   },
+
 
 });
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "model",
+      key: "MODEL",
       label: "Model",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "description",
+      key: "DESCRIPTION",
       label: "Description",
       sortable: true,
       sortDirection: "none",
@@ -64,8 +65,8 @@ const gridMeta = ref({
   ],
   page: 1,
   pageSize: 50,
-  numberOfCustomers: 0,
-  customers: [],
+  numberOfProducts: 0,
+  products: [],
   selectedCustomerId: null,
   selectCustomer: null,
   sort: {
@@ -80,21 +81,10 @@ const modalMeta = ref({
   isQuoteDetailModalOpen: false,
   isServiceOrderDetailModalOpen: false,
   isSiteVisitModalOpen: false,
-  modalTitle: "New Customer",
+  modalTitle: "New Product",
 });
 const filterValues = ref({
-  market: null,
-  source: null,
-  ParadynamixCatagory: null,
-  SourceConfrence: null,
-  number: null,
-  fname: null,
-  lname: null,
-  company1: null,
-  homephone: null,
-  workphone: null,
-  state: null,
-  zip: null,
+  MODEL: null,
 });
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
@@ -123,43 +113,45 @@ Object.entries(route.query).forEach(([key, value]) => {
 
 const init = async () => {
   fetchGridData();
-  for (const key in headerFilters.value) {
-    const apiURL = headerFilters.value[key]?.api ?? `/api/customers/${key}`;
-    await useApiFetch(apiURL, {
-      method: "GET",
-      onResponse({ response }) {
-        if (response.status === 200) {
-          headerFilters.value[key].options = [null, ...response._data.body];
-        }
-      },
-    });
-  }
+  // for (const key in headerFilters.value) {
+  //   const apiURL = headerFilters.value[key]?.api ?? `/api/products/${key}`;
+  //   await useApiFetch(apiURL, {
+  //     method: "GET",
+  //     onResponse({ response }) {
+  //       console.log(response)
+  //       if (response.status === 200) {
+  //         console.log(response._data.body)
+  //         headerFilters.value[key].options = [null, ...response._data.body];
+  //       }
+  //     },
+  //   });
+  // }
 };
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
-  await useApiFetch("/api/customers/numbers", {
+  await useApiFetch("/api/products/numbers", {
     method: "GET",
     params: {
       ...filterValues.value,
     },
     onResponse({ response }) {
       if (response.status === 200) {
-        gridMeta.value.numberOfCustomers = response._data.body;
+        gridMeta.value.numberOfProducts = response._data.body;
       }
     },
   });
-  if (gridMeta.value.numberOfCustomers === 0) {
-    gridMeta.value.customers = [];
-    gridMeta.value.numberOfCustomers = 0;
+  if (gridMeta.value.numberOfProducts === 0) {
+    gridMeta.value.products = [];
+    gridMeta.value.numberOfProducts = 0;
     gridMeta.value.isLoading = false;
     return;
   }
   if (
     gridMeta.value.page * gridMeta.value.pageSize >
-    gridMeta.value.numberOfCustomers
+    gridMeta.value.numberOfProducts
   ) {
     gridMeta.value.page =
-      Math.ceil(gridMeta.value.numberOfCustomers / gridMeta.value.pageSize) | 1;
+      Math.ceil(gridMeta.value.numberOfProducts / gridMeta.value.pageSize) | 1;
   }
   await useApiFetch("/api/products/", {
     method: "GET",
@@ -172,7 +164,8 @@ const fetchGridData = async () => {
     },
     onResponse({ response }) {
       if (response.status === 200) {
-        gridMeta.value.customers = response._data.body;
+        gridMeta.value.products = response._data.body;
+        console.log(gridMeta.value)
       }
       gridMeta.value.isLoading = false;
     },
@@ -304,7 +297,7 @@ const getCustomerSiteVisit = async () => {
 const onSelect = async (row) => {
   gridMeta.value.selectedCustomerId = row?.UniqueID;
 
-  gridMeta.value.customers.forEach((cus) => {
+  gridMeta.value.products.forEach((cus) => {
     if (cus.UniqueID === row.UniqueID) {
       cus.class = "bg-gray-200";
     } else {
@@ -432,7 +425,7 @@ const routinesColumns = ref([
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup label="Quantity" name="Quantity">
                 <div class="text-center text-bold">
-                  {{ gridMeta.numberOfCustomers }}
+                  {{ gridMeta.numberOfProducts }}
                 </div>
               </UFormGroup>
             </div>
@@ -461,7 +454,7 @@ const routinesColumns = ref([
 
       <UTable
         v-if="activeTab === 'lookup'"
-        :rows="gridMeta.customers"
+        :rows="gridMeta.products"
         :columns="columns"
         :loading="gridMeta.isLoading"
         class="w-full"
@@ -631,7 +624,7 @@ const routinesColumns = ref([
           <UPagination
             :max="7"
             :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfCustomers | 0"
+            :total="gridMeta.numberOfProducts | 0"
             v-model="gridMeta.page"
             @update:model-value="handlePageChange()"
           />
