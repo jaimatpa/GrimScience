@@ -588,6 +588,9 @@
     emit('save', event.data)
     emit('close')
   }
+  async function onClose () {
+    emit('close')
+  }
   watch(() => formData.REPAIRDATE, () => formData.Week = `${new Date(formData.REPAIRDATE).getFullYear().toString().substring(2)}-${getWeekNumber(formData.REPAIRDATE)}`)
   if(props.selectedServiceReport) 
     editInit()
@@ -1113,7 +1116,7 @@
           <UButton icon="i-heroicons-document" label="Save" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onSave"/>
         </div>
         <div class="basis-1/6 w-full">
-          <UButton icon="i-heroicons-magnifying-glass" label="View Order" variant="outline" color="primary" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+          <UButton icon="i-heroicons-magnifying-glass" label="View Order" variant="outline" color="primary" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onClose"/>
         </div>
         <div class="basis-1/6 w-full">
           <UButton icon="i-heroicons-currency-dollar" label="Quickbooks" variant="outline" color="primary" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>

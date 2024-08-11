@@ -3,26 +3,25 @@ import { tblCustomers, tblComplaints, tblServiceReport, tblInventoryTransactions
 import { format } from 'date-fns';
 
 export const getServiceTotalBuilt = async (filterParams) => {
-  let whereClause = {}
+  tblInventory.belongsTo(tblBP, { foreignKey: 'BPID', targetKey: 'UniqueID' });
+  tblBP.hasMany(tblInventory, { foreignKey: 'BPID', sourceKey: 'UniqueID' });
 
-  if(filterParams.PRODUCTLINE) whereClause['ProductLine'] = {[Op.like]: `%${filterParams.PRODUCTLINE}%`};
+  let whereClause = {}
+  if (filterParams.PRODUCTLINE !== 'null') whereClause['ProductLine'] = { [Op.like]: `%${filterParams.PRODUCTLINE}%` };
 
   const countDistinctSerials = await tblInventory.count({
     distinct: true,
     col: "serial",
     include: [{
-        model: tblBP,
-        attributes: ['UniqueID'],
-        where: {
-          UniqueID: {
-            [Op.like]: Sequelize.col('tblInventory.bpid')
-          }
+      model: tblBP,
+      attributes: ['UniqueID'],
+      where: {
+        ...whereClause,
+        UniqueID: {
+          [Op.like]: Sequelize.col('tblInventory.bpid')
         }
-      },
-    ],
-    where: {
-      ...whereClause
-    },
+      }
+    }],
   });
 
   return countDistinctSerials;

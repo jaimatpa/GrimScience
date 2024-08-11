@@ -13,9 +13,8 @@
   const descIcon = "i-heroicons-bars-arrow-down-20-solid"
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
-  const totalBuilt = ref(24570);
-  const totalOrders = ref(233);
-  const percent = ref(1)
+  const totalBuilt = ref(0);
+  const totalOrders = ref(0);
 
   const headerFilters = ref({
     productLines: {
@@ -127,8 +126,7 @@
     ValidComplaint: null, 
     INJURYREPORTNO: null
   })
-
-  function watchCheckbox(property, filterKey) {
+  const watchCheckbox = (property, filterKey) => {
     watch(
       () => headerCheckboxes.value[property].isChecked,
       (newCheckedValue) => {
@@ -144,12 +142,14 @@
   watchCheckbox('nonMedical', 'NonMedicalDevice');
   watchCheckbox('complaints', 'ValidComplaint');
 
-// watch(
-//   () => filterValues.value.PRODUCTDESC,
-//   (newCheckedValue) => {
-//     fetchBuiltCount()
-//   }
-// );
+  watch(() => filterValues.value.PRODUCTDESC, () => fetchBuiltCount())
+
+  const percent = computed(() => {
+    if (totalOrders.value === 0) {
+      return 0;
+    }
+    return Math.round((totalBuilt.value / totalOrders.value) * 100);
+  });
 
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
@@ -159,7 +159,7 @@
   const init = async () => {
     gridMeta.value.isLoading = true
     fetchGridData()
-    // fetchBuiltCount()
+    fetchBuiltCount()
     for(const key in headerFilters.value) {
       const apiURL = headerFilters.value[key]?.api?? `/api/service/orders/${key}`;
       await useApiFetch(apiURL, {
@@ -217,7 +217,7 @@
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
-          gridMeta.value.numberOfServiceOrders = response._data.body
+          totalBuilt.value = response._data.body
         }
       }
     })

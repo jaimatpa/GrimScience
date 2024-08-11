@@ -535,6 +535,9 @@
     selectedServiceReportID.value = null
     modalMeta.value.isServiceReportModalOpen = true
   }
+  const onServiceReportClose = async () => {
+    modalMeta.value.isServiceReportModalOpen = false
+  }
   const onServiceReportSave = async () => {
     modalMeta.value.isServiceReportModalOpen = false
     fetchServiceReportList()
@@ -1312,7 +1315,7 @@
       width: 'w-[1700px] sm:max-w-9xl', 
     }"
   >
-    <ServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
+    <ServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave" @close="onServiceReportClose"/>
   </UDashboardModal>
   <!-- Inventory Transaction Modal -->
   <UDashboardModal
