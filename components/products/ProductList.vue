@@ -30,9 +30,9 @@ function setActiveTab(tab) {
 }
 
 const headerFilters = ref({
-  model: {
-    label: "Model",
-    filter: "MODEL",
+  productline: {
+    label: "Product Line",
+    filter: "PRODUCTLINE",
     options: [],
   },
 
@@ -61,30 +61,35 @@ const gridMeta = ref({
       sortDirection: "none",
       filterable: true,
     },
+    {
+      key: "edit",
+      label: "Edit",
+      kind: "actions",
+    },
+    {
+      key: "delete",
+      label: "Delete",
+      kind: "actions",
+    },
 
   ],
   page: 1,
   pageSize: 50,
   numberOfProducts: 0,
   products: [],
-  selectedCustomerId: null,
-  selectCustomer: null,
+  selectedProductId: null,
+  selectProduct: null,
   sort: {
     column: "UniqueID",
     direction: "asc",
   },
   isLoading: false,
 });
-const modalMeta = ref({
-  isCustomerModalOpen: false,
-  isOrderDetailModalOpen: false,
-  isQuoteDetailModalOpen: false,
-  isServiceOrderDetailModalOpen: false,
-  isSiteVisitModalOpen: false,
-  modalTitle: "New Product",
-});
+
 const filterValues = ref({
   MODEL: null,
+  DESCRIPTION: null,
+  grossprofit: null,
 });
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
@@ -113,19 +118,17 @@ Object.entries(route.query).forEach(([key, value]) => {
 
 const init = async () => {
   fetchGridData();
-  // for (const key in headerFilters.value) {
-  //   const apiURL = headerFilters.value[key]?.api ?? `/api/products/${key}`;
-  //   await useApiFetch(apiURL, {
-  //     method: "GET",
-  //     onResponse({ response }) {
-  //       console.log(response)
-  //       if (response.status === 200) {
-  //         console.log(response._data.body)
-  //         headerFilters.value[key].options = [null, ...response._data.body];
-  //       }
-  //     },
-  //   });
-  // }
+  for (const key in headerFilters.value) {
+    const apiURL = headerFilters.value[key]?.api ?? `/api/products/${key}`;
+    await useApiFetch(apiURL, {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          headerFilters.value[key].options = [null, ...response._data.body];
+        }
+      },
+    });
+  }
 };
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
@@ -165,47 +168,25 @@ const fetchGridData = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         gridMeta.value.products = response._data.body;
-        console.log(gridMeta.value)
       }
       gridMeta.value.isLoading = false;
     },
   });
 };
+const excelExport = () => {
+
+};
 const onCreate = () => {
-  gridMeta.value.selectedCustomerId = null;
-  modalMeta.value.modalTitle = "New Customer";
-  modalMeta.value.isCustomerModalOpen = true;
+
 };
 const onEdit = (row) => {
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-  modalMeta.value.modalTitle = "Edit";
-  modalMeta.value.isCustomerModalOpen = true;
+
 };
-const onDelete = async (row: any) => {
-  await useApiFetch(`/api/customers/${row?.UniqueID}`, {
-    method: "DELETE",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        toast.add({
-          title: "Success",
-          description: response._data.message,
-          icon: "i-heroicons-trash-solid",
-          color: "green",
-        });
-        fetchGridData();
-      }
-    },
-  });
+const onDelete = (row) => {
+
 };
-const handleModalClose = () => {
-  modalMeta.value.isCustomerModalOpen = false;
-};
-const handleModalSave = async () => {
-  handleModalClose();
-  fetchGridData();
-};
-const handlePageChange = async () => {
-  fetchGridData();
+const onDblClick = async () => {
+
 };
 const handleFilterChange = () => {
   gridMeta.value.page = 1;
@@ -249,144 +230,7 @@ const handleFilterInputChange = async (event, name) => {
   }
   fetchGridData();
 };
-const excelExport = async () => {
-  exportIsLoading.value = true;
-  const params = {
-    sortBy: gridMeta.value.sort.column,
-    sortOrder: gridMeta.value.sort.direction,
-    ...filterValues.value,
-  };
-  const paramsString = Object.entries(params)
-    .filter(([_, value]) => value !== null)
-    .map(([key, value]) => {
-      if (value !== null) return `${key}=${value}`;
-    })
-    .join("&");
-  location.href = `/api/customers/exportlist?${paramsString}`;
-  exportIsLoading.value = false;
-};
 
-const getCustomerInvoices = async () => {
-  await useApiFetch("/api/customers/invoices", {
-    method: "GET",
-    params: {
-      customerid: gridMeta.value.selectedCustomerId,
-    },
-    onResponse({ response }) {
-      if (response.status === 200) {
-        invoicesGridMeta.value.invoices = response._data.body;
-      }
-    },
-  });
-};
-
-const getCustomerSiteVisit = async () => {
-  await useApiFetch("/api/sitevisit/sitevisit", {
-    method: "GET",
-    params: {
-      CustomerID: gridMeta.value.selectedCustomerId,
-    },
-    onResponse({ response }) {
-      if (response.status === 200) {
-        sitevisitGridMeta.value.options = response._data.body;
-      }
-    },
-  });
-};
-
-const onSelect = async (row) => {
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-
-  gridMeta.value.products.forEach((cus) => {
-    if (cus.UniqueID === row.UniqueID) {
-      cus.class = "bg-gray-200";
-    } else {
-      delete cus.class;
-    }
-  });
-  gridMeta.value.selectCustomer = row;
-
-  await getCustomerInvoices();
-  await getCustomerSiteVisit();
-};
-
-const invoicesGridMeta = ref({
-  defaultColumns: <UTableColumn[]>[
-    {
-      key: "invoicedate",
-      label: "Date",
-    },
-    {
-      key: "orderid",
-      label: "#",
-    },
-    {
-      key: "status",
-      label: "Status",
-    },
-  ],
-  invoices: [],
-  selectedInvoice: null,
-  isLoading: false,
-});
-
-const sitevisitGridMeta = ref({
-  defaultColumns: <UTableColumn[]>[
-    {
-      key: "VisitDate",
-      label: "Date",
-    },
-    {
-      key: "VisitNumber",
-      label: "#",
-    },
-    {
-      key: "Status",
-      label: "Status",
-    },
-  ],
-  options: [],
-  selectedOption: null,
-  isLoading: false,
-});
-
-const onInvoicesSelect = (row) => {
-  invoicesGridMeta.value.selectedInvoice = row;
-};
-
-const onDblInvoicesClick = () => {
-  if (invoicesGridMeta.value.selectedInvoice) {
-    modalMeta.value.isOrderDetailModalOpen = true;
-  }
-};
-
-const handleSelect = () => {
-  const cus = gridMeta.value.selectCustomer;
-  const value = `#${cus?.number} ${cus?.fname} ${cus?.lname}`;
-  emit("select", value);
-  emit("close");
-};
-const onDblClick = async () => {
-  if (gridMeta.value.selectedCustomerId) {
-    modalMeta.value.modalTitle = "Edit";
-    modalMeta.value.isCustomerModalOpen = true;
-  }
-};
-
-const routinesColumns = ref([
-  {
-    key: "id",
-    label: "Date",
-  },
-  {
-    key: "period",
-    label: "#",
-  },
-  {
-    key: "title",
-    label: "Status",
-  },
-]);
 </script>
 
 <template>
@@ -444,7 +288,7 @@ const routinesColumns = ref([
           <UButton
             color="green"
             variant="outline"
-            label="New customer"
+            label="New Product"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
@@ -535,162 +379,8 @@ const routinesColumns = ref([
             truncate
           />
         </div>
-        <div class="grid grid-cols-2 gap-5 px-5">
-          <div>
-            <span>Service Order</span>
-            <UTable
-              :columns="routinesColumns"
-              :rows="[]"
-              :ui="{
-                wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'p-1',
-                },
-              }"
-            />
-          </div>
-          <div>
-            <span>Quotes</span>
-            <UTable
-              :columns="routinesColumns"
-              :rows="[]"
-              :ui="{
-                wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'p-1',
-                },
-              }"
-            />
-          </div>
-          <div>
-            <span>Invoices</span>
-            <UTable
-              :columns="invoicesGridMeta.defaultColumns"
-              :rows="invoicesGridMeta.invoices"
-              :ui="{
-                wrapper:
-                  'h-56 border-[1px] border-gray-400 dark:border-gray-700',
-                tr: {
-                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                },
-                th: {
-                  padding: 'p-1',
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                },
-                td: {
-                  padding: 'p-1',
-                },
-                checkbox: { padding: 'p-1 w-[10px]' },
-              }"
-              @select="onInvoicesSelect"
-              @dblclick="onDblInvoicesClick"
-            />
-          </div>
-          <div>
-            <span>Site Visits</span>
-            <UTable
-              :columns="sitevisitGridMeta.defaultColumns"
-              :rows="sitevisitGridMeta.options"
-              :ui="{
-                wrapper:
-                  'h-56 border-[1px] border-gray-400 dark:border-gray-700',
-                tr: {
-                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                },
-                th: {
-                  padding: 'p-1',
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                },
-                td: {
-                  padding: 'p-1',
-                },
-                checkbox: { padding: 'p-1 w-[10px]' },
-              }"
-            />
-          </div>
-        </div>
-      </div>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
-        <div
-          v-if="props.isPage && activeTab === 'lookup'"
-          class="flex flex-row justify-end mr-20 mt-1"
-        >
-          <UPagination
-            :max="7"
-            :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfProducts | 0"
-            v-model="gridMeta.page"
-            @update:model-value="handlePageChange()"
-          />
-        </div>
-
-        <div v-if="!props.isPage">
-          <div class="mt-3 w-[120px]">
-            <UButton
-              icon="i-heroicons-cursor-arrow-ripple"
-              variant="outline"
-              color="green"
-              label="Select"
-              :ui="{
-                base: 'w-full',
-                truncate: 'flex justify-center w-full',
-              }"
-              truncate
-              @click="handleSelect"
-            >
-            </UButton>
-          </div>
-        </div>
       </div>
     </UDashboardPanel>
   </UDashboardPage>
-  <!-- New Customer Detail Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isCustomerModalOpen"
-    :title="modalMeta.modalTitle"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1000px] sm:max-w-7xl',
-    }"
-  >
-    <CustomersForm
-      @close="handleModalClose"
-      @save="handleModalSave"
-      :selected-customer="gridMeta.selectedCustomerId"
-      :is-modal="true"
-    />
-  </UDashboardModal>
-
-  <!-- Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isOrderDetailModalOpen"
-    title="Order"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
-  >
-    <InvoiceDetail
-      :selected-customer="gridMeta.selectedCustomerId"
-      :selected-order="invoicesGridMeta.selectedInvoice.orderid"
-      @close="handleModalClose"
-    />
-  </UDashboardModal>
 </template>
 <style scoped></style>
