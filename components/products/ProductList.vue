@@ -85,7 +85,10 @@ const gridMeta = ref({
   },
   isLoading: false,
 });
-
+const modalMeta = ref({
+  isProductModalOpen: false,
+  modalTitle: "New Product",
+});
 const filterValues = ref({
   MODEL: null,
   DESCRIPTION: null,
@@ -177,7 +180,9 @@ const excelExport = () => {
 
 };
 const onCreate = () => {
-
+  gridMeta.value.selectedProductId = null;
+  modalMeta.value.modalTitle = "New Product";
+  modalMeta.value.isProductModalOpen = true;
 };
 const onEdit = (row) => {
 
@@ -187,6 +192,16 @@ const onDelete = (row) => {
 };
 const onDblClick = async () => {
 
+};
+const handleModalClose = () => {
+  modalMeta.value.isProductModalOpen = false;
+};
+const handleModalSave = async () => {
+  handleModalClose();
+  fetchGridData();
+};
+const handlePageChange = async () => {
+  fetchGridData();
 };
 const handleFilterChange = () => {
   gridMeta.value.page = 1;
@@ -380,7 +395,60 @@ const handleFilterInputChange = async (event, name) => {
           />
         </div>
       </div>
+      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+        <div
+          v-if="props.isPage && activeTab === 'lookup'"
+          class="flex flex-row justify-end mr-20 mt-1"
+        >
+          <UPagination
+            :max="7"
+            :page-count="gridMeta.pageSize"
+            :total="gridMeta.numberOfProducts | 0"
+            v-model="gridMeta.page"
+            @update:model-value="handlePageChange()"
+          />
+        </div>
+
+        <!-- <div v-if="!props.isPage">
+          <div class="mt-3 w-[120px]">
+            <UButton
+              icon="i-heroicons-cursor-arrow-ripple"
+              variant="outline"
+              color="green"
+              label="Select"
+              :ui="{
+                base: 'w-full',
+                truncate: 'flex justify-center w-full',
+              }"
+              truncate
+              @click="handleSelect"
+            >
+            </UButton>
+          </div>
+        </div> -->
+      </div>
     </UDashboardPanel>
   </UDashboardPage>
+  <!-- New Product Detail Modal -->
+  <UDashboardModal
+  v-model="modalMeta.isProductModalOpen"
+  :title="modalMeta.modalTitle"
+  :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[1000px] sm:max-w-7xl',
+  }"
+>
+  <ProductsForm
+    @close="handleModalClose"
+    @save="handleModalSave"
+    :selected-customer="gridMeta.selectedProductId"
+    :is-modal="true"
+  />
+</UDashboardModal>
 </template>
 <style scoped></style>
