@@ -3,6 +3,8 @@ import type { FormError, FormSubmitEvent } from '#ui/types'
 import { useDatePicker } from 'v-calendar';
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css';
+import PartsUsed from './PartsUsed.vue';
+import PartsList from '../job/PartsList.vue';
 
 
 const items = [{
@@ -61,6 +63,36 @@ const productProjects= [{
 
 }]
 
+const employeeHours= [{
+  Date: '1',
+  Employee:'emon',
+  Hrs:'1'
+ 
+}, {
+  Date: '1',
+  Employee:'emon',
+  Hrs:'1'
+
+}, {
+  Date: '1',
+  Employee:'emon',
+  Hrs:'1'
+
+}, {
+  Date: '1',
+  Employee:'emon',
+  Hrs:'1'
+}, {
+  Date: '1',
+  Employee:'emon',
+  Hrs:'1'
+}, {
+  Date: '1',
+  Employee:'emon',
+  Hrs:'1'
+
+}]
+
 
 
 
@@ -106,6 +138,56 @@ const InventoryTransactions = [{
     id: '5645',
   date:5/5/12,
   Qty:'2',
+}]
+
+const weekly = [{
+  "#": '1',
+  Week:8,
+  Operation:'Website Wizard Page',
+  "Work Center":'54',
+  Hrs: '20',
+ "Rework Hours":'dfkalsdf',
+ "Verfied":'done'
+}, {
+    po: 'PO54654',
+  date:5/5/12,
+  ordered:'2',
+  recieved:'54',
+  Price: '',
+ vender:'dfkalsdf',
+
+}, {
+  "#": '1',
+  Week:8,
+  Operation:'Website Wizard Page',
+  "Work Center":'54',
+  Hrs: '20',
+ "Rework Hours":'dfkalsdf',
+ "Verfied":'done'
+}, {
+  "#": '1',
+  Week:8,
+  Operation:'Website Wizard Page',
+  "Work Center":'54',
+  Hrs: '20',
+ "Rework Hours":'dfkalsdf',
+ "Verfied":'done'
+}, {
+  "#": '1',
+  Week:8,
+  Operation:'Website Wizard Page',
+  "Work Center":'54',
+  Hrs: '20',
+ "Rework Hours":'dfkalsdf',
+ "Verfied":'done'
+}, {
+  "#": '1',
+  Week:8,
+  Operation:'Website Wizard Page',
+  "Work Center":'54',
+  Hrs: '20',
+ "Rework Hours":'dfkalsdf',
+ "Verfied":'done'
 }]
 
 const orders = [{
@@ -154,6 +236,13 @@ const orders = [{
 }]
 
 
+const onUsed = () => {
+    modalMeta.value.isPartsUsed = true
+  }
+
+  const onPartListing = () => {
+    modalMeta.value.isPartLisingModalOpen = true
+  }
 
 
 
@@ -221,7 +310,15 @@ const formData = reactive({
   Extension: null,
   ExtensionBill: null,
 })
-
+const modalMeta = ref({
+    isPartsUsed: false,
+    isPartLisingModalOpen: false,
+    isQuoteDetailModalOpen: false,
+    isServiceOrderDetailModalOpen: false,
+    isSiteVisitModalOpen: false,
+    modalTitle: "New Customer",
+  })
+ 
 const editInit = async () => {
   loadingOverlay.value = true
   await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
@@ -473,11 +570,12 @@ else
                 </UFormGroup>
               </div>
             </div>
-                 <div class="flex flex-row space-x-3">
+            <div class="flex flex-row space-x-3">
+              
               <div class="basis-1/2">
                 <UFormGroup
-                  label="Ready To Produce "
-                  name="RProduce"
+                  label="Ready To Produce"
+                  name="RTOProduce"
                 >
                 <UPopover :popper="{ placement: 'bottom-start' }">
                           <UButton icon="i-heroicons-calendar-days-20-solid"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
@@ -498,9 +596,6 @@ else
                   />
                 </UFormGroup>
               </div>
-              <div>
-            </div>
-             
             </div>
            <div class="flex flex-row space-x-3">
             <div class="basis-1/2">
@@ -575,29 +670,136 @@ else
     </div>
         <div v-else-if="item.key === 'Operation'" class="space-y-3">
             <div class="grid grid-cols-1 mt-6 h-48">
-        <UTable :rows="productProjects" />
-         
+              <UTable :rows="weekly" />
+              
+
         </div>
-        
+        <div class="flex flex-row space-x-4 mt-2">
+        <div class="grid grid-cols-1 mt-6 h-48 basis-1/2 ">
+                <h2 class="font-medium">Employee Hours For Selected Operation</h2>
+              <UTable :rows="employeeHours" />
+
+                </div>
+                <div class="basis-1/2 ">
+                <div class="flex flex-row mt-6 ">
+                  <div  class="basis-1/2">
+                    <h2 class="font-medium">Rework</h2>
+              
+                    <UTooltip text="Edit" >
+                  <UButton
+                    color="cyan"
+                    variant="outline"
+                    icon="i-heroicons-pencil-square"
+                    type="submit"
+                    label="Rework Parts"
+                     @click="onUsed()"
+                  />
+                </UTooltip>
+
+                    <UFormGroup
+                  label="Hours"
+                  name="Hours"
+                  class="mt-3"
+                >
+            <UInput
+             
+            />
+            </UFormGroup>
+                  </div>
+                  <div class="mt-3 ml-10 ">
+                    <h2>Rework Cost</h2>
+                    <h2>$00</h2>
+
+                  </div>
+
+                  </div>
+                  <div class="mt-5 flex justify-center">
+                    <UTooltip text="Edit" >
+                     <UButton
+                       color="green"
+                       variant="outline"
+                       icon="i-heroicons-plus"
+                       type="submit"
+                       label="Verify  & Close Operation"
+                      
+                     />
+                   </UTooltip> 
+
+                  </div>
+                </div>
+                
+                
+        </div>
+        <div class="flex flex-row">
+          <div class="basis-1/2">
+            <h2 class="font-medium">Manage Time Entries </h2>
+            <UTooltip text="Edit" >
+                       <UButton
+                         class="text-[#1c96c5]"
+                         variant="outline"
+                         icon="i-heroicons-pencil-square"
+                         type="submit"
+                         label="Move Selected Entries to Operation:"
+                        
+                       />
+                     </UTooltip> 
+
+          </div>
+          <div class="basis-1/2">
+
+            <UFormGroup
+           label="Destination Operation"
+           name="Destination"
+         >
+           <UInputMenu
+            
+             
+           />
+            </UFormGroup>
+          </div>
+
+
+        </div>
     </div>
         <div v-else-if="item.key === 'project'" class="space-y-3">
-        
+          <UTable :rows="productProjects" />
         </div>
         </template>
 
   </UTabs>
 
-
-
-
+ 
 
 
   
       <div class="flex justify-end gap-3">
-        <UButton color="red" variant="outline"
-          :label="!isModal ? 'Go back': 'Cancel'"
-          @click="handleClose"
-        />
+        <UTooltip text="Edit" >
+          <UButton color="red" variant="outline"
+            :label="!isModal ? 'Go back': 'Cancel'"
+            @click="handleClose"
+          />
+          <UButton
+               class="text-[#1c96c5] ml-3"
+               variant="outline"
+               icon="i-heroicons-magnifying-glass"
+               type="submit"
+               label="View Instructions"
+            
+
+              
+             />
+
+             <UButton
+               class="text-[#1c96c5] ml-3"
+               variant="outline"
+               icon="i-heroicons-magnifying-glass"
+               type="submit"
+               label="View Parts Listing"
+             @click="onPartListing()"
+
+              
+             />
+           </UTooltip> 
         <UButton color="cyan" variant="outline"
           type="submit"
           label="Save"
@@ -605,4 +807,33 @@ else
       </div>
     </UForm>
   </template>
+   <!-- is Part Modal -->
+   <UDashboardModal
+    v-model="modalMeta.isPartsUsed"
+    
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-10' },
+      width: 'w-[1500px] sm:max-w-9xl', 
+    }"
+  >
+    <PartsUsed  @close="modalMeta.isPartsUsed = true"/>
+  </UDashboardModal> 
+<!-- is Part Listing Modal -->
+<UDashboardModal
+    v-model="modalMeta.isPartLisingModalOpen"
+    
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1500px] sm:max-w-9xl', 
+    }"
+  >
+    <PartsList @close="modalMeta.isPartLisingModalOpen = true"/>
+  </UDashboardModal> 
+
+
+
 </template>

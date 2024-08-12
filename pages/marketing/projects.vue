@@ -1,5 +1,6 @@
 <script lang="ts" setup>
   import MarketingForm from '~/components/marketing/MarketingForm.vue';
+import PartsUsed from '~/components/marketing/PartsUsed.vue';
 import type { UTableColumn } from '~/types';
 
   onMounted(() => {
@@ -110,6 +111,7 @@ import type { UTableColumn } from '~/types';
     isLoading: false
   })
   const modalMeta = ref({
+    isPartsUsed: false,
     isCustomerModalOpen: false,
     isOrderDetailModalOpen: false,
     isQuoteDetailModalOpen: false,
@@ -234,6 +236,10 @@ import type { UTableColumn } from '~/types';
     gridMeta.value.selectedCustomerId = row?.UniqueID
     modalMeta.value.isSiteVisitModalOpen = true
   }
+  const onAdd=()=>{
+    modalMeta.value.isPartsUsed = true
+
+  }
   const onDelete = async (row: any) => {
     await useApiFetch(`/api/customers/${row?.UniqueID}`, {
       method: 'DELETE', 
@@ -324,9 +330,14 @@ import type { UTableColumn } from '~/types';
   }
   const onDblClick = async () =>{
     if(gridMeta.value.selectedCustomerId){
-      modalMeta.value.modalTitle = "Edit";
+      modalMeta.value.modalTitle = "Edit Project";
       modalMeta.value.isCustomerModalOpen = true
     }
+  }
+  const onAdded = () => {
+    modalMeta.value.isCustomerModalOpen = true
+    modalMeta.value.modalTitle = "New Project";
+
   }
 </script>
 
@@ -360,7 +371,7 @@ import type { UTableColumn } from '~/types';
   </div>
 
   <!-- Right Section: Checkboxes -->
-  <div class="flex items-center space-x-11 mr-10">
+  <div class="flex items-center space-x-11 ">
     <div>
       <UCheckbox label="Marketing" />
     </div>
@@ -376,6 +387,17 @@ import type { UTableColumn } from '~/types';
     <div>
       <UCheckbox label="Show Open Only" />
     </div>
+  </div>
+  <div>
+    <div class="mr-5">
+        
+        <UButton color="green" variant="outline"
+          type="submit"
+          label="New Project"
+          icon="i-heroicons-plus"
+          @click="onAdded()"
+        />
+      </div>
   </div>
 </div>
 
@@ -515,6 +537,12 @@ import type { UTableColumn } from '~/types';
   >
     <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId"/>
   </UDashboardModal>
+
+
+
+
+
+  
   <!-- Site Visit Modal -->
   <UDashboardModal
     v-model="modalMeta.isSiteVisitModalOpen"
@@ -528,6 +556,18 @@ import type { UTableColumn } from '~/types';
   >
     <CustomersSiteVisitDetail :selected-customer="gridMeta.selectedCustomerId"/>
   </UDashboardModal>
+    <!-- is Part Modal -->
+    <UDashboardModal
+    v-model="modalMeta.isPartsUsed"
+    
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-10' },
+      width: 'w-[1500px] sm:max-w-9xl', 
+    }"
+  >
+  </UDashboardModal> 
 </template>
 <style scoped>
 </style>
