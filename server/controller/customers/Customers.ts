@@ -49,7 +49,7 @@ export const getAllCustomers = async (sortBy, sortOrder, filterParams) => {
     where: whereClause,
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
   });
-  console.log("the list is",list)
+
   return list;
 }
 

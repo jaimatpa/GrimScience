@@ -17,8 +17,8 @@ filterParams.forEach(param => {
 };
 
 export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams) => {
-  
-  
+
+
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
   
@@ -31,10 +31,12 @@ export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams
     offset,
     limit
   });
+
   return list;
 }
 
 export const getNumberOfJobs = async (filterParams) => {
+
     const whereClause = applyFilters(filterParams);
     const numberOfCustomers = await tblJobs.count({
       where: whereClause

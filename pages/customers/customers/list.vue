@@ -175,17 +175,20 @@
         gridMeta.value.sort.direction = value as unknown as string;
         break;
     }
+
   })
 
   const init = async () => {
     fetchGridData()
     for(const key in headerFilters.value) {
+      console.log("the key is",key);
       const apiURL = headerFilters.value[key]?.api?? `/api/customers/${key}`;
       await useApiFetch(apiURL, {
         method: 'GET',
         onResponse({ response }) {
           if(response.status === 200) {
             headerFilters.value[key].options = [null, ...response._data.body];
+            console.log("the response is",response._data.body);
           }
         }
       })
@@ -201,6 +204,7 @@
       onResponse({ response }) {
         if(response.status === 200) {
           gridMeta.value.numberOfCustomers = response._data.body
+          
         }
       }
     })
@@ -213,6 +217,7 @@
     if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfCustomers) {
       gridMeta.value.page = Math.ceil(gridMeta.value.numberOfCustomers / gridMeta.value.pageSize) | 1
     }
+    // table data coming in there
     await useApiFetch('/api/customers/', {
       method: 'GET',
       params: {
@@ -225,6 +230,7 @@
       onResponse({ response }) {
         if(response.status === 200) {
           gridMeta.value.customers = response._data.body
+          console.log("the customer area",response._data.body);
         }
         gridMeta.value.isLoading = false
       }

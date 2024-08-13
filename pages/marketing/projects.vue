@@ -1,6 +1,7 @@
 <script lang="ts" setup>
   import MarketingForm from '~/components/marketing/MarketingForm.vue';
 import PartsUsed from '~/components/marketing/PartsUsed.vue';
+import type projects from '~/server/api/projects';
 import type { UTableColumn } from '~/types';
 
   onMounted(() => {
@@ -18,91 +19,68 @@ import type { UTableColumn } from '~/types';
   const descIcon = "i-heroicons-bars-arrow-down-20-solid"
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
-  const headerFilters = ref({
-    markets: {
-      label: 'Market',
-      filter: 'market',
-      options: []
-    }, 
-    professions: {
-      label: 'Profession', 
-      filter: 'source',
-      options: []
-    }, 
-    categories: {
-      label: 'Category', 
-      filter: 'ParadynamixCatagory', 
-      options: []
-    }, 
-    conferences: {
-      label: 'Conference', 
-      filter: 'SourceConfrence',
-      options: []
-    }, 
-    usstates: {
-      label: 'State', 
-      filter: 'state',
-      api: '/api/common/usstates',
-      options: []
-    }
-  })
   const gridMeta = ref({
     defaultColumns: <UTableColumn[]>[{
-        key: 'number',
+        key: 'NUMBER',
         label: 'Project#',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'fname',
+        key: 'QUANTITY',
         label: 'Qty.',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'lname',
+        key: 'MODEL ',
         label: 'Description',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'company1',
+        key: 'PerType',
         label: 'type',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'homephone',
+        key: 'DATEOPENED',
         label: 'Opened',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'Closed',
+        key: 'DATECLOSED',
         label: 'Closed',
         sortable: false,
         sortDirection: 'none',
         filterable: false
       },
       {
-        key: '% Complete',
+        key: 'PercentageComplete',
         label: '% Complete',
         sortable: false,
         sortDirection: 'none',
         filterable: false
       },
       {
-        key: 'ProjectCost',
+        key: 'Cost',
         label: 'ProjectCost',
         sortable: false,
         sortDirection: 'none',
         filterable: false
       },
+      {
+        key: 'delete',
+        label: 'Del',
+        kind: 'actions'
+      }
     ],
     page: 1,
     pageSize: 50,
-    numberOfCustomers: 0, 
-    customers: [],
+    numberOfProjects: 0, 
+    projects: [],
     selectedCustomerId: null,
     sort: {
       column: 'UniqueID', 
@@ -120,19 +98,25 @@ import type { UTableColumn } from '~/types';
     modalTitle: "New Customer",
   })
   const filterValues = ref({
-    market: null,
-    source: null,
-    ParadynamixCatagory: null,
-    SourceConfrence: null,
-    number: null,
-    fname: null,
-    lname: null,
-    company1: null,
-    homephone: null,
-    workphone: null,
-    state: null,
-    zip: null
+    NUMBER: null,
+    QUANTITY: null,
+    MODEL: null,
+    PerType: null,
+    DATEOPENED: null,
+    PercentageComplete: null,
+    Cost:null,
+    selectedOptions:[],
+
+
+  
   })
+  const checkboxes = ref({
+  Marketing: false,
+  Accounting: false,
+  Engineering: false,
+  Manufacturing: false,
+  ShowOpenOnly: false
+});
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
 
@@ -156,44 +140,35 @@ import type { UTableColumn } from '~/types';
 
   const init = async () => {
     fetchGridData()
-    for(const key in headerFilters.value) {
-      const apiURL = headerFilters.value[key]?.api?? `/api/customers/${key}`;
-      console.log("Api url is",apiURL)
-      await useApiFetch(apiURL, {
-        method: 'GET',
-        onResponse({ response }) {
-          if(response.status === 200) {
-          
-            headerFilters.value[key].options = [null, ...response._data.body];
-          }
-        }
-      })
-    }
+
+  
   }
   const fetchGridData = async () => {
     gridMeta.value.isLoading = true
-    await useApiFetch('/api/customers/numbers', {
+    await useApiFetch('/api/projects/numbers', {
       method: 'GET',
       params: {
         ...filterValues.value
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
-          gridMeta.value.numberOfCustomers = response._data.body
-        
+          gridMeta.value.numberOfProjects = response._data.body
+        console.log("number of projects",response._data.body)
         }
       }
     })
-    if(gridMeta.value.numberOfCustomers === 0){
-      gridMeta.value.customers = []
-      gridMeta.value.numberOfCustomers = 0
+    if(gridMeta.value.numberOfProjects === 0){
+      gridMeta.value.projects = []
+      gridMeta.value.numberOfProjects = 0
       gridMeta.value.isLoading = false
       return;
     }
-    if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfCustomers) {
-      gridMeta.value.page = Math.ceil(gridMeta.value.numberOfCustomers / gridMeta.value.pageSize) | 1
+    if(gridMeta.value.page * gridMeta.value.pageSize > gridMeta.value.numberOfProjects) {
+      gridMeta.value.page = Math.ceil(gridMeta.value.numberOfProjects / gridMeta.value.pageSize) | 1
     }
-    await useApiFetch('/api/customers/', {
+    console.log("filer",filterValues.value)
+    // table data is coming
+    await useApiFetch('/api/projects/', {
       method: 'GET',
       params: {
         page: gridMeta.value.page,
@@ -201,15 +176,33 @@ import type { UTableColumn } from '~/types';
         sortBy: gridMeta.value.sort.column,
         sortOrder: gridMeta.value.sort.direction,
         ...filterValues.value,
-      }, 
+      }
+      , 
       onResponse({ response }) {
         if(response.status === 200) {
-          gridMeta.value.customers = response._data.body
+          gridMeta.value.projects = response._data.body
+          console.log("updated for marking",response._data.body)
+         
         }
         gridMeta.value.isLoading = false
       }
     });
   }
+
+
+
+  const selectedOptions = computed(() => {
+  return Object.entries(checkboxes.value)
+    .filter(([key, value]) => value)
+    .map(([key]) => key);
+});
+
+// Watch for changes in selectedOptions and update filterValues
+watch(selectedOptions, (newSelectedOptions) => {
+  filterValues.value.selectedOptions = newSelectedOptions;
+  fetchGridData(); // Trigger fetchGridData whenever filterValues changes
+});
+
   const onCreate = () => {
     gridMeta.value.selectedCustomerId = null
     modalMeta.value.modalTitle = "New Customer";
@@ -241,7 +234,8 @@ import type { UTableColumn } from '~/types';
 
   }
   const onDelete = async (row: any) => {
-    await useApiFetch(`/api/customers/${row?.UniqueID}`, {
+
+    await useApiFetch(`/api/jobs/${row?.UniqueID}`, {
       method: 'DELETE', 
       onResponse({ response }) {
         if (response.status === 200) {
@@ -330,7 +324,7 @@ import type { UTableColumn } from '~/types';
   }
   const onDblClick = async () =>{
     if(gridMeta.value.selectedCustomerId){
-      modalMeta.value.modalTitle = "Edit Project";
+      modalMeta.value.modalTitle = "Edit";
       modalMeta.value.isCustomerModalOpen = true
     }
   }
@@ -373,19 +367,22 @@ import type { UTableColumn } from '~/types';
   <!-- Right Section: Checkboxes -->
   <div class="flex items-center space-x-11 ">
     <div>
-      <UCheckbox label="Marketing" />
-    </div>
-    <div>
-      <UCheckbox label="Accounting" />
-    </div>
-    <div>
-      <UCheckbox label="Engineering" />
-    </div>
-    <div>
-      <UCheckbox label="Manufacturing" />
-    </div>
-    <div>
-      <UCheckbox label="Show Open Only" />
+    <UCheckbox label="Marketing" v-model="checkboxes.Marketing"  />
+  </div>
+  <div>
+    <UCheckbox label="Accounting" v-model="checkboxes.Accounting" />
+  </div>
+  <div>
+    <UCheckbox label="Engineering" v-model="checkboxes.Engineering" />
+  </div>
+  <div>
+    <UCheckbox label="Manufacturing" v-model="checkboxes.Manufacturing" />
+  </div>
+  <div>
+    <UCheckbox label="Show Open Only" v-model="checkboxes.ShowOpenOnly" />
+  </div>
+  <div>
+      <p>Selected Options: {{ selectedOptions.join(', ') }}</p>
     </div>
   </div>
   <div>
@@ -394,7 +391,6 @@ import type { UTableColumn } from '~/types';
         <UButton color="green" variant="outline"
           type="submit"
           label="New Project"
-          icon="i-heroicons-plus"
           @click="onAdded()"
         />
       </div>
@@ -402,7 +398,7 @@ import type { UTableColumn } from '~/types';
 </div>
 
       <UTable
-        :rows="gridMeta.customers"
+        :rows="gridMeta.projects"
         :columns="columns"
         :loading="gridMeta.isLoading"
         class="w-full"
@@ -480,7 +476,7 @@ import type { UTableColumn } from '~/types';
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1" >
-          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfCustomers | 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
+          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfProjects | 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
         </div>
       </div>
     </UDashboardPanel>

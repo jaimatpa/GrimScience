@@ -5,6 +5,7 @@ import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css';
 import PartsUsed from './PartsUsed.vue';
 import PartsList from '../job/PartsList.vue';
+import type { Label } from '@bryntum/scheduler';
 
 
 const items = [{
@@ -245,7 +246,6 @@ const onUsed = () => {
   }
 
 
-
 const emit = defineEmits(['close', 'save'])
 const props = defineProps({
   selectedCustomer: {
@@ -310,6 +310,12 @@ const formData = reactive({
   Extension: null,
   ExtensionBill: null,
 })
+const projectTypes=['Products','Sub Assembly'];
+const selected = ref(projectTypes[0])
+const RelieveInventory=['Serial/Unit','Operation']
+const selectedInventory=ref(RelieveInventory[0])
+const employeeName=ref([]);
+
 const modalMeta = ref({
     isPartsUsed: false,
     isPartLisingModalOpen: false,
@@ -318,6 +324,27 @@ const modalMeta = ref({
     isSiteVisitModalOpen: false,
     modalTitle: "New Customer",
   })
+
+  onMounted(() => {
+    init()
+  })
+  const init = async () => {
+    fetchDropdownData();
+
+  
+  }
+  const fetchDropdownData = async () => {
+    await useApiFetch('/api/projects/employees', {
+      method: 'GET', 
+      onResponse({ response }) {
+        if(response.status === 200) {
+           employeeName.value = response._data.body;
+           console.log("employees",employeeName.value);
+      
+        }
+      }
+    })
+  }
  
 const editInit = async () => {
   loadingOverlay.value = true
@@ -420,6 +447,13 @@ const handleClose = async () => {
     router.go(-1)
   }
 }
+// Computed property to transform data into the required format
+const employeeOptions = computed(() => {
+  return employeeName.value.map(employee => ({
+    label: `${employee.fName} ${employee.lName}`,
+    value: employee.UniqueID
+  }));
+});
 const onSubmit = async (event: FormSubmitEvent<any>) => {
   if(props.selectedCustomer === null) { // Create Customer
     await useApiFetch('/api/customers', {
@@ -514,9 +548,7 @@ else
             label="ProjectType"
             name="PType"
           >
-            <UInputMenu
-              
-            />
+          <UInputMenu v-model="selected" :options="projectTypes" />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
@@ -534,9 +566,8 @@ else
             label="Relieve Inventory Per:"
             name="RelieveI"
           >
-            <UInputMenu
-              
-            />
+           
+            <UInputMenu v-model="selectedInventory" :options="RelieveInventory" />
           </UFormGroup>
         </div>
 
@@ -564,7 +595,7 @@ else
                   name="By"
                 >
                   <UInputMenu
-                   
+                   :options="employeeOptions"
                     
                   />
                 </UFormGroup>
@@ -591,7 +622,7 @@ else
                   name="By"
                 >
                   <UInputMenu
-                   
+                    :options="employeeOptions"
                     
                   />
                 </UFormGroup>
@@ -617,14 +648,14 @@ else
                   name="By"
                 >
                   <UInputMenu
-                   
+                    :options="employeeOptions"
                     
                   />
                 </UFormGroup>
               </div>
             </div>
 
-
+            <div v-if="selected === 'Sub Assembly'">
             <UTabs :items="items" class="w-full">
     <template #item="{ item }">
 
@@ -632,10 +663,10 @@ else
         <div v-if="item.key === 'sub'" class="Category">
             <div class="flex flex-row space-x-2">
           <UFormGroup label="Category" class="basis-1/2" name="name">
-            <UInput />
+            <UInputMenu />
           </UFormGroup>
           <UFormGroup label="Sub Category" class="basis-1/2"  name="Sub Category">
-            <UInput  />
+            <UInputMenu  />
           </UFormGroup>
           
         </div>
@@ -767,7 +798,7 @@ else
         </template>
 
   </UTabs>
-
+</div>
  
 
 
