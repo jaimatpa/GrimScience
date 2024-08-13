@@ -97,6 +97,28 @@ const filterValues = ref({
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
 
+const revisionColumns = ref([
+  {
+    key: "date",
+    label: "Date",
+  },
+  {
+    key: "type",
+    label: "Type",
+  },
+]);
+
+const jobColumns = ref([
+  {
+    key: "id",
+    label: "Job#",
+  },
+  {
+    key: "closed",
+    label: "Closed",
+  },
+]);
+
 const columns = computed(() =>
   gridMeta.value.defaultColumns.filter((column) =>
     selectedColumns.value.includes(column)
@@ -185,13 +207,32 @@ const onCreate = () => {
   modalMeta.value.isProductModalOpen = true;
 };
 const onEdit = (row) => {
-
+  gridMeta.value.selectedProductId = row?.UniqueID;
+  modalMeta.value.modalTitle = "Edit";
+  modalMeta.value.isProductModalOpen = true;
 };
 const onDelete = (row) => {
+  
+};
+
+const onSelect = async (row) => {
+  gridMeta.value.selectedProductId = row?.UniqueID;
+  gridMeta.value.products.forEach((pro) => {
+    if (pro.UniqueID === row.UniqueID) {
+      pro.class = "bg-gray-200";
+    } else {
+      delete pro.class;
+    }
+  });
+  gridMeta.value.selectProduct = row;
 
 };
-const onDblClick = async () => {
 
+const onDblClick = async () => {
+  if (gridMeta.value.selectedProductId) {
+    modalMeta.value.modalTitle = "Edit";
+    modalMeta.value.isProductModalOpen = true;
+  }
 };
 const handleModalClose = () => {
   modalMeta.value.isProductModalOpen = false;
@@ -310,7 +351,28 @@ const handleFilterInputChange = async (event, name) => {
         </template>
       </UDashboardToolbar>
 
-
+      <div v-if="props.isPage" class="px-4 py-2 gmsPurpleTitlebar">
+        <button
+          :class="{
+            'bg-white text-black': activeTab === 'lookup',
+            gmsPurpleTitlebar: activeTab !== 'lookup',
+          }"
+          @click="setActiveTab('lookup')"
+          class="px-4 py-0.5 focus:outline-none rounded-md"
+        >
+          Lookup
+        </button>
+        <button
+          :class="{
+            'bg-white text-black': activeTab === 'history',
+            gmsPurpleTitlebar: activeTab !== 'history',
+          }"
+          @click="setActiveTab('history')"
+          class="px-4 py-0.5 ml-2 focus:outline-none rounded-md"
+        >
+          Product History
+        </button>
+      </div>
       <UTable
         v-if="activeTab === 'lookup'"
         :rows="gridMeta.products"
@@ -383,7 +445,7 @@ const handleFilterInputChange = async (event, name) => {
           </UTooltip>
         </template>
       </UTable>
-      <div v-else class="flex flex-col overflow-scroll">
+      <div v-else class="flex flex-col overflow-y-scroll">
         <div class="w-full mt-4 flex items-end justify-end pr-5">
           <UButton
             icon="i-f7-arrow-clockwise"
@@ -393,6 +455,38 @@ const handleFilterInputChange = async (event, name) => {
             :ui="{ base: 'w-fit', truncate: 'flex justify-center w-full' }"
             truncate
           />
+        </div>
+        <div class="grid grid-cols-2 gap-5 px-5">
+          <div>
+            <span>Revision History</span>
+            <UTable
+              :columns="revisionColumns"
+              :rows="[]"
+              :ui="{
+                wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'p-1',
+                },
+              }"
+            />
+          </div>
+          <div>
+            <span>Job History</span>
+            <UTable
+              :columns="jobColumns"
+              :rows="[]"
+              :ui="{
+                wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'p-1',
+                },
+              }"
+            />
+          </div>
         </div>
       </div>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
@@ -446,7 +540,7 @@ const handleFilterInputChange = async (event, name) => {
   <ProductsForm
     @close="handleModalClose"
     @save="handleModalSave"
-    :selected-customer="gridMeta.selectedProductId"
+    :selected-product="gridMeta.selectedProductId"
     :is-modal="true"
   />
 </UDashboardModal>

@@ -5,7 +5,7 @@ import 'vue-loading-overlay/dist/css/index.css';
 
 const emit = defineEmits(['close', 'save'])
 const props = defineProps({
-  selectedCustomer: {
+  selectedProduct: {
     type: [String, Number, null],
     required: true
   }, 
@@ -16,10 +16,10 @@ const props = defineProps({
 
 const toast = useToast()
 const router = useRouter()
-const customersFormInstance = getCurrentInstance();
+const productsFormInstance = getCurrentInstance();
 
 const loadingOverlay = ref(false)
-const customerExist = ref(true)
+const productExist = ref(true)
 const markets = ref([])
 const professions = ref([])
 const categories = ref([])
@@ -70,12 +70,13 @@ const formData = reactive({
 
 const editInit = async () => {
   loadingOverlay.value = true
-  await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
+  await useApiFetch(`/api/products/${props.selectedProduct}`, {
     method: 'GET',
     onResponse({ response }) {
       if(response.status === 200) {
         loadingOverlay.value = false
-        customerExist.value = true
+        productExist.value = true
+        console.log(response._data.body)
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
             formData[key] = response._data.body[key]
@@ -84,7 +85,7 @@ const editInit = async () => {
       }
     }, 
     onResponseError({}) {
-      customerExist.value = false
+      productExist.value = false
     }
   })
   propertiesInit()
@@ -163,15 +164,15 @@ const validate = (state: any): FormError[] => {
   return errors
 }
 const handleClose = async () => {
-  if(customersFormInstance?.vnode?.props.onClose) {
+  if(productsFormInstance?.vnode?.props.onClose) {
     emit('close')
   } else {
     router.go(-1)
   }
 }
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  if(props.selectedCustomer === null) { // Create Customer
-    await useApiFetch('/api/customers', {
+  if(props.selectedProduct === null) { // Create Customer
+    await useApiFetch('/api/products', {
       method: 'POST',
       body: event.data, 
       onResponse({ response }) {
@@ -186,7 +187,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       }
     })
   } else { // Update Customer
-    await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
+    await useApiFetch(`/api/products/${props.selectedProduct}`, {
       method: 'PUT',
       body: event.data, 
       onResponse({ response }) {
@@ -204,27 +205,10 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   emit('save')
 }
 
-  const modalMeta = ref({
-      isCustomerModalOpen: false,
-      isOrderDetailModalOpen: false,
-      isQuoteDetailModalOpen: false,
-      isServiceOrderDetailModalOpen: false,
-      isSiteVisitModalOpen: false,
-      modalTitle: "New Product",
-  })
-
-  const onOrderDetail = () => {
-      modalMeta.value.isOrderDetailModalOpen = true
-  }
-  const onQuoteDetail = () => {
-    modalMeta.value.isQuoteDetailModalOpen = true
-  }
-    const onServiceOrderDetail = () => {
-    modalMeta.value.isServiceOrderDetailModalOpen = true
-  }
-    const onSiteVisitDetail = () => {
-    modalMeta.value.isSiteVisitModalOpen = true
-  }
+const modalMeta = ref({
+    isCustomerModalOpen: false,
+    modalTitle: "New Product",
+})
 
 if(props.selectedCustomer !== null) 
   editInit()
@@ -242,11 +226,11 @@ else
       loader="dots"
     />
   </div>
-  <template v-if="!props.isModal && !customerExist">
+  <template v-if="!props.isModal && !productExist">
     <CommonNotFound
-      :name="'Customer not found'"
-      :message="'The customer you are looking for does not exist'"
-      :to="'/customers/customers/list'"
+      :name="'Product not found'"
+      :message="'The product you are looking for does not exist'"
+      :to="'/products/products/list'"
     />
   </template>
   <template v-else>
@@ -836,8 +820,8 @@ else
           color="cyan" 
           variant="outline"
           type="submit"
-          :icon="selectedCustomer !== null ? 'i-heroicons-pencil-square': 'i-heroicons-plus'"
-          :label="selectedCustomer !== null ? 'Modify Product' : 'Add Product'"
+          :icon="selectedProduct !== null ? 'i-heroicons-pencil-square': 'i-heroicons-plus'"
+          :label="selectedProduct !== null ? 'Modify Product' : 'Add Product'"
         />
         <UButton color="red" variant="outline"
           :label="!isModal ? 'Go back': 'Cancel'"
