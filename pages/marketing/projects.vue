@@ -336,10 +336,6 @@ watch(selectedOptions, (newSelectedOptions) => {
 </script>
 
 <template>
-<<<<<<< HEAD
-      <div class="w-full flex items-center text-center justify-center">This page is under development and not available yet.</div>
-</template>
-=======
   <UDashboardPage>
 
     
@@ -571,4 +567,3 @@ watch(selectedOptions, (newSelectedOptions) => {
 </template>
 <style scoped>
 </style>
->>>>>>> devE
