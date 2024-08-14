@@ -57,7 +57,7 @@ const marketingItems = [
   [
     {
       label: "Products",
-      to: "/marketing/list",
+      to: "/marketing/products/list",
       exact: true,
     },
     {
@@ -374,7 +374,7 @@ const links = [
     children: [
       {
         label: "Products",
-        to: "/marketing/list",
+        to: "/marketing/products/list",
         exact: true,
       },
       {
