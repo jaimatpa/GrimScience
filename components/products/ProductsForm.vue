@@ -578,7 +578,7 @@ else
                       name="rightgal"
                     >
                       <UInput
-                        v-model="formData.company2"
+                        
                       />
                     </UFormGroup>
                   </div>
