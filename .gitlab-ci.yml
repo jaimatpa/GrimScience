@@ -27,8 +27,6 @@ build dev:
       - .output
       - node_modules
 #      - '**'
-  only:
-    - dev
   script:
     - echo -n $ENV_FILE | base64 -d > .env
 #    - echo 'NUXT_UI_PRO_LICENSE=DE96572D-DF69-4CE2-8359-220121662EBA' >> .env
