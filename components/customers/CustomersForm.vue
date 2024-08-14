@@ -141,6 +141,7 @@ const propertiesInit = async () => {
     onResponse({ response }) {
       if(response.status === 200) {
         usstates.value = response._data.body;
+     
       }
     },
     onResponseError() {

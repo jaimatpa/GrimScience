@@ -1,4 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
+import List from '~/pages/employees/list.vue';
 import { tblCustomers } from "~/server/models";
 
 const applyFilters = (params) => {
@@ -48,6 +49,7 @@ export const getAllCustomers = async (sortBy, sortOrder, filterParams) => {
     where: whereClause,
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
   });
+
   return list;
 }
 
