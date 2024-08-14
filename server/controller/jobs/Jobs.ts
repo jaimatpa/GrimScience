@@ -32,7 +32,6 @@ const applyCusFilters = (params) => {
 };
 
 export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams) => {
-
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
 
@@ -68,12 +67,14 @@ export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams
   return formattedList;
 }
 
+
 export const getNumberOfJobs = async (filterParams) => {
-  const whereClause = applyFilters(filterParams);
-  const numberOfCustomers = await tblJobs.count({
-    where: whereClause
-  });
-  return numberOfCustomers;
+
+    const whereClause = applyFilters(filterParams);
+    const numberOfCustomers = await tblJobs.count({
+      where: whereClause
+    });
+    return numberOfCustomers;
 }
 
 export const JobExistByID = async (id: number | string) => {
