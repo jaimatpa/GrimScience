@@ -5,8 +5,9 @@ import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css';
 import PartsUsed from './PartsUsed.vue';
 import PartsList from '../job/PartsList.vue';
-import type { Label } from '@bryntum/scheduler';
-
+import { format } from 'date-fns'
+import DatePickerClient from '../common/DatePicker.client.vue';
+import type { UTableColumn } from '~/types';
 
 const items = [{
     key:"sub",
@@ -19,32 +20,30 @@ const items = [{
     key: 'Operation',
   label: 'Operations',
 }]
-const tableOfCompletion= [{
-  "#": '1',
-  "Completion Date":"dlfakjdsa",
-  "Shedule Date":"1564"
- 
-}, {
-    "#": '1',
-  "Completion Date":"dlfakjdsa",
-  "Shedule Date":"1564"
-}, {
-    "#": '1',
-  "Completion Date":"dlfakjdsa",
-  "Shedule Date":"1564"
-}, {
-    "#": '1',
-  "Completion Date":"dlfakjdsa",
-  "Shedule Date":"1564"
-}, {
-    "#": '1',
-  "Completion Date":"dlfakjdsa",
-  "Shedule Date":"1564",
-}, {
-    "#": '1',
-  "Completion Date":"dlfakjdsa",
-  "Shedule Date":"1564"
-}]
+const tableOfCompletion = ref([]);
+const jobList = ref([
+{
+  job:''
+}
+]);
+
+
+const date = ref(new Date());
+const formatDate = (date) => {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  const year = date.getFullYear();
+  return `${month}/${day}/${year}`;
+}
+
+const newEntry = ref({
+  qty: '',
+  completionDate:formatDate(date.value),
+  scheduleDate: '',
+});
+
+
+
 
 const productProjects= [{
   "Linked Job #": '1',
@@ -257,6 +256,17 @@ const props = defineProps({
   }
 })
 
+const addInventory = () => {
+ 
+    tableOfCompletion.value.push({ ...newEntry.value });
+    console.log("table of completion",tableOfCompletion.value);
+
+
+ 
+}
+
+
+
 const toast = useToast()
 const router = useRouter()
 const customersFormInstance = getCurrentInstance();
@@ -322,7 +332,11 @@ const category=['Marketing',
 const selectedCategory=ref(category[0]);
 const subCategorielist=ref([]);
 const subCategorySeleted=ref();
-
+const partlist = ref([]);
+const selectPart=ref([]);
+const selectCategoryForList=ref([]);
+const projectItemList=ref([]);
+const selectedProjectItem=ref([]);
 const modalMeta = ref({
     isPartsUsed: false,
     isPartLisingModalOpen: false,
@@ -352,7 +366,18 @@ const modalMeta = ref({
       }
     })
   }
- 
+  const addJob = async () => {
+  if (selectedProjectItem.value) { // Check if the selected job is not empty
+    const jobString = selectedProjectItem.value.toString();
+  
+  // Push the new job object into the jobList
+  jobList.value.push({ job: jobString });
+
+  } else {
+    console.error('Job cannot be empty');
+  }
+};
+
 const editInit = async () => {
   loadingOverlay.value = true
   await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
@@ -405,7 +430,41 @@ const subCategories = async () => {
     loadingOverlay.value = false;
   }
 };
-subCategorySeleted
+
+const productItem = async () => {
+  try {
+    loadingOverlay.value = true;
+    await useApiFetch('/api/projects/projectItem', {
+      method: 'GET',
+      params: {
+        category: selectCategoryForList.value
+      },
+      onResponse({ response }) {
+        if (response.status === 200) {
+       console.log("response is",response._data.body);
+       projectItemList.value=response._data.body;
+       
+        
+        } else {
+          markets.value = [];
+          console.error('Unexpected response status:', response.status);
+        }
+      },
+      onResponseError(error) {
+        markets.value = [];
+        console.error('API fetch error:', error);
+      }
+    });
+  } catch (error) {
+    console.error('Unexpected error:', error);
+  } finally {
+    loadingOverlay.value = false;
+  }
+};
+
+
+
+
 const part = async () => {
   console.log("category is",selectedCategory);
   try {
@@ -419,7 +478,11 @@ const part = async () => {
       onResponse({ response }) {
         if (response.status === 200) {
           // subCategorielist.value = response._data.body;
-          console.log("parts are",response._data.body)
+          console.log("parts are",response._data.body);
+          partlist.value = response._data.body;
+
+   
+         
         
         } else {
           markets.value = [];
@@ -562,6 +625,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   emit('save')
 }
 
+
 if(props.selectedCustomer !== null) 
   editInit()
 else 
@@ -612,7 +676,7 @@ else
             name="PName"
           >
             <UInput
-
+          
             />
           </UFormGroup>
         </div>
@@ -740,7 +804,7 @@ else
            
             <UInputMenu 
             @change="subCategories"
-            v-model="selectedCategory" :options="category"
+            v-model="selectedCategory" :options="category" 
             />
           </UFormGroup>
           <UFormGroup label="Sub Category" class="basis-1/2"  name="Sub Category">
@@ -750,28 +814,51 @@ else
           
         </div>
         <UFormGroup label="Part"  name="Part" class="mt-2">
-            <UInputMenu />
+            <UInputMenu 
+            :options="partlist"
+            v-model="selectPart"
+            />
           </UFormGroup>
           <div class="grid grid-cols-1 mt-6 h-48">
         <UTable :rows="tableOfCompletion" />
          
         </div>
         <div class="flex flex-row space-x-2 mt-2">
-          <UFormGroup label="Qty" class="basis-1/2" name="Qty">
-            <UInput />
+          <UFormGroup label="Qty" class="basis-1/3" name="Qty">
+            <UInput
+              v-model="newEntry.qty"
+            />
           </UFormGroup>
-          <UFormGroup
-                 
-                  class="basis-1/2 mt-6"
-                >
-                <UPopover :popper="{ placement: 'bottom-start' }">
-                          <UButton icon="i-heroicons-calendar-days-20-solid"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
-                          <template #panel="{ close }">
-                            <CommonDatePicker  is-required @close="close" />
-                          </template>
-                        </UPopover>
-                    </UFormGroup>
+          <div class="mt-6">
+            <UPopover :popper="{ placement: 'bottom-start' }">
+              <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'd MMM, yyy')" />
           
+              <template #panel="{ close }">
+                <DatePickerClient v-model="date" is-required @close="close" />
+              </template>
+            </UPopover>
+            </div>
+
+            
+
+            
+
+
+
+<div class="basis-1/3 mt-6">
+
+
+  <UButton
+ 
+  color="cyan"
+  variant="outline"
+  icon="i-heroicons-pencil-square"
+  type="submit"
+  label="Put into Inventory"
+   @click="addInventory()"
+/>
+
+</div>
         </div>
         
 
@@ -871,9 +958,53 @@ else
 
         </div>
     </div>
-        <div v-else-if="item.key === 'project'" class="space-y-3">
-          <UTable :rows="productProjects" />
+        <div v-else-if="item.key === 'project'" class="flex flex-row space-x-3">
+          <div class="basis-1/2">
+            <UTable :rows="jobList" />
+
+
+          </div>
+          <div class="basis-1/2 ">
+            <div>
+            <UFormGroup label="Category" class="basis-1/2" name="Category">
+            
+           
+            <UInputMenu 
+            @change="productItem"
+            v-model="selectCategoryForList" :options="category" 
+            />
+          </UFormGroup>
         </div>
+
+<div>
+  <UFormGroup label="Project Item" class="basis-1/2 mt-6" name="ProjectItem">
+            
+           
+            <UInputMenu 
+            :options="projectItemList" v-model="selectedProjectItem"
+            />
+          </UFormGroup>
+
+  
+</div>
+<div class="basis-1/2 mt-6 ">
+  <UButton
+               class="text-[#1c96c5] ml-3"
+               variant="outline"
+               icon="i-heroicons-magnifying-glass"
+               type="submit"
+               label="Add Job"
+               @click="addJob"
+            
+
+              
+             />
+  </div>
+
+          </div>
+        </div>
+
+      
         </template>
 
   </UTabs>

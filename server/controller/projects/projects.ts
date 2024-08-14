@@ -96,32 +96,46 @@ export const getDistinctSubcategories = async (partTypeValue) => {
 };
 
 
-export async function getDistinctModels(parttype, subCategory) {
+export async function getBasicModels(parttype, subCategory) {
   try {
     const results = await tblBP.findAll({
-      attributes: [
-        [Sequelize.literal("model + ' ' + description"), 'model_description'],
-        'instanceID'
-      ],
+      attributes: ['description'],
       where: {
-        uniqueID: {
-          [Op.in]: Sequelize.literal(`
-            SELECT MAX(uniqueID)
-            FROM tblBP
-            GROUP BY instanceID
-          `)
-        },
         parttype: parttype,
         SubCategory: subCategory
       },
-      group: ['model_description', 'instanceID'],
       order: [
-        [Sequelize.literal("model + ' ' + description"), 'ASC']
+        ['model', 'ASC'],
+        ['description', 'ASC']
       ]
     });
 
-    return results;
+    return results.map(result => result.get('description'));
   } catch (error) {
-    console.error('Error executing query:', error);
+    console.error('Error executing basic query:', error);
   }
 }
+
+
+
+
+
+export const getProjectItem = async (Catagory) => {
+  try {
+    // Create the whereClause based on the category parameter
+    const whereClause = Catagory ? { Catagory: Catagory } : {};
+
+
+    const list = await tblJobs.findAll({
+      attributes: ['Part' ],
+      where: whereClause
+    });
+
+    return list.map(result => result.get('Part'));
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    throw error;
+  }
+}
+
+
