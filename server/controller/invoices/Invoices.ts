@@ -62,7 +62,7 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
   if(filterParams.shipdate) queryOptions.where['shipdate'] = {[Op.like]: `%${filterParams.shipdate}%`};
   if(filterParams.source) queryOptions.where['source'] = {[Op.like]: `%${filterParams.source}%`};
   if(filterParams.sourcedescription) queryOptions.where['sourcedescription'] = {[Op.like]: `%${filterParams.sourcedescription}%`};
-  if(!filterParams.orderdate && !filterParams.shipdate) queryOptions.where[Op.and] =[
+  if(!filterParams.orderdate && !filterParams.shipdate && filterParams.from && filterParams.to) queryOptions.where[Op.and] =[
       {
         [Op.and]: [
           Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')),  '>=', `${filterParams.from.replace(/"/g, '')}`),
@@ -78,10 +78,10 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
   // console.log(queryOptions)
   const list = await tblOrder.findAll(queryOptions);  
   const formattedList = list.map((item: any) => {
-    const parsedOrderDate = new Date(item.orderdate);
-    let formattedOrderDate = `${(parsedOrderDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedOrderDate.getDate().toString().padStart(2, '0')}/${parsedOrderDate.getFullYear()}`;
-    const parsedShipDate = new Date(item.shipdate);
-    let formattedShipDate = `${(parsedShipDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedShipDate.getDate().toString().padStart(2, '0')}/${parsedShipDate.getFullYear()}`;
+    const parsedOrderDate = item.orderdate ? new Date(item.orderdate) : null;
+    let formattedOrderDate = parsedOrderDate ? `${(parsedOrderDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedOrderDate.getDate().toString().padStart(2, '0')}/${parsedOrderDate.getFullYear()}` : null;
+    const parsedShipDate = item.shipdate ? new Date(item.shipdate) : null;
+    let formattedShipDate = parsedShipDate ? `${(parsedShipDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedShipDate.getDate().toString().padStart(2, '0')}/${parsedShipDate.getFullYear()}` : null;
     
     return {
       UniqueID: item.UniqueID,
@@ -154,7 +154,7 @@ export const getNumberOfOrders = async (filterParams) => {
   if(filterParams.shipdate) queryOptions.where['shipdate'] = {[Op.like]: `%${filterParams.shipdate}%`};
   if(filterParams.source) queryOptions.where['source'] = {[Op.like]: `%${filterParams.source}%`};
   if(filterParams.sourcedescription) queryOptions.where['sourcedescription'] = {[Op.like]: `%${filterParams.sourcedescription}%`};
-  if(!filterParams.orderdate && !filterParams.shipdate) queryOptions.where[Op.and] =[
+  if(!filterParams.orderdate && !filterParams.shipdate && filterParams.from && filterParams.to) queryOptions.where[Op.and] =[
       {
         [Op.and]: [
           Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')),  '>=', `${filterParams.from.replace(/"/g, '')}`),

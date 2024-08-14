@@ -13,9 +13,8 @@
   const descIcon = "i-heroicons-bars-arrow-down-20-solid"
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
-  const totalBuilt = ref(24570);
-  const totalOrders = ref(233);
-  const percent = ref(1)
+  const totalBuilt = ref(0);
+  const totalOrders = ref(0);
 
   const headerFilters = ref({
     productLines: {
@@ -33,12 +32,12 @@
     }, 
     cryotherm: {
       label: 'CRYOTherm Checkup',
-      filterKey: 'kind',
+      filterKey: 'CRYOThermCheckup',
       isChecked: false
     }, 
     nonMedical: {
       label: 'Non-Medical Device',
-      filterKey: 'medicalKind',
+      filterKey: 'NonMedicalDevice',
       isChecked: false
     }, 
     complaints: {
@@ -122,13 +121,12 @@
     FAILINVEST: null,
     company1: null,
     OPENCASE: true,
-    kind: null, 
-    medicalKind: null,
+    CRYOThermCheckup: null, 
+    NonMedicalDevice: null,
     ValidComplaint: null, 
     INJURYREPORTNO: null
   })
-
-  function watchCheckbox(property, filterKey) {
+  const watchCheckbox = (property, filterKey) => {
     watch(
       () => headerCheckboxes.value[property].isChecked,
       (newCheckedValue) => {
@@ -140,15 +138,18 @@
   // Watch for each checkbox
   watchCheckbox('injury', 'INJURYREPORTNO');
   watchCheckbox('open', 'OPENCASE');
-  watchCheckbox('cryotherm', 'kind');
-  watchCheckbox('nonMedical', 'medicalKind');
+  watchCheckbox('cryotherm', 'CRYOThermCheckup');
+  watchCheckbox('nonMedical', 'NonMedicalDevice');
+  watchCheckbox('complaints', 'ValidComplaint');
 
-  watch(
-  () => headerCheckboxes.value.complaints.isChecked,
-    (newCheckedValue) => {
-      filterValues.value.ValidComplaint = newCheckedValue ? "1" : "0";
+  watch(() => filterValues.value.PRODUCTDESC, () => fetchBuiltCount())
+
+  const percent = computed(() => {
+    if (totalOrders.value === 0) {
+      return 0;
     }
-  );
+    return Math.round((totalBuilt.value / totalOrders.value) * 100);
+  });
 
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
@@ -158,6 +159,7 @@
   const init = async () => {
     gridMeta.value.isLoading = true
     fetchGridData()
+    fetchBuiltCount()
     for(const key in headerFilters.value) {
       const apiURL = headerFilters.value[key]?.api?? `/api/service/orders/${key}`;
       await useApiFetch(apiURL, {
@@ -206,6 +208,19 @@
         gridMeta.value.isLoading = false
       }
     });
+  }
+  const fetchBuiltCount = async () => {
+    await useApiFetch('/api/service/orders/builtCount', {
+      method: 'GET',
+      params: {
+        PRODUCTLINE: `${filterValues.value.PRODUCTDESC}`
+      }, 
+      onResponse({ response }) {
+        if(response.status === 200) {
+          totalBuilt.value = response._data.body
+        }
+      }
+    })
   }
   const handleModalClose = () => {
     modalMeta.value.isServiceOrderModalOpen = false
@@ -442,6 +457,6 @@
       width: 'w-[1800px] sm:max-w-9xl'
     }"
   >
-    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-serial="gridMeta.selectedSerialNumber":selected-customer="gridMeta.selectedCustomerId" :selected-complaint="gridMeta.selectedCompaintNumber" :selected-order="gridMeta.selectedOrderId"  />
+    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :form-action ="null" :selected-serial="gridMeta.selectedSerialNumber" :selected-customer="gridMeta.selectedCustomerId" :selected-complaint="gridMeta.selectedCompaintNumber" :selected-order="gridMeta.selectedOrderId"  />
   </UDashboardModal>
 </template>
