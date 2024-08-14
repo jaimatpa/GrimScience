@@ -315,6 +315,13 @@ const selected = ref(projectTypes[0])
 const RelieveInventory=['Serial/Unit','Operation']
 const selectedInventory=ref(RelieveInventory[0])
 const employeeName=ref([]);
+const category=['Marketing',
+'Accounting',
+'Engineering',
+'Manufacturing']
+const selectedCategory=ref(category[0]);
+const subCategorielist=ref([]);
+const subCategorySeleted=ref();
 
 const modalMeta = ref({
     isPartsUsed: false,
@@ -368,6 +375,72 @@ const editInit = async () => {
   propertiesInit()
   loadingOverlay.value = false
 }
+
+const subCategories = async () => {
+  console.log("category is",selectedCategory);
+  try {
+    loadingOverlay.value = true;
+    await useApiFetch('/api/projects/subCategory', {
+      method: 'GET',
+      params: {
+        subCategory: selectedCategory.value
+      },
+      onResponse({ response }) {
+        if (response.status === 200) {
+          subCategorielist.value = response._data.body;
+        
+        } else {
+          markets.value = [];
+          console.error('Unexpected response status:', response.status);
+        }
+      },
+      onResponseError(error) {
+        markets.value = [];
+        console.error('API fetch error:', error);
+      }
+    });
+  } catch (error) {
+    console.error('Unexpected error:', error);
+  } finally {
+    loadingOverlay.value = false;
+  }
+};
+subCategorySeleted
+const part = async () => {
+  console.log("category is",selectedCategory);
+  try {
+    loadingOverlay.value = true;
+    await useApiFetch('/api/projects/parts', {
+      method: 'GET',
+      params: {
+        category:selectedCategory.value,
+        subCategory: subCategorySeleted.value
+      },
+      onResponse({ response }) {
+        if (response.status === 200) {
+          // subCategorielist.value = response._data.body;
+          console.log("parts are",response._data.body)
+        
+        } else {
+          markets.value = [];
+          console.error('Unexpected response status:', response.status);
+        }
+      },
+      onResponseError(error) {
+        markets.value = [];
+        console.error('API fetch error:', error);
+      }
+    });
+  } catch (error) {
+    console.error('Unexpected error:', error);
+  } finally {
+    loadingOverlay.value = false;
+  }
+};
+
+
+
+
 const propertiesInit = async () => {
   loadingOverlay.value = true
   await useApiFetch('/api/customers/markets', {
@@ -662,11 +735,17 @@ else
 
         <div v-if="item.key === 'sub'" class="Category">
             <div class="flex flex-row space-x-2">
-          <UFormGroup label="Category" class="basis-1/2" name="name">
-            <UInputMenu />
+          <UFormGroup label="Category" class="basis-1/2" name="Category">
+            
+           
+            <UInputMenu 
+            @change="subCategories"
+            v-model="selectedCategory" :options="category"
+            />
           </UFormGroup>
           <UFormGroup label="Sub Category" class="basis-1/2"  name="Sub Category">
-            <UInputMenu  />
+            <UInputMenu 
+            :options="subCategorielist" v-model="subCategorySeleted"  @change="part" />
           </UFormGroup>
           
         </div>

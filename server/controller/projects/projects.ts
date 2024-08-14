@@ -1,5 +1,7 @@
 import Op from "sequelize/lib/operators";
-import { tblEmployee } from "~/server/models";
+import Sequelize from "sequelize/lib/sequelize";
+import tbl from "~/server/api/tbl";
+import { tblBP, tblEmployee } from "~/server/models";
 import tblJobs from "~/server/models/tblJobs";
 
 // Function to apply filters based on the parameters
@@ -65,4 +67,61 @@ export const getEmployeess = async()=>{
   });
 
 return employeess;
+}
+
+export const getDistinctSubcategories = async (partTypeValue) => {
+  try {
+    const subcategories = await tblBP.findAll({
+      attributes: [
+        [Sequelize.fn('DISTINCT', Sequelize.col('subcategory')), 'subcategory']
+      ],
+      where: {
+        uniqueid: {
+          [Op.in]: Sequelize.literal(`(
+            SELECT MAX(uniqueID)
+            FROM tblBP
+            GROUP BY instanceID
+          )`)
+        },
+        parttype: partTypeValue // Ensure this field name is correct
+      },
+      order: [['subcategory', 'ASC']]
+    });
+
+    return subcategories.map(subcategory => subcategory.get('subcategory')); // Use `get` method to retrieve value
+  } catch (error) {
+    console.error('Error fetching subcategories:', error);
+    throw error;
+  }
+};
+
+
+export async function getDistinctModels(parttype, subCategory) {
+  try {
+    const results = await tblBP.findAll({
+      attributes: [
+        [Sequelize.literal("model + ' ' + description"), 'model_description'],
+        'instanceID'
+      ],
+      where: {
+        uniqueID: {
+          [Op.in]: Sequelize.literal(`
+            SELECT MAX(uniqueID)
+            FROM tblBP
+            GROUP BY instanceID
+          `)
+        },
+        parttype: parttype,
+        SubCategory: subCategory
+      },
+      group: ['model_description', 'instanceID'],
+      order: [
+        [Sequelize.literal("model + ' ' + description"), 'ASC']
+      ]
+    });
+
+    return results;
+  } catch (error) {
+    console.error('Error executing query:', error);
+  }
 }
