@@ -49,6 +49,7 @@ const phoneTypes = [{
   name: 'other', 
   value: 'Other'
 }]
+const employeesList = ref([])
 const formData = reactive({
   CUSTOMER: null,
  vendor: null,
@@ -82,10 +83,10 @@ const editInit = async () => {
     }
   })
   propertiesInit()
-  loadingOverlay.value = false
+  // loadingOverlay.value = false
 }
 const propertiesInit = async () => {
-  // loadingOverlay.value = true
+  loadingOverlay.value = true
   await useApiFetch('/api/customers/markets', {
     method: 'GET',
     onResponse({ response }) {
@@ -94,6 +95,27 @@ const propertiesInit = async () => {
       }
     }
   })
+  await fetchEmployess()
+  loadingOverlay.value = false
+}
+const fetchEmployess = async () => {
+  // loadingOverlay.value = true
+    await useApiFetch(`/api/tbl/tblEmployee?ACTIVE=1`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          const employees = response._data?.body;
+          
+          if (employees?.length) {
+            const formattedEmployees = employees.map(employee => 
+            `#${employee.payrollnumber || 'n/a'} ${employee.fname || ''} ${employee.lname || ''}`
+          );
+          employeesList.value = formattedEmployees
+          return formattedEmployees;
+        }
+        }
+      }
+    })
   // loadingOverlay.value = false
 }
 const validate = (state: any): FormError[] => {
@@ -245,7 +267,7 @@ else
                 >
                   <USelect
                     v-model="formData.For"
-                    :options="[formData.For]"
+                    :options="employeesList"
                   />
                 </UFormGroup>
               </div>
@@ -256,7 +278,7 @@ else
                 >
                   <USelect
                     v-model="formData.TAKENBY"
-                    :options="[formData.TAKENBY]"
+                    :options="employeesList"
                   />
                 </UFormGroup>
               </div>

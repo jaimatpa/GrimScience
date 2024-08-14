@@ -95,7 +95,7 @@
     selectedOrderId: null,
     sort: {
       column: 'UniqueID', 
-      direction: 'asc'
+      direction: 'desc'
     }, 
     isLoading: false
   })
@@ -104,6 +104,7 @@
     modalTitle: "New Invoice",
     modalDescription: "Add a new invoice to your database"
   })
+  const totalSales = ref(0)
   const today = new Date()
   const oneMonthAgo = new Date(today);
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
@@ -150,12 +151,29 @@
   }
   const fetchGridData = async () => {
     gridMeta.value.isLoading = true
+    const params: Record<string, any> = {
+      ...filterValues.value,
+    };
+    
+    if (!filterValues.value.UniqueID && !filterValues.value.customer) {
+      if (filterValues.value.from) {
+        params.from = filterValues.value.from;
+      }
+      if (filterValues.value.to) {
+        params.to = new Date(
+          filterValues.value.to.getFullYear(),
+          filterValues.value.to.getMonth(),
+          filterValues.value.to.getDate() + 1
+        );
+      }
+    } else { 
+      params.from = null
+      params.to = null
+    }
+
     await useApiFetch('/api/invoices/numbers', {
       method: 'GET',
-      params: {
-        ...filterValues.value,
-        to: new Date(filterValues.value.to.getFullYear(), filterValues.value.to.getMonth(), filterValues.value.to.getDate() + 1)
-      }, 
+      params: params, 
       onResponse({ response }) {
         if(response.status === 200) {
           gridMeta.value.numberOfOrders = response._data.body
@@ -178,8 +196,7 @@
         pageSize: gridMeta.value.pageSize, 
         sortBy: gridMeta.value.sort.column,
         sortOrder: gridMeta.value.sort.direction,
-        ...filterValues.value,
-        to: new Date(filterValues.value.to.getFullYear(), filterValues.value.to.getMonth(), filterValues.value.to.getDate() + 1)
+        ...params
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
@@ -300,6 +317,13 @@
   }
   watch(() => filterValues.value.from, () => {fetchGridData()})
   watch(() => filterValues.value.to, () => {fetchGridData()})
+  watch(() => gridMeta.value.orders, () => {
+    let total = 0
+    for(const order of gridMeta.value.orders) {
+      total += order.price
+    }
+    totalSales.value = total
+  }) 
 </script>
 
 <template>
@@ -323,7 +347,7 @@
                 name="quoteDate"
               >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(filterValues.from, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate />
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="filterValues.from ? format(filterValues.from, 'MM/dd/yyyy') : 'Select Date'" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate />
                   <template #panel="{ close }">
                     <CommonDatePicker v-model="filterValues.from" is-required @close="close" />
                   </template>
@@ -335,12 +359,15 @@
                 label="To"
               >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(filterValues.to, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="filterValues.to ? format(filterValues.to, 'MM/dd/yyyy') : 'Select Date'" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
                     <CommonDatePicker v-model="filterValues.to" is-required @close="close" />
                   </template>
                 </UPopover>
               </UFormGroup>
+            </div>
+            <div class="min-w-[50px] mt-6 shrink-0">
+              <UButton :label="'Clear'" @click="() => {filterValues.to = null; filterValues.from = null;}" variant="outline" class="text-xs py-2" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/5 min-w-[150px]">
               <UFormGroup
@@ -356,7 +383,7 @@
             <div>
               <UFormGroup label="Total Sales on Search">
                 <div class="text-center text-bold">
-                  0000
+                  {{ `$${totalSales}` }}
                 </div>
               </UFormGroup>
             </div>

@@ -11,6 +11,10 @@
       type: [Number, String, null],
       required: true
     },
+    formAction: {
+      type: [Number, String, null],
+      required: false
+    },
     selectedComplaint: {
       type: [Number, String, null],
       required: true
@@ -231,9 +235,28 @@
       } 
     })
     await fetchSerialList();
+    await fetchEmployess();
     // loadingOverlay.value = false
   }
-  
+  const fetchEmployess = async () => {
+    await useApiFetch(`/api/tbl/tblEmployee?ACTIVE=1`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          const employees = response._data?.body;
+          
+          if (employees?.length) {
+            const formattedEmployees = employees.map(employee => 
+            `#${employee.payrollnumber || 'n/a'} ${employee.fname || ''} ${employee.lname || ''}`
+          );
+        
+          serviceOrderInfo.value.RECBYOptions = formattedEmployees
+          return formattedEmployees;
+        }
+        }
+      }
+    })
+  }
   const fetchSerialList = async () => {
     loadingOverlay.value = true
     await useApiFetch(`/api/invoices/serials/`, {
@@ -512,6 +535,9 @@
     selectedServiceReportID.value = null
     modalMeta.value.isServiceReportModalOpen = true
   }
+  const onServiceReportClose = async () => {
+    modalMeta.value.isServiceReportModalOpen = false
+  }
   const onServiceReportSave = async () => {
     modalMeta.value.isServiceReportModalOpen = false
     fetchServiceReportList()
@@ -704,8 +730,14 @@
   };
 
   const submitForm = async (data: any) => {
-    await useApiFetch(`/api/service/orders/${complaintUniquueId.value}`, {
-        method: "PUT",
+    const method = props.formAction == 'add' ? "POST" : "PUT";
+    if (method == 'POST'){
+      data.CustomerID = props.selectedCustomer;
+    }
+    const url = `/api/service/orders/${complaintUniquueId.value}`;
+    
+    await useApiFetch(url, {
+        method: method,
         body: data,
         onResponse({ response }) {
           if (response.status === 200) {
@@ -1050,9 +1082,9 @@
         </div>
         <div class="flex flex-row px-3 py-2">
           <div class="basis-5/12">
-            <div>{{ serviceOrderInfo.COMPLAINTNUMBER?`# ${serviceOrderInfo.COMPLAINTNUMBER}`:'' }}</div>
-            <div>{{ serviceOrderInfo.PRODUCTDESC }}</div>
-            <div>{{ serviceOrderInfo.SERIALNO?`Serial ${serviceOrderInfo.SERIALNO}`: '' }}</div>
+            <div>{{ serviceOrderInfo?.COMPLAINTNUMBER?`# ${serviceOrderInfo.COMPLAINTNUMBER}`:'' }}</div>
+            <div>{{ serviceOrderInfo?.PRODUCTDESC }}</div>
+            <div>{{ serviceOrderInfo?.SERIALNO?`Serial ${serviceOrderInfo.SERIALNO}`: '' }}</div>
           </div>
           <UFormGroup name="modelNo" class="hidden">
             <UInput
@@ -1283,7 +1315,7 @@
       width: 'w-[1700px] sm:max-w-9xl', 
     }"
   >
-    <ServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
+    <ServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave" @close="onServiceReportClose"/>
   </UDashboardModal>
   <!-- Inventory Transaction Modal -->
   <UDashboardModal

@@ -13,7 +13,7 @@ const props = defineProps({
     type: [Boolean]
   }
 })
-
+const action = ref('add')
 const toast = useToast()
 const router = useRouter()
 const customersFormInstance = getCurrentInstance();
@@ -141,6 +141,7 @@ const propertiesInit = async () => {
     onResponse({ response }) {
       if(response.status === 200) {
         usstates.value = response._data.body;
+     
       }
     },
     onResponseError() {
@@ -774,7 +775,7 @@ else
         width: 'w-[1800px] sm:max-w-9xl'
       }"
     >
-      <ServiceOrderDetail :selected-customer="selectedCustomer" :selected-complaint="null" :selected-order="null" :selected-serial="null" />
+      <ServiceOrderDetail :selected-customer="selectedCustomer" :form-action ="action" :selected-complaint="null" :selected-order="null" :selected-serial="null" />
     </UDashboardModal>
     <!-- Site Visit Modal -->
     <UDashboardModal

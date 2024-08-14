@@ -1062,6 +1062,7 @@ const onScheduletaskDblClick = async (event) => {
       :selected-customer="gridMeta.selectedCustomerId"
       :selected-complaint="gridMeta.selectedCompaintNumber"
       :selected-order="gridMeta.selectedServiceId"
+      :form-action ="null"
     />
   </UDashboardModal>
 </template>
