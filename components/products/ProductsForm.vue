@@ -21,51 +21,10 @@ const productsFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false)
 const productExist = ref(true)
 const markets = ref([])
-const professions = ref([])
-const categories = ref([])
-const conferences = ref([])
-const usstates = ref([])
+
 const formData = reactive({
   UniqueID: null,
-  market: null,
-  number: null,
-  source: professions[0],
-  sourcedescription: null,
-  SourceConfrence: null,
-  fname: null,
-  mi: null,
-  lname: null,
-  title: null,
-  position: null,
-  company1: null,
-  company2: null,
-  country: null,
-  address: null,
-  city: null,
-  state: null,
-  zip: null,
-  workphone: null,
-  homephone: null,
-  cellphone: null,
-  fax: null,
-  email: null,
-  website: null,
-  notes: null,
-  billcompany1: null,
-  billcompany2: null,
-  billcountry: null,
-  billaddress: null,
-  billcity: null,
-  billstate: null,
-  billzip: null,
-  billphone: null,
-  billfax: null,
-  attn: null,
-  adddate: null,
-  ParadynamixCatagory: null,
-  fullname: null,
-  Extension: null,
-  ExtensionBill: null,
+  
 })
 
 const editInit = async () => {
@@ -76,7 +35,6 @@ const editInit = async () => {
       if(response.status === 200) {
         loadingOverlay.value = false
         productExist.value = true
-        console.log(response._data.body)
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
             formData[key] = response._data.body[key]
@@ -93,67 +51,7 @@ const editInit = async () => {
 }
 const propertiesInit = async () => {
   loadingOverlay.value = true
-  await useApiFetch('/api/customers/markets', {
-    method: 'GET',
-    onResponse({ response }) {
-      if(response.status === 200) {
-        markets.value = response._data.body;
-      }
-    }, 
-    onResponseError() {
-      markets.value = []
-    }
-  })
-  await useApiFetch('/api/customers/conferences', {
-    method: 'GET',
-    onResponse({ response }) {
-      if(response.status === 200) {
-        conferences.value = response._data.body;
-      }
-    }, 
-    onResponseError() {
-      conferences.value = []
-    }
-  })
-  await useApiFetch('/api/customers/categories', {
-    method: 'GET',
-    onResponse({ response }) {
-      if(response.status === 200) {
-        categories.value = response._data.body;
-      }
-    },
-    onResponseError() {
-      categories.value = []
-    }
-  })
-  await useApiFetch('/api/customers/professions', {
-    method: 'GET',
-    onResponse({ response }) {
-      if(response.status === 200) {
-        professions.value = response._data.body;
-      }
-    },
-    onResponseError() {
-      professions.value = []
-    }
-  })
-  await useApiFetch('/api/common/usstates',  {
-    method: 'GET',
-    onResponse({ response }) {
-      if(response.status === 200) {
-        usstates.value = response._data.body;
-      }
-    },
-    onResponseError() {
-      usstates.value = [
-        "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", 
-        "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
-        "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", 
-        "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", 
-        "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
-      ];
-    }
-  })
+  
   loadingOverlay.value = false
 }
 const validate = (state: any): FormError[] => {
@@ -171,46 +69,20 @@ const handleClose = async () => {
   }
 }
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  if(props.selectedProduct === null) { // Create Customer
-    await useApiFetch('/api/products', {
-      method: 'POST',
-      body: event.data, 
-      onResponse({ response }) {
-        if(response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: 'i-heroicons-check-circle',
-            color: 'green'
-          })
-        }
-      }
-    })
-  } else { // Update Customer
-    await useApiFetch(`/api/products/${props.selectedProduct}`, {
-      method: 'PUT',
-      body: event.data, 
-      onResponse({ response }) {
-        if (response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: 'i-heroicons-check-circle',
-            color: 'green'
-          })
-        }
-      }
-    })
+  if(props.selectedProduct === null) { // Create Product
+    
+  } else { // Update Product
+    
   }
   emit('save')
 }
 
 const modalMeta = ref({
-    isCustomerModalOpen: false,
+    isProductModalOpen: false,
     modalTitle: "New Product",
 })
 
-if(props.selectedCustomer !== null) 
+if(props.selectedProduct !== null) 
   editInit()
 else 
   propertiesInit()
@@ -253,9 +125,7 @@ else
             name="productline"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              
             />
           </UFormGroup>
         </div>
@@ -265,7 +135,7 @@ else
             name="model"
           >
             <UInput
-              v-model="formData.mi"
+              
             />
           </UFormGroup>
         </div>
@@ -275,7 +145,7 @@ else
             name="description"
           >
             <UInput
-              v-model="formData.mi"
+              
             />
           </UFormGroup>
           <div class="mt-2">
@@ -294,9 +164,7 @@ else
             name="unit"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              
             />
           </UFormGroup>
         </div>
@@ -306,9 +174,7 @@ else
             name="inventoryunit"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              
             />
           </UFormGroup>
         </div>
@@ -318,7 +184,7 @@ else
             name="netweight"
           >
             <UInput
-              v-model="formData.number"
+              
             />
           </UFormGroup>
         </div>
@@ -328,7 +194,7 @@ else
             name="netweightfull"
           >
             <UInput
-              v-model="formData.number"
+              
             />
           </UFormGroup>
         </div>
@@ -338,7 +204,7 @@ else
             name="shipweight"
           >
             <UInput
-              v-model="formData.number"
+             
             />
           </UFormGroup>
         </div>
@@ -352,7 +218,7 @@ else
             name="length"
           >
             <UInput
-              v-model="formData.number"
+              
             />
           </UFormGroup>
         </div>
@@ -362,7 +228,7 @@ else
             name="width"
           >
             <UInput
-              v-model="formData.number"
+              
             />
           </UFormGroup>
         </div>
@@ -372,7 +238,7 @@ else
             name="height"
           >
             <UInput
-              v-model="formData.number"
+              
             />
           </UFormGroup>
         </div>
@@ -382,9 +248,7 @@ else
             name="electrical"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              
             />
           </UFormGroup>
         </div>
@@ -394,7 +258,7 @@ else
             name="amps"
           >
             <UInput
-              v-model="formData.number"
+             
             />
           </UFormGroup>
         </div>
@@ -408,9 +272,7 @@ else
             name="warrantytype"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              
             />
           </UFormGroup>
         </div>
@@ -420,7 +282,7 @@ else
             name="otherspecification"
           >
             <UInput
-              v-model="formData.number"
+              
             />
           </UFormGroup>
         </div>
@@ -430,9 +292,7 @@ else
             name="noname"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              
             />
           </UFormGroup>
         </div>
@@ -483,7 +343,7 @@ else
             name="waxcapacity"
           >
             <UInput
-              v-model="formData.mi"
+              
             />
           </UFormGroup>
         </div>
@@ -493,7 +353,7 @@ else
             name="tankdepth"
           >
             <UInput
-              v-model="formData.mi"
+              
             />
           </UFormGroup>
         </div>
@@ -526,9 +386,7 @@ else
             name="thermcategory"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              
             />
           </UFormGroup>
         </div>
@@ -538,9 +396,7 @@ else
             name="walls"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              
             />
           </UFormGroup>
         </div>
@@ -550,9 +406,7 @@ else
             name="section"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+             
             />
           </UFormGroup>
         </div>
@@ -562,9 +416,7 @@ else
             name="productline"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              
             />
           </UFormGroup>
         </div>
@@ -577,7 +429,7 @@ else
             name="corian"
           >
             <UInput
-              v-model="formData.mi"
+             
             />
           </UFormGroup>
         </div>
@@ -587,7 +439,7 @@ else
             name="powdercoat"
           >
             <UInput
-              v-model="formData.mi"
+             
             />
           </UFormGroup>
         </div>
@@ -597,7 +449,7 @@ else
             name="cunit"
           >
             <UInput
-              v-model="formData.mi"
+             
             />
           </UFormGroup>
         </div>
@@ -607,7 +459,7 @@ else
             name="controlpanel"
           >
             <UInput
-              v-model="formData.mi"
+              
             />
           </UFormGroup>
         </div>
@@ -617,7 +469,7 @@ else
             name="heater"
           >
             <UInput
-              v-model="formData.mi"
+              
             />
           </UFormGroup>
         </div>
@@ -643,7 +495,7 @@ else
                   name="lefttankassembly"
                 >
                   <UInput
-                    v-model="formData.company1"
+                    
                   />
                 </UFormGroup>
               </div>
@@ -653,7 +505,7 @@ else
                   name="leftgal"
                 >
                   <UInput
-                    v-model="formData.company2"
+                    
                   />
                 </UFormGroup>
               </div>
@@ -665,7 +517,7 @@ else
                   name="lefttank"
                 >
                   <UInput
-                    v-model="formData.company1"
+                    
                   />
                 </UFormGroup>
               </div>
@@ -675,7 +527,7 @@ else
                   name="leftpump"
                 >
                   <UInput
-                    v-model="formData.company2"
+                    
                   />
                 </UFormGroup>
               </div>
@@ -687,7 +539,7 @@ else
                   name="leftframe"
                 >
                   <UInput
-                    v-model="formData.company1"
+                    
                   />
                 </UFormGroup>
               </div>
@@ -697,7 +549,7 @@ else
                   name="leftjets"
                 >
                   <UInput
-                    v-model="formData.company2"
+                    
                   />
                 </UFormGroup>
               </div>
@@ -716,7 +568,7 @@ else
                       name="righttankassembly"
                     >
                       <UInput
-                        v-model="formData.company1"
+                        
                       />
                     </UFormGroup>
                   </div>
@@ -738,7 +590,7 @@ else
                       name="righttank"
                     >
                       <UInput
-                        v-model="formData.company1"
+                        
                       />
                     </UFormGroup>
                   </div>
@@ -748,7 +600,7 @@ else
                       name="rightpump"
                     >
                       <UInput
-                        v-model="formData.company2"
+                       
                       />
                     </UFormGroup>
                   </div>
@@ -760,7 +612,7 @@ else
                       name="rightframe"
                     >
                       <UInput
-                        v-model="formData.company1"
+                        
                       />
                     </UFormGroup>
                   </div>
@@ -770,7 +622,7 @@ else
                       name="rightjets"
                     >
                       <UInput
-                        v-model="formData.company2"
+                       
                       />
                     </UFormGroup>
                   </div>
@@ -795,9 +647,7 @@ else
             name="category"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              
             />
           </UFormGroup>
         </div>
@@ -807,9 +657,7 @@ else
             name="subcategory"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              
             />
           </UFormGroup>
         </div>
