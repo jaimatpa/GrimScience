@@ -7,24 +7,44 @@ import type { UTableColumn } from "~/types";
 
 const emit = defineEmits(["close", "save"]);
 const props = defineProps({
-  //   selectedJob: {
-  //     type: [String, Number, null],
-  //     required: true,
-  //   },
-  isModal: {
-    type: [Boolean],
+  selectedJob: {
+    type: [String, Number, null],
+    required: true,
   },
 });
 
 const toast = useToast();
 const router = useRouter();
-const organizationFormInstance = getCurrentInstance();
+const partsFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false);
 const JobExist = ref(true);
 const formData = reactive({});
 
+const jobFilters = ref({
+  JobID: [props.selectedJob],
+});
+
 const editInit = async () => {
   loadingOverlay.value = true;
+  await useApiFetch(`/api/jobs/details`, {
+    method: "GET",
+    params: { ...jobFilters.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        JobExist.value = true;
+        console.log("response._data.body", response._data.body);
+
+        // for (const key in response._data.body) {
+        //   if (response._data.body[key] !== undefined) {
+        //     formData[key] = response._data.body[key];
+        //   }
+        // }
+      }
+    },
+    onResponseError({}) {
+      JobExist.value = false;
+    },
+  });
 
   //   await propertiesInit();
   loadingOverlay.value = false;
@@ -35,7 +55,7 @@ const validate = (state: any): FormError[] => {
   return errors;
 };
 const handleClose = async () => {
-  if (organizationFormInstance?.vnode?.props.onClose) {
+  if (partsFormInstance?.vnode?.props.onClose) {
     emit("close");
   } else {
     router.go(-1);
@@ -76,7 +96,7 @@ const productColumns = ref([
   },
 ]);
 
-// if (props.selectedJob !== null) editInit();
+if (props.selectedJob !== null) editInit();
 // else propertiesInit();
 </script>
 
@@ -90,67 +110,58 @@ const productColumns = ref([
       loader="dots"
     />
   </div>
-  <template v-if="!props.isModal && !JobExist">
-    <CommonNotFound
-      :name="'Organization not found'"
-      :message="'The organization you are looking for does not exist'"
-      :to="'/employees/organization'"
-    />
-  </template>
-  <template v-else>
-    <UForm
-      :validate="validate"
-      :validate-on="['submit']"
-      :state="formData"
-      class="space-y-4"
-      @submit="onSubmit"
-    >
-      <div class="w-full flex flex-col">
-        <div class="w-full mt-5">
-          <UTable
-            :columns="productColumns"
+  <UForm
+    :validate="validate"
+    :validate-on="['submit']"
+    :state="formData"
+    class="space-y-4"
+    @submit="onSubmit"
+  >
+    <div class="w-full flex flex-col">
+      <div class="w-full mt-5">
+        <UTable
+          :columns="productColumns"
+          :ui="{
+            wrapper: 'h-96 border-2 border-gray-300 dark:border-gray-700',
+            th: {
+              base: 'sticky top-0 z-10',
+              color: 'bg-white dark:text-gray dark:bg-[#111827]',
+              padding: 'p-1',
+            },
+          }"
+        >
+          <template #empty-state>
+            <div></div>
+          </template>
+        </UTable>
+      </div>
+      <div class="flex">
+        <div class="mt-5 ml-4">
+          <UButton
+            variant="outline"
+            color="green"
+            label="Generate Excel"
             :ui="{
-              wrapper: 'h-96 border-2 border-gray-300 dark:border-gray-700',
-              th: {
-                base: 'sticky top-0 z-10',
-                color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                padding: 'p-1',
-              },
+              base: 'w-fit',
+              truncate: 'flex justify-center w-full',
             }"
-          >
-            <template #empty-state>
-              <div></div>
-            </template>
-          </UTable>
+            truncate
+          />
         </div>
-        <div class="flex">
-          <div class="mt-5 ml-4">
-            <UButton
-              variant="outline"
-              color="green"
-              label="Generate Excel"
-              :ui="{
-                base: 'w-fit',
-                truncate: 'flex justify-center w-full',
-              }"
-              truncate
-            />
-          </div>
-          <div class="mt-5 ml-4">
-            <UButton
-              icon="i-heroicons-chat-bubble-oval-left-ellipsis"
-              variant="outline"
-              color="green"
-              label="Show Sub Assembly Hours"
-              :ui="{
-                base: 'w-fit',
-                truncate: 'flex justify-center w-full',
-              }"
-              truncate
-            />
-          </div>
+        <div class="mt-5 ml-4">
+          <UButton
+            icon="i-heroicons-chat-bubble-oval-left-ellipsis"
+            variant="outline"
+            color="green"
+            label="Show Sub Assembly Hours"
+            :ui="{
+              base: 'w-fit',
+              truncate: 'flex justify-center w-full',
+            }"
+            truncate
+          />
         </div>
       </div>
-    </UForm>
-  </template>
+    </div>
+  </UForm>
 </template>

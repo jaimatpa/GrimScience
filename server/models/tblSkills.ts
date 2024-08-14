@@ -2,53 +2,60 @@ import { DataTypes } from 'sequelize';
 import sequelize from "../utils/databse";
 
 const tblSkills = sequelize.define('tblSkills', {
-   VisitID: {
+   UniqueID: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       allowNull: false,
       primaryKey: true,
    },
-   VisitNumber: {
+   Name: {
+      type: DataTypes.STRING,
+   },
+   TrainingNotes: {
+      type: DataTypes.STRING,
+   },
+   Prerequisites: {
+      type: DataTypes.STRING,
+   },
+   WorkCenterID: {
       type: DataTypes.INTEGER,
    },
-   Status: {
-      type: DataTypes.STRING,
-   },
-   VisitDate: {
-      type: DataTypes.STRING,
-   },
-   Reason: {
-      type: DataTypes.STRING,
-   },
-   '[By]': {
-      type: DataTypes.STRING,
-   },
-   CustomerID: {
+   weeks: {
       type: DataTypes.INTEGER,
    },
-   Comments: {
+   Sort: {
       type: DataTypes.STRING,
    },
-   CreatedBy: {
+   Catagory: {
       type: DataTypes.STRING,
    },
-   CreatedDate: {
+   subcatagory: {
       type: DataTypes.STRING,
    },
-   ProductLine: {
+   date: {
       type: DataTypes.STRING,
    },
-   ComplaintNumber: {
+   by: {
+      type: DataTypes.STRING,
+   },
+   frequency: {
       type: DataTypes.INTEGER,
    },
-   InvoiceNumber: {
+   courseoutline: {
       type: DataTypes.STRING,
    },
-   QuoteNumber: {
-      type: DataTypes.INTEGER,
+   parts: {
+      type: DataTypes.STRING,
+   },
+   WorkCenters: {
+      type: DataTypes.STRING,
+   },
+   InstanceID: {
+      type: DataTypes.STRING,
    },
 }, {
-   timestamps: false
+   timestamps: false,
+   tableName: 'tblSkills'
 });
 
 export default tblSkills;
