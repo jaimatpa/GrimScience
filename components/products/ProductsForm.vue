@@ -20,11 +20,61 @@ const productsFormInstance = getCurrentInstance();
 
 const loadingOverlay = ref(false)
 const productExist = ref(true)
-const markets = ref([])
+const PRODUCTLINE = ref([])
+const UNIT = ref([])
+const InventoryUnit = ref([])
+const ELECTRICAL = ref([])
+const WARRENTY = ref([])
+const nolabel = ref([])
+const CRYOTHERMCATEGORY = ref([])
+const CRYOTHERMWALLS = ref([])
+const CRYOTHERMSECTIONS = ref([])
+const CRYOTHERMWARMTANKSWITCHABLE = ref([])
+const DURALASTCATEGORY = ref([])
+const DURALASTSUBCATEGORY = ref([])
 
 const formData = reactive({
   UniqueID: null,
-  
+  PRODUCTLINE: null,
+  MODEL: null,
+  DESCRIPTION: null,
+  UNIT: null,
+  InventoryUnit: null,
+  NETWEIGHT: null,
+  NETWEIGHTFULL: null,
+  SHIPWEIGHT: null,
+  LENGTH: null,
+  WIDTH: null,
+  HEIGHT: null,
+  ELECTRICAL: null,
+  amps: null,
+  WARRENTY: null,
+  SPECIFICATIONS: null,
+  SPECSHEET: null,
+  WAXCAPACITY: null,
+  TANKDEPTH: null,
+  CRYOTHERMCATEGORY: null,
+  CRYOTHERMWALLS: null,
+  CRYOTHERMSECTIONS: null,
+  CRYOTHERMWARMTANKSWITCHABLE: null,
+  CryothermCorianNumber: null,
+  CryothermPcoatNumber: null,
+  CryoThermControlPanelNumber: null,
+  CryoThermHeaterNumber: null,
+  LeftTankAssembly: null,
+  CRYOTHERMGALLONSLEFT: null,
+  CryothermLeftTank: null,
+  CryothermLeftPump: null,
+  CryothermLeftFrame: null,
+  CryothermLeftJets: null,
+  RightTankAssembly: null,
+  CRYOTHERMGALLONSRIGHT: null,
+  CryothermRightTank: null,
+  CryothermRightPump: null,
+  CryothermRightFrame: null,
+  CryothermRightJets: null,
+  DURALASTCATEGORY: null,
+  DURALASTSUBCATEGORY: null,
 })
 
 const editInit = async () => {
@@ -56,9 +106,9 @@ const propertiesInit = async () => {
 }
 const validate = (state: any): FormError[] => {
   const errors = []
-  if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
-  if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
-  if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
+  if (!state.PRODUCTLINE) errors.push({ path: 'PRODUCTLINE', message: 'Please enter product line.' })
+  if (!state.MODEL) errors.push({ path: 'MODEL', message: 'Please enter a model.' })
+  if (!state.DESCRIPTION) errors.push({ path: 'DESCRIPTION', message: 'Please entter a description.' })
   return errors
 }
 const handleClose = async () => {
@@ -122,10 +172,12 @@ else
         <div class="basis-1/3">
           <UFormGroup
             label="Product Line"
-            name="productline"
+            name="PRODUCTLINE"
           >
             <UInputMenu
-              
+              v-model="formData.PRODUCTLINE"
+              v-model:query="formData.PRODUCTLINE"
+              :options="PRODUCTLINE"
             />
           </UFormGroup>
         </div>
@@ -135,17 +187,17 @@ else
             name="model"
           >
             <UInput
-              
+              v-model="formData.MODEL"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/3">
           <UFormGroup
             label="Description"
-            name="description"
+            name="DESCRIPTION"
           >
             <UInput
-              
+              v-model="formData.DESCRIPTION"
             />
           </UFormGroup>
           <div class="mt-2">
@@ -161,50 +213,54 @@ else
         <div class="basis-1/5">
           <UFormGroup
             label="Unit"
-            name="unit"
+            name="UNIT"
           >
             <UInputMenu
-              
+              v-model="formData.UNIT"
+              v-model:query="formData.UNIT"
+              :options="UNIT"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
           <UFormGroup
             label="Inventory Unit"
-            name="inventoryunit"
+            name="InventoryUnit"
           >
             <UInputMenu
-              
+              v-model="formData.InventoryUnit"
+              v-model:query="formData.InventoryUnit"
+              :options="InventoryUnit"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
           <UFormGroup
             label="Net Weight"
-            name="netweight"
+            name="NETWEIGHT"
           >
             <UInput
-              
+              v-model="formData.NETWEIGHT"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
           <UFormGroup
             label="Net Weight Full"
-            name="netweightfull"
+            name="NETWEIGHTFULL"
           >
             <UInput
-              
+              v-model="formData.NETWEIGHTFULL"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
           <UFormGroup
             label="Ship Weight"
-            name="shipweight"
+            name="SHIPWEIGHT"
           >
             <UInput
-             
+             v-model="formData.SHIPWEIGHT"
             />
           </UFormGroup>
         </div>
@@ -215,40 +271,42 @@ else
         <div class="basis-1/5">
           <UFormGroup
             label="Length"
-            name="length"
+            name="LENGTH"
           >
             <UInput
-              
+              v-model="formData.LENGTH"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
           <UFormGroup
             label="Width"
-            name="width"
+            name="WIDTH"
           >
             <UInput
-              
+              v-model="formData.WIDTH"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
           <UFormGroup
             label="Height"
-            name="height"
+            name="HEIGHT"
           >
             <UInput
-              
+              v-model="formData.HEIGHT"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
           <UFormGroup
             label="Electrical"
-            name="electrical"
+            name="ELECTRICAL"
           >
             <UInputMenu
-              
+              v-model="formData.ELECTRICAL"
+              v-model:query="formData.ELECTRICAL"
+              :options="ELECTRICAL"
             />
           </UFormGroup>
         </div>
@@ -258,7 +316,7 @@ else
             name="amps"
           >
             <UInput
-             
+              v-model="formData.amps"
             />
           </UFormGroup>
         </div>
@@ -269,20 +327,22 @@ else
         <div class="basis-1/3">
           <UFormGroup
             label="Warranty Type"
-            name="warrantytype"
+            name="WARRENTY"
           >
             <UInputMenu
-              
+              v-model="formData.WARRENTY"
+              v-model:query="formData.WARRENTY"
+              :options="WARRENTY"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/3">
           <UFormGroup
             label="Other Specification"
-            name="otherspecification"
+            name="SPECIFICATIONS"
           >
             <UInput
-              
+              v-model="formData.SPECIFICATIONS"
             />
           </UFormGroup>
         </div>
@@ -292,7 +352,9 @@ else
             name="noname"
           >
             <UInputMenu
-              
+              v-model="formData.DESCRIPTION"
+              v-model:query="formData.DESCRIPTION"
+              :options="nolabel"
             />
           </UFormGroup>
         </div>
@@ -303,7 +365,7 @@ else
         <div class="w-1/3">
             <UFormGroup
             label="Spec Sheet"
-            name="specSheet"
+            name="SPECSHEET"
             >
             <div class="relative">
                 <input
@@ -340,20 +402,20 @@ else
         <div class="basis-1/2">
           <UFormGroup
             label="Wax Capacity"
-            name="waxcapacity"
+            name="WAXCAPACITY"
           >
             <UInput
-              
+              v-model="formData.WAXCAPACITY"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/2">
           <UFormGroup
             label="Tank Depth"
-            name="tankdepth"
+            name="TANKDEPTH"
           >
             <UInput
-              
+              v-model="formData.TANKDEPTH"
             />
           </UFormGroup>
         </div>
@@ -383,40 +445,48 @@ else
         <div class="basis-1/4">
           <UFormGroup
             label="Category"
-            name="thermcategory"
+            name="CRYOTHERMCATEGORY"
           >
             <UInputMenu
-              
+              v-model="formData.CRYOTHERMCATEGORY"
+              v-model:query="formData.CRYOTHERMCATEGORY"
+              :options="CRYOTHERMCATEGORY"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/4">
           <UFormGroup
             label="Walls"
-            name="walls"
+            name="CRYOTHERMWALLS"
           >
             <UInputMenu
-              
+              v-model="formData.CRYOTHERMWALLS"
+              v-model:query="formData.CRYOTHERMWALLS"
+              :options="CRYOTHERMWALLS"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/4">
           <UFormGroup
             label="Sections"
-            name="section"
+            name="CRYOTHERMSECTIONS"
           >
             <UInputMenu
-             
+              v-model="formData.CRYOTHERMSECTIONS"
+              v-model:query="formData.CRYOTHERMSECTIONS"
+              :options="CRYOTHERMSECTIONS"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/4">
           <UFormGroup
             label="Switchable"
-            name="productline"
+            name="CRYOTHERMWARMTANKSWITCHABLE"
           >
             <UInputMenu
-              
+              v-model="formData.CRYOTHERMWARMTANKSWITCHABLE"
+              v-model:query="formData.CRYOTHERMWARMTANKSWITCHABLE"
+              :options="CRYOTHERMWARMTANKSWITCHABLE"
             />
           </UFormGroup>
         </div>
@@ -426,20 +496,20 @@ else
         <div class="basis-1/5">
           <UFormGroup
             label="Corian#"
-            name="corian"
+            name="CryothermCorianNumber"
           >
             <UInput
-             
+              v-model="formData.CryothermCorianNumber"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
           <UFormGroup
             label="Powder Coat#"
-            name="powdercoat"
+            name="CryothermPcoatNumber"
           >
             <UInput
-             
+              v-model="formData.CryothermPcoatNumber"
             />
           </UFormGroup>
         </div>
@@ -449,27 +519,27 @@ else
             name="cunit"
           >
             <UInput
-             
+              v-model="formData.DESCRIPTION"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
           <UFormGroup
             label="Control Panel#"
-            name="controlpanel"
+            name="CryoThermControlPanelNumber"
           >
             <UInput
-              
+              v-model="formData.CryoThermControlPanelNumber"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
           <UFormGroup
             label="Heater#"
-            name="heater"
+            name="CryoThermHeaterNumber"
           >
             <UInput
-              
+              v-model="formData.CryoThermHeaterNumber"
             />
           </UFormGroup>
         </div>
@@ -492,20 +562,20 @@ else
               <div class="basis-1/2">
                 <UFormGroup
                   label="Tank Assembly#"
-                  name="lefttankassembly"
+                  name="LeftTankAssembly"
                 >
                   <UInput
-                    
+                    v-model="formData.LeftTankAssembly"
                   />
                 </UFormGroup>
               </div>
               <div class="basis-1/2">
                 <UFormGroup
                   label="Gal."
-                  name="leftgal"
+                  name="CRYOTHERMGALLONSLEFT"
                 >
                   <UInput
-                    
+                    v-model="formData.CRYOTHERMGALLONSLEFT"
                   />
                 </UFormGroup>
               </div>
@@ -514,20 +584,20 @@ else
               <div class="basis-1/2">
                 <UFormGroup
                   label="Tank#"
-                  name="lefttank"
+                  name="CryothermLeftTank"
                 >
                   <UInput
-                    
+                    v-model="formData.CryothermLeftTank"
                   />
                 </UFormGroup>
               </div>
               <div class="basis-1/2">
                 <UFormGroup
                   label="Pump#"
-                  name="leftpump"
+                  name="CryothermLeftPump"
                 >
                   <UInput
-                    
+                    v-model="formData.CryothermLeftPump"
                   />
                 </UFormGroup>
               </div>
@@ -536,20 +606,20 @@ else
               <div class="basis-1/2">
                 <UFormGroup
                   label="Frame#"
-                  name="leftframe"
+                  name="CryothermLeftFrame"
                 >
                   <UInput
-                    
+                    v-model="formData.CryothermLeftFrame"
                   />
                 </UFormGroup>
               </div>
               <div class="basis-1/2">
                 <UFormGroup
                   label="Jets"
-                  name="leftjets"
+                  name="CryothermLeftJets"
                 >
                   <UInput
-                    
+                    v-model="formData.CryothermLeftJets"
                   />
                 </UFormGroup>
               </div>
@@ -565,20 +635,20 @@ else
                   <div class="basis-1/2">
                     <UFormGroup
                       label="Tank Assembly#"
-                      name="righttankassembly"
+                      name="RightTankAssembly"
                     >
                       <UInput
-                        
+                        v-model="formData.RightTankAssembly"
                       />
                     </UFormGroup>
                   </div>
                   <div class="basis-1/2">
                     <UFormGroup
                       label="Gal."
-                      name="rightgal"
+                      name="CRYOTHERMGALLONSRIGHT"
                     >
                       <UInput
-                        
+                        v-model="formData.CRYOTHERMGALLONSRIGHT"
                       />
                     </UFormGroup>
                   </div>
@@ -587,20 +657,20 @@ else
                   <div class="basis-1/2">
                     <UFormGroup
                       label="Tank#"
-                      name="righttank"
+                      name="CryothermRightTank"
                     >
                       <UInput
-                        
+                        v-model="formData.CryothermRightTank"
                       />
                     </UFormGroup>
                   </div>
                   <div class="basis-1/2">
                     <UFormGroup
                       label="Pump#"
-                      name="rightpump"
+                      name="CryothermRightPump"
                     >
                       <UInput
-                       
+                        v-model="formData.CryothermRightPump"
                       />
                     </UFormGroup>
                   </div>
@@ -609,20 +679,20 @@ else
                   <div class="basis-1/2">
                     <UFormGroup
                       label="Frame#"
-                      name="rightframe"
+                      name="CryothermRightFrame"
                     >
                       <UInput
-                        
+                        v-model="formData.CryothermRightFrame"
                       />
                     </UFormGroup>
                   </div>
                   <div class="basis-1/2">
                     <UFormGroup
                       label="Jets"
-                      name="rightjets"
+                      name="CryothermRightJets"
                     >
                       <UInput
-                       
+                        v-model="formData.CryothermRightJets"
                       />
                     </UFormGroup>
                   </div>
@@ -644,20 +714,24 @@ else
         <div class="basis-1/4">
           <UFormGroup
             label="Category"
-            name="category"
+            name="DURALASTCATEGORY"
           >
             <UInputMenu
-              
+              v-model="formData.DURALASTCATEGORY"
+              v-model:query="formData.DURALASTCATEGORY"
+              :options="DURALASTCATEGORY"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/4">
           <UFormGroup
             label="SubCategory"
-            name="subcategory"
+            name="DURALASTSUBCATEGORY"
           >
             <UInputMenu
-              
+              v-model="formData.DURALASTSUBCATEGORY"
+              v-model:query="formData.DURALASTSUBCATEGORY"
+              :options="DURALASTSUBCATEGORY"
             />
           </UFormGroup>
         </div>

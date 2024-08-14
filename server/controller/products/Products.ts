@@ -38,6 +38,42 @@ export const getNumberOfProducts = async (filterParams) => {
   return numberOfProducts;
 }
 
+export const productExistByID = async (id) => {
+  const tableDetail = await tblBP.findByPk(id);
+  if (tableDetail)
+    return true;
+  else
+    return false;
+}
+
+export const getProductDetail = async (id) => {
+  const tableDetail = await tblBP.findByPk(id);
+  return tableDetail
+}
+
+export const updateProduct = async (id, reqData) => {
+  let updatedReqData
+  if (typeof reqData.adddate === 'string') {
+    updatedReqData = {
+      ...reqData,
+      adddate: Sequelize.literal(`CAST('${reqData.adddate}' AS DATETIME)`)
+    };
+  } else {
+    updatedReqData = {
+      ...reqData,
+    };
+  }
+  await tblBP.update(updatedReqData, {
+    where: { UniqueID: id }
+  });
+  return id;
+}
+
+export const deleteProduct = async (id) => {
+  await tblBP.destroy({ where: { UniqueID: id } });
+  return id;
+}
+
 export const getProductLine = async () => {
   const result = await tblBP.findAll({
     attributes: [
