@@ -1,6 +1,7 @@
 import {   getEmployees, getJobTypes } from '~/server/controller/jobs';
 import { getEmployeess } from '~/server/controller/projects/projects';
 
+
 export default eventHandler(async (event) => {
   try {
     const method = event._method;

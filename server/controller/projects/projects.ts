@@ -138,4 +138,12 @@ export const getProjectItem = async (Catagory) => {
   }
 }
 
+export const createProject = async (data) => {
+  const fullname = `${data.lname}, ${data.fname}`
+  
+  const newJob = await tblJobs.create(data);
+  return newJob;
+}
+
+
 

@@ -8,6 +8,7 @@ import PartsList from '../job/PartsList.vue';
 import { format } from 'date-fns'
 import DatePickerClient from '../common/DatePicker.client.vue';
 import type { UTableColumn } from '~/types';
+import type { NUMBER } from 'sequelize';
 
 const items = [{
     key:"sub",
@@ -26,9 +27,30 @@ const jobList = ref([
   job:''
 }
 ]);
+const form= {
+        NUMBER: '',
+        QUANTITY: '',
+        Cost:'',
+        PerType:'',     
+        ProjectType:'',
+        DATEOPENED:'',
+        ByEmployee:'',
+        ProductionDate:'',
+        ProductionBy:'',
+        DATECLOSED:'',
+        ClosedBy:'',
+        Catagory:'',
+        SubCatagory:'',
+        PART:'',
+
+            }
+
 
 
 const date = ref(new Date());
+const closedDate = ref(new Date());
+const readyToProductDate=ref(new Date());
+
 const formatDate = (date) => {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
@@ -331,10 +353,14 @@ const category=['Marketing',
 'Manufacturing']
 const selectedCategory=ref(category[0]);
 const subCategorielist=ref([]);
-const subCategorySeleted=ref();
+const subCategorySeleted= ref<string | null>(null);
+const ClosedBySelected= ref<string | null>(null);
+  const openBySelected= ref<string | null>(null);
+
 const partlist = ref([]);
-const selectPart=ref([]);
-const selectCategoryForList=ref([]);
+const selectPart=ref<string | null>(null);
+const byEmploye=ref<string | null>(null);
+const selectCategoryForList=ref();
 const projectItemList=ref([]);
 const selectedProjectItem=ref([]);
 const modalMeta = ref({
@@ -441,8 +467,9 @@ const productItem = async () => {
       },
       onResponse({ response }) {
         if (response.status === 200) {
-       console.log("response is",response._data.body);
-       projectItemList.value=response._data.body;
+          
+          projectItemList.value=response._data.body;
+          console.log("projectItemList.value",projectItemList.value);
        
         
         } else {
@@ -591,10 +618,24 @@ const employeeOptions = computed(() => {
   }));
 });
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  if(props.selectedCustomer === null) { // Create Customer
-    await useApiFetch('/api/customers', {
+  console.log("insert function calling",form);
+  form.PerType=selectedInventory.value;
+  form.ProjectType=selected.value;
+  form.ByEmployee=byEmploye.value;
+  form.DATEOPENED=date.value.toISOString();
+  form.ProductionDate=readyToProductDate.value.toISOString();
+  form.DATECLOSED=closedDate.value.toISOString();
+  form.Catagory=selectedCategory.value;
+  form.SubCatagory = subCategorySeleted.value;
+  form.PART=selectPart.value;
+  form.ClosedBy=ClosedBySelected.value;
+  
+
+  console.log("selectCategoryForList",selectCategoryForList)
+
+    await useApiFetch('/api/projects', {
       method: 'POST',
-      body: event.data, 
+      body: form, 
       onResponse({ response }) {
         if(response.status === 200) {
           toast.add({
@@ -606,23 +647,25 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       }
     })
-  } else { // Update Customer
-    await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
-      method: 'PUT',
-      body: event.data, 
-      onResponse({ response }) {
-        if (response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: 'i-heroicons-check-circle',
-            color: 'green'
-          })
-        }
-      }
-    })
-  }
-  emit('save')
+  
+  
+  // else { // Update Customer
+  //   await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
+  //     method: 'PUT',
+  //     body: event.data, 
+  //     onResponse({ response }) {
+  //       if (response.status === 200) {
+  //         toast.add({
+  //           title: "Success",
+  //           description: response._data.message,
+  //           icon: 'i-heroicons-check-circle',
+  //           color: 'green'
+  //         })
+  //       }
+  //     }
+  //   })
+  // }
+  // emit('save')
 }
 
 
@@ -665,7 +708,7 @@ else
             name="Project#"
           >
             <UInput
-             
+             v-model="form.NUMBER"
             />
           </UFormGroup>
         </div>
@@ -673,10 +716,10 @@ else
         <div class="basis-1/5">
           <UFormGroup
             label="Project Qty."
-            name="PName"
+            name="QUANTITY"
           >
             <UInput
-          
+           v-model="form.QUANTITY"
             />
           </UFormGroup>
         </div>
@@ -694,7 +737,7 @@ else
             name="LCost"
           >
             <UInput
-          
+          v-model="form.Cost"
             />
           </UFormGroup>
           </div>
@@ -719,9 +762,10 @@ else
                   name="DOpened"
                 >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                          <UButton icon="i-heroicons-calendar-days-20-solid"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                          <UButton icon="i-heroicons-calendar-days-20-solid"  :label="format(date, 'd MMM, yyy')"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                           <template #panel="{ close }">
-                            <CommonDatePicker  is-required @close="close" />
+                            <DatePickerClient v-model="date" is-required @close="close" />
+
                           </template>
                         </UPopover>
                     </UFormGroup>
@@ -732,7 +776,7 @@ else
                   name="By"
                 >
                   <UInputMenu
-                   :options="employeeOptions"
+                 v-model="form.ByEmployee"  :options="employeeOptions"
                     
                   />
                 </UFormGroup>
@@ -746,12 +790,12 @@ else
                   name="RTOProduce"
                 >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                          <UButton icon="i-heroicons-calendar-days-20-solid"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                          <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(readyToProductDate, 'd MMM, yyy')"   variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                           <template #panel="{ close }">
-                            <CommonDatePicker  is-required @close="close" />
+                            <CommonDatePicker  v-model="readyToProductDate"  is-required @close="close" />
                           </template>
                         </UPopover>
-                    </UFormGroup>
+                    </UFormGroup> 
               </div>
               <div class="basis-1/2">
                 <UFormGroup
@@ -759,7 +803,7 @@ else
                   name="By"
                 >
                   <UInputMenu
-                    :options="employeeOptions"
+                  v-model="ClosedBySelected"  :options="employeeOptions"
                     
                   />
                 </UFormGroup>
@@ -772,9 +816,9 @@ else
                   name="PClosed"
                 >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                          <UButton icon="i-heroicons-calendar-days-20-solid"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                          <UButton icon="i-heroicons-calendar-days-20-solid"  :label="format(closedDate, 'd MMM, yyy')"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                           <template #panel="{ close }">
-                            <CommonDatePicker  is-required @close="close" />
+                            <CommonDatePicker v-model="closedDate" is-required @close="close" />
                           </template>
                         </UPopover>
                     </UFormGroup>
@@ -981,7 +1025,7 @@ else
             
            
             <UInputMenu 
-            :options="projectItemList" v-model="selectedProjectItem"
+            :options="projectItemList" 
             />
           </UFormGroup>
 
@@ -1042,8 +1086,10 @@ else
              />
            </UTooltip> 
         <UButton color="cyan" variant="outline"
-          type="submit"
+          type=""
           label="Save"
+          @click="onSubmit"
+          
         />
       </div>
     </UForm>
