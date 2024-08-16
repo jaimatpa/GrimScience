@@ -33,7 +33,7 @@ import type { UTableColumn } from '~/types';
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'MODEL ',
+        key: 'MODEL', 
         label: 'Description',
         sortable: true,
         sortDirection: 'none',
@@ -200,7 +200,8 @@ import type { UTableColumn } from '~/types';
 // Watch for changes in selectedOptions and update filterValues
 watch(selectedOptions, (newSelectedOptions) => {
   filterValues.value.selectedOptions = newSelectedOptions;
-  fetchGridData(); // Trigger fetchGridData whenever filterValues changes
+  console.log("filter value is",newSelectedOptions);
+  fetchGridData(); 
 });
 
   const onCreate = () => {
@@ -381,9 +382,6 @@ watch(selectedOptions, (newSelectedOptions) => {
   <div>
     <UCheckbox label="Show Open Only" v-model="checkboxes.ShowOpenOnly" />
   </div>
-  <div>
-      <p>Selected Options: {{ selectedOptions.join(', ') }}</p>
-    </div>
   </div>
   <div>
     <div class="mr-5">

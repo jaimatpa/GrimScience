@@ -6,6 +6,7 @@ export default eventHandler(async (event) => {
     const method = event._method;
 
     if (method.toUpperCase() === 'GET') {
+      console.log("filter category is",filterParams.category);
       const projectlist = await getProjectItem(filterParams.category);
       return { body: projectlist, message: '' };
     } else {

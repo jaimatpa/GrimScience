@@ -4,13 +4,13 @@ import tbl from "~/server/api/tbl";
 import { tblBP, tblEmployee } from "~/server/models";
 import tblJobs from "~/server/models/tblJobs";
 
-// Function to apply filters based on the parameters
 const applyFilters = (params) => {
-  console.log("param is", params);
+  console.log("Received params:", params);
+  
   const filterParams = [
     'UniqueID', 'NUMBER', 'QUANTITY', 'MODEL', 'PerType', 'DATEOPENED', 
-  'DATECLOSED', 'PercentageComplete', 'Catagory', 'SubCatagory', 
-  'Cost', 'jobcat', 'jobsubcat', 'ProductionDate', 'projectType'
+    'DATECLOSED', 'PercentageComplete', 'Catagory', 'SubCatagory', 
+    'Cost', 'jobcat', 'jobsubcat', 'ProductionDate', 'projectType'
   ];
   const whereClause = {};
 
@@ -22,28 +22,29 @@ const applyFilters = (params) => {
     }
   });
 
-  if (params.selectedProjectTypes && params.selectedProjectTypes.length > 0) {
-    whereClause['projectType'] = {
-      [Op.in]: params.selectedProjectTypes
+  // Update this to use 'selectedOptions' if that's the key you're filtering by
+  if (params.selectedOptions) {
+    whereClause['Catagory'] = {
+      [Op.like]: `%${params.selectedOptions}%`  // Adjust the field if needed
     };
   }
 
   return whereClause;
 };
 
-export const getAllJobss = async (page, pageSize, sortBy, sortOrder, filterParams) => {
+export const getAllProject = async (page, pageSize, sortBy, sortOrder, filterParams) => {
   try {
     const limit = parseInt(pageSize, 10) || 10;
     const offset = ((parseInt(page, 10) - 1) || 0) * limit;
     
     const whereClause = applyFilters(filterParams);
-    console.log("whereClause", whereClause);
+    console.log("Generated whereClause:", whereClause);
 
     const list = await tblJobs.findAll({
       attributes: [
-       'UniqueID', 'NUMBER', 'QUANTITY', 'MODEL', 'PerType', 'DATEOPENED', 
-  'DATECLOSED', 'PercentageComplete', 'Catagory', 'SubCatagory', 
-  'Cost', 'jobcat', 'jobsubcat', 'ProductionDate', 'projectType'
+        'UniqueID', 'NUMBER', 'QUANTITY', 'MODEL', 'PerType', 'DATEOPENED', 
+        'DATECLOSED', 'PercentageComplete', 'Catagory', 'SubCatagory', 
+        'Cost', 'jobcat', 'jobsubcat', 'ProductionDate', 'projectType'
       ],
       where: whereClause,
       order: [[sortBy || 'UniqueID', sortOrder || 'ASC']],
@@ -56,18 +57,24 @@ export const getAllJobss = async (page, pageSize, sortBy, sortOrder, filterParam
     console.error('Error fetching jobs:', error);
     throw error;
   }
-}
-export const getEmployeess = async()=>{
+};
+export const getEmployeess = async () => {
+  try {
+    const list = await tblEmployee.findAll({
+      attributes: [
+        [Sequelize.literal("CONCAT(fname, ' ', lname)"), 'fullName'],
+      ],
+      where: {
+        ACTIVE: true
+      }
+    });
+    return list.map(employee => employee.get('fullName'));
+  } catch(err) {
+    return err.message;
+  }
+};
 
-  const employeess = await tblEmployee.findAll({
-    attributes: [
-      'UniqueID', 'fName', 'lName'
-     ],
-    raw: true // Return plain data objects
-  });
 
-return employeess;
-}
 
 export const getDistinctSubcategories = async (partTypeValue) => {
   try {
@@ -119,24 +126,24 @@ export async function getBasicModels(parttype, subCategory) {
 
 
 
-
-export const getProjectItem = async (Catagory) => {
+export const getProjectItem = async (Category) => {
   try {
     // Create the whereClause based on the category parameter
-    const whereClause = Catagory ? { Catagory: Catagory } : {};
-
+    const whereClause = Category ? { Category: Category } : {};
 
     const list = await tblJobs.findAll({
-      attributes: ['Part' ],
+      attributes: ['Part'],
       where: whereClause
     });
 
+    // Map the results to return only the 'Part' attribute
     return list.map(result => result.get('Part'));
   } catch (error) {
     console.error('Error fetching jobs:', error);
-    throw error;
+    throw new Error('An error occurred while fetching the jobs.');
   }
 }
+
 
 export const createProject = async (data) => {
   const fullname = `${data.lname}, ${data.fname}`
@@ -147,3 +154,25 @@ export const createProject = async (data) => {
 
 
 
+
+
+export const projectExistByID = async (id) => {
+  const tableDetail = await tblJobs.findByPk(id);
+  if(tableDetail)
+    return true;
+  else
+    return false;
+}
+
+export const getprojectDetail = async (id) => {
+  const tableDetail = await tblJobs.findByPk(id);
+  return tableDetail
+}
+
+
+export const updateProject = async (id, reqData) => {
+  await tblJobs.update(reqData, {
+    where: { UniqueID: id }
+  });
+  return id;
+}

@@ -22,34 +22,31 @@ const items = [{
   label: 'Operations',
 }]
 const tableOfCompletion = ref([]);
+const employeeOptions=ref([]);
 const jobList = ref([
 {
   job:''
 }
 ]);
-const form= {
-        NUMBER: '',
-        QUANTITY: '',
-        Cost:'',
-        PerType:'',     
-        ProjectType:'',
-        DATEOPENED:'',
-        ByEmployee:'',
-        ProductionDate:'',
-        ProductionBy:'',
-        DATECLOSED:'',
-        ClosedBy:'',
-        Catagory:'',
-        SubCatagory:'',
-        PART:'',
-
-            }
-
+const form=reactive( {
+        NUMBER: null,
+        QUANTITY:null,
+        Cost:null,
+        PerType:null,     
+        ProjectType:null,
+        DATEOPENED:ref(new Date()),
+        ByEmployee:null,
+        ProductionDate:ref(new Date()),
+        ProductionBy:null,
+        DATECLOSED:ref(new Date()),
+        ClosedBy:null,
+        Catagory:null,
+        SubCatagory:null,
+        PART:null,
+            });
 
 
-const date = ref(new Date());
-const closedDate = ref(new Date());
-const readyToProductDate=ref(new Date());
+
 
 const formatDate = (date) => {
   const day = String(date.getDate()).padStart(2, '0');
@@ -60,7 +57,7 @@ const formatDate = (date) => {
 
 const newEntry = ref({
   qty: '',
-  completionDate:formatDate(date.value),
+  completionDate:'',
   scheduleDate: '',
 });
 
@@ -117,50 +114,6 @@ const employeeHours= [{
 
 
 
-
-
-const people = [{
-  name: 'Lindsay Walton',
- 
-}, {
-  name: 'Lindsay Walton',
-
-}, {
-  name: 'Lindsay Walton',
-}, {
-  name: 'Lindsay Walton',
-}, {
-  name: 'Lindsay Walton',
-}, {
-  name: 'Lindsay Walton',
-}]
-
-const InventoryTransactions = [{
-  id: '5645',
-  date:5/5/12,
-  Qty:'2',
-}, {
-    id: '5645',
-  date:5/5/12,
-  Qty:'2',
-
-}, {
-    id: '5645',
-  date:5/5/12,
-  Qty:'2',
-}, {
-    id: '5645',
-  date:5/5/12,
-  Qty:'2',
-}, {
-    id: '5645',
-  date:5/5/12,
-  Qty:'2',
-}, {
-    id: '5645',
-  date:5/5/12,
-  Qty:'2',
-}]
 
 const weekly = [{
   "#": '1',
@@ -353,13 +306,10 @@ const category=['Marketing',
 'Manufacturing']
 const selectedCategory=ref(category[0]);
 const subCategorielist=ref([]);
-const subCategorySeleted= ref<string | null>(null);
-const ClosedBySelected= ref<string | null>(null);
-  const openBySelected= ref<string | null>(null);
+
 
 const partlist = ref([]);
-const selectPart=ref<string | null>(null);
-const byEmploye=ref<string | null>(null);
+
 const selectCategoryForList=ref();
 const projectItemList=ref([]);
 const selectedProjectItem=ref([]);
@@ -385,8 +335,8 @@ const modalMeta = ref({
       method: 'GET', 
       onResponse({ response }) {
         if(response.status === 200) {
-           employeeName.value = response._data.body;
-           console.log("employees",employeeName.value);
+          employeeOptions.value= response._data.body;
+           console.log("employees",response._data.body);
       
         }
       }
@@ -405,17 +355,19 @@ const modalMeta = ref({
 };
 
 const editInit = async () => {
-  loadingOverlay.value = true
-  await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
+  loadingOverlay.value = true;
+  console.log("project is",)
+  await useApiFetch(`/api/projects/${props.selectedCustomer}`, {
     method: 'GET',
     onResponse({ response }) {
       if(response.status === 200) {
         loadingOverlay.value = false
         customerExist.value = true
+        console.log("details is", response._data.body)
+        
         for (const key in response._data.body) {
-          if (response._data.body[key] !== undefined) {
-            formData[key] = response._data.body[key]
-          }
+            form[key] = response._data.body[key]
+          
         }
       }
     }, 
@@ -434,7 +386,7 @@ const subCategories = async () => {
     await useApiFetch('/api/projects/subCategory', {
       method: 'GET',
       params: {
-        subCategory: selectedCategory.value
+        subCategory: form.Catagory
       },
       onResponse({ response }) {
         if (response.status === 200) {
@@ -467,13 +419,13 @@ const productItem = async () => {
       },
       onResponse({ response }) {
         if (response.status === 200) {
-          
+          console.log("projectlist is",response._data.body);
           projectItemList.value=response._data.body;
-          console.log("projectItemList.value",projectItemList.value);
+
+          
        
         
         } else {
-          markets.value = [];
           console.error('Unexpected response status:', response.status);
         }
       },
@@ -499,8 +451,8 @@ const part = async () => {
     await useApiFetch('/api/projects/parts', {
       method: 'GET',
       params: {
-        category:selectedCategory.value,
-        subCategory: subCategorySeleted.value
+        category:form.Catagory,
+        subCategory: form.SubCatagory
       },
       onResponse({ response }) {
         if (response.status === 200) {
@@ -610,29 +562,15 @@ const handleClose = async () => {
     router.go(-1)
   }
 }
-// Computed property to transform data into the required format
-const employeeOptions = computed(() => {
-  return employeeName.value.map(employee => ({
-    label: `${employee.fName} ${employee.lName}`,
-    value: employee.UniqueID
-  }));
-});
+
 const onSubmit = async (event: FormSubmitEvent<any>) => {
   console.log("insert function calling",form);
   form.PerType=selectedInventory.value;
   form.ProjectType=selected.value;
-  form.ByEmployee=byEmploye.value;
-  form.DATEOPENED=date.value.toISOString();
-  form.ProductionDate=readyToProductDate.value.toISOString();
-  form.DATECLOSED=closedDate.value.toISOString();
-  form.Catagory=selectedCategory.value;
-  form.SubCatagory = subCategorySeleted.value;
-  form.PART=selectPart.value;
-  form.ClosedBy=ClosedBySelected.value;
   
 
   console.log("selectCategoryForList",selectCategoryForList)
-
+  if(props.selectedCustomer === null) {
     await useApiFetch('/api/projects', {
       method: 'POST',
       body: form, 
@@ -647,25 +585,26 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       }
     })
+  }
   
-  
-  // else { // Update Customer
-  //   await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
-  //     method: 'PUT',
-  //     body: event.data, 
-  //     onResponse({ response }) {
-  //       if (response.status === 200) {
-  //         toast.add({
-  //           title: "Success",
-  //           description: response._data.message,
-  //           icon: 'i-heroicons-check-circle',
-  //           color: 'green'
-  //         })
-  //       }
-  //     }
-  //   })
-  // }
-  // emit('save')
+  else { // Update Customer
+    console.log("its cclall");
+    await useApiFetch(`/api/projects/${props.selectedCustomer}`, {
+      method: 'PUT',
+      body: form, 
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-check-circle',
+            color: 'green'
+          })
+        }
+      }
+    })
+  }
+  emit('save');
 }
 
 
@@ -762,9 +701,9 @@ else
                   name="DOpened"
                 >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                          <UButton icon="i-heroicons-calendar-days-20-solid"  :label="format(date, 'd MMM, yyy')"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                          <UButton icon="i-heroicons-calendar-days-20-solid"  :label="format(form.DATEOPENED, 'd MMM, yyy')"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                           <template #panel="{ close }">
-                            <DatePickerClient v-model="date" is-required @close="close" />
+                            <DatePickerClient v-model="form.DATEOPENED" is-required @close="close" />
 
                           </template>
                         </UPopover>
@@ -790,9 +729,9 @@ else
                   name="RTOProduce"
                 >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                          <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(readyToProductDate, 'd MMM, yyy')"   variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                          <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(form.ProductionDate, 'd MMM, yyy')"   variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                           <template #panel="{ close }">
-                            <CommonDatePicker  v-model="readyToProductDate"  is-required @close="close" />
+                            <CommonDatePicker  v-model="form.ProductionDate"  is-required @close="close" />
                           </template>
                         </UPopover>
                     </UFormGroup> 
@@ -803,7 +742,7 @@ else
                   name="By"
                 >
                   <UInputMenu
-                  v-model="ClosedBySelected"  :options="employeeOptions"
+                  v-model="form.ProductionBy"  :options="employeeOptions"
                     
                   />
                 </UFormGroup>
@@ -816,9 +755,9 @@ else
                   name="PClosed"
                 >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                          <UButton icon="i-heroicons-calendar-days-20-solid"  :label="format(closedDate, 'd MMM, yyy')"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                          <UButton icon="i-heroicons-calendar-days-20-solid"  :label="format(form.DATECLOSED, 'd MMM, yyy')"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                           <template #panel="{ close }">
-                            <CommonDatePicker v-model="closedDate" is-required @close="close" />
+                            <CommonDatePicker v-model="form.DATECLOSED" is-required @close="close" />
                           </template>
                         </UPopover>
                     </UFormGroup>
@@ -829,7 +768,7 @@ else
                   name="By"
                 >
                   <UInputMenu
-                    :options="employeeOptions"
+                   v-model="form.ClosedBy" :options="employeeOptions"
                     
                   />
                 </UFormGroup>
@@ -848,19 +787,19 @@ else
            
             <UInputMenu 
             @change="subCategories"
-            v-model="selectedCategory" :options="category" 
+            v-model="form.Catagory" :options="category" 
             />
           </UFormGroup>
           <UFormGroup label="Sub Category" class="basis-1/2"  name="Sub Category">
             <UInputMenu 
-            :options="subCategorielist" v-model="subCategorySeleted"  @change="part" />
+            :options="subCategorielist" v-model="form.SubCatagory"  @change="part" />
           </UFormGroup>
           
         </div>
         <UFormGroup label="Part"  name="Part" class="mt-2">
             <UInputMenu 
             :options="partlist"
-            v-model="selectPart"
+            v-model="form.PART"
             />
           </UFormGroup>
           <div class="grid grid-cols-1 mt-6 h-48">
@@ -875,10 +814,10 @@ else
           </UFormGroup>
           <div class="mt-6">
             <UPopover :popper="{ placement: 'bottom-start' }">
-              <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'd MMM, yyy')" />
+              <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(form.DATEOPENED, 'd MMM, yyy')" />
           
               <template #panel="{ close }">
-                <DatePickerClient v-model="date" is-required @close="close" />
+                <DatePickerClient v-model="form.DATEOPENED" is-required @close="close" />
               </template>
             </UPopover>
             </div>
