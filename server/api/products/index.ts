@@ -1,4 +1,4 @@
-import { getProducts } from '~/server/controller/products';
+import { getProducts, createProduct } from '~/server/controller/products';
 
 export default eventHandler(async (event) => {
   try {
@@ -8,6 +8,10 @@ export default eventHandler(async (event) => {
       case 'GET':
         const list = await getProducts(page, pageSize, sortBy, sortOrder, filterParams);
         return { body: list, message: '' }
+      case 'POST':
+        const data = await readBody(event)
+        const newCustomer = await createProduct(data)
+        return { body: { newCustomer }, message: 'New product created successfully!'}
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

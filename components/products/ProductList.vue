@@ -38,6 +38,7 @@ const headerFilters = ref({
 
 
 });
+const revisions = ref([])
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
@@ -99,11 +100,11 @@ const exportIsLoading = ref(false);
 
 const revisionColumns = ref([
   {
-    key: "date",
+    key: "TODAY",
     label: "Date",
   },
   {
-    key: "type",
+    key: "CODE",
     label: "Type",
   },
 ]);
@@ -217,6 +218,7 @@ const onDelete = (row) => {
 
 const onSelect = async (row) => {
   gridMeta.value.selectedProductId = row?.UniqueID;
+  
   gridMeta.value.products.forEach((pro) => {
     if (pro.UniqueID === row.UniqueID) {
       pro.class = "bg-gray-200";
@@ -225,6 +227,19 @@ const onSelect = async (row) => {
     }
   });
   gridMeta.value.selectProduct = row;
+  await useApiFetch('/api/products/revisions/'+row?.UniqueID, {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        if(response._data.body.length > 0) {
+          revisions.value = response._data.body;
+        }
+      }
+    }, 
+    onResponseError() {
+      revisions.value = []
+    }
+  })
 
 };
 
@@ -461,7 +476,7 @@ const handleFilterInputChange = async (event, name) => {
             <span>Revision History</span>
             <UTable
               :columns="revisionColumns"
-              :rows="[]"
+              :rows="revisions"
               :ui="{
                 wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
                 th: {

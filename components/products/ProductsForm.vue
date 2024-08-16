@@ -25,7 +25,7 @@ const UNIT = ref([])
 const InventoryUnit = ref([])
 const ELECTRICAL = ref([])
 const WARRENTY = ref([])
-const nolabel = ref([])
+const AccountNumber = ref([])
 const CRYOTHERMCATEGORY = ref([])
 const CRYOTHERMWALLS = ref([])
 const CRYOTHERMSECTIONS = ref([])
@@ -33,11 +33,13 @@ const CRYOTHERMWARMTANKSWITCHABLE = ref([])
 const DURALASTCATEGORY = ref([])
 const DURALASTSUBCATEGORY = ref([])
 
+
 const formData = reactive({
   UniqueID: null,
   PRODUCTLINE: null,
   MODEL: null,
   DESCRIPTION: null,
+  VariablePricing: null,
   UNIT: null,
   InventoryUnit: null,
   NETWEIGHT: null,
@@ -50,6 +52,7 @@ const formData = reactive({
   amps: null,
   WARRENTY: null,
   SPECIFICATIONS: null,
+  AccountNumber: null,
   SPECSHEET: null,
   WAXCAPACITY: null,
   TANKDEPTH: null,
@@ -101,7 +104,138 @@ const editInit = async () => {
 }
 const propertiesInit = async () => {
   loadingOverlay.value = true
-  
+  await useApiFetch('/api/products/productline', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        PRODUCTLINE.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      PRODUCTLINE.value = []
+    }
+  })
+  await useApiFetch('/api/products/unit', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        UNIT.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      UNIT.value = []
+    }
+  })
+  await useApiFetch('/api/products/inventoryUnit', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        InventoryUnit.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      InventoryUnit.value = []
+    }
+  })
+  await useApiFetch('/api/products/electrical', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        ELECTRICAL.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      ELECTRICAL.value = []
+    }
+  })
+  await useApiFetch('/api/products/warrenty', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        WARRENTY.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      WARRENTY.value = []
+    }
+  })
+  await useApiFetch('/api/products/accountNumber', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        AccountNumber.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      AccountNumber.value = []
+    }
+  })
+  await useApiFetch('/api/products/cryothermCategory', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        CRYOTHERMCATEGORY.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      CRYOTHERMCATEGORY.value = []
+    }
+  })
+  await useApiFetch('/api/products/cryothermWalls', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        CRYOTHERMWALLS.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      CRYOTHERMWALLS.value = []
+    }
+  })
+  await useApiFetch('/api/products/cryothermSections', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        CRYOTHERMSECTIONS.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      CRYOTHERMSECTIONS.value = []
+    }
+  })
+  await useApiFetch('/api/products/cryothermWarmTankSwitchable', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        CRYOTHERMWARMTANKSWITCHABLE.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      CRYOTHERMWARMTANKSWITCHABLE.value = []
+    }
+  })
+  await useApiFetch('/api/products/duraLastCategory', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        DURALASTCATEGORY.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      DURALASTCATEGORY.value = []
+    }
+  })
+  await useApiFetch('/api/products/duraLastSubCategory', {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        DURALASTSUBCATEGORY.value = response._data.body;
+      }
+    }, 
+    onResponseError() {
+      DURALASTSUBCATEGORY.value = []
+    }
+  })
   loadingOverlay.value = false
 }
 const validate = (state: any): FormError[] => {
@@ -120,9 +254,35 @@ const handleClose = async () => {
 }
 const onSubmit = async (event: FormSubmitEvent<any>) => {
   if(props.selectedProduct === null) { // Create Product
-    
+    await useApiFetch('/api/products', {
+      method: 'POST',
+      body: event.data, 
+      onResponse({ response }) {
+        if(response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-check-circle',
+            color: 'green'
+          })
+        }
+      }
+    })
   } else { // Update Product
-    
+    await useApiFetch(`/api/products/${props.selectedProduct}`, {
+      method: 'PUT',
+      body: event.data, 
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-check-circle',
+            color: 'green'
+          })
+        }
+      }
+    })
   }
   emit('save')
 }
@@ -202,7 +362,9 @@ else
           </UFormGroup>
           <div class="mt-2">
             <UCheckbox
+              :v-model="formData.VariablePricing"
               label="Variable Pricing"
+
             />
           </div>
         </div>
@@ -348,13 +510,13 @@ else
         </div>
         <div class="basis-1/3">
           <UFormGroup
-            label="No Label"
-            name="noname"
+            label="Account"
+            name="AccountNumber"
           >
             <UInputMenu
-              v-model="formData.DESCRIPTION"
-              v-model:query="formData.DESCRIPTION"
-              :options="nolabel"
+              v-model="formData.AccountNumber"
+              v-model:query="formData.AccountNumber"
+              :options="AccountNumber"
             />
           </UFormGroup>
         </div>

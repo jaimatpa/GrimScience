@@ -192,7 +192,7 @@ const tblBP = sequelize.define('tblBP', {
       type: DataTypes.STRING,
    },
    TODAY: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING,
    },
    PRODUCTLINE: {
       type: DataTypes.STRING,
