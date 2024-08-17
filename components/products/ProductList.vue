@@ -39,6 +39,7 @@ const headerFilters = ref({
 
 });
 const revisions = ref([])
+const jobHistory = ref([])
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
@@ -111,11 +112,11 @@ const revisionColumns = ref([
 
 const jobColumns = ref([
   {
-    key: "id",
+    key: "NUMBER",
     label: "Job#",
   },
   {
-    key: "closed",
+    key: "DATECLOSED",
     label: "Closed",
   },
 ]);
@@ -227,6 +228,7 @@ const onSelect = async (row) => {
     }
   });
   gridMeta.value.selectProduct = row;
+  console.log(row)
   await useApiFetch('/api/products/revisions/'+row?.UniqueID, {
     method: 'GET',
     onResponse({ response }) {
@@ -240,6 +242,34 @@ const onSelect = async (row) => {
       revisions.value = []
     }
   })
+  await useApiFetch('/api/products/jobhistory/'+row?.UniqueID, {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        if(response._data.body.length > 0) {
+          jobHistory.value = response._data.body;
+        }
+      }
+    }, 
+    onResponseError() {
+      jobHistory.value = []
+    }
+  })
+
+};
+
+const onRevisionSelect = async (row) => {
+  gridMeta.value.selectedProductId = row?.UniqueID;
+  
+  revisions.value.forEach((pro) => {
+    if (pro.UniqueID === row.UniqueID) {
+      pro.class = "bg-gray-200";
+    } else {
+      delete pro.class;
+    }
+  });
+  console.log(row)
+  gridMeta.value.selectProduct = row;
 
 };
 
@@ -485,13 +515,15 @@ const handleFilterInputChange = async (event, name) => {
                   padding: 'p-1',
                 },
               }"
+              @select="onRevisionSelect"
+              @dblclick="onDblClick"
             />
           </div>
           <div>
             <span>Job History</span>
             <UTable
               :columns="jobColumns"
-              :rows="[]"
+              :rows="jobHistory"
               :ui="{
                 wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
                 th: {

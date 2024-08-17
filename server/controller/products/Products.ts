@@ -1,5 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblBP } from "~/server/models";
+import { tblBP, tblJobs } from "~/server/models";
 
 const applyFilters = (params) => {
   const filterParams = ['PRODUCTLINE', 'MODEL', 'DESCRIPTION', 'grossprofit'];
@@ -72,6 +72,17 @@ export const getRevisions = async (id) => {
     }
   })
   return revisions
+}
+
+export const getJobHistory = async (id) => {
+  const tableDetail = await tblBP.findByPk(id);
+  
+  const jobHistory = await tblJobs.findAll({
+    where: {
+      instanceID: tableDetail.dataValues.instanceID
+    }
+  })
+  return jobHistory
 }
 
 export const createProduct = async (data) => {
