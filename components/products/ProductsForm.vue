@@ -2,6 +2,7 @@
 import type { FormError, FormSubmitEvent } from '#ui/types'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css';
+const { handleFileInput, files} = useFileStorage()
 
 const emit = defineEmits(['close', 'save'])
 const props = defineProps({
@@ -18,6 +19,9 @@ const toast = useToast()
 const router = useRouter()
 const productsFormInstance = getCurrentInstance();
 
+const actionType = ref('')
+const fileName = ref(null)
+
 const loadingOverlay = ref(false)
 const productExist = ref(true)
 const PRODUCTLINE = ref([])
@@ -33,13 +37,12 @@ const CRYOTHERMWARMTANKSWITCHABLE = ref([])
 const DURALASTCATEGORY = ref([])
 const DURALASTSUBCATEGORY = ref([])
 
-
 const formData = reactive({
   UniqueID: null,
   PRODUCTLINE: null,
   MODEL: null,
   DESCRIPTION: null,
-  VariablePricing: null,
+  VariablePricing: true,
   UNIT: null,
   InventoryUnit: null,
   NETWEIGHT: null,
@@ -88,6 +91,7 @@ const editInit = async () => {
       if(response.status === 200) {
         loadingOverlay.value = false
         productExist.value = true
+        console.log(response._data.body)
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
             formData[key] = response._data.body[key]
@@ -252,11 +256,18 @@ const handleClose = async () => {
     router.go(-1)
   }
 }
+const handleFileUpload = (event) => {
+  fileName.value = event.target.files[0].name
+}
 const onSubmit = async (event: FormSubmitEvent<any>) => {
+  console.log(files.value[0].name)
   if(props.selectedProduct === null) { // Create Product
     await useApiFetch('/api/products', {
       method: 'POST',
-      body: event.data, 
+      body:{
+        data:  event.data,
+        files: files.value
+      }, 
       onResponse({ response }) {
         if(response.status === 200) {
           toast.add({
@@ -269,20 +280,54 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       }
     })
   } else { // Update Product
-    await useApiFetch(`/api/products/${props.selectedProduct}`, {
-      method: 'PUT',
-      body: event.data, 
-      onResponse({ response }) {
-        if (response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: 'i-heroicons-check-circle',
-            color: 'green'
-          })
+    if(actionType.value === "revision") {
+      await useApiFetch(`/api/products/revisions/${props.selectedProduct}`, {
+        method: 'PUT',
+        body: event.data, 
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: 'i-heroicons-check-circle',
+              color: 'green'
+            })
+          }
         }
-      }
-    })
+      })
+    } else if(actionType.value === "inactive") {
+      console.log(event.data)
+      await useApiFetch('/api/products/inactive/'+ props.selectedProduct, {
+        method: 'PUT',
+        body: event.data, 
+        onResponse({ response }) {
+          if(response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: 'i-heroicons-check-circle',
+              color: 'green'
+            })
+          }
+        }
+      })
+    } else if(actionType.value === "createOrModify") {
+      await useApiFetch(`/api/products/${props.selectedProduct}`, {
+        method: 'PUT',
+        body: event.data, 
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: 'i-heroicons-check-circle',
+              color: 'green'
+            })
+          }
+        }
+      })
+    }
+    
   }
   emit('save')
 }
@@ -362,7 +407,7 @@ else
           </UFormGroup>
           <div class="mt-2">
             <UCheckbox
-              :v-model="formData.VariablePricing"
+              v-model="formData.VariablePricing"
               label="Variable Pricing"
 
             />
@@ -523,390 +568,432 @@ else
 
       </div>
       <div class="flex flex-row space-x-3">
-     
         <div class="w-1/3">
-            <UFormGroup
-            label="Spec Sheet"
-            name="SPECSHEET"
-            >
+          <UFormGroup label="Spec Sheet" name="SPECSHEET">
             <div class="relative">
-                <input
+              <input
                 type="file"
                 id="file-upload"
+                @input="handleFileInput"
+                @change="handleFileUpload"
                 class="hidden"
-                
-                />
-                <label
+              />
+              <label
                 for="file-upload"
                 class="flex items-center justify-between bg-gray-100 border p-1 rounded cursor-pointer"
-                >
-                <span class="text-gray-500">Choose a file...</span>
+              >
+                <span class="text-gray-500">{{ fileName || 'Choose a file...' }}</span>
                 <button
-                    type="button"
-                    class="bg-[#9b4b99] text-white px-4  rounded"
+                  type="button"
+                  class="bg-[#9b4b99] text-white px-4 rounded"
                 >
-                    ...
+                  ...
                 </button>
-                </label>
+              </label>
             </div>
+          </UFormGroup>
+        </div>
+      </div>
+
+      <div v-if="formData.PRODUCTLINE === 'Ready Ref' || 
+      formData.PRODUCTLINE === 'Ready Ref Play Clock' || 
+      formData.PRODUCTLINE === 'Ready Ref Play Clock Option' ||
+      formData.PRODUCTLINE === null
+      ">
+          <div class="my-2">
+            ``<div class="font-bold">
+              Ready Ref
+            </div>
+          </div>
+
+          <div class="flex flex-row space-x-3">
+            <div class="basis-1/2">
+              <UFormGroup
+                label="Wax Capacity"
+                name="WAXCAPACITY"
+              >
+                <UInput
+                  v-model="formData.WAXCAPACITY"
+                />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/2">
+              <UFormGroup
+                label="Tank Depth"
+                name="TANKDEPTH"
+              >
+                <UInput
+                  v-model="formData.TANKDEPTH"
+                />
+              </UFormGroup>
+            </div>
+          </div>
+      </div>
+      <div v-if="formData.PRODUCTLINE === 'PARATherm' || 
+      formData.PRODUCTLINE === 'PARATherm Option' ||
+      formData.PRODUCTLINE === null
+      ">
+        <div class="my-2">
+          <div class="font-bold">
+            PARATherm
+          </div>
+        </div>
+      </div>
+     
+      <div v-if="formData.PRODUCTLINE === 'CRYOPress' || 
+      formData.PRODUCTLINE === 'CRYOPress Option' ||
+      formData.PRODUCTLINE === null
+      ">
+        <div class="my-2">
+          <div class="font-bold">
+            CRYOPress
+          </div>
+        </div>
+      </div>
+      
+
+      <div v-if="formData.PRODUCTLINE === 'CRYOTherm' || 
+      formData.PRODUCTLINE === 'CRYOTherm Option' || 
+      formData.PRODUCTLINE === 'CRYOTherm ReadyFit' ||
+      formData.PRODUCTLINE === null
+      ">
+        <div class="my-2">
+          <div class="font-bold">
+          CRYOTherm
+          </div>
+        </div>
+
+        <div class="flex flex-row space-x-3">
+          <div class="basis-1/4">
+            <UFormGroup
+              label="Category"
+              name="CRYOTHERMCATEGORY"
+            >
+              <UInputMenu
+                v-model="formData.CRYOTHERMCATEGORY"
+                v-model:query="formData.CRYOTHERMCATEGORY"
+                :options="CRYOTHERMCATEGORY"
+              />
             </UFormGroup>
+          </div>
+          <div class="basis-1/4">
+            <UFormGroup
+              label="Walls"
+              name="CRYOTHERMWALLS"
+            >
+              <UInputMenu
+                v-model="formData.CRYOTHERMWALLS"
+                v-model:query="formData.CRYOTHERMWALLS"
+                :options="CRYOTHERMWALLS"
+              />
+            </UFormGroup>
+          </div>
+          <div class="basis-1/4">
+            <UFormGroup
+              label="Sections"
+              name="CRYOTHERMSECTIONS"
+            >
+              <UInputMenu
+                v-model="formData.CRYOTHERMSECTIONS"
+                v-model:query="formData.CRYOTHERMSECTIONS"
+                :options="CRYOTHERMSECTIONS"
+              />
+            </UFormGroup>
+          </div>
+          <div class="basis-1/4">
+            <UFormGroup
+              label="Switchable"
+              name="CRYOTHERMWARMTANKSWITCHABLE"
+            >
+              <UInputMenu
+                v-model="formData.CRYOTHERMWARMTANKSWITCHABLE"
+                v-model:query="formData.CRYOTHERMWARMTANKSWITCHABLE"
+                :options="CRYOTHERMWARMTANKSWITCHABLE"
+              />
+            </UFormGroup>
+          </div>
         </div>
-       
+
+        <div class="flex flex-row space-x-3">
+          <div class="basis-1/5">
+            <UFormGroup
+              label="Corian#"
+              name="CryothermCorianNumber"
+            >
+              <UInput
+                v-model="formData.CryothermCorianNumber"
+              />
+            </UFormGroup>
+          </div>
+          <div class="basis-1/5">
+            <UFormGroup
+              label="Powder Coat#"
+              name="CryothermPcoatNumber"
+            >
+              <UInput
+                v-model="formData.CryothermPcoatNumber"
+              />
+            </UFormGroup>
+          </div>
+          <div class="basis-1/5">
+            <UFormGroup
+              label="C-Unit#"
+              name="cunit"
+            >
+              <UInput
+                v-model="formData.DESCRIPTION"
+              />
+            </UFormGroup>
+          </div>
+          <div class="basis-1/5">
+            <UFormGroup
+              label="Control Panel#"
+              name="CryoThermControlPanelNumber"
+            >
+              <UInput
+                v-model="formData.CryoThermControlPanelNumber"
+              />
+            </UFormGroup>
+          </div>
+          <div class="basis-1/5">
+            <UFormGroup
+              label="Heater#"
+              name="CryoThermHeaterNumber"
+            >
+              <UInput
+                v-model="formData.CryoThermHeaterNumber"
+              />
+            </UFormGroup>
+          </div>
+        </div>
+
+        <div class="flex flex-row">
+          <div class="basis-1/2 text-center">
+            Left Tank
+          </div>
+          <div class="basis-1/2 text-center">
+            Right Tank
+          </div>
+        </div>
+
+        <div class="flex flex-row space-x-5">
+          <div class="basis-1/2">
+            <!-- Left Tank -->
+            <div class="flex flex-col space-y-2">
+              <div class="flex flex-row space-x-3">
+                <div class="basis-1/2">
+                  <UFormGroup
+                    label="Tank Assembly#"
+                    name="LeftTankAssembly"
+                  >
+                    <UInput
+                      v-model="formData.LeftTankAssembly"
+                    />
+                  </UFormGroup>
+                </div>
+                <div class="basis-1/2">
+                  <UFormGroup
+                    label="Gal."
+                    name="CRYOTHERMGALLONSLEFT"
+                  >
+                    <UInput
+                      v-model="formData.CRYOTHERMGALLONSLEFT"
+                    />
+                  </UFormGroup>
+                </div>
+              </div>
+              <div class="flex flex-row space-x-3">
+                <div class="basis-1/2">
+                  <UFormGroup
+                    label="Tank#"
+                    name="CryothermLeftTank"
+                  >
+                    <UInput
+                      v-model="formData.CryothermLeftTank"
+                    />
+                  </UFormGroup>
+                </div>
+                <div class="basis-1/2">
+                  <UFormGroup
+                    label="Pump#"
+                    name="CryothermLeftPump"
+                  >
+                    <UInput
+                      v-model="formData.CryothermLeftPump"
+                    />
+                  </UFormGroup>
+                </div>
+              </div>
+              <div class="flex flex-row space-x-3">
+                <div class="basis-1/2">
+                  <UFormGroup
+                    label="Frame#"
+                    name="CryothermLeftFrame"
+                  >
+                    <UInput
+                      v-model="formData.CryothermLeftFrame"
+                    />
+                  </UFormGroup>
+                </div>
+                <div class="basis-1/2">
+                  <UFormGroup
+                    label="Jets"
+                    name="CryothermLeftJets"
+                  >
+                    <UInput
+                      v-model="formData.CryothermLeftJets"
+                    />
+                  </UFormGroup>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="basis-1/2"> 
+            <!-- Right Tank -->
+            <div class="flex flex-col space-y-2">
+              <div class="flex flex-row space-x-3">
+                <div class="flex flex-col space-y-2">
+                  <div class="flex flex-row space-x-3">
+                    <div class="basis-1/2">
+                      <UFormGroup
+                        label="Tank Assembly#"
+                        name="RightTankAssembly"
+                      >
+                        <UInput
+                          v-model="formData.RightTankAssembly"
+                        />
+                      </UFormGroup>
+                    </div>
+                    <div class="basis-1/2">
+                      <UFormGroup
+                        label="Gal."
+                        name="CRYOTHERMGALLONSRIGHT"
+                      >
+                        <UInput
+                          v-model="formData.CRYOTHERMGALLONSRIGHT"
+                        />
+                      </UFormGroup>
+                    </div>
+                  </div>
+                  <div class="flex flex-row space-x-3">
+                    <div class="basis-1/2">
+                      <UFormGroup
+                        label="Tank#"
+                        name="CryothermRightTank"
+                      >
+                        <UInput
+                          v-model="formData.CryothermRightTank"
+                        />
+                      </UFormGroup>
+                    </div>
+                    <div class="basis-1/2">
+                      <UFormGroup
+                        label="Pump#"
+                        name="CryothermRightPump"
+                      >
+                        <UInput
+                          v-model="formData.CryothermRightPump"
+                        />
+                      </UFormGroup>
+                    </div>
+                  </div>
+                  <div class="flex flex-row space-x-3">
+                    <div class="basis-1/2">
+                      <UFormGroup
+                        label="Frame#"
+                        name="CryothermRightFrame"
+                      >
+                        <UInput
+                          v-model="formData.CryothermRightFrame"
+                        />
+                      </UFormGroup>
+                    </div>
+                    <div class="basis-1/2">
+                      <UFormGroup
+                        label="Jets"
+                        name="CryothermRightJets"
+                      >
+                        <UInput
+                          v-model="formData.CryothermRightJets"
+                        />
+                      </UFormGroup>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="my-2">
-        <div class="font-bold">
-          Ready Ref
+      
+      <div v-if="formData.PRODUCTLINE === 'DURALast'">
+        <div class="my-2">
+          <div class="font-bold">
+            DURALast
+          </div>
         </div>
-      </div>
 
-      <div class="flex flex-row space-x-3">
-        <div class="basis-1/2">
-          <UFormGroup
-            label="Wax Capacity"
-            name="WAXCAPACITY"
-          >
-            <UInput
-              v-model="formData.WAXCAPACITY"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/2">
-          <UFormGroup
-            label="Tank Depth"
-            name="TANKDEPTH"
-          >
-            <UInput
-              v-model="formData.TANKDEPTH"
-            />
-          </UFormGroup>
-        </div>
-      </div>
-
-      <div class="my-2">
-        <div class="font-bold">
-          PARATherm
-        </div>
-      </div>
-
-      <div class="my-2">
-        <div class="font-bold">
-          CRYOPress
+        <div class="flex flex-row space-x-3">
+          <div class="basis-1/4">
+            <UFormGroup
+              label="Category"
+              name="DURALASTCATEGORY"
+            >
+              <UInputMenu
+                v-model="formData.DURALASTCATEGORY"
+                v-model:query="formData.DURALASTCATEGORY"
+                :options="DURALASTCATEGORY"
+              />
+            </UFormGroup>
+          </div>
+          <div class="basis-1/4">
+            <UFormGroup
+              label="SubCategory"
+              name="DURALASTSUBCATEGORY"
+            >
+              <UInputMenu
+                v-model="formData.DURALASTSUBCATEGORY"
+                v-model:query="formData.DURALASTSUBCATEGORY"
+                :options="DURALASTSUBCATEGORY"
+              />
+            </UFormGroup>
+          </div>
         </div>
       </div>
 
       
 
-      <div class="my-2">
-        <div class="font-bold">
-         CRYOTherm
-        </div>
-      </div>
-
-      <div class="flex flex-row space-x-3">
-        <div class="basis-1/4">
-          <UFormGroup
-            label="Category"
-            name="CRYOTHERMCATEGORY"
-          >
-            <UInputMenu
-              v-model="formData.CRYOTHERMCATEGORY"
-              v-model:query="formData.CRYOTHERMCATEGORY"
-              :options="CRYOTHERMCATEGORY"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/4">
-          <UFormGroup
-            label="Walls"
-            name="CRYOTHERMWALLS"
-          >
-            <UInputMenu
-              v-model="formData.CRYOTHERMWALLS"
-              v-model:query="formData.CRYOTHERMWALLS"
-              :options="CRYOTHERMWALLS"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/4">
-          <UFormGroup
-            label="Sections"
-            name="CRYOTHERMSECTIONS"
-          >
-            <UInputMenu
-              v-model="formData.CRYOTHERMSECTIONS"
-              v-model:query="formData.CRYOTHERMSECTIONS"
-              :options="CRYOTHERMSECTIONS"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/4">
-          <UFormGroup
-            label="Switchable"
-            name="CRYOTHERMWARMTANKSWITCHABLE"
-          >
-            <UInputMenu
-              v-model="formData.CRYOTHERMWARMTANKSWITCHABLE"
-              v-model:query="formData.CRYOTHERMWARMTANKSWITCHABLE"
-              :options="CRYOTHERMWARMTANKSWITCHABLE"
-            />
-          </UFormGroup>
-        </div>
-      </div>
-
-      <div class="flex flex-row space-x-3">
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Corian#"
-            name="CryothermCorianNumber"
-          >
-            <UInput
-              v-model="formData.CryothermCorianNumber"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Powder Coat#"
-            name="CryothermPcoatNumber"
-          >
-            <UInput
-              v-model="formData.CryothermPcoatNumber"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="C-Unit#"
-            name="cunit"
-          >
-            <UInput
-              v-model="formData.DESCRIPTION"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Control Panel#"
-            name="CryoThermControlPanelNumber"
-          >
-            <UInput
-              v-model="formData.CryoThermControlPanelNumber"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Heater#"
-            name="CryoThermHeaterNumber"
-          >
-            <UInput
-              v-model="formData.CryoThermHeaterNumber"
-            />
-          </UFormGroup>
-        </div>
-      </div>
-
-      <div class="flex flex-row">
-        <div class="basis-1/2 text-center">
-          Left Tank
-        </div>
-        <div class="basis-1/2 text-center">
-          Right Tank
-        </div>
-      </div>
-
-      <div class="flex flex-row space-x-5">
-        <div class="basis-1/2">
-          <!-- Left Tank -->
-          <div class="flex flex-col space-y-2">
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Tank Assembly#"
-                  name="LeftTankAssembly"
-                >
-                  <UInput
-                    v-model="formData.LeftTankAssembly"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Gal."
-                  name="CRYOTHERMGALLONSLEFT"
-                >
-                  <UInput
-                    v-model="formData.CRYOTHERMGALLONSLEFT"
-                  />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Tank#"
-                  name="CryothermLeftTank"
-                >
-                  <UInput
-                    v-model="formData.CryothermLeftTank"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Pump#"
-                  name="CryothermLeftPump"
-                >
-                  <UInput
-                    v-model="formData.CryothermLeftPump"
-                  />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Frame#"
-                  name="CryothermLeftFrame"
-                >
-                  <UInput
-                    v-model="formData.CryothermLeftFrame"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Jets"
-                  name="CryothermLeftJets"
-                >
-                  <UInput
-                    v-model="formData.CryothermLeftJets"
-                  />
-                </UFormGroup>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="basis-1/2"> 
-          <!-- Right Tank -->
-          <div class="flex flex-col space-y-2">
-            <div class="flex flex-row space-x-3">
-              <div class="flex flex-col space-y-2">
-                <div class="flex flex-row space-x-3">
-                  <div class="basis-1/2">
-                    <UFormGroup
-                      label="Tank Assembly#"
-                      name="RightTankAssembly"
-                    >
-                      <UInput
-                        v-model="formData.RightTankAssembly"
-                      />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/2">
-                    <UFormGroup
-                      label="Gal."
-                      name="CRYOTHERMGALLONSRIGHT"
-                    >
-                      <UInput
-                        v-model="formData.CRYOTHERMGALLONSRIGHT"
-                      />
-                    </UFormGroup>
-                  </div>
-                </div>
-                <div class="flex flex-row space-x-3">
-                  <div class="basis-1/2">
-                    <UFormGroup
-                      label="Tank#"
-                      name="CryothermRightTank"
-                    >
-                      <UInput
-                        v-model="formData.CryothermRightTank"
-                      />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/2">
-                    <UFormGroup
-                      label="Pump#"
-                      name="CryothermRightPump"
-                    >
-                      <UInput
-                        v-model="formData.CryothermRightPump"
-                      />
-                    </UFormGroup>
-                  </div>
-                </div>
-                <div class="flex flex-row space-x-3">
-                  <div class="basis-1/2">
-                    <UFormGroup
-                      label="Frame#"
-                      name="CryothermRightFrame"
-                    >
-                      <UInput
-                        v-model="formData.CryothermRightFrame"
-                      />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/2">
-                    <UFormGroup
-                      label="Jets"
-                      name="CryothermRightJets"
-                    >
-                      <UInput
-                        v-model="formData.CryothermRightJets"
-                      />
-                    </UFormGroup>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-  
-
-      <div class="my-2">
-        <div class="font-bold">
-          DURALast
-        </div>
-      </div>
-
-      <div class="flex flex-row space-x-3">
-        <div class="basis-1/4">
-          <UFormGroup
-            label="Category"
-            name="DURALASTCATEGORY"
-          >
-            <UInputMenu
-              v-model="formData.DURALASTCATEGORY"
-              v-model:query="formData.DURALASTCATEGORY"
-              :options="DURALASTCATEGORY"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/4">
-          <UFormGroup
-            label="SubCategory"
-            name="DURALASTSUBCATEGORY"
-          >
-            <UInputMenu
-              v-model="formData.DURALASTSUBCATEGORY"
-              v-model:query="formData.DURALASTSUBCATEGORY"
-              :options="DURALASTSUBCATEGORY"
-            />
-          </UFormGroup>
-        </div>
-      </div>
-
       <div class="flex justify-start gap-3">
         <UButton 
-          color="cyan" 
+          color="green" 
           variant="outline"
           type="submit"
           :icon="selectedProduct !== null ? 'i-heroicons-pencil-square': 'i-heroicons-plus'"
           :label="selectedProduct !== null ? 'Modify Product' : 'Add Product'"
+          name="action"
+          value="modify"
+          @click="actionType = 'createOrModify'"
         />
+        <div class="flex justify-start gap-3" v-if="selectedProduct !== null"> 
+          <UButton 
+            color="cyan" 
+            variant="outline"
+            type="submit"
+            :icon="selectedProduct !== null ? 'i-heroicons-pencil-square': 'i-heroicons-plus'"
+            label="Revision"
+            @click="actionType = 'revision'"
+          />
+          <UButton 
+            color="blue" 
+            variant="outline"
+            type="submit"
+            :icon="selectedProduct !== null ? 'i-heroicons-pencil-square': 'i-heroicons-plus'"
+            label="Inactive"
+            @click="actionType = 'inactive'"
+          />
+       </div>
+        
         <UButton color="red" variant="outline"
           :label="!isModal ? 'Go back': 'Cancel'"
           @click="handleClose"

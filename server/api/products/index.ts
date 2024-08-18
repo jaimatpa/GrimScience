@@ -9,8 +9,8 @@ export default eventHandler(async (event) => {
         const list = await getProducts(page, pageSize, sortBy, sortOrder, filterParams);
         return { body: list, message: '' }
       case 'POST':
-        const data = await readBody(event)
-        const newCustomer = await createProduct(data)
+        const { data ,files} = await readBody<{ files: File[], data:{} }>(event)
+        const newCustomer = await createProduct(data,files)
         return { body: { newCustomer }, message: 'New product created successfully!'}
       default:
         setResponseStatus(event, 405);

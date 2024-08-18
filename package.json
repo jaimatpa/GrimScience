@@ -37,6 +37,7 @@
     "maska": "^3.0.0",
     "msnodesqlv8": "^4.2.1",
     "nuxt": "^3.11.2",
+    "nuxt-file-storage": "^0.2.7",
     "puppeteer": "^22.12.1",
     "sequelize": "^6.37.3",
     "tedious": "^18.2.0",

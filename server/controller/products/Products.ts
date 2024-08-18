@@ -34,7 +34,16 @@ export const getProducts = async (page, pageSize, sortBy, sortOrder, filterParam
   const whereClause = applyFilters(filterParams);
   const list = await tblBP.findAll({
     attributes: ['UniqueID', 'MODEL', 'DESCRIPTION', 'grossprofit', 'PRODUCTLINE'],
-    where: whereClause,
+    where: {
+      ...whereClause,
+      TODAY: {
+        [Op.eq]: Sequelize.literal(`(
+          SELECT MAX(TODAY) 
+          FROM tblBP AS t2 
+          WHERE t2.instanceID = tblBP.instanceID
+        )`)
+      }
+    },
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
     offset,
     limit
@@ -45,7 +54,9 @@ export const getProducts = async (page, pageSize, sortBy, sortOrder, filterParam
 export const getNumberOfProducts = async (filterParams) => {
   const whereClause = applyFilters(filterParams);
   const numberOfProducts = await tblBP.count({
-    where: whereClause
+    where: whereClause,
+    distinct: true,  
+    col: 'instanceID' 
   });
   return numberOfProducts;
 }
@@ -61,6 +72,7 @@ export const productExistByID = async (id) => {
 
 export const getProductDetail = async (id) => {
   const tableDetail = await tblBP.findByPk(id);
+  tableDetail.dataValues.VariablePricing = tableDetail.dataValues.VariablePricing == "1" ? true : false;
   return tableDetail
 }
 
@@ -70,6 +82,9 @@ export const getRevisions = async (id) => {
     where: {
       instanceID: tableDetail.dataValues.instanceID
     }
+  })
+  revisions.forEach(revision => {
+    revision.dataValues.VariablePricing = revision.dataValues.VariablePricing == "1" ? true : false;
   })
   return revisions
 }
@@ -85,7 +100,14 @@ export const getJobHistory = async (id) => {
   return jobHistory
 }
 
-export const createProduct = async (data) => {
+export const createProduct = async (data,files) => {
+  for ( const file of files ) {
+      await storeFileLocally(
+          file,         // the file object
+          8,            // you can add a name for the file or length of Unique ID that will be automatically generated!
+          '/userFiles'  // the folder the file will be stored in
+      )
+  }
   const today = new Date();
   const createReqData = {
     ...data,
@@ -93,21 +115,59 @@ export const createProduct = async (data) => {
     TODAY: formatDateForSQLServer(today),
     instanceID: Date.now() + Math.floor(Math.random() * 1000)
   };
-  const newCustomer = await tblBP.create(createReqData);
-  return newCustomer;
+  const newProduct = await tblBP.create(createReqData);
+  for ( const file of files ) {
+    await storeFileLocally(
+        file,         // the file object
+        newProduct.dataValues.UniqueID+'_'+file.name,            // you can add a name for the file or length of Unique ID that will be automatically generated!
+        '/ProductSpecFiles'  // the folder the file will be stored in
+    )
+  }
+  
+  return newProduct;
 };
 
 export const updateProduct = async (id, reqData) => {
   const today = new Date(); 
   let updatedReqData = {
       ...reqData,
-      CODE: "Revision",
       TODAY: formatDateForSQLServer(today),
       instanceID: reqData.instanceID
     };
   await tblBP.update(updatedReqData, {
     where: { UniqueID: id }
   });
+  return id;
+}
+
+
+export const inactiveProduct = async (id, reqData) => {
+  reqData.UniqueID = null
+  const tableDetail = await tblBP.findByPk(id);
+  const today = new Date(); 
+  let updatedReqData = {
+    ...reqData,
+    CODE: "Inactive",
+    TODAY: formatDateForSQLServer(today),
+    instanceID: tableDetail.dataValues.instanceID
+  };
+
+  await tblBP.create(updatedReqData);
+  return id;
+  
+}
+
+export const revisionProduct = async (id, reqData) => {
+  reqData.UniqueID = null
+  const tableDetail = await tblBP.findByPk(id);
+  const today = new Date(); 
+  let updatedReqData = {
+    ...reqData,
+    CODE: "Revision",
+    TODAY: formatDateForSQLServer(today),
+    instanceID: tableDetail.dataValues.instanceID
+  };
+  await tblBP.create(updatedReqData);
   return id;
 }
 

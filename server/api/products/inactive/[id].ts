@@ -1,4 +1,4 @@
-import { productExistByID, getRevisions, revisionProduct} from '~/server/controller/products';
+import { productExistByID, inactiveProduct} from '~/server/controller/products';
 
 export default eventHandler(async (event) => {
   try {
@@ -7,19 +7,11 @@ export default eventHandler(async (event) => {
 
     const idExist = await productExistByID(id);
     switch(method.toUpperCase()){
-      case 'GET':
-        if (idExist){     
-          const detail = await getRevisions(id)
-          return { body: detail, message: '' };
-        } else {
-          setResponseStatus(event, 404);
-          return { error: 'The product does not exist' }
-        }
       case 'PUT':
         if (idExist) {
           const reqData = await readBody(event);
-          const updatedID = await revisionProduct(id, reqData)
-          return { body: { updatedID }, message: 'Product revised successfully' };
+          const updatedID = await inactiveProduct(id, reqData)
+          return { body: { updatedID }, message: 'Product inactivated successfully' };
         } else {
           setResponseStatus(event, 404);
           return { error: 'The product does not exist' }

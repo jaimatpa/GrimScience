@@ -126,6 +126,7 @@ const columns = computed(() =>
     selectedColumns.value.includes(column)
   )
 );
+
 Object.entries(route.query).forEach(([key, value]) => {
   switch (key.toLowerCase()) {
     case "page":
@@ -213,8 +214,21 @@ const onEdit = (row) => {
   modalMeta.value.modalTitle = "Edit";
   modalMeta.value.isProductModalOpen = true;
 };
-const onDelete = (row) => {
-  
+const onDelete = async(row: any) => {
+  await useApiFetch(`/api/products/${row?.UniqueID}`, {
+    method: "DELETE",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: "i-heroicons-trash-solid",
+          color: "green",
+        });
+        fetchGridData();
+      }
+    },
+  });
 };
 
 const onSelect = async (row) => {
@@ -228,7 +242,7 @@ const onSelect = async (row) => {
     }
   });
   gridMeta.value.selectProduct = row;
-  console.log(row)
+  
   await useApiFetch('/api/products/revisions/'+row?.UniqueID, {
     method: 'GET',
     onResponse({ response }) {
@@ -260,7 +274,6 @@ const onSelect = async (row) => {
 
 const onRevisionSelect = async (row) => {
   gridMeta.value.selectedProductId = row?.UniqueID;
-  
   revisions.value.forEach((pro) => {
     if (pro.UniqueID === row.UniqueID) {
       pro.class = "bg-gray-200";
@@ -268,7 +281,6 @@ const onRevisionSelect = async (row) => {
       delete pro.class;
     }
   });
-  console.log(row)
   gridMeta.value.selectProduct = row;
 
 };
@@ -331,6 +343,36 @@ const handleFilterInputChange = async (event, name) => {
   }
   fetchGridData();
 };
+const handleRefresh = async () =>{
+  if(gridMeta.value.selectProduct !== null) {
+    await useApiFetch('/api/products/revisions/'+gridMeta.value.selectedProductId, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data.body.length > 0) {
+            revisions.value = response._data.body;
+          }
+        }
+      }, 
+      onResponseError() {
+        revisions.value = []
+      }
+    })
+    await useApiFetch('/api/products/jobhistory/'+gridMeta.value.selectedProductId, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          if(response._data.body.length > 0) {
+            jobHistory.value = response._data.body;
+          }
+        }
+      }, 
+      onResponseError() {
+        jobHistory.value = []
+      }
+    })
+  }
+}
 
 </script>
 
@@ -499,6 +541,7 @@ const handleFilterInputChange = async (event, name) => {
             label="Refresh"
             :ui="{ base: 'w-fit', truncate: 'flex justify-center w-full' }"
             truncate
+            @click="handleRefresh"
           />
         </div>
         <div class="grid grid-cols-2 gap-5 px-5">
