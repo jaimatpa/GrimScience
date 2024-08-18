@@ -90,3 +90,4 @@ export { default as tblZipLocations } from "./tblZipLocations";
 export { default as tblZoneChart } from "./tblZoneChart";
 export { default as tmpImport } from "./tmpImport";
 export { default as vwServiceReportListing } from "./vwServiceReportListing";
+export { default as tblPurchase } from "./tblPurchase";
