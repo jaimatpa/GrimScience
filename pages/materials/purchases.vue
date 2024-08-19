@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import CreatePurchaseModal from "~/components/purchase/CreatePurchaseModal.vue";
 import type { UTableColumn } from "~/types";
 
 useSeoMeta({
@@ -11,6 +12,12 @@ const toast = useToast();
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
 const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
+
+const createPurchaseModalMeta = ref({
+  isOrderDetailModalOpen: false,
+  modalTitle: "New Invoice",
+  modalDescription: "Add a new invoice to your database",
+});
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -107,6 +114,7 @@ Object.entries(route.query).forEach(([key, value]) => {
   }
 });
 
+// fetch purchse list
 const fetchPurchasesData = async () => {
   gridMeta.value.isLoading = true;
   await useApiFetch("/api/materials/purchase/", {
@@ -124,6 +132,11 @@ const fetchPurchasesData = async () => {
       gridMeta.value.isLoading = false;
     },
   });
+};
+
+// open the modal for create purchase
+const triggerCreatePurchaseModal = () => {
+  createPurchaseModalMeta.value.isOrderDetailModalOpen = true;
 };
 
 const handleSortingButton = async (btnName: string) => {
@@ -153,10 +166,9 @@ const handleSortingButton = async (btnName: string) => {
       }
     }
   }
-  fetchPurchasesData();
 };
 
-const handleFilterInputChange = async (event, name) => {
+const handleFilterInputChange = async (event: any, name: string) => {
   gridMeta.value.page = 1;
   if (filterValues.value.hasOwnProperty(name)) {
     filterValues.value[name] = event;
@@ -164,6 +176,38 @@ const handleFilterInputChange = async (event, name) => {
     console.error(`Filter does not have property: ${name}`);
   }
   fetchPurchasesData();
+};
+
+fetchPurchasesData();
+
+const onSelect = (row: any) => {
+  gridMeta.value.selectedPurchaseId = row.UniqueId;
+  console.log(gridMeta.value.selectedPurchaseId);
+};
+
+const onDblClick = () => console.log(gridMeta.value, "======> selected Data");
+
+// delete selected purchase
+const deletePurchase = async () => {
+  gridMeta.value.isLoading = true;
+  await useApiFetch("/api/materials/purchase/", {
+    method: "DELETE",
+    params: {
+      UniqueId: gridMeta.value.selectedPurchaseId,
+    },
+    onResponse: ({ response }) => {
+      console.log(response._data?.body);
+      console.log(response);
+      if (response._data?.status == 201) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+        });
+        fetchPurchasesData();
+        gridMeta.value.isLoading = false;
+      }
+    },
+  });
 };
 
 fetchPurchasesData();
@@ -190,7 +234,7 @@ fetchPurchasesData();
             padding: 'p-0',
           },
           td: {
-            padding: 'py-1',
+            padding: `py-1`,
           },
         }"
         :empty-state="{
@@ -299,11 +343,39 @@ fetchPurchasesData();
         </template>
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
-        <div class="flex flex-row justify-end mr-20 mt-1">
+        <div class="flex flex-row justify-end mx-10 mt-1 gap-5">
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+              <button
+                class="border border-solid border-gray-300 px-5 py-1 text-sm"
+              >
+                Select Purchase Order
+              </button>
+              <button
+                @click="triggerCreatePurchaseModal"
+                class="border border-solid border-gray-300 px-5 py-1 text-sm"
+              >
+                Create Purchase Order
+              </button>
+            </div>
+            <div class="flex items-center gap-3">
+              <button
+                class="border border-solid border-blue-300 px-5 py-1 text-blue-400 text-sm"
+              >
+                View Purchase Order
+              </button>
+              <button
+                @click="deletePurchase"
+                class="border border-solid border-red-300 px-5 py-1 text-red-400 text-sm"
+              >
+                Delete Purchase Order
+              </button>
+            </div>
+          </div>
           <UPagination
             :max="7"
             :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfCustomers | 0"
+            :total="gridMeta.numberOfPurchases | 0"
             v-model="gridMeta.page"
             @update:model-value="handlePageChange()"
           />
@@ -335,5 +407,21 @@ fetchPurchasesData();
       </div>
     </UDashboardPanel>
   </UDashboardPage>
+
+  <UDashboardModal
+    v-model="createPurchaseModalMeta.isOrderDetailModalOpen"
+    title="Create Purchase"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[60%] sm:max-w-9xl',
+    }"
+  >
+    <CreatePurchaseModal :modalMeta="createPurchaseModalMeta" />
+  </UDashboardModal>
 </template>
 <style scoped></style>

@@ -11,13 +11,13 @@ const tblPurchase = sequelize.define(
       primaryKey: true,
     },
     date: {
-      type: DataTypes.STRING,
+      type: DataTypes.DATE,
     },
     vendor: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
     },
     phone: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
     },
     total: {
       type: DataTypes.FLOAT,
