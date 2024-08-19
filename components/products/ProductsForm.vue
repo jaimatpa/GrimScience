@@ -42,6 +42,7 @@ const formData = reactive({
   PRODUCTLINE: null,
   MODEL: null,
   DESCRIPTION: null,
+  SELLINGPRICE: null,
   VariablePricing: true,
   UNIT: null,
   InventoryUnit: null,
@@ -67,6 +68,7 @@ const formData = reactive({
   CryothermPcoatNumber: null,
   CryoThermControlPanelNumber: null,
   CryoThermHeaterNumber: null,
+  CryothermLeftCunitNumber: null,
   LeftTankAssembly: null,
   CRYOTHERMGALLONSLEFT: null,
   CryothermLeftTank: null,
@@ -405,6 +407,17 @@ else
               v-model="formData.DESCRIPTION"
             />
           </UFormGroup>
+        </div>
+
+        <div class="basis-1/3">
+          <UFormGroup
+            label="Selling Price"
+            name="SELLINGPRICE"
+          >
+            <UInput
+              v-model="formData.SELLINGPRICE"
+            />
+          </UFormGroup>
           <div class="mt-2">
             <UCheckbox
               v-model="formData.VariablePricing"
@@ -738,10 +751,10 @@ else
           <div class="basis-1/5">
             <UFormGroup
               label="C-Unit#"
-              name="cunit"
+              name="CryothermLeftCunitNumber"
             >
               <UInput
-                v-model="formData.DESCRIPTION"
+                v-model="formData.CryothermLeftCunitNumber"
               />
             </UFormGroup>
           </div>

@@ -35,8 +35,6 @@ const headerFilters = ref({
     filter: "PRODUCTLINE",
     options: [],
   },
-
-
 });
 const revisions = ref([])
 const jobHistory = ref([])
@@ -243,6 +241,7 @@ const onSelect = async (row) => {
   });
   gridMeta.value.selectProduct = row;
   
+  console.log(gridMeta.value.selectProduct)
   await useApiFetch('/api/products/revisions/'+row?.UniqueID, {
     method: 'GET',
     onResponse({ response }) {
@@ -577,6 +576,151 @@ const handleRefresh = async () =>{
               }"
             />
           </div>
+
+
+          <div>
+            <span>Cost</span>
+            <div class="space-y-4 border-2 p-2">
+              <div class="flex flex-row space-x-3">
+                
+              
+                <p class="basis-1/2">Selling Price</p>
+              
+                <p>$</p>
+                <UInput class="basis-1/2"
+                v-model="gridMeta.selectProduct.SELLINGPRICE"
+                  
+                />
+
+              </div>
+              <div class="flex flex-row space-x-3">
+                
+                
+                <p class="basis-1/2">Suggested Price</p>
+
+                <p>$</p>
+                <UInput class="basis-1/2"
+                  
+                />
+
+              </div>
+
+              <div class="flex flex-row space-x-3">
+                
+                
+                <p class="basis-1/3">Product Labot</p>
+
+                <p>$</p>
+                <UInput class="basis-1/3"
+                  
+                />
+
+
+
+                <UInput class="basis-1/3"
+                  
+                />
+                <p>hr</p>
+
+              
+              
+              </div>
+
+              <div class="flex flex-row space-x-3">
+                
+                
+                <p class="basis-1/3">Subassembly Labor</p>
+                <p>$</p>
+                <UInput class="basis-1/3"
+                  
+                />
+
+                <UInput class="basis-1/3"
+                  
+                />
+                <p>hr</p>
+              
+              
+              </div>
+
+              <div class="flex flex-row space-x-3 border-t border-gray-300 pt-3">
+                
+                
+                <p class="basis-1/3">Total Labor</p>
+                <p>$</p>
+                <UInput class="basis-1/3"
+                  
+                />
+
+                <UInput class="basis-1/3"
+                  
+                />
+                <p>hr</p>
+              
+              
+              </div>
+
+              <div class="flex flex-row space-x-3 ">
+                
+                
+                <p class="basis-1/3">Material Cost</p>
+                <p class="basis-1/3">$ 987</p>
+
+              </div>
+
+              <div class="flex flex-row space-x-3">
+                
+                
+                <p class="basis-1/3">Total Cost</p>
+                <p class="basis-1/3">$ 876</p>
+                
+
+              </div>
+
+              <div class="flex flex-row space-x-3">
+                
+                
+                <p class="basis-1/3">Gross Profit</p>
+                <p class="basis-1/3"> $ 534</p>
+                <p class="basis-1/3">876 %</p>
+
+              
+              
+              </div>
+
+              <div class="flex flex-row space-x-2">
+                
+              
+                <p class="basis-1/2">Units Shipped   YTD = </p>
+                <p class="basis-1/2">Total=</p>
+              
+              
+              </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Operations</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >Clone Operations</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Parts List</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Serials</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Costs</UButton>
+            </div>
+
+
+
+            </div>
+            
+          </div>
+
+
+
+
+
+
+          
+
+
+
+
         </div>
       </div>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
@@ -592,24 +736,6 @@ const handleRefresh = async () =>{
             @update:model-value="handlePageChange()"
           />
         </div>
-
-        <!-- <div v-if="!props.isPage">
-          <div class="mt-3 w-[120px]">
-            <UButton
-              icon="i-heroicons-cursor-arrow-ripple"
-              variant="outline"
-              color="green"
-              label="Select"
-              :ui="{
-                base: 'w-full',
-                truncate: 'flex justify-center w-full',
-              }"
-              truncate
-              @click="handleSelect"
-            >
-            </UButton>
-          </div>
-        </div> -->
       </div>
     </UDashboardPanel>
   </UDashboardPage>

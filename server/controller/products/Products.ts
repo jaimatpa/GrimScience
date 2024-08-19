@@ -1,5 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblBP, tblJobs } from "~/server/models";
+import { tblBP, tblJobs, tblBPParts, tblSteps, tblPlan, tblOrderDetail, tblOrder, tblInventory } from "~/server/models";
 
 const applyFilters = (params) => {
   const filterParams = ['PRODUCTLINE', 'MODEL', 'DESCRIPTION', 'grossprofit'];
@@ -33,7 +33,7 @@ export const getProducts = async (page, pageSize, sortBy, sortOrder, filterParam
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
   const whereClause = applyFilters(filterParams);
   const list = await tblBP.findAll({
-    attributes: ['UniqueID', 'MODEL', 'DESCRIPTION', 'grossprofit', 'PRODUCTLINE'],
+    attributes: ['UniqueID', 'MODEL', 'DESCRIPTION', 'grossprofit', 'PRODUCTLINE', "SELLINGPRICE"],
     where: {
       ...whereClause,
       TODAY: {
@@ -101,13 +101,7 @@ export const getJobHistory = async (id) => {
 }
 
 export const createProduct = async (data,files) => {
-  for ( const file of files ) {
-      await storeFileLocally(
-          file,         // the file object
-          8,            // you can add a name for the file or length of Unique ID that will be automatically generated!
-          '/userFiles'  // the folder the file will be stored in
-      )
-  }
+
   const today = new Date();
   const createReqData = {
     ...data,
@@ -118,9 +112,9 @@ export const createProduct = async (data,files) => {
   const newProduct = await tblBP.create(createReqData);
   for ( const file of files ) {
     await storeFileLocally(
-        file,         // the file object
-        newProduct.dataValues.UniqueID+'_'+file.name,            // you can add a name for the file or length of Unique ID that will be automatically generated!
-        '/ProductSpecFiles'  // the folder the file will be stored in
+        file,
+        newProduct.dataValues.UniqueID+'_'+file.name,
+        '/ProductSpecFiles'
     )
   }
   
@@ -175,6 +169,111 @@ export const deleteProduct = async (id) => {
   await tblBP.destroy({ where: { UniqueID: id } });
   return id;
 }
+
+
+export const calculateCostsAndProfit = async (instanceID, sellingPrice, laborRate, profitRate) => {
+  // Get the products related to the given instanceID
+  const products = await tblBPParts.findAll({
+    where: { instanceID },
+    include: [
+      {
+        model: tblBP,
+        as: 'product',
+        attributes: ['UniqueID', 'instanceID', 'InventoryCost'],
+      },
+      {
+        model: tblSteps,
+        as: 'step',
+        include: [{
+          model: tblPlan,
+          as: 'plan',
+          where: { instanceID }
+        }]
+      }
+    ],
+  });
+  
+  let materialCost = 0;
+  products.forEach(product => {
+    
+    const inventoryCost = product.dataValues.product.InventoryCost || 0; // Assuming default cost is 1 if not available
+    materialCost += inventoryCost * product.dataValues.qty;
+  });
+
+  // Calculate labor costs from tblPlan
+  const laborCostData = await tblPlan.findOne({
+    where: { instanceID },
+    attributes: [
+      [Sequelize.fn('sum', Sequelize.col('Hours')), 'totalHours'],
+      [Sequelize.fn('sum', Sequelize.literal(`Hours * ${laborRate}`)), 'totalLaborCost']
+    ],
+  });
+
+  const totalLaborCost = laborCostData.dataValues.totalLaborCost || 0;
+  const totalHours = laborCostData.dataValues.totalHours || 0;
+
+  // Subassembly labor and costs (assuming recursive calculation logic is handled elsewhere)
+  const subAssemblyHours = await getSubAssemblyLaborHours(instanceID);
+  const subAssemblyCost = subAssemblyHours * laborRate;
+
+  const totalLabor = totalLaborCost + subAssemblyCost;
+  const totalHoursIncludingSubassembly = totalHours + subAssemblyHours;
+
+  // Gross Profit Calculation
+  const totalCost = materialCost + totalLabor;
+  const grossProfit = sellingPrice - totalCost;
+  const profitPercentage = (grossProfit / sellingPrice) * 100;
+
+  // Suggested Price Calculation
+  const suggestedPrice = totalCost / (1 - profitRate);
+
+  // Inventory Count
+  const shippedCountCurrentYear = await tblInventory.count({
+    where: {
+      [Op.and]: [
+        Sequelize.where(Sequelize.fn('left', Sequelize.col('Serial'), Sequelize.fn('len', instanceID)), instanceID),
+        { Status: 'Shipped' },
+        Sequelize.where(Sequelize.fn('year', Sequelize.col('Today')), new Date().getFullYear())
+      ]
+    }
+  });
+
+  const shippedCountTotal = await tblInventory.count({
+    where: {
+      [Op.and]: [
+        Sequelize.where(Sequelize.fn('left', Sequelize.col('Serial'), Sequelize.fn('len', instanceID)), instanceID),
+        { Status: 'Shipped' }
+      ]
+    }
+  });
+
+  return {
+    materialCost,
+    totalLabor,
+    grossProfit,
+    profitPercentage,
+    suggestedPrice,
+    shippedCountCurrentYear,
+    shippedCountTotal,
+  };
+};
+
+// Helper function to recursively calculate subassembly labor hours (pseudo-code)
+async function getSubAssemblyLaborHours(instanceID) {
+  // Logic to calculate subassembly labor hours goes here
+  return 0; // Replace with actual calculation
+}
+
+
+
+
+
+
+
+
+
+
+
 
 export const getProductLine = async () => {
   const result = await tblBP.findAll({
