@@ -1,6 +1,7 @@
 <!-- pages/Vendors.vue -->
 <script lang="ts" setup>
 import Details from '~/components/materials/vendors/Details.vue';
+import PartsSuppliedDetails from '~/components/materials/vendors/PartsSuppliedDetails.vue';
 import PrintLabel from '~/components/materials/vendors/PrintLabel.vue';
 import PurchaseDetails from '~/components/materials/vendors/PurchaseDetails.vue';
 import VendorTable from '~/components/materials/vendors/VendorTable.vue';
@@ -256,11 +257,11 @@ const onPrintLabel = (row: any) => openModal('printLabel', row);
         <!-- </Details> -->
         <PurchaseDetails></PurchaseDetails>
       </UDashboardModal>
-      <UDashboardModal v-model="showPartsSuppliedModal" title="Create Purchase Order" :ui="modalUIConfig">
-        <MaterialsPartsForm @close="showPartsSuppliedModal = false" @save=""
-          :selected-customer="gridMeta.selectedCustomerId" :is-modal="true" />
+      <UDashboardModal v-model="showPartsSuppliedModal" title="Supplied Parts Details" :ui="modalUIConfig">
+        <PartsSuppliedDetails @close="showPartsSuppliedModal = false" 
+          :modal-data="gridMeta.modalData" :is-modal="true" />
       </UDashboardModal>
-      <UDashboardModal v-model="showCreatePurchaseOrderModal" title="Parts Supplied" :ui="modalUIConfig">
+      <UDashboardModal v-model="showCreatePurchaseOrderModal" title="Create Purchase Order" :ui="modalUIConfig">
         <PurchaseDetails></PurchaseDetails>
 
       </UDashboardModal>

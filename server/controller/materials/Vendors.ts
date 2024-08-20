@@ -1,5 +1,6 @@
-import { Op, Sequelize } from 'sequelize';
-import { tblBP, tblVendors } from "~/server/models";
+import { Op, QueryTypes, Sequelize } from 'sequelize';
+import { tblBP, tblInventoryTransactionDetails, tblInventoryTransactions, tblVendors } from "~/server/models";
+import sequelize from '~/server/utils/databse';
 const applyFilters = (params) => {
   const filterParams = ['NUMBER', 'NAME', 'ZIP'];
   const whereClause = {};
@@ -63,9 +64,7 @@ export const getNumberOfVendors = async (filterParams) => {
 
 
 export const getVendorSuppliedParts = async (searchTerm: string, page: number = 1, pageSize: number = 10) => {
-  const limit = pageSize;
-  const offset = (page - 1) * limit;
-  console.log(searchTerm )
+
   const whereClause = {
     [Op.and]: [
       {
@@ -87,11 +86,8 @@ export const getVendorSuppliedParts = async (searchTerm: string, page: number = 
   try {
     const [parts, totalCount] = await Promise.all([
       tblBP.findAll({
-        attributes: ['Model', 'Description', 'UniqueId'],
         where: whereClause,
         order: [['Model', 'ASC']],
-        limit,
-        offset,
       }),
       tblBP.count({
         where: whereClause,
@@ -100,14 +96,60 @@ export const getVendorSuppliedParts = async (searchTerm: string, page: number = 
       })
     ]);
 
-    return {
-      parts,
-      totalCount,
-      currentPage: page,
-      totalPages: Math.ceil(totalCount / pageSize),
-    };
+    return parts
   } catch (error) {
     console.error('Error fetching vendor supplied parts:', error);
+    throw error;
+  }
+};
+export const getInventoryTransactionsByModel = async (model: string) => {
+  try {
+    const query = `
+  SELECT tblInventoryTransactions.*, 
+         tblInventoryTransactions.UniqueID AS UID, 
+         tblInventoryTransactionDetails.onhand AS onhandITD, 
+         QtyChange, 
+         tblBP.Description, 
+         tblBP.model
+  FROM tblInventoryTransactionDetails
+  LEFT JOIN tblInventoryTransactions ON tblInventoryTransactionDetails.InventoryTransactionID = tblInventoryTransactions.UniqueID
+  LEFT JOIN tblBP ON tblBP.UniqueID = tblInventoryTransactionDetails.BPID
+  WHERE tblBP.model = '300587'
+  ORDER BY tblInventoryTransactions.dated DESC;
+`;
+
+    const results = await sequelize.query(query, {
+      type: QueryTypes.SELECT, // Specify the query type
+    });
+    console.log(results);
+    return results;
+
+  } catch (error) {
+    console.error('Error fetching inventory transactions:', error);
+    throw error;
+  }
+};
+
+
+export const getPODetailsByInstanceId = async (instanceId) => {
+  try {
+    // Execute raw SQL query
+    const results = await sequelize.query(
+      `SELECT ponumber, TBLPO.UNIQUEID, tblPO.Date, name 
+       FROM tblpo 
+       INNER JOIN tblpodetail ON tblpodetail.pouid = tblpo.uniqueid 
+       INNER JOIN tblbp ON tblbp.uniqueid = tblpodetail.ptnum 
+       WHERE tblbp.instanceid = :instanceId 
+       ORDER BY CAST(tblPO.date AS DATETIME) DESC`,
+      {
+        replacements: { instanceId },
+        type: sequelize.QueryTypes.SELECT,
+      }
+    );
+
+    return results;
+  } catch (error) {
+    console.error('Error fetching PO details:', error);
     throw error;
   }
 };

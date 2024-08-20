@@ -4,16 +4,14 @@ import { getVendorSuppliedParts } from "~/server/controller/materials";
 export default eventHandler(async (event) => {
     try {
         const method = event.node.req.method;
-        const { search, page, pageSize } = getQuery(event);
+        const { search } = getQuery(event);
 
         switch (method.toUpperCase()) {
             case 'GET':
                 const result = await getVendorSuppliedParts(
-                    search as string,
-                    parseInt(page as string) || 1,
-                    parseInt(pageSize as string) || 10
+                    search as string
                 );
-                return { body: result, message: '' };
+                return { body: result[0], message: '' };
             default:
                 event.node.res.statusCode = 405;
                 return { error: 'Method Not Allowed' };
