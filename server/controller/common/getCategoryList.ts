@@ -104,7 +104,7 @@ export const getAccountList = async () => {
         });
         // Format the results into an array of strings
         const formattedList = accountList.map(account =>
-            `#${account.AcctNumber} ${account.Description}`
+            `#${account.AcctNumber}  ${account.Description}`
         );
 
         return formattedList;
