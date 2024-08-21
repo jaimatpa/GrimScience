@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
-
+import Loading from 'vue-loading-overlay'
 const emit = defineEmits(["close", "select"]);
 
 onMounted(() => {
@@ -26,7 +26,9 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 const activeTab = ref("lookup");
 
 function setActiveTab(tab) {
-  activeTab.value = tab;
+  if(!(tab === "history" && gridMeta.value.selectProduct === null)){
+    activeTab.value = tab;
+  }
 }
 
 const headerFilters = ref({
@@ -36,10 +38,27 @@ const headerFilters = ref({
     options: [],
   },
 });
-const revisions = ref([])
-const jobHistory = ref([])
+
+const loadingOverlay = ref(false);
+const revisions = ref([]);
+const jobHistory = ref([]);
+const multipleProductSelect = ref([]);
+
+const costCalculation = ref({
+  materialCost: null,
+  productLabor: null,
+  productLabourHours: null,
+  subAssemblyLaborCost: null,
+  subAssemblyLaborHours: null,
+  totalHours: null,
+  totalCost: null,
+  suggestedPrice: null,
+  grossProfitPercent: null,
+  grossProfit: null
+})
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
+    
     {
       key: "MODEL",
       label: "Model",
@@ -62,6 +81,11 @@ const gridMeta = ref({
       filterable: true,
     },
     {
+      key: "select",
+      label: "Select",
+      kind: "actions",
+    },
+    {
       key: "edit",
       label: "Edit",
       kind: "actions",
@@ -71,6 +95,7 @@ const gridMeta = ref({
       label: "Delete",
       kind: "actions",
     },
+    
 
   ],
   page: 1,
@@ -228,10 +253,29 @@ const onDelete = async(row: any) => {
     },
   });
 };
+const onMultipleSelect = (row) => {
+  if(multipleProductSelect.value.includes(row.UniqueID) ){
+    const index = multipleProductSelect.value.indexOf(row.UniqueID)
+    multipleProductSelect.value.splice(index, 1)
+  } else {
+    multipleProductSelect.value = [...multipleProductSelect.value,row?.UniqueID]
+  }
+}
 
 const onSelect = async (row) => {
   gridMeta.value.selectedProductId = row?.UniqueID;
-  
+  costCalculation.value = {
+    materialCost: null,
+    productLabor: null,
+    productLabourHours: null,
+    subAssemblyLaborCost: null,
+    subAssemblyLaborHours: null,
+    totalHours: null,
+    totalCost: null,
+    suggestedPrice: null,
+    grossProfitPercent: null,
+    grossProfit: null
+  }
   gridMeta.value.products.forEach((pro) => {
     if (pro.UniqueID === row.UniqueID) {
       pro.class = "bg-gray-200";
@@ -283,13 +327,60 @@ const onRevisionSelect = async (row) => {
   gridMeta.value.selectProduct = row;
 
 };
-
 const onDblClick = async () => {
   if (gridMeta.value.selectedProductId) {
     modalMeta.value.modalTitle = "Edit";
     modalMeta.value.isProductModalOpen = true;
   }
 };
+
+const handleBulkInactive = async () => {
+  loadingOverlay.value = true
+  await useApiFetch('/api/products/bulkInactiveProduct/', {
+    method: 'PUT',
+    body: {data:multipleProductSelect}, 
+    onResponse({ response }) {
+      if(response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: 'i-heroicons-check-circle',
+          color: 'green'
+        })
+      }
+    }
+  })
+  loadingOverlay.value = false
+}
+const handleCostCalculation = async () => {
+  if (gridMeta.value.selectProduct.SELLINGPRICE != null) {
+    loadingOverlay.value = true
+    await useApiFetch('/api/products/costandprofit/'+gridMeta.value.selectedProductId, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          costCalculation.value = response._data.body;
+        }
+      }, 
+      onResponseError() {
+        costCalculation.value = {
+          materialCost: null,
+          productLabor: null,
+          productLabourHours: null,
+          subAssemblyLaborCost: null,
+          subAssemblyLaborHours: null,
+          totalHours: null,
+          totalCost: null,
+          suggestedPrice: null,
+          grossProfitPercent: null,
+          grossProfit: null
+        }
+      }
+    })
+    loadingOverlay.value = false
+  }
+  
+}
 const handleModalClose = () => {
   modalMeta.value.isProductModalOpen = false;
 };
@@ -376,6 +467,16 @@ const handleRefresh = async () =>{
 </script>
 
 <template>
+  <div class="vl-parent">
+    <loading
+      v-model:active="loadingOverlay"
+      :is-full-page="true"
+      color="#000000"
+      backgroundColor="#1B2533"
+      loader="dots"
+    />
+  </div>
+  <template>
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar
@@ -419,12 +520,12 @@ const handleRefresh = async () =>{
         </template>
         <template #right>
           <UButton
-            color="green"
+            color="red"
             variant="outline"
             :loading="exportIsLoading"
-            label="Export to Excel"
+            label="Bulk Inactive"
             trailing-icon="i-heroicons-document-text"
-            @click="excelExport"
+            @click="handleBulkInactive"
           >
           </UButton>
           <UButton
@@ -483,6 +584,7 @@ const handleRefresh = async () =>{
         @select="onSelect"
         @dblclick="onDblClick"
       >
+      
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
             <div class="px-4 py-3.5">
@@ -510,8 +612,15 @@ const handleRefresh = async () =>{
             </div>
           </template>
         </template>
+        <template  #select-data="{ row }">
+          <UTooltip v-if="row.CODE != 'Inactive'" text="Select" >
+            <UCheckbox
+              @change="onMultipleSelect(row)"
+            />
+          </UTooltip>
+        </template>
         <template #edit-data="{ row }">
-          <UTooltip text="Edit" class="flex justify-center">
+          <UTooltip text="Edit" >
             <UButton
               color="gray"
               variant="ghost"
@@ -521,7 +630,7 @@ const handleRefresh = async () =>{
           </UTooltip>
         </template>
         <template #delete-data="{ row }">
-          <UTooltip text="Delete" class="flex justify-center">
+          <UTooltip text="Delete" >
             <UButton
               color="gray"
               variant="ghost"
@@ -530,6 +639,7 @@ const handleRefresh = async () =>{
             />
           </UTooltip>
         </template>
+        
       </UTable>
       <div v-else class="flex flex-col overflow-y-scroll">
         <div class="w-full mt-4 flex items-end justify-end pr-5">
@@ -588,6 +698,7 @@ const handleRefresh = async () =>{
               
                 <p>$</p>
                 <UInput class="basis-1/2"
+                disabled
                 v-model="gridMeta.selectProduct.SELLINGPRICE"
                   
                 />
@@ -600,7 +711,8 @@ const handleRefresh = async () =>{
 
                 <p>$</p>
                 <UInput class="basis-1/2"
-                  
+                disabled
+                  v-model="costCalculation.suggestedPrice"
                 />
 
               </div>
@@ -612,13 +724,15 @@ const handleRefresh = async () =>{
 
                 <p>$</p>
                 <UInput class="basis-1/3"
-                  
+                disabled
+                  v-model="costCalculation.productLabor"
                 />
 
 
 
                 <UInput class="basis-1/3"
-                  
+                disabled
+                  v-model="costCalculation.productLabourHours"
                 />
                 <p>hr</p>
 
@@ -632,11 +746,13 @@ const handleRefresh = async () =>{
                 <p class="basis-1/3">Subassembly Labor</p>
                 <p>$</p>
                 <UInput class="basis-1/3"
-                  
+                disabled
+                   v-model="costCalculation.subAssemblyLaborCost"
                 />
 
                 <UInput class="basis-1/3"
-                  
+                disabled
+                  v-model="costCalculation.subAssemblyLaborHours"
                 />
                 <p>hr</p>
               
@@ -649,11 +765,13 @@ const handleRefresh = async () =>{
                 <p class="basis-1/3">Total Labor</p>
                 <p>$</p>
                 <UInput class="basis-1/3"
-                  
+                disabled
+                  v-model="costCalculation.totalCost"
                 />
 
                 <UInput class="basis-1/3"
-                  
+                disabled
+                  v-model="costCalculation.totalHours"
                 />
                 <p>hr</p>
               
@@ -664,7 +782,7 @@ const handleRefresh = async () =>{
                 
                 
                 <p class="basis-1/3">Material Cost</p>
-                <p class="basis-1/3">$ 987</p>
+                <p class="basis-1/3">$ {{ costCalculation.materialCost }}</p>
 
               </div>
 
@@ -672,7 +790,7 @@ const handleRefresh = async () =>{
                 
                 
                 <p class="basis-1/3">Total Cost</p>
-                <p class="basis-1/3">$ 876</p>
+                <p class="basis-1/3">$ {{ costCalculation.totalCost }}</p>
                 
 
               </div>
@@ -681,8 +799,8 @@ const handleRefresh = async () =>{
                 
                 
                 <p class="basis-1/3">Gross Profit</p>
-                <p class="basis-1/3"> $ 534</p>
-                <p class="basis-1/3">876 %</p>
+                <p class="basis-1/3"> $ {{ costCalculation.grossProfit }}</p>
+                <p class="basis-1/3">{{ costCalculation.grossProfitPercent }} %</p>
 
               
               
@@ -702,7 +820,7 @@ const handleRefresh = async () =>{
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >Clone Operations</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Parts List</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Serials</UButton>
-              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Costs</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleCostCalculation" >View Costs</UButton>
             </div>
 
 
@@ -710,16 +828,6 @@ const handleRefresh = async () =>{
             </div>
             
           </div>
-
-
-
-
-
-
-          
-
-
-
 
         </div>
       </div>
@@ -740,25 +848,26 @@ const handleRefresh = async () =>{
     </UDashboardPanel>
   </UDashboardPage>
   <!-- New Product Detail Modal -->
-  <UDashboardModal
-  v-model="modalMeta.isProductModalOpen"
-  :title="modalMeta.modalTitle"
-  :ui="{
-    title: 'text-lg',
-    header: {
-      base: 'flex flex-row min-h-[0] items-center',
-      padding: 'pt-5 sm:px-9',
-    },
-    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-    width: 'w-[1000px] sm:max-w-7xl',
-  }"
->
-  <ProductsForm
-    @close="handleModalClose"
-    @save="handleModalSave"
-    :selected-product="gridMeta.selectedProductId"
-    :is-modal="true"
-  />
-</UDashboardModal>
+    <UDashboardModal
+    v-model="modalMeta.isProductModalOpen"
+    :title="modalMeta.modalTitle"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1000px] sm:max-w-7xl',
+    }"
+  >
+    <ProductsForm
+      @close="handleModalClose"
+      @save="handleModalSave"
+      :selected-product="gridMeta.selectedProductId"
+      :is-modal="true"
+    />
+    </UDashboardModal>
+  </template>
 </template>
 <style scoped></style>

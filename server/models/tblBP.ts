@@ -1,5 +1,9 @@
 import { DataTypes } from 'sequelize';
 import sequelize from "../utils/databse";
+// import tblBPParts from "./tblBPParts";
+// import tblPlan from "./tblPlan";
+// import {tblBPParts,tblPlan} from "./"
+
 
 const tblBP = sequelize.define('tblBP', {
    UniqueID: {
@@ -411,5 +415,9 @@ const tblBP = sequelize.define('tblBP', {
    tableName: 'tblBp',
    timestamps: false
 });
+
+// Associations
+// tblBP.hasMany(tblBPParts, { foreignKey: 'instanceid', sourceKey: 'instanceID' });
+// tblBP.hasMany(tblPlan, { foreignKey: 'instanceid', sourceKey: 'instanceID' });
 
 export default tblBP;

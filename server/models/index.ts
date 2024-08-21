@@ -1,9 +1,12 @@
+import tblBP from "./tblBP";
+import tblPlan from "./tblPlan";
+import tblBPParts from "./tblBPParts";
+import tblSteps from "./tblSteps";
+
 export { default as tbl } from "./tbl";
 export { default as tblAccounts } from "./tblAccounts";
 export { default as tblCurrentInventory } from "./tblCurrentInventory";
-export { default as tblBP } from "./tblBP";
 export { default as tblBP6 } from "./tblBP6";
-export { default as tblBPParts } from "./tblBPParts";
 export { default as tblBuildPEmployees } from "./tblBuildPEmployees";
 export { default as tblBuildPParts } from "./tblBuildPParts";
 export { default as tblBuildPProducts } from "./tblBuildPProducts";
@@ -51,7 +54,7 @@ export { default as tblPAInvestigation } from "./tblPAInvestigation";
 export { default as tblPayableDetail } from "./tblPayableDetail";
 export { default as tblPayables } from "./tblPayables";
 export { default as tblPermissions } from "./tblPermissions";
-export { default as tblPlan } from "./tblPlan";
+
 export { default as tblPO } from "./tblPO";
 export { default as tblPODetail } from "./tblPODetail";
 export { default as tblPreventiveActions } from "./tblPreventiveActions";
@@ -70,7 +73,6 @@ export { default as tblSiteVisit } from "./tblSiteVisit";
 export { default as tblSkills } from "./tblSkills";
 export { default as tblSourceCodes } from "./tblSourceCodes";
 export { default as tblState } from "./tblState";
-export { default as tblSteps } from "./tblSteps";
 export { default as tblTalents } from "./tblTalents";
 export { default as tblTasks } from "./tblTasks";
 export { default as tblTerritories } from "./tblTerritories";
@@ -91,3 +93,29 @@ export { default as tblZipLocations } from "./tblZipLocations";
 export { default as tblZoneChart } from "./tblZoneChart";
 export { default as tmpImport } from "./tmpImport";
 export { default as vwServiceReportListing } from "./vwServiceReportListing";
+
+// Associations with Aliases
+
+// tblBP has many tblBPParts
+tblBP.hasMany(tblBPParts, { foreignKey: 'partid', sourceKey: 'UniqueID' });
+tblBPParts.belongsTo(tblBP, { foreignKey: 'partid', targetKey: 'UniqueID' });
+
+tblSteps.hasMany(tblBPParts, { foreignKey: 'stepid', sourceKey: 'UniqueID'});
+tblBPParts.belongsTo(tblSteps, { foreignKey: 'stepid', targetKey: 'UniqueID' });
+
+
+tblPlan.hasMany(tblSteps, { foreignKey: 'PLANID', sourceKey: 'UniqueID' });
+tblSteps.belongsTo(tblPlan, { foreignKey: 'PLANID', targetKey: 'UniqueID' });
+
+
+// tblBP has many tblPlan
+// tblBP.hasMany(tblPlan, { foreignKey: 'instanceid', sourceKey: 'instanceID', as: 'plans' }); 
+// tblPlan.belongsTo(tblBP, { foreignKey: 'instanceid', targetKey: 'instanceID', as: 'bp' });
+
+
+export {
+  tblBP,
+  tblPlan,
+  tblBPParts,
+  tblSteps,
+};

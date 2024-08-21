@@ -1,5 +1,10 @@
 import { DataTypes } from 'sequelize';
 import sequelize from "../utils/databse";
+// import tblBP from "./tblBP";
+// import tblPlan from "./tblPlan";
+// import tblSteps from "./tblSteps";
+// import {tblBP, tblPlan, tblSteps} from "./"
+
 
 const tblBPParts = sequelize.define('tblBPParts', {
    uniqueid: {
@@ -27,7 +32,13 @@ const tblBPParts = sequelize.define('tblBPParts', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName: 'tblBPParts',
    timestamps: false
 });
+
+// Associations
+// tblBPParts.belongsTo(tblBP, { foreignKey: 'instanceid', targetKey: 'instanceID' });
+// tblBPParts.belongsTo(tblPlan, { foreignKey: 'instanceid', targetKey: 'instanceid' });
+// tblBPParts.belongsTo(tblSteps, { foreignKey: 'stepid', targetKey: 'UniqueID' });
 
 export default tblBPParts;

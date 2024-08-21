@@ -262,7 +262,7 @@ const handleFileUpload = (event) => {
   fileName.value = event.target.files[0].name
 }
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  console.log(files.value[0].name)
+
   if(props.selectedProduct === null) { // Create Product
     await useApiFetch('/api/products', {
       method: 'POST',
@@ -298,7 +298,6 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       })
     } else if(actionType.value === "inactive") {
-      console.log(event.data)
       await useApiFetch('/api/products/inactive/'+ props.selectedProduct, {
         method: 'PUT',
         body: event.data, 
@@ -998,7 +997,7 @@ else
             @click="actionType = 'revision'"
           />
           <UButton 
-            color="blue" 
+            color="red" 
             variant="outline"
             type="submit"
             :icon="selectedProduct !== null ? 'i-heroicons-pencil-square': 'i-heroicons-plus'"

@@ -1,5 +1,8 @@
 import { DataTypes } from 'sequelize';
 import sequelize from "../utils/databse";
+// import tblBPParts from "./tblBPParts";
+// import tblPlan from "./tblPlan";
+// import {tblPlan, tblBPParts} from "./"
 
 const tblSteps = sequelize.define('tblSteps', {
    UniqueID: {
@@ -21,7 +24,12 @@ const tblSteps = sequelize.define('tblSteps', {
       type: DataTypes.TEXT,
    },
 }, {
-   timestamps: false
+   tableName: 'tblSteps',
+   timestamps: false 
 });
+
+// Associations
+// tblSteps.hasMany(tblBPParts, { foreignKey: 'stepid', sourceKey: 'UniqueID' });
+// tblSteps.belongsTo(tblPlan, { foreignKey: 'PLANID', targetKey: 'UniqueID' });
 
 export default tblSteps;

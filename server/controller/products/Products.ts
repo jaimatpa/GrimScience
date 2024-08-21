@@ -1,5 +1,7 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblBP, tblJobs, tblBPParts, tblSteps, tblPlan, tblOrderDetail, tblOrder, tblInventory } from "~/server/models";
+import { tblBP, tblJobs, tblBPParts, tblSteps, tblPlan, tblOrderDetail, tblOrder, tblInventory, tblSettings } from "~/server/models";
+import  sequelize  from '../../utils/databse';  // Import your Sequelize instance
+import { QueryTypes } from 'sequelize';  // Import QueryTypes separately
 
 const applyFilters = (params) => {
   const filterParams = ['PRODUCTLINE', 'MODEL', 'DESCRIPTION', 'grossprofit'];
@@ -33,7 +35,7 @@ export const getProducts = async (page, pageSize, sortBy, sortOrder, filterParam
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
   const whereClause = applyFilters(filterParams);
   const list = await tblBP.findAll({
-    attributes: ['UniqueID', 'MODEL', 'DESCRIPTION', 'grossprofit', 'PRODUCTLINE', "SELLINGPRICE"],
+    attributes: ['UniqueID', 'MODEL', 'DESCRIPTION', 'grossprofit', 'PRODUCTLINE', "SELLINGPRICE", "CODE"],
     where: {
       ...whereClause,
       TODAY: {
@@ -48,7 +50,9 @@ export const getProducts = async (page, pageSize, sortBy, sortOrder, filterParam
     offset,
     limit
   });
+
   return list;
+  
 }
 
 export const getNumberOfProducts = async (filterParams) => {
@@ -151,6 +155,28 @@ export const inactiveProduct = async (id, reqData) => {
   
 }
 
+export const bulkInactiveProduct = async (data) => {
+  const promises = data.map(async uniqueID => {
+    const tableDetail = await tblBP.findByPk(uniqueID);
+    tableDetail.dataValues.UniqueID = null;
+
+    const today = new Date();
+    let updatedReqData = {
+      ...tableDetail.dataValues,
+      CODE: "Inactive",
+      TODAY: formatDateForSQLServer(today),
+      instanceID: tableDetail.dataValues.instanceID,
+    };
+
+    await tblBP.create(updatedReqData);
+  });
+
+  // Wait for all promises to resolve
+  await Promise.all(promises);
+
+  return true;
+};
+
 export const revisionProduct = async (id, reqData) => {
   reqData.UniqueID = null
   const tableDetail = await tblBP.findByPk(id);
@@ -171,107 +197,165 @@ export const deleteProduct = async (id) => {
 }
 
 
-export const calculateCostsAndProfit = async (instanceID, sellingPrice, laborRate, profitRate) => {
-  // Get the products related to the given instanceID
-  const products = await tblBPParts.findAll({
-    where: { instanceID },
-    include: [
-      {
-        model: tblBP,
-        as: 'product',
-        attributes: ['UniqueID', 'instanceID', 'InventoryCost'],
-      },
-      {
-        model: tblSteps,
-        as: 'step',
-        include: [{
-          model: tblPlan,
-          as: 'plan',
-          where: { instanceID }
-        }]
+let depth = 0;
+  async function getLaborHours(lngInstanceID, includeTopLevelLabor = true) {
+    depth += 1;
+    let hrs = 0;
+
+    // Check if built in house
+    const rs1 = await sequelize.query(`
+        SELECT TOP 1 builtinhouse 
+          FROM tblBP 
+          WHERE instanceID = :instanceID 
+          ORDER BY uniqueID DESC
+
+    `, {
+        replacements: { instanceID: lngInstanceID },
+        type: QueryTypes.SELECT
+    });
+
+    if (rs1[0].builtinhouse === 'False' || !rs1[0].builtinhouse) {
+      if (includeTopLevelLabor) {
+          const rs2 = await sequelize.query(`
+              SELECT hours FROM tblPlan WHERE instanceID = :instanceID
+          `, {
+              replacements: { instanceID: lngInstanceID },
+              type: QueryTypes.SELECT
+          });
+
+          rs2.forEach(row => {
+              hrs += parseFloat(row.hours || 0);
+          });
       }
-    ],
+
+      const rs3 = await sequelize.query(`
+          SELECT 
+              (SELECT TOP 1 instanceID 
+              FROM tblBP 
+              WHERE uniqueID = tblBPParts.partid 
+              ORDER BY uniqueID DESC) as instanceID, 
+              qty 
+          FROM tblBPParts 
+          INNER JOIN tblSteps ON tblSteps.uniqueID = tblBPParts.stepID 
+          INNER JOIN tblPlan ON tblPlan.uniqueID = tblSteps.PLANID 
+          WHERE 
+              (SELECT COUNT(uniqueID) 
+              FROM tblPlan 
+              WHERE instanceID = 
+                  (SELECT TOP 1 instanceID 
+                  FROM tblBP 
+                  WHERE uniqueID = tblBPParts.partid 
+                  ORDER BY uniqueID DESC)) > 0 
+              AND tblPlan.instanceID = :instanceID
+      `, {
+          replacements: { instanceID: lngInstanceID },
+          type: QueryTypes.SELECT
+      });
+
+      for (const row of rs3) {
+          hrs += (await getLaborHours(parseFloat(row.instanceID))) * parseFloat(row.qty);
+      }
+      depth -= 1;
+      return hrs;
+  } else {
+      depth -= 1;
+      return hrs;
+  }
+}
+
+export const calculateCostsAndProfit = async (id) => {
+  const tableDetail = await tblBP.findByPk(id);
+  const instanceID = tableDetail.dataValues.instanceID;
+  const sellingPrice = tableDetail.dataValues.SELLINGPRICE;
+  const settings = await tblSettings.findOne(); 
+  const laborRate = settings.dataValues.laborrate;
+  const profitRate = settings.dataValues.profitRate;
+  const table1 = await sequelize.query(`
+      SELECT tblbp.uniqueID, tblbp.instanceid, tblbpparts.qty
+      FROM tblbp 
+      INNER JOIN tblBPParts ON tblbp.uniqueid = tblbpparts.partid 
+      INNER JOIN tblsteps ON tblsteps.uniqueid = tblbpparts.stepid 
+      INNER JOIN tblplan ON tblplan.uniqueid = tblsteps.planid 
+      WHERE tblPlan.instanceid = :instanceID
+      ORDER BY model
+  `, {
+      replacements: { instanceID: instanceID },
+      type: QueryTypes.SELECT
   });
-  
+
+  const table2 = await sequelize.query(`
+      SELECT 
+          (SUM(CAST(hours AS DECIMAL(12,3))) * :laborRate) AS totalhours, 
+          SUM(CAST(hours AS DECIMAL(12,3))) AS hours 
+      FROM tblPlan 
+      WHERE instanceid = :instanceID
+  `, {
+      replacements: { instanceID: instanceID, laborRate: laborRate },
+      type: QueryTypes.SELECT
+  });
+
   let materialCost = 0;
-  products.forEach(product => {
-    
-    const inventoryCost = product.dataValues.product.InventoryCost || 0; // Assuming default cost is 1 if not available
-    materialCost += inventoryCost * product.dataValues.qty;
-  });
+  let productLabor = parseFloat(table2[0].totalhours || 0);
+  let productLabourHours = parseFloat(table2[0].hours || 0);
 
-  // Calculate labor costs from tblPlan
-  const laborCostData = await tblPlan.findOne({
-    where: { instanceID },
-    attributes: [
-      [Sequelize.fn('sum', Sequelize.col('Hours')), 'totalHours'],
-      [Sequelize.fn('sum', Sequelize.literal(`Hours * ${laborRate}`)), 'totalLaborCost']
-    ],
-  });
+  for (const row of table1) {
+      const table3 = await sequelize.query(`
+          SELECT tblbp.uniqueID, tblbp.model, tblbp.description, tblbp.unit, tblbp.inventorycost, tblBP.multiple 
+          FROM tblbp 
+          WHERE uniqueid = (SELECT MAX(uniqueid) FROM tblbp WHERE instanceid = :instanceID)
+      `, {
+          replacements: { instanceID: row.instanceid },
+          type: QueryTypes.SELECT
+      });
 
-  const totalLaborCost = laborCostData.dataValues.totalLaborCost || 0;
-  const totalHours = laborCostData.dataValues.totalHours || 0;
+      let inventoryCost = table3[0].inventorycost || 1;
 
-  // Subassembly labor and costs (assuming recursive calculation logic is handled elsewhere)
-  const subAssemblyHours = await getSubAssemblyLaborHours(instanceID);
-  const subAssemblyCost = subAssemblyHours * laborRate;
+      if (!inventoryCost) {
+          inventoryCost = 1;
+          await sequelize.query(`
+              UPDATE tblbp SET inventorycost = 1 
+              WHERE uniqueid = :uniqueID
+          `, {
+              replacements: { uniqueID: table3[0].uniqueID },
+              type: QueryTypes.UPDATE
+          });
+      }
 
-  const totalLabor = totalLaborCost + subAssemblyCost;
-  const totalHoursIncludingSubassembly = totalHours + subAssemblyHours;
+      materialCost += parseFloat(inventoryCost) * parseFloat(row.qty);
+  }
 
-  // Gross Profit Calculation
-  const totalCost = materialCost + totalLabor;
-  const grossProfit = sellingPrice - totalCost;
-  const profitPercentage = (grossProfit / sellingPrice) * 100;
+  const subAssemblyLaborHours = await getLaborHours(instanceID, false);
+  const subAssemblyLaborCost = subAssemblyLaborHours * laborRate;
 
-  // Suggested Price Calculation
-  const suggestedPrice = totalCost / (1 - profitRate);
+  const tmpA = productLabor;
+  const tmpB = subAssemblyLaborCost;
 
-  // Inventory Count
-  const shippedCountCurrentYear = await tblInventory.count({
-    where: {
-      [Op.and]: [
-        Sequelize.where(Sequelize.fn('left', Sequelize.col('Serial'), Sequelize.fn('len', instanceID)), instanceID),
-        { Status: 'Shipped' },
-        Sequelize.where(Sequelize.fn('year', Sequelize.col('Today')), new Date().getFullYear())
-      ]
-    }
-  });
+  const totalLaborCost = tmpA + tmpB;
+  const totalHours = productLabourHours + subAssemblyLaborHours;
+  const grossProfit = (sellingPrice - materialCost - totalLaborCost)
+  const grossProfitPercent = (grossProfit / sellingPrice) * 100;
 
-  const shippedCountTotal = await tblInventory.count({
-    where: {
-      [Op.and]: [
-        Sequelize.where(Sequelize.fn('left', Sequelize.col('Serial'), Sequelize.fn('len', instanceID)), instanceID),
-        { Status: 'Shipped' }
-      ]
-    }
+  await sequelize.query(`
+      UPDATE tblbp SET grossprofit = :grossProfit WHERE uniqueid = :uniqueID
+  `, {
+      replacements: { grossProfit: grossProfitPercent, uniqueID: instanceID },
+      type: QueryTypes.UPDATE
   });
 
   return {
-    materialCost,
-    totalLabor,
-    grossProfit,
-    profitPercentage,
-    suggestedPrice,
-    shippedCountCurrentYear,
-    shippedCountTotal,
+    materialCost: parseFloat(materialCost.toFixed(2)),
+    productLabor: parseFloat(productLabor.toFixed(2)),
+    productLabourHours: parseFloat(productLabourHours.toFixed(2)),
+    subAssemblyLaborCost: parseFloat(subAssemblyLaborCost.toFixed(2)),
+    subAssemblyLaborHours: parseFloat(subAssemblyLaborHours.toFixed(2)),
+    totalHours: parseFloat(totalHours.toFixed(2)),
+    totalCost: parseFloat((materialCost + totalLaborCost).toFixed(2)),
+    suggestedPrice: parseFloat(((materialCost + totalLaborCost) / (1 - profitRate)).toFixed(2)),
+    grossProfitPercent: parseFloat(grossProfitPercent.toFixed(2)),
+    grossProfit: parseFloat(grossProfit.toFixed(2))
   };
-};
-
-// Helper function to recursively calculate subassembly labor hours (pseudo-code)
-async function getSubAssemblyLaborHours(instanceID) {
-  // Logic to calculate subassembly labor hours goes here
-  return 0; // Replace with actual calculation
+  
 }
-
-
-
-
-
-
-
-
-
 
 
 
