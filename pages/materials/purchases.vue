@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import CreatePurchaseModal from "~/components/purchase/CreatePurchaseModal.vue";
+import ViewPurchaseModal from "~/components/purchase/ViewPurchaseModal/ViewPurchaseModal.vue";
 import type { UTableColumn } from "~/types";
 
 useSeoMeta({
@@ -14,8 +15,14 @@ const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const createPurchaseModalMeta = ref({
-  isOrderDetailModalOpen: false,
+  isModalOpen: false,
   modalTitle: "New Invoice",
+  modalDescription: "Add a new invoice to your database",
+});
+
+const viewPurchaseModalMeta = ref({
+  isModalOpen: false,
+  modalTitle: "View Purchase",
   modalDescription: "Add a new invoice to your database",
 });
 
@@ -136,7 +143,19 @@ const fetchPurchasesData = async () => {
 
 // open the modal for create purchase
 const triggerCreatePurchaseModal = () => {
-  createPurchaseModalMeta.value.isOrderDetailModalOpen = true;
+  createPurchaseModalMeta.value.isModalOpen = true;
+};
+
+// open view purchase moal
+const triggerViewPurchaseModal = () => {
+  if (gridMeta.value.selectedPurchaseId) {
+    viewPurchaseModalMeta.value.isModalOpen = true;
+  } else {
+    toast.add({
+      title: "info",
+      description: "Slect a purchase first",
+    });
+  }
 };
 
 const handleSortingButton = async (btnName: string) => {
@@ -181,6 +200,7 @@ const handleFilterInputChange = async (event: any, name: string) => {
 fetchPurchasesData();
 
 const onSelect = (row: any) => {
+  console.log(row);
   gridMeta.value.selectedPurchaseId = row.UniqueId;
   console.log(gridMeta.value.selectedPurchaseId);
 };
@@ -189,26 +209,34 @@ const onDblClick = () => console.log(gridMeta.value, "======> selected Data");
 
 // delete selected purchase
 const deletePurchase = async () => {
-  gridMeta.value.isLoading = true;
-  await useApiFetch("/api/materials/purchase/", {
-    method: "DELETE",
-    params: {
-      UniqueId: gridMeta.value.selectedPurchaseId,
-    },
-    onResponse: ({ response }) => {
-      console.log(response._data?.body);
-      console.log(response);
-      if (response._data?.status == 201) {
-        toast.add({
-          title: "Success",
-          description: response._data.message,
-        });
-        fetchPurchasesData();
-        gridMeta.value.isLoading = false;
-      }
-    },
-  });
+  if (gridMeta.value.selectedPurchaseId) {
+    gridMeta.value.isLoading = true;
+    await useApiFetch("/api/materials/purchase/", {
+      method: "DELETE",
+      params: {
+        UniqueId: gridMeta.value.selectedPurchaseId,
+      },
+      onResponse: ({ response }) => {
+        console.log(response._data?.body);
+        console.log(response);
+        if (response._data?.status == 201) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+          });
+          fetchPurchasesData();
+          gridMeta.value.isLoading = false;
+        }
+      },
+    });
+  } else
+    toast.add({
+      title: "info",
+      description: "Cliek on a purchase tou want to delete.",
+    });
 };
+
+const handlePageChange = () => {};
 
 fetchPurchasesData();
 </script>
@@ -225,7 +253,7 @@ fetchPurchasesData();
         :rows="gridMeta.purchases"
         :columns="columns"
         :loading="gridMeta.isLoading"
-        class="w-full"
+        class="w-full min-h-[60%] overflow-y-auto"
         :ui="{
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
@@ -271,76 +299,6 @@ fetchPurchasesData();
             </div>
           </template>
         </template>
-        <template #label-data="{ row }">
-          <UTooltip text="Label" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-tag"
-              @click=""
-            />
-          </UTooltip>
-        </template>
-        <template #order-data="{ row }">
-          <UTooltip text="Order" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-shopping-cart"
-              @click="onOrderDetail(row)"
-            />
-          </UTooltip>
-        </template>
-        <template #quote-data="{ row }">
-          <UTooltip text="Quote" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-currency-dollar"
-              @click="onQuoteDetail(row)"
-            />
-          </UTooltip>
-        </template>
-        <template #serviceOrder-data="{ row }">
-          <UTooltip text="Service Order" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-chat-bubble-left-ellipsis"
-              @click="onServiceOrderDetail(row)"
-            />
-          </UTooltip>
-        </template>
-        <template #siteVisit-data="{ row }">
-          <UTooltip text="Site Visit" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-clipboard-document-list"
-              @click="onSiteVisitDetail(row)"
-            />
-          </UTooltip>
-        </template>
-        <template #edit-data="{ row }">
-          <UTooltip text="Edit" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-pencil-square"
-              @click="onEdit(row)"
-            />
-          </UTooltip>
-        </template>
-        <template #delete-data="{ row }">
-          <UTooltip text="Delete" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-trash"
-              @click="onDelete(row)"
-            />
-          </UTooltip>
-        </template>
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mx-10 mt-1 gap-5">
@@ -360,6 +318,7 @@ fetchPurchasesData();
             </div>
             <div class="flex items-center gap-3">
               <button
+                @click="triggerViewPurchaseModal"
                 class="border border-solid border-blue-300 px-5 py-1 text-blue-400 text-sm"
               >
                 View Purchase Order
@@ -409,7 +368,7 @@ fetchPurchasesData();
   </UDashboardPage>
 
   <UDashboardModal
-    v-model="createPurchaseModalMeta.isOrderDetailModalOpen"
+    v-model="createPurchaseModalMeta.isModalOpen"
     title="Create Purchase"
     :ui="{
       title: 'text-lg',
@@ -422,6 +381,26 @@ fetchPurchasesData();
     }"
   >
     <CreatePurchaseModal :modalMeta="createPurchaseModalMeta" />
+  </UDashboardModal>
+  <UDashboardModal
+    v-model="viewPurchaseModalMeta.isModalOpen"
+    title="View Purchase"
+    class="h-[50vh] overflow-y-auto"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[90%] sm:max-w-9xl',
+      height: 'h-[500px]',
+    }"
+  >
+    <ViewPurchaseModal
+      :modalMeta="viewPurchaseModalMeta"
+      :purchaseId="gridMeta.selectedPurchaseId"
+    />
   </UDashboardModal>
 </template>
 <style scoped></style>

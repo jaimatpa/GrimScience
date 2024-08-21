@@ -1,6 +1,7 @@
+import { format } from "date-fns";
 import { Model, Op } from "sequelize";
 import type { QueryValue } from "ufo";
-import { tblPurchase } from "~/server/models";
+import { tblPurchase, tblVendors } from "~/server/models";
 
 const applyFilters = (params: any) => {
   const filterParams = ["UniqueId", "date", "vendor", "phone", "total"];
@@ -47,19 +48,35 @@ export const deletePurchase = async (
 };
 
 export const createPurchase = async (purchaseData: any): Promise<any> => {
-  const formatPurchaseData = {
-    date: new Date(),
-    vendor: "Test Vendor",
-    phone: "010101010",
-    total: 180.0,
-    open: true,
-  };
-
+  console.log(purchaseData, " ====> From Material");
   try {
     console.log(purchaseData);
-    const createResult = await tblPurchase.create(formatPurchaseData);
+    const createResult = await tblPurchase.create(purchaseData);
     console.log(createResult, " ====> purchase result from material");
     return createResult;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
+
+export const getPurchaseById = async (id: number): Promise<any> => {
+  try {
+    const purchase = await tblPurchase.findByPk(id);
+    console.log(purchase);
+    return purchase;
+  } catch (error) {
+    return error;
+  }
+};
+
+export const getVendorDropDownList = async (): Promise<any> => {
+  try {
+    const vendors = await tblVendors.findAll({
+      attributes: ["UniqueID", "NAME"],
+    });
+
+    return vendors;
   } catch (error) {
     console.log(error);
     return error;
