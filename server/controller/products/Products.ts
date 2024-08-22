@@ -1,7 +1,7 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblBP, tblJobs, tblBPParts, tblSteps, tblPlan, tblOrderDetail, tblOrder, tblInventory, tblSettings } from "~/server/models";
-import  sequelize  from '../../utils/databse';  // Import your Sequelize instance
-import { QueryTypes } from 'sequelize';  // Import QueryTypes separately
+import { tblBP, tblJobs, tblSettings } from "~/server/models";
+import  sequelize  from '../../utils/databse';  
+import { QueryTypes } from 'sequelize';  
 
 const applyFilters = (params) => {
   const filterParams = ['PRODUCTLINE', 'MODEL', 'DESCRIPTION', 'grossprofit'];
