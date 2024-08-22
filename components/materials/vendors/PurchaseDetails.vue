@@ -167,7 +167,10 @@ const po = ref('9052')
 const date = ref('2019-10-22')
 const shipTo = ref('')
 const orderClosed = ref(false)
-
+const props = defineProps({
+    modalData
+})
+console.log(props.modalData)
 const vendorName = ref('Ace Lock Safe Security')
 const vendorAddress = ref('130 Second Street')
 const vendorCity = ref('Marietta, OH 45750')
@@ -228,18 +231,7 @@ const shipToOptions = [
     'Louisville, KY',
     'Buffalo, NY'
 ];
-const authorizedUsers = [
-    'Joseph Grimm',
-    'Anna Smith',
-    'Michael Johnson',
-    'Emily Davis',
-    'David Brown',
-    'Laura Wilson',
-    'James Taylor',
-    'Sophia Anderson',
-    'Robert Thomas',
-    'Olivia Martinez'
-];
+const authorizedUsers = ref([])
 
 const parts = ref([
     {

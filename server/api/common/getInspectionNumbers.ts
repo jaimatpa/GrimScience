@@ -1,6 +1,6 @@
 // api/common/getInspectionNumbers.js
 
-import { getInspectionNumberList } from "~/server/controller/common/getCategoryList";
+import { getInspectionNumberList } from "~/server/controller/common/Vendor";
 
 export default eventHandler(async (event) => {
     try {

@@ -3,13 +3,13 @@
         <UCard>
             <UForm class="space-y-3">
                 <UFormGroup>
-                    <UInput v-model="fromAddress" placeholder="Enter sender's address" />
+                    <UInput v-model="fromAddress"  />
                 </UFormGroup>
 
                 <div class="flex gap-3">
                     <div class="basis-1/3">
                         <UFormGroup>
-                            <UInput v-model="packageInfo" placeholder="Enter package details" />
+                            <UInput v-model="packageInfo" />
                         </UFormGroup>
                     </div>
                     <div class="basis-2/3">
@@ -44,7 +44,6 @@
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue';
-import { defineProps, defineEmits } from 'vue';
 
 const props = defineProps({
     isVisible: Boolean,

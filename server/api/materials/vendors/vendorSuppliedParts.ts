@@ -11,7 +11,7 @@ export default eventHandler(async (event) => {
                 const result = await getVendorSuppliedParts(
                     search as string
                 );
-                return { body: result[0], message: '' };
+                return { body: result, message: '' };
             default:
                 event.node.res.statusCode = 405;
                 return { error: 'Method Not Allowed' };

@@ -1,13 +1,15 @@
-import { getUnitList } from "~/server/controller/common/Vendor";
+import { getVendorDetails } from "~/server/controller/materials";
 
 export default eventHandler(async (event) => {
     try {
         const method = event._method;
+        const { id } = getQuery(event);
+
 
         switch (method.toUpperCase()) {
             case 'GET':
-                const categories = await getUnitList()
-                return { body: categories, message: '' }
+                const vendorList = await getVendorDetails(id)
+                return { body: vendorList, message: '' }
             default:
                 setResponseStatus(event, 405);
                 return { error: 'Method Not Allowed' };
@@ -16,4 +18,3 @@ export default eventHandler(async (event) => {
         throw new Error(`Error fetching data from table: ${error.message}`);
     }
 });
-

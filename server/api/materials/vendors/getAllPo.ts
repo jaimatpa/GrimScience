@@ -1,20 +1,19 @@
-
 import { eventHandler, getQuery, createError } from 'h3';
-import { getRevisions } from '~/server/controller/common/Vendor';
+import { getPoByVendor } from '~/server/controller/materials';
 
 
 export default eventHandler(async (event) => {
     try {
         const method = event._method;
-        const { instanceId} = getQuery(event);
+        const { vendor} = getQuery(event);
 
-        if (!instanceId) {
+        if (!vendor) {
             event.node.res.statusCode = 400;
-            return { error: 'instanceId is required' };
+            return { error: 'vendor is required' };
         }
         switch (method.toUpperCase()) {
             case 'GET':
-                const result = await getRevisions(instanceId as string);
+                const result = await getPoByVendor(vendor as string);
                 return { body: result, message: '' };
             default:
                 event.node.res.statusCode = 405;

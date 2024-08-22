@@ -1,10 +1,11 @@
 <!-- pages/Vendors.vue -->
 <script lang="ts" setup>
 import Details from '~/components/materials/vendors/Details.vue';
-import PartsSuppliedDetails from '~/components/materials/vendors/PartsSuppliedDetails.vue';
 import PrintLabel from '~/components/materials/vendors/PrintLabel.vue';
 import PurchaseDetails from '~/components/materials/vendors/PurchaseDetails.vue';
+import SuppliedPartsList from '~/components/materials/vendors/SuppliedPartsList.vue';
 import VendorTable from '~/components/materials/vendors/VendorTable.vue';
+import ViewOrderList from '~/components/materials/vendors/ViewOrderList.vue';
 import type { UTableColumn } from '~/types';
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
@@ -52,7 +53,6 @@ const gridMeta = ref({
   pageSize: 50,
   numberOfVendors: 0,
   vendors: [],
-  partsSupplied: [],
   selectedCustomerId: null,
   sort: {
     column: 'NUMBER',
@@ -116,6 +116,7 @@ const handlePageChange = async () => {
 const columns = computed(() => gridMeta.value.defaultColumns.filter(column => selectedColumns.value.includes(column)))
 const partsColumns = computed(() => gridMeta.value.partsColumns.filter(column => selectedPartsColumns.value.includes(column)))
 
+
 const handleSortingButton = async (btnName: string) => {
   gridMeta.value.page = 1
   for (const column of columns.value) {
@@ -177,6 +178,7 @@ const onSelect = async (row) => {
       }
     });
 
+
   } catch (error) {
     console.error('Unexpected error:', error);
   } finally {
@@ -189,27 +191,33 @@ const onSelect = async (row) => {
 const showVendorDetailsModal = ref(false);
 const showLabelModal = ref(false);
 const showPartsSuppliedModal = ref(false);
-const showOrderDetailsModal = ref(false);
+const showOrderListModal = ref(false);
 const showCreatePurchaseOrderModal = ref(false);
 
-const openModal = (modalName: keyof typeof gridMeta.value.modalData, row: any = null, isCreating = false) => {
-  if (row) gridMeta.value.modalData[modalName] = row;
+const openModal = async (modalName: keyof typeof gridMeta.value.modalData, row: any = null, isCreating = false) => {
   gridMeta.value.isCreating = isCreating;
   switch (modalName) {
     case 'vendorDetails':
       showVendorDetailsModal.value = true;
+      gridMeta.value.modalData.vendorDetails = row;
       break;
     case 'printLabel':
       showLabelModal.value = true;
+      gridMeta.value.modalData.printLabel = row;
       break;
     case 'partsSupplied':
       showPartsSuppliedModal.value = true;
+      gridMeta.value.modalData.partsSupplied = row;
       break;
     case 'orderDetails':
-      showOrderDetailsModal.value = true;
+      showOrderListModal.value = true;
+      gridMeta.value.modalData.orderDetails = row;
+
+      // await fetchOrderDetails(row);
       break;
     case 'createPurchaseOrder':
       showCreatePurchaseOrderModal.value = true;
+      gridMeta.value.modalData.createPurchaseOrder = row;
       break;
     default:
       break;
@@ -220,7 +228,7 @@ const onDblClick = () => openModal('vendorDetails');
 const onCreatePurchaseOrder = (row: any) => openModal('createPurchaseOrder', row);
 const onViewOrderDetails = (row: any) => openModal('orderDetails', row);
 const onVendorDetailsEdit = (row: any) => openModal('vendorDetails', row);
-const onPartsSuppliedDetails = (row: any) => openModal('partsSupplied', row);
+const onPartsSuppliedDetails = (row: any) => { openModal('partsSupplied', row) };
 const onPrintLabel = (row: any) => openModal('printLabel', row);
 </script>
 
@@ -251,19 +259,16 @@ const onPrintLabel = (row: any) => openModal('printLabel', row);
         <PrintLabel :isVisible="showLabelModal" :data="gridMeta.modalData.printLabel" @close="showLabelModal = false">
         </PrintLabel>
       </UDashboardModal>
-      <UDashboardModal v-model="showOrderDetailsModal" title="Order Details" :ui="modalUIConfig">
-        <!-- <Details :isVisible="showOrderDetailsModal" :data="gridMeta.modalData.orderDetails"
-          @close="showOrderDetailsModal = false"> -->
-        <!-- </Details> -->
-        <PurchaseDetails></PurchaseDetails>
+      <UDashboardModal v-model="showOrderListModal" title="Orders List" :ui="modalUIConfig">
+        <ViewOrderList :is-modal="true" :modal-data="gridMeta.modalData.orderDetails" />
+        <!-- <PurchaseDetails></PurchaseDetails> -->
       </UDashboardModal>
       <UDashboardModal v-model="showPartsSuppliedModal" title="Supplied Parts Details" :ui="modalUIConfig">
-        <PartsSuppliedDetails @close="showPartsSuppliedModal = false" 
-          :modal-data="gridMeta.modalData" :is-modal="true" />
+        <!-- <PartsSuppliedDetails /> -->
+        <SuppliedPartsList :is-modal="true" :modal-data="gridMeta.modalData.partsSupplied" />
       </UDashboardModal>
       <UDashboardModal v-model="showCreatePurchaseOrderModal" title="Create Purchase Order" :ui="modalUIConfig">
         <PurchaseDetails></PurchaseDetails>
-
       </UDashboardModal>
 
     </UDashboardPanel>

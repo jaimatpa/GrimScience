@@ -112,3 +112,18 @@ export const getAccountList = async () => {
         throw new Error(`Error fetching data from table tblAccounts: ${error.message}`);
     }
 };
+export const getVendorStatus = async () => {
+    try {
+        const statusList = await models.tblVendors.findAll({
+            attributes: [
+                [Sequelize.fn('DISTINCT', Sequelize.col('ApprovalStatus')), 'ApprovalStatus'],
+            ],
+            order: [['ApprovalStatus', 'ASC']],
+            raw: true
+        });
+
+        return statusList;
+    } catch (error) {
+        throw new Error(`Error fetching data from table tblAccounts: ${error.message}`);
+    }
+};

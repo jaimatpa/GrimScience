@@ -1,5 +1,5 @@
 import { Op, QueryTypes, Sequelize } from 'sequelize';
-import { tblBP, tblInventoryTransactionDetails, tblInventoryTransactions, tblVendors } from "~/server/models";
+import { tblBP, tblPO, tblVendors } from "~/server/models";
 import sequelize from '~/server/utils/databse';
 const applyFilters = (params) => {
   const filterParams = ['NUMBER', 'NAME', 'ZIP'];
@@ -42,7 +42,6 @@ export const getVendorList = async (page, pageSize, sortBy, sortOrder, filterPar
   const whereClause = applyFilters(filterParams);
 
   const list = await tblVendors.findAll({
-    attributes: ['UniqueId', 'NUMBER', 'NAME', 'ZIP'],
     where: whereClause,
     order: [[sortBy as string || 'NUMBER', sortOrder as string || 'ASC']],
     offset,
@@ -51,6 +50,22 @@ export const getVendorList = async (page, pageSize, sortBy, sortOrder, filterPar
 
   return list;
 }
+export const getVendorDetails = async (id) => {
+  try {
+    const numericId = parseInt(id, 10);
+
+    const vendor = await tblVendors.findOne({
+      where: {
+        UniqueId: { [Op.eq]: numericId }
+      },
+    });
+
+    return vendor;
+  } catch (error) {
+    console.error('Error fetching vendor details:', error);
+    throw error;
+  }
+};
 
 export const getNumberOfVendors = async (filterParams) => {
   const whereClause = applyFilters(filterParams);
@@ -105,21 +120,22 @@ export const getVendorSuppliedParts = async (searchTerm: string, page: number = 
 export const getInventoryTransactionsByModel = async (model: string) => {
   try {
     const query = `
-  SELECT tblInventoryTransactions.*, 
-         tblInventoryTransactions.UniqueID AS UID, 
-         tblInventoryTransactionDetails.onhand AS onhandITD, 
-         QtyChange, 
-         tblBP.Description, 
-         tblBP.model
-  FROM tblInventoryTransactionDetails
-  LEFT JOIN tblInventoryTransactions ON tblInventoryTransactionDetails.InventoryTransactionID = tblInventoryTransactions.UniqueID
-  LEFT JOIN tblBP ON tblBP.UniqueID = tblInventoryTransactionDetails.BPID
-  WHERE tblBP.model = '300587'
-  ORDER BY tblInventoryTransactions.dated DESC;
+          SELECT tblInventoryTransactions.*, 
+          tblInventoryTransactions.UniqueID AS UID, 
+          tblInventoryTransactionDetails.onhand AS onhandITD, 
+          QtyChange, 
+          tblBP.Description, 
+          tblBP.model
+          FROM tblInventoryTransactionDetails
+          LEFT JOIN tblInventoryTransactions ON tblInventoryTransactionDetails.InventoryTransactionID = tblInventoryTransactions.UniqueID
+          LEFT JOIN tblBP ON tblBP.UniqueID = tblInventoryTransactionDetails.BPID
+          WHERE tblBP.model = :model
+          ORDER BY tblInventoryTransactions.dated DESC;
 `;
 
     const results = await sequelize.query(query, {
-      type: QueryTypes.SELECT, // Specify the query type
+      replacements: { model: model },
+      type: QueryTypes.SELECT,
     });
     console.log(results);
     return results;
@@ -135,21 +151,85 @@ export const getPODetailsByInstanceId = async (instanceId) => {
   try {
     // Execute raw SQL query
     const results = await sequelize.query(
-      `SELECT ponumber, TBLPO.UNIQUEID, tblPO.Date, name 
-       FROM tblpo 
-       INNER JOIN tblpodetail ON tblpodetail.pouid = tblpo.uniqueid 
-       INNER JOIN tblbp ON tblbp.uniqueid = tblpodetail.ptnum 
-       WHERE tblbp.instanceid = :instanceId 
-       ORDER BY CAST(tblPO.date AS DATETIME) DESC`,
+      `SELECT
+        tblpo.ponumber,
+        tblpo.uniqueid,
+        tblpo.date,
+        tblpo.NAME,
+        tblpodetail.ORDERED,
+        tblpodetail.RECEIVED
+        FROM tblpo
+        INNER JOIN tblpodetail ON tblpodetail.pouid = tblpo.uniqueid
+        INNER JOIN tblbp ON tblbp.uniqueid = tblpodetail.ptnum
+        WHERE tblbp.instanceid = :instanceId
+        ORDER BY CAST(tblpo.date AS DATETIME) DESC;
+`,
       {
         replacements: { instanceId },
-        type: sequelize.QueryTypes.SELECT,
+        type: QueryTypes.SELECT,
       }
     );
 
     return results;
   } catch (error) {
     console.error('Error fetching PO details:', error);
+    throw error;
+  }
+};
+
+export const createVendor = async (vendorData) => {
+  try {
+    // Create a new vendor in the database
+    const newVendor = await tblVendors.create(vendorData);
+    return newVendor;
+  } catch (error) {
+    console.error('Error creating vendor:', error);
+    throw error;
+  }
+};
+
+
+export const updateVendor = async (vendorData) => {
+  try {
+    const { UniqueID, ...updateData } = vendorData;
+
+    // Find and update the vendor by UniqueID
+    const [updated] = await tblVendors.update(updateData, {
+      where: { UniqueID },
+    });
+
+    if (updated) {
+      // Retrieve the updated vendor
+      const updatedVendor = await tblVendors.findOne({ where: { UniqueID } });
+      return updatedVendor;
+    }
+
+    throw new Error('Vendor not found');
+  } catch (error) {
+    console.error('Error updating vendor:', error);
+    throw error;
+  }
+};
+export const getPoByVendor = async (vendor) => {
+  try {
+    const query = `
+      SELECT *
+      FROM tblpo
+      WHERE vendor = :vendor
+    `;
+
+    const results = await sequelize.query(query, {
+      replacements: { vendor },
+      type: QueryTypes.SELECT
+    });
+
+    if (results.length > 0) {
+      return results;
+    }
+
+    throw new Error('Vendor not found');
+  } catch (error) {
+    console.error('Error querying vendor:', error);
     throw error;
   }
 };
