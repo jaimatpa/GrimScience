@@ -153,14 +153,14 @@
     modalMeta.value.modalDescription = "Add a new message to your database"
     modalMeta.value.isCustomerModalOpen = true
   }
-  const onEdit = (row) => {
+  const onEdit = (row) => {    
     gridMeta.value.selectedMessageId = row?.UniqueID
     modalMeta.value.modalTitle = "Edit";
     modalMeta.value.modalDescription = "Edit message"
     modalMeta.value.isCustomerModalOpen = true
   }
   const onDelete = async (row: any) => {
-    await useApiFetch(`/api/customers/${row?.UniqueID}`, {
+    await useApiFetch(`/api/customers/messages/${row?.UniqueID}`, {
       method: 'DELETE', 
       onResponse({ response }) {
         if (response.status === 200) {

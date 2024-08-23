@@ -47,12 +47,13 @@ export default eventHandler(async (event) => {
             </table>
           </div>
         `
-        const browser = await puppeteer.launch({headless: 'shell'});
+        const browser = await puppeteer.launch();
         const page = await browser.newPage(); 
 
         const pdfOptions: any = {
           path: 'Complaints.pdf',
           format: 'letter',
+          landscape: true, // Set landscape orientation
           margin: {
             top: '40px',
             bottom: '40px',

@@ -45,7 +45,8 @@ const tblInventory = sequelize.define('tblInventory', {
       type: DataTypes.BOOLEAN,
    },
 }, {
-   timestamps: false
+   timestamps: false,
+   tableName: 'tblInventory',
 });
 
 export default tblInventory;

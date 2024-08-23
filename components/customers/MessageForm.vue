@@ -17,7 +17,6 @@ const props = defineProps({
 const toast = useToast()
 const router = useRouter()
 const customersFormInstance = getCurrentInstance();
-
 const now = new Date();
 
 const day = String(now.getDate()).padStart(2, '0');
@@ -50,23 +49,26 @@ const phoneTypes = [{
   name: 'other', 
   value: 'Other'
 }]
+const employeesList = ref([])
 const formData = reactive({
- customer: null,
+  CUSTOMER: null,
  vendor: null,
- name: null,
- company: null,
- for: null,
- takenby: null,
- date: formattedDate,
- time: formattedTime,
+ NAME: null,
+ COMPANY: null,
+ TAKENBY: null,
+ DATE: null,
+ MESSAGE: null,
+ HOME: null,
+ For: null,
+ TIME: null
 })
 
 const editInit = async () => {
-  // loadingOverlay.value = true
-  await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
+  loadingOverlay.value = true
+  await useApiFetch(`/api/customers/messages/${props.selectedCustomer}`, {
     method: 'GET',
     onResponse({ response }) {
-      if(response.status === 200) {
+      if(response.status === 200) {        
         loadingOverlay.value = false
         customerExist.value = true
         for (const key in response._data.body) {
@@ -84,7 +86,7 @@ const editInit = async () => {
   // loadingOverlay.value = false
 }
 const propertiesInit = async () => {
-  // loadingOverlay.value = true
+  loadingOverlay.value = true
   await useApiFetch('/api/customers/markets', {
     method: 'GET',
     onResponse({ response }) {
@@ -93,13 +95,34 @@ const propertiesInit = async () => {
       }
     }
   })
+  await fetchEmployess()
+  loadingOverlay.value = false
+}
+const fetchEmployess = async () => {
+  // loadingOverlay.value = true
+    await useApiFetch(`/api/tbl/tblEmployee?ACTIVE=1`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          const employees = response._data?.body;
+          
+          if (employees?.length) {
+            const formattedEmployees = employees.map(employee => 
+            `#${employee.payrollnumber || 'n/a'} ${employee.fname || ''} ${employee.lname || ''}`
+          );
+          employeesList.value = formattedEmployees
+          return formattedEmployees;
+        }
+        }
+      }
+    })
   // loadingOverlay.value = false
 }
 const validate = (state: any): FormError[] => {
   const errors = []
-  if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
-  if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
-  if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
+  // if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
+  // if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
+  // if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
   return errors
 }
 const handleClose = async () => {
@@ -111,7 +134,7 @@ const handleClose = async () => {
 }
 const onSubmit = async (event: FormSubmitEvent<any>) => {
   if(props.selectedCustomer === null) { // Create Customer
-    await useApiFetch('/api/customers', {
+    await useApiFetch('/api/customers/messages', {
       method: 'POST',
       body: event.data, 
       onResponse({ response }) {
@@ -126,7 +149,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       }
     })
   } else { // Update Customer
-    await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
+    await useApiFetch(`/api/customers/messages/${props.selectedCustomer}`, {
       method: 'PUT',
       body: event.data, 
       onResponse({ response }) {
@@ -142,6 +165,20 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     })
   }
   emit('save')
+}
+
+const isCustomerModalOpen = ref(false)
+
+const handleCustomerClick = () => {
+  isCustomerModalOpen.value = true
+}
+
+const handleCustomerSelect = async (val) => {
+  formData.CUSTOMER = val
+}
+
+const handleCustomerModalClose = async () => {
+  isCustomerModalOpen.value = false
 }
 
 if(props.selectedCustomer !== null) 
@@ -177,13 +214,12 @@ else
     >
       <div class="flex flex-col space-y-4">
         <div class="flex flex-row space-x-2">
-          <div class="min-w-[200px] text-center font-bold px-3 py-1 bg-slate-300">
+          <div class="min-w-[200px] cursor-pointer text-center font-bold px-3 py-1 bg-slate-300" @click="handleCustomerClick">
             Customer
           </div>
           <div class="w-full">
             <UInput
-              v-model="formData.customer"
-              placeholder="Doe"
+              v-model="formData.CUSTOMER"
             />
           </div>
         </div>
@@ -193,21 +229,20 @@ else
           </div>
           <div class="w-full">
             <UInput
-              v-model="formData.customer"
-              placeholder="Doe"
+              v-model="formData.vendor"
             />
           </div>
         </div>
-        <div class="flex flex-row place-content-around">
+        <div class="flex flex-row justify-between">
           <div class="flex flex-col space-y-2">
-            <div class="flex flex-row space-x-3">
+            <div class="flex flex-col space-y-3">
               <div class="min-w-[200px]">
                 <UFormGroup
                   label="Name"
                   name="name"
                 >
                   <UInput
-                    v-model="formData.name"
+                    v-model="formData.NAME"
                     placeholder=""
                   />
                 </UFormGroup>
@@ -218,21 +253,21 @@ else
                   name="company"
                 >
                   <UInput
-                    v-model="formData.company"
+                    v-model="formData.COMPANY"
                     placeholder=""
                   />
                 </UFormGroup>
               </div>
             </div>
-            <div class="flex flex-row space-x-3">
+            <div class="flex flex-col space-y-3">
               <div class="min-w-[200px]">
                 <UFormGroup
                   label="For"
                   name="for"
                 >
                   <USelect
-                    v-model="formData.for"
-                    :options="[]"
+                    v-model="formData.For"
+                    :options="employeesList"
                   />
                 </UFormGroup>
               </div>
@@ -242,20 +277,20 @@ else
                   name="by"
                 >
                   <USelect
-                    v-model="formData.takenby"
-                    :options="[]"
+                    v-model="formData.TAKENBY"
+                    :options="employeesList"
                   />
                 </UFormGroup>
               </div>
             </div>
-            <div class="flex flex-row space-x-3">
+            <div class="flex flex-col space-y-3">
               <div class="min-w-[200px]">
                 <UFormGroup
                   label="Date"
                   name="date"
                 >
                   <UInput
-                    v-model="formData.date"
+                    v-model="formData.DATE"
                     placeholder=""
                   />
                 </UFormGroup>
@@ -266,37 +301,76 @@ else
                   name="time"
                 >
                   <UInput
-                    v-model="formData.time"
+                    v-model="formData.TIME"
                     placeholder=""
                   />
                 </UFormGroup>
               </div>
             </div>
           </div>
-          <div>
-            <UFormGroup
-              label="Phone"
-              name="phone"
-            >
-              <USelect
-                v-model="phone.type"
-                :options="phoneTypes"
-              />
-              <div class="mt-2">
-                <UInput
-                  v-model="phone.number"
-                  placeholder=""
-                />
-              </div>
-            </UFormGroup>
+
+          <div class="flex flex-col gap-y-4">
+            <div>
+              <UFormGroup
+                label="Home"
+                name="phone"
+              >
+                <div class="mt-2">
+                  <UInput
+                    v-model="formData.HOME"
+                    placeholder=""
+                  />
+                </div>
+              </UFormGroup>
+            </div>
+            <div>
+              <UFormGroup
+                label="Work"
+                name="phone"
+              >
+                <div class="mt-2">
+                  <UInput
+                    v-model="phone.number"
+                    placeholder=""
+                  />
+                </div>
+              </UFormGroup>
+            </div>
+            <div>
+              <UFormGroup
+                label="Cell"
+                name="phone"
+              >
+                <div class="mt-2">
+                  <UInput
+                    v-model="phone.number"
+                    placeholder=""
+                  />
+                </div>
+              </UFormGroup>
+            </div>
+            <div>
+              <UFormGroup
+                label="Other"
+                name="phone"
+              >
+                <div class="mt-2">
+                  <UInput
+                    v-model="phone.number"
+                    placeholder=""
+                  />
+                </div>
+              </UFormGroup>
+            </div>
           </div>
+          
         </div>
         <div class="w-full">
           <UFormGroup
             label="Message"
             name="mesage"
           >
-            <UTextarea color="white" variant="outline" placeholder="Please leave your message..." />
+            <UTextarea v-model="formData.MESSAGE" color="white" variant="outline" placeholder="Please leave your message..." />
           </UFormGroup>
         </div>
       </div>
@@ -315,5 +389,18 @@ else
         />
       </div>
     </UForm>
+    <!-- Site Visit Modal -->
+    <UDashboardModal
+      v-model="isCustomerModalOpen"
+      title="Select Customer"
+      :ui="{
+        title: 'text-lg',
+        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1200px] sm:max-w-8xl'
+      }"
+    >
+      <CustomersCustomerList @select="handleCustomerSelect" @close="handleCustomerModalClose" />
+    </UDashboardModal>
   </template>
 </template>

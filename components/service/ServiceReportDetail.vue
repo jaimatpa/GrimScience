@@ -21,6 +21,7 @@
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
   const loadingOverlay = ref(false)
+  const partsTotalAmount= ref('0.00')
   const formData = reactive({
     uniqueID: null,
     REPAIRSMADE: null,
@@ -30,7 +31,7 @@
     CANO: null,
     COMPLAINTID: props.selectedComplaint,
     Week: null,
-    ServiceStatus: 'Closed',
+    ServiceStatus: null,
     type: 0,
     FactoryHours: null,
     TravelHours: 0,
@@ -195,10 +196,9 @@
     MODEL: null,
     DESCRIPTION: null
   })
-  const selectedStatus = ref('open')
   const statusGroup = ref([
     {value: 'open', label: 'Open'}, 
-    {value: 'close', label: 'Closed'}
+    {value: 'Closed', label: 'Closed'}
   ])
   const typeGroup = ref([
     {value: 1, label: 'Factory'}, 
@@ -238,16 +238,18 @@
       },
       onResponse({response}) {
         if(response.status === 200) {
-          for (const key in response._data.body[0]) {
+          for (const key in response._data.body[0]) {            
             if (response._data.body[0][key] !== undefined) {
-              formData[key] = response._data.body[0][key]
+              if (key !== 'DATESHIPPED') {
+                formData[key] = response._data.body[0][key]
+              }
             }
           }
         }
       }
     })
     let parsedParts = []
-    if(formData.PARTS) {
+    if(formData.PARTS) {      
       const tmp = formData.PARTS.split('=')
       for(let i=0; i < tmp.length ; i++) {
         if(tmp[i] !== '' && i % 3 === 0) {
@@ -265,7 +267,7 @@
         }
       }
     }
-    let parsedPartReceived = []
+    let parsedPartReceived = []    
     if(formData.PARTSRECEIVED) {
       const tmp = formData.PARTSRECEIVED.split('=')
       for(let i=0; i < tmp.length ; i++) {
@@ -283,9 +285,12 @@
           })
         }
       }
-    }
+    }    
     selectedWarrantyMaterialGridMeta.value.warrantyMaterials = parsedParts
+    warrantyMaterialInfo.value.total = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
     selectedPartGridMeta.value.parts = parsedPartReceived
+    partsTotalAmount.value = selectedPartGridMeta.value.parts.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
+
     await propertiesInit()
   }
   const propertiesInit = async () => {
@@ -320,18 +325,18 @@
         }
       }
     })
-    if(formData.REPAIRDATE && !formData.Week) {
+    if(formData.REPAIRDATE) {
       formData.REPAIRDATE = new Date(formData.REPAIRDATE)
       formData.Week = `${new Date(formData.REPAIRDATE).getFullYear().toString().substring(2)}-${getWeekNumber(formData.REPAIRDATE)}`
     }
     loadingOverlay.value = false
   }
   const warrantyMaterialFetchGridData = async () => {
-    await useApiFetch(`/api/materials/parts`, {
+    await useApiFetch(`/api/materials/distinctparts`, {
       method: 'GET',
       params: {...warrantyMaterialFilterValues.value},
       onResponse({ response }) {
-        if(response.status === 200) {
+        if(response.status === 200) {          
           warrantyMaterialGridMeta.value.warrantyMaterials = response._data.body;
         }
       }
@@ -360,7 +365,7 @@
     })
   }
   const partFetchGridData = async () => {
-    await useApiFetch(`/api/materials/parts`, {
+    await useApiFetch(`/api/materials/distinctparts`, {
       method: 'GET',
       params: {...partFilterValues.value},
       onResponse({ response }) {
@@ -461,8 +466,9 @@
       if(index < 0) {
         if(!warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1)
           warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1 = 0
-        let amount = Math.round(Number.parseFloat(warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) /100
+        let amount = Math.round(Number.parseFloat(warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) /100        
         selectedWarrantyMaterialGridMeta.value.warrantyMaterials.push({...warrantyMaterialGridMeta.value.selectedWarrantyMaterial, Quantity: addModalMeta.value.quantity, Amount: amount})
+        warrantyMaterialInfo.value.total = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
       } 
     } else if(addModalMeta.value.title === 'Part') {
       const index = selectedPartGridMeta.value.parts.findIndex((value) => value?.UniqueID === partGridMeta.value.selectedPart?.UniqueID)
@@ -471,6 +477,7 @@
           partGridMeta.value.selectedPart.PRIMARYPRICE1 = 0
         let amount = Math.round(Number.parseFloat(partGridMeta.value.selectedPart.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) /100
         selectedPartGridMeta.value.parts.push({...partGridMeta.value.selectedPart, Quantity: addModalMeta.value.quantity, Amount: amount, Nonconformance: 0})
+        partsTotalAmount.value = selectedPartGridMeta.value.parts.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
       }
     } else if(addModalMeta.value.title === 'EditWarranty') {
       selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial.Quantity = addModalMeta.value.quantity
@@ -519,8 +526,16 @@
   const onRemoveWarranty = () => {
     if(selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial) {
       selectedWarrantyMaterialGridMeta.value.warrantyMaterials = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.filter((item) => item?.UniqueID !== selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial?.UniqueID)
+      warrantyMaterialInfo.value.total = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.reduce((sum, item) => sum + parseFloat(item.Amount), 0);
     }
   }
+  const onPartsRemoved = ()=>{
+    if(selectedPartGridMeta.value.selectedPart) {
+      selectedPartGridMeta.value.parts = selectedPartGridMeta.value.parts.filter((item) => item?.UniqueID !== selectedPartGridMeta.value.selectedPart?.UniqueID)
+      partsTotalAmount.value = selectedPartGridMeta.value.parts.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
+    }
+  }
+
   const onNonConformanceBtnClick = () => {
     modalMeta.value.isNonConformanceModalOpen = true
   }
@@ -571,6 +586,9 @@
   }
   async function onSubmit(event: FormSubmitEvent<any>) {
     emit('save', event.data)
+    emit('close')
+  }
+  async function onClose () {
     emit('close')
   }
   watch(() => formData.REPAIRDATE, () => formData.Week = `${new Date(formData.REPAIRDATE).getFullYear().toString().substring(2)}-${getWeekNumber(formData.REPAIRDATE)}`)
@@ -650,7 +668,7 @@
                   <URadio 
                     v-for="status of statusGroup"
                     :key = 'status.value'
-                    v-model="selectedStatus"
+                    v-model="formData.ServiceStatus"
                     v-bind="status"
                   />
                 </div>
@@ -744,7 +762,7 @@
               <div class="flex-1">
                 <UTextarea 
                   v-model="formData.REPAIRSMADE"
-                  :rows="1"
+                  :rows="2"
                 />
               </div>
             </div>    
@@ -819,8 +837,8 @@
       <div class="w-full px-3 py-1 bg-slate-400">
           Warranty Material
       </div>
-      <div class="flex flex-row space-x-9 p-2">
-        <div class="basis-1/2">
+      <div class="flex flex-row space-x-3 p-2">
+        <div class="w-1/2 mt-4">
           <UTable
             :rows="warrantyMaterialGridMeta.warrantyMaterials"
             :columns="warrantyMaterialGridMeta.defaultColumns"
@@ -898,7 +916,7 @@
             </template>
           </UTable>
         </div>
-        <div class="basis-1/2">
+        <div class="w-1/2">
           <div class="flex flex-row space-x-4 py-1">
             <div class="basis-1/4 flex items-center">
               <div class="flex flex-row space-x-2 ">
@@ -978,7 +996,7 @@
           Parts Received
       </div>
       <div class="flex flex-row space-x-3 p-2">
-        <div class="basis-1/2">
+        <div class="w-1/2">
           <UTable
             :rows="partGridMeta.parts"
             :columns="partGridMeta.defaultColumns"
@@ -1059,7 +1077,7 @@
             Parts(Double-Click To Select)
           </div>
         </div>
-        <div class="basis-1/2">
+        <div class="w-1/2">
           <UTable
             :rows="selectedPartGridMeta.parts"
             :columns="selectedPartGridMeta.defaultColumns"
@@ -1098,13 +1116,13 @@
           <UButton icon="i-heroicons-document" label="Save" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onSave"/>
         </div>
         <div class="basis-1/6 w-full">
-          <UButton icon="i-heroicons-magnifying-glass" label="View Order" variant="outline" color="primary" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+          <UButton icon="i-heroicons-magnifying-glass" label="View Order" variant="outline" color="primary" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onClose"/>
         </div>
         <div class="basis-1/6 w-full">
           <UButton icon="i-heroicons-currency-dollar" label="Quickbooks" variant="outline" color="primary" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
         </div>
         <div class="basis-1/6 w-full">
-          <UButton icon="i-heroicons-minus-circle" label="Remove Part" variant="outline" color="red" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+          <UButton icon="i-heroicons-minus-circle" label="Remove Part" variant="outline" color="red" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" @click="onPartsRemoved" truncate/>
         </div>
         <div class="">
           <UButton icon="i-heroicons-document" label="Non-Conformance Create/View" variant="outline" color="green" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onNonConformanceBtnClick"/>
@@ -1115,7 +1133,7 @@
               Total:  
             </div>
             <div class="flex items-center">
-              0.00
+              {{partsTotalAmount}}
             </div>
           </div>
         </div>
