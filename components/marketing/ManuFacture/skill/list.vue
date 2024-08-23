@@ -17,107 +17,37 @@
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
   const headerFilters = ref({
-    markets: {
-      label: 'Market',
-      filter: 'market',
+    skill: {
+      label: 'Skill#',
+      filter: 'Skill',
       options: []
     }, 
-    professions: {
-      label: 'Profession', 
+    category: {
+      label: 'Category', 
       filter: 'source',
       options: []
     }, 
-    categories: {
-      label: 'Category', 
-      filter: 'ParadynamixCatagory', 
+    subCategory: {
+      label: 'Subcategory', 
+      filter: 'subCategory', 
       options: []
     }, 
-    conferences: {
-      label: 'Conference', 
-      filter: 'SourceConfrence',
-      options: []
-    }, 
-    usstates: {
-      label: 'State', 
-      filter: 'state',
-      api: '/api/common/usstates',
-      options: []
-    }
   })
   const gridMeta = ref({
     defaultColumns: <UTableColumn[]>[{
-        key: 'number',
-        label: 'Number',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
+        key: 'UniqueID',
+        label: 'Skill#',
       }, {
-        key: 'fname',
-        label: 'First',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
+        key: 'Catagory',
+        label: 'Category'
       }, {
-        key: 'lname',
-        label: 'Last',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
+        key: 'subcatagory',
+        label: 'Sub Category'
+
       }, {
-        key: 'company1',
-        label: 'Company',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'homephone',
-        label: 'HomePhone',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'workphone',
-        label: 'WorkPhone',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'state',
-        label: 'State',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'zip',
-        label: 'Zip',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'label',
-        label: 'Label',
-        kind: 'actions'
-      }, {
-        key: 'order',
-        label: 'Order',
-        kind: 'actions'
-      }, {
-        key: 'quote',
-        label: 'Quote',
-        kind: 'actions'
-      }, {
-        key: 'serviceOrder',
-        label: 'Service Order',
-        kind: 'actions'
-      }, {
-        key: 'siteVisit',
-        label: 'Site Visit',
-        kind: 'actions'
-      }, {
-        key: 'edit',
-        label: 'Edit',
-        kind: 'actions'
-      }, {
+        key: 'weeks',
+        label: 'Weeks'
+      },{
         key: 'delete',
         label: 'Del',
         kind: 'actions'
@@ -126,8 +56,8 @@
     page: 1,
     pageSize: 50,
     numberOfCustomers: 0, 
-    customers: [],
-    selectedCustomerId: null,
+    skills: [],
+    selectedSkillId: null,
     sort: {
       column: 'UniqueID', 
       direction: 'asc'
@@ -182,7 +112,7 @@
     fetchGridData()
     for(const key in headerFilters.value) {
       console.log("the key is",key);
-      const apiURL = headerFilters.value[key]?.api?? `/api/customers/${key}`;
+      const apiURL = headerFilters.value[key]?.api?? `/api/projects/skill/${key}`;
       await useApiFetch(apiURL, {
         method: 'GET',
         onResponse({ response }) {
@@ -209,7 +139,7 @@
       }
     })
     if(gridMeta.value.numberOfCustomers === 0){
-      gridMeta.value.customers = []
+      gridMeta.value.skills = []
       gridMeta.value.numberOfCustomers = 0
       gridMeta.value.isLoading = false
       return;
@@ -218,52 +148,54 @@
       gridMeta.value.page = Math.ceil(gridMeta.value.numberOfCustomers / gridMeta.value.pageSize) | 1
     }
     // table data coming in there
-    await useApiFetch('/api/customers/', {
+    await useApiFetch('/api/projects/skill', {
       method: 'GET',
       params: {
         page: gridMeta.value.page,
         pageSize: gridMeta.value.pageSize, 
         sortBy: gridMeta.value.sort.column,
         sortOrder: gridMeta.value.sort.direction,
-        ...filterValues.value,
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
-          gridMeta.value.customers = response._data.body
-          console.log("the customer area",response._data.body);
+          console.log("the skill is",response._data.body);
+          gridMeta.value.skills=response._data.body;
+          console.log("the skill is", gridMeta.value.skills);
+
         }
         gridMeta.value.isLoading = false
       }
     });
   }
   const onCreate = () => {
-    gridMeta.value.selectedCustomerId = null
-    modalMeta.value.modalTitle = "New Customer";
+    gridMeta.value.selectedSkillId = null
+    modalMeta.value.modalTitle = "New Skill";
     modalMeta.value.isCustomerModalOpen = true
   }
   const onEdit = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
+    gridMeta.value.selectedSkillId = row?.UniqueID
     modalMeta.value.modalTitle = "Edit";
     modalMeta.value.isCustomerModalOpen = true
   }
   const onOrderDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
+    gridMeta.value.selectedSkillId = row?.UniqueID
     modalMeta.value.isOrderDetailModalOpen = true
   }
   const onQuoteDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
+    gridMeta.value.selectedSkillId = row?.UniqueID
     modalMeta.value.isQuoteDetailModalOpen = true
   }
   const onServiceOrderDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
+    gridMeta.value.selectedSkillId = row?.UniqueID
     modalMeta.value.isServiceOrderDetailModalOpen = true
   }
   const onSiteVisitDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
+    gridMeta.value.selectedSkillId = row?.UniqueID
     modalMeta.value.isSiteVisitModalOpen = true
   }
   const onDelete = async (row: any) => {
-    await useApiFetch(`/api/customers/${row?.UniqueID}`, {
+    console.log("row is ",row?.UniqueID);
+    await useApiFetch(`/api/projects/skill/${row?.UniqueID}`, {
       method: 'DELETE', 
       onResponse({ response }) {
         if (response.status === 200) {
@@ -348,10 +280,10 @@
     exportIsLoading.value = false
   }
   const onSelect = async (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID;
+    gridMeta.value.selectedSkillId = row?.UniqueID;
   }
   const onDblClick = async () =>{
-    if(gridMeta.value.selectedCustomerId){
+    if(gridMeta.value.selectedSkillId){
       modalMeta.value.modalTitle = "Edit";
       modalMeta.value.isCustomerModalOpen = true
     }
@@ -366,9 +298,7 @@
       >
       </UDashboardNavbar>
 
-      <div class="px-4 py-2 gmsPurpleTitlebar">
-        <h2>Sort</h2>
-      </div>
+
 
       <UDashboardToolbar>
         <template #left>
@@ -414,26 +344,16 @@
         </template>
         <template #right>
           <UButton color="green" variant="outline"
-            :loading="exportIsLoading"
-            label="Export to Excel" 
-            trailing-icon="i-heroicons-document-text"
-            @click="excelExport"
-          >
-          </UButton>
-          <UButton color="green" variant="outline"
-            label="New customer"
+            label="Add Skill"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
         </template>
       </UDashboardToolbar>
 
-      <div class="px-4 py-2 gmsPurpleTitlebar">
-        <h2>Lookup</h2>
-      </div>
       <UTable
-        :rows="gridMeta.customers"
-        :columns="columns"
+        :rows="gridMeta.skills"
+        :columns="gridMeta.defaultColumns"
         :loading="gridMeta.isLoading"
         class="w-full"
         :ui="{
@@ -444,7 +364,7 @@
             padding: 'p-0'
           }, 
           td: {
-            padding: 'py-1'
+            padding: 'py-2'
           }
         }"
         :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
@@ -526,7 +446,8 @@
       width: 'w-[1000px] sm:max-w-7xl'
     }"
   >
-    <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId" :is-modal="true"/>
+       <MarketingManuFactureSkillForm :selectedSkill="gridMeta.selectedSkillId"/>
+
   </UDashboardModal>
   <!-- Order Modal -->
   <UDashboardModal
@@ -539,7 +460,7 @@
       width: 'w-[1800px] sm:max-w-9xl', 
     }"
   >
-    <InvoiceDetail :selected-customer="gridMeta.selectedCustomerId" @close="modalMeta.isOrderDetailModalOpen = false"/>
+    <InvoiceDetail :selected-customer="gridMeta.selectedSkillId" @close="modalMeta.isOrderDetailModalOpen = false"/>
   </UDashboardModal>      
   <!-- Quote Modal -->
   <UDashboardModal
@@ -552,34 +473,8 @@
       width: 'w-[1000px] sm:max-w-7xl'
     }"
   >
-    <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId"/>
   </UDashboardModal>
-  <!-- Service Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isServiceOrderDetailModalOpen"
-    title="Service Order"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl'
-    }"
-  >
-    <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId"/>
-  </UDashboardModal>
-  <!-- Site Visit Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isSiteVisitModalOpen"
-    title="Site Visit"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl'
-    }"
-  >
-    <CustomersSiteVisitDetail :selected-customer="gridMeta.selectedCustomerId"/>
-  </UDashboardModal>
+
 </template>
 <style scoped>
 </style>

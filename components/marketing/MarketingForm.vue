@@ -9,6 +9,7 @@ import { format } from 'date-fns'
 import DatePickerClient from '../common/DatePicker.client.vue';
 import type { UTableColumn } from '~/types';
 import type { NUMBER } from 'sequelize';
+import { id } from 'date-fns/locale';
 
 const items = [{
     key:"sub",
@@ -22,12 +23,11 @@ const items = [{
   label: 'Operations',
 }]
 const tableOfCompletion = ref([]);
+const newTableOfCompletion=ref([]);
 const employeeOptions=ref([]);
-const jobList = ref([
-{
-  job:''
-}
-]);
+const selectedProjectItem = ref(null);
+const jobList = ref([]);
+const joblistLabel=ref([]);
 const form=reactive( {
         NUMBER: null,
         QUANTITY:null,
@@ -47,123 +47,88 @@ const form=reactive( {
 
 
 
-
-const formatDate = (date) => {
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-  const year = date.getFullYear();
-  return `${month}/${day}/${year}`;
-}
-
-const newEntry = ref({
-  qty: '',
-  completionDate:'',
-  scheduleDate: '',
+const newEntry = reactive({
+  ShipDate: null,
+  Serial: null,
+  PlanID: null,
+  Quantity: '',
+  SingleMaterialCost: 10,
+  PartsList: null,
+  dateEntered: ref(new Date()),
+  SingleLaborHours: null,
+  SingleLaborCost: 10,
+  ScheduledQty: null,
+  ScheduledDate: ref(new Date()),
+  CostPerUnit: 10
 });
 
 
-
-
-const productProjects= [{
-  "Linked Job #": '1',
- 
+const columns = [{
+  key: 'Quantity',
+  label: '#'
 }, {
-    "Linked Job #": '1',
-
+  key: 'dateEntered',
+  label: 'Completion Date'
 }, {
-    "Linked Job #": '1',
-
-}, {
-    "Linked Job #": '1',
-}, {
-    "Linked Job #": '1',
-}, {
-    "Linked Job #": '1',
-
+  key: 'Schedule Date',
+  label: 'ScheduledDate'
 }]
 
-const employeeHours= [{
-  Date: '1',
-  Employee:'emon',
-  Hrs:'1'
- 
-}, {
-  Date: '1',
-  Employee:'emon',
-  Hrs:'1'
-
-}, {
-  Date: '1',
-  Employee:'emon',
-  Hrs:'1'
-
-}, {
-  Date: '1',
-  Employee:'emon',
-  Hrs:'1'
-}, {
-  Date: '1',
-  Employee:'emon',
-  Hrs:'1'
-}, {
-  Date: '1',
-  Employee:'emon',
-  Hrs:'1'
-
+const jobColumns = [{
+  key: 'label',
+  label: 'Linked Job#'
 }]
 
 
 
 
-const weekly = [{
-  "#": '1',
-  Week:8,
-  Operation:'Website Wizard Page',
-  "Work Center":'54',
-  Hrs: '20',
- "Rework Hours":'dfkalsdf',
- "Verfied":'done'
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
 
+const employeeHours= ref([{}]);
+
+const columnemployeeHours= [{
+  key: 'StartTime',
+  label: 'Date'
 }, {
-  "#": '1',
-  Week:8,
-  Operation:'Website Wizard Page',
-  "Work Center":'54',
-  Hrs: '20',
- "Rework Hours":'dfkalsdf',
- "Verfied":'done'
+  key: 'Name',
+  label: 'Employee'
 }, {
-  "#": '1',
-  Week:8,
-  Operation:'Website Wizard Page',
-  "Work Center":'54',
-  Hrs: '20',
- "Rework Hours":'dfkalsdf',
- "Verfied":'done'
-}, {
-  "#": '1',
-  Week:8,
-  Operation:'Website Wizard Page',
-  "Work Center":'54',
-  Hrs: '20',
- "Rework Hours":'dfkalsdf',
- "Verfied":'done'
-}, {
-  "#": '1',
-  Week:8,
-  Operation:'Website Wizard Page',
-  "Work Center":'54',
-  Hrs: '20',
- "Rework Hours":'dfkalsdf',
- "Verfied":'done'
+  key: 'Hours',
+  label: 'Hrs.'
 }]
+
+
+
+
+
+
+const weekly = ref([]);
+
+
+const weeklyColumns = [{
+  key: 'week',
+  label: 'Week'
+
+},{
+  key:'Operation',
+  label:'Operation'
+},{
+  key:'WorkCenter',
+  label:'Work Center'
+},{
+  key:'Hours',
+  label:'Hrs'
+},{
+  key:'reworkhrs',
+  label:'Rework Hours'
+},{
+  key:'verified',
+  label:'Verified'
+}
+
+]
+
+
+
 
 const orders = [{
   po: 'PO54654',
@@ -233,7 +198,7 @@ const props = defineProps({
 
 const addInventory = () => {
  
-    tableOfCompletion.value.push({ ...newEntry.value });
+    tableOfCompletion.value.push({ ...newEntry});
     console.log("table of completion",tableOfCompletion.value);
 
 
@@ -312,13 +277,13 @@ const partlist = ref([]);
 
 const selectCategoryForList=ref();
 const projectItemList=ref([]);
-const selectedProjectItem=ref([]);
 const modalMeta = ref({
     isPartsUsed: false,
     isPartLisingModalOpen: false,
     isQuoteDetailModalOpen: false,
     isServiceOrderDetailModalOpen: false,
     isSiteVisitModalOpen: false,
+    manuFactureModal:false,
     modalTitle: "New Customer",
   })
 
@@ -343,16 +308,58 @@ const modalMeta = ref({
     })
   }
   const addJob = async () => {
-  if (selectedProjectItem.value) { // Check if the selected job is not empty
-    const jobString = selectedProjectItem.value.toString();
-  
-  // Push the new job object into the jobList
-  jobList.value.push({ job: jobString });
+  // Check if the selected project item is not empty and has a value property
+  if (selectedProjectItem.value && selectedProjectItem.value.value) {
+    console.log("Selected value is", selectedProjectItem.value.label);
 
+    // Create a new job object with only the value property
+    const newJob = {
+      value: selectedProjectItem.value.value   // Use the value property directly
+    };
+
+    // Push the new job object into the jobList
+    jobList.value.push(newJob);
+    joblistLabel.value.push({
+  label: selectedProjectItem.value.label,
+});
+
+
+    console.log("Updated jobList is", jobList.value);
   } else {
-    console.error('Job cannot be empty');
+    console.error('Selected project item or value cannot be empty');
   }
 };
+const operation=ref([]);
+
+
+const handleRowClick = async () => {
+  console.log('Row double-clicked:', operation.value);
+
+  try {
+     await useApiFetch('/api/projects/operationHour', {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          employeeHours.value=response._data.body;
+           console.log("employees",response._data.body);
+      
+        }
+      },
+      params: {
+        operationId: operation.value,
+        jobid: props.selectedCustomer
+      }
+      
+    });
+
+    
+  } catch (error) {
+    console.error("Error fetching operation hour:", error);
+  }
+};
+
+
+
 
 const editInit = async () => {
   loadingOverlay.value = true;
@@ -375,9 +382,68 @@ const editInit = async () => {
       customerExist.value = false
     }
   })
+  propertiesInit();
+  await useApiFetch(`/api/projects/linkedJob/getJob/${props.selectedCustomer}`, {
+      method: 'GET',
+      
+      onResponse({ response }) {
+  if (response.status === 200) {
+    const updatedJobList = response._data.body.map(job => {
+    return {
+      // Assign linkedJob to joblabel.label
+      label: job.linkedJob
+    };
+  });
+
+  // Update jobList with the transformed data
+  joblistLabel.value = updatedJobList;
+  }
+}
+
+    })
+
+    await useApiFetch(`/api/projects/operations/${props.selectedCustomer}`, {
+      method: 'GET',
+      
+      onResponse({ response }) {
+        if(response.status === 200) {
+          console.log("operation is",response._data.body);  
+          weekly.value=response._data.body;
+        }
+      }
+    })
+
+
+
+
+
+  loadingOverlay.value = false
+}
+
+const getInventory = async () => {
+  loadingOverlay.value = true;
+  console.log("project is",)
+  await useApiFetch(`/api/projects/inventoryDetails/${props.selectedCustomer}`, {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        loadingOverlay.value = false
+        customerExist.value = true
+        console.log("details of inventory", response._data.body)
+        
+        tableOfCompletion.value=response._data.body;
+      }
+    }, 
+    onResponseError({}) {
+      customerExist.value = false
+    }
+  })
   propertiesInit()
   loadingOverlay.value = false
 }
+
+
+
 
 const subCategories = async () => {
   console.log("category is",selectedCategory);
@@ -408,7 +474,7 @@ const subCategories = async () => {
     loadingOverlay.value = false;
   }
 };
-
+const filteredData = ref([]);
 const productItem = async () => {
   try {
     loadingOverlay.value = true;
@@ -419,14 +485,14 @@ const productItem = async () => {
       },
       onResponse({ response }) {
         if (response.status === 200) {
-          console.log("projectlist is",response._data.body);
-          projectItemList.value=response._data.body;
-
-          
-       
-        
-        } else {
-          console.error('Unexpected response status:', response.status);
+          console.log("prjeic sss",response._data.body);
+          filteredData.value = response._data.body
+          .filter(item => item !== null && item !== undefined)
+          .map(item => ({
+            label: item.NUMBER, // Field name for display
+            value: item.JobID // Field name for value
+          }));
+      
         }
       },
       onResponseError(error) {
@@ -585,6 +651,23 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       }
     })
+
+    console.log("table of completion a",tableOfCompletion.value);
+   
+    insertInventory();
+
+
+    console.log("Job Linked is there",JSON.stringify(jobList.value));
+
+   AddLinkedJob();
+
+    
+    
+
+
+
+
+
   }
   
   else { // Update Customer
@@ -594,22 +677,78 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       body: form, 
       onResponse({ response }) {
         if (response.status === 200) {
+          console.log("linked job is",response._data);
+        // jobList.value=response._data;
+         
+        }
+      }
+    })
+    insertInventory();
+    AddLinkedJob();
+  }
+  emit('save');
+}
+const AddLinkedJob = async () => {
+await useApiFetch(`/api/projects/linkedJob/${props.selectedCustomer}`, {
+      method: 'POST',
+      body: JSON.stringify({
+        jobData: jobList.value,
+    selectedCustomer: props.selectedCustomer
+      }),
+      onResponse({ response }) {
+        if(response.status === 200) {
           toast.add({
             title: "Success",
             description: response._data.message,
             icon: 'i-heroicons-check-circle',
             color: 'green'
           })
+          console.log("successful");
         }
       }
     })
   }
-  emit('save');
+
+  const onSelect = async (row) => {
+    operation.value=row.uniqueID;
+    console.log("operation id is",operation.value);
+  }
+
+const  handleRowDoubleClick=()=>{
+  modalMeta.value.manuFactureModal=true; 
 }
 
 
+const insertInventory = async () => {
+  console.log("inventory list value is",tableOfCompletion.value);
+ await useApiFetch('/api/projects/insertInventory', {
+      method: 'POST',
+      body: JSON.stringify({
+    tableOfCompletion: tableOfCompletion.value,
+    selectedCustomer: props.selectedCustomer
+  }),
+      onResponse({ response }) {
+        if(response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-check-circle',
+            color: 'green'
+          })
+          console.log("successful");
+        }
+      }
+    })
+
+  }
+
+
+
 if(props.selectedCustomer !== null) 
-  editInit()
+ {
+  editInit();
+  getInventory();
+ }
 else 
   propertiesInit()
 </script>
@@ -803,23 +942,22 @@ else
             />
           </UFormGroup>
           <div class="grid grid-cols-1 mt-6 h-48">
-        <UTable :rows="tableOfCompletion" />
+        <UTable :rows="tableOfCompletion" :columns="columns" />
          
         </div>
         <div class="flex flex-row space-x-2 mt-2">
           <UFormGroup label="Qty" class="basis-1/3" name="Qty">
             <UInput
-              v-model="newEntry.qty"
+              v-model="newEntry.Quantity"
             />
           </UFormGroup>
           <div class="mt-6">
             <UPopover :popper="{ placement: 'bottom-start' }">
-              <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(form.DATEOPENED, 'd MMM, yyy')" />
-          
-              <template #panel="{ close }">
-                <DatePickerClient v-model="form.DATEOPENED" is-required @close="close" />
-              </template>
-            </UPopover>
+                          <UButton icon="i-heroicons-calendar-days-20-solid"  :label="format(newEntry.dateEntered, 'd MMM, yyy')"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                          <template #panel="{ close }">
+                            <CommonDatePicker v-model="newEntry.dateEntered" is-required @close="close" />
+                          </template>
+                        </UPopover>
             </div>
 
             
@@ -850,14 +988,33 @@ else
     </div>
         <div v-else-if="item.key === 'Operation'" class="space-y-3">
             <div class="grid grid-cols-1 mt-6 h-48">
-              <UTable :rows="weekly" />
+         
+              <UTable :rows="weekly" :columns="weeklyColumns" v-slot:row="{ row }" @select="onSelect" @click="handleRowClick"  @dblclick="handleRowDoubleClick">
+
+    <!-- <template >
+      <tr >
+        <td>{{ row.OperationID }}</td>
+        <td>{{ row.JobID }}</td>
+        <td>{{ row.Operation }}</td>
+        <td>{{ row.WorkCenter }}</td>
+        <td>{{ row.Hours }}</td>
+        <td>{{ row.EmployeeName }}</td>
+        <td>{{ row.Department }}</td>
+        <td>{{ row.HourlyWage }}</td>
+      </tr>
+    </template> -->
+  </UTable>
+
+
+
+
               
 
         </div>
         <div class="flex flex-row space-x-4 mt-2">
         <div class="grid grid-cols-1 mt-6 h-48 basis-1/2 ">
                 <h2 class="font-medium">Employee Hours For Selected Operation</h2>
-              <UTable :rows="employeeHours" />
+              <UTable :rows="employeeHours" :columns="columnemployeeHours" />
 
                 </div>
                 <div class="basis-1/2 ">
@@ -943,9 +1100,9 @@ else
     </div>
         <div v-else-if="item.key === 'project'" class="flex flex-row space-x-3">
           <div class="basis-1/2">
-            <UTable :rows="jobList" />
+            <UTable :rows="joblistLabel" :columns="jobColumns" />
 
-
+            
           </div>
           <div class="basis-1/2 ">
             <div>
@@ -961,12 +1118,13 @@ else
 
 <div>
   <UFormGroup label="Project Item" class="basis-1/2 mt-6" name="ProjectItem">
-            
-           
-            <UInputMenu 
-            :options="projectItemList" 
-            />
-          </UFormGroup>
+    <UInputMenu 
+      v-model="selectedProjectItem" 
+      :options="filteredData" 
+      
+    />
+  </UFormGroup>
+  
 
   
 </div>
@@ -1044,7 +1202,8 @@ else
       width: 'w-[1500px] sm:max-w-9xl', 
     }"
   >
-    <PartsUsed  @close="modalMeta.isPartsUsed = true"/>
+    <PartsUsed :selected-customer="selectedCustomer" 
+      @close="modalMeta.isPartsUsed = true"/>
   </UDashboardModal> 
 <!-- is Part Listing Modal -->
 <UDashboardModal
@@ -1059,6 +1218,24 @@ else
   >
     <PartsList @close="modalMeta.isPartLisingModalOpen = true"/>
   </UDashboardModal> 
+
+
+
+  <UDashboardModal
+    v-model="modalMeta.manuFactureModal"
+    
+    :ui="{
+      title: 'text-lg',
+      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-10' },
+      width: 'w-[1500px] sm:max-w-9xl', 
+    }"
+  >
+  <MarketingManuFactureList :selected-customer="selectedCustomer"  v-model="modalMeta.manuFactureModal" />
+
+  </UDashboardModal> 
+
+
 
 
 
