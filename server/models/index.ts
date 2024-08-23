@@ -1,6 +1,5 @@
 export { default as tbl } from "./tbl";
 export { default as tblAccounts } from "./tblAccounts";
-export { default as tblCurrentInventory } from "./tblCurrentInventory";
 export { default as tblBP } from "./tblBP";
 export { default as tblBP6 } from "./tblBP6";
 export { default as tblBPParts } from "./tblBPParts";
@@ -91,3 +90,5 @@ export { default as tblZipLocations } from "./tblZipLocations";
 export { default as tblZoneChart } from "./tblZoneChart";
 export { default as tmpImport } from "./tmpImport";
 export { default as vwServiceReportListing } from "./vwServiceReportListing";
+export { default as tblPurchase } from "./tblPurchase";
+export { default as tblCurrentInventory } from "./tblCurrentInventory";
