@@ -997,10 +997,11 @@ else
             @click="actionType = 'revision'"
           />
           <UButton 
+            
             color="red" 
             variant="outline"
             type="submit"
-            :icon="selectedProduct !== null ? 'i-heroicons-pencil-square': 'i-heroicons-plus'"
+            :icon="selectedProduct !== null ? 'i-heroicons-minus-circle-20-solid': 'i-heroicons-plus'"
             label="Inactive"
             @click="actionType = 'inactive'"
           />

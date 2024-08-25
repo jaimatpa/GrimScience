@@ -14,6 +14,13 @@ const applyFilters = (params) => {
       };
     }
   });
+  
+  if (params.CODE === 'true') {
+    console.log(params.CODE)
+    whereClause['CODE']= {
+      [Op.not]: 'Inactive'
+    };
+  }
 
   return whereClause;
 };
@@ -34,6 +41,7 @@ export const getProducts = async (page, pageSize, sortBy, sortOrder, filterParam
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
   const whereClause = applyFilters(filterParams);
+  console.log(whereClause)
   const list = await tblBP.findAll({
     attributes: ['UniqueID', 'MODEL', 'DESCRIPTION', 'grossprofit', 'PRODUCTLINE', "SELLINGPRICE", "CODE"],
     where: {
@@ -348,6 +356,7 @@ export const calculateCostsAndProfit = async (id) => {
     productLabourHours: parseFloat(productLabourHours.toFixed(2)),
     subAssemblyLaborCost: parseFloat(subAssemblyLaborCost.toFixed(2)),
     subAssemblyLaborHours: parseFloat(subAssemblyLaborHours.toFixed(2)),
+    totalLaborCost: parseFloat(totalLaborCost.toFixed(2)),
     totalHours: parseFloat(totalHours.toFixed(2)),
     totalCost: parseFloat((materialCost + totalLaborCost).toFixed(2)),
     suggestedPrice: parseFloat(((materialCost + totalLaborCost) / (1 - profitRate)).toFixed(2)),

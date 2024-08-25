@@ -39,6 +39,14 @@ const headerFilters = ref({
   },
 });
 
+const headerCheckboxes = ref({
+  isActive: {
+    label: 'Show Active Only',
+    filterKey: 'CODE',
+    isChecked: true
+  }
+})
+
 const loadingOverlay = ref(false);
 const revisions = ref([]);
 const jobHistory = ref([]);
@@ -50,6 +58,7 @@ const costCalculation = ref({
   productLabourHours: null,
   subAssemblyLaborCost: null,
   subAssemblyLaborHours: null,
+  totalLaborCost: null,
   totalHours: null,
   totalCost: null,
   suggestedPrice: null,
@@ -114,11 +123,25 @@ const modalMeta = ref({
   isProductModalOpen: false,
   modalTitle: "New Product",
 });
+
 const filterValues = ref({
   MODEL: null,
   DESCRIPTION: null,
   grossprofit: null,
+  CODE: true
 });
+
+const watchCheckbox = (property, filterKey) => {
+  watch(
+    () => headerCheckboxes.value[property].isChecked,
+    (newCheckedValue) => {
+      filterValues.value[filterKey] = newCheckedValue ? "1" : "0";
+    }
+  );
+}
+
+watchCheckbox('isActive', 'CODE');
+
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
 
@@ -270,6 +293,7 @@ const onSelect = async (row) => {
     productLabourHours: null,
     subAssemblyLaborCost: null,
     subAssemblyLaborHours: null,
+    totalLaborCost: null,
     totalHours: null,
     totalCost: null,
     suggestedPrice: null,
@@ -353,7 +377,7 @@ const handleBulkInactive = async () => {
   loadingOverlay.value = false
 }
 const handleCostCalculation = async () => {
-  if (gridMeta.value.selectProduct.SELLINGPRICE != null) {
+  if (!Number.isNaN(gridMeta.value.selectProduct.SELLINGPRICE)) {
     loadingOverlay.value = true
     await useApiFetch('/api/products/costandprofit/'+gridMeta.value.selectedProductId, {
       method: 'GET',
@@ -369,6 +393,7 @@ const handleCostCalculation = async () => {
           productLabourHours: null,
           subAssemblyLaborCost: null,
           subAssemblyLaborHours: null,
+          totalLaborCost: null,
           totalHours: null,
           totalCost: null,
           suggestedPrice: null,
@@ -476,7 +501,7 @@ const handleRefresh = async () =>{
       loader="dots"
     />
   </div>
-  <template>
+
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar
@@ -516,10 +541,23 @@ const handleRefresh = async () =>{
                 </div>
               </UFormGroup>
             </div>
+            <div class="flex flex-row px-10 mt-4">
+              <template v-for="checkbox in headerCheckboxes">
+                <div>
+                  <UCheckbox
+                    v-model="filterValues[checkbox.filterKey]"
+                    :label="checkbox.label"
+                    @update:model-value="handleFilterChange"
+                  />
+                </div>
+              </template>
+            </div>
           </div>
         </template>
         <template #right>
+          
           <UButton
+            icon="i-heroicons-minus-circle-20-solid"
             color="red"
             variant="outline"
             :loading="exportIsLoading"
@@ -560,6 +598,7 @@ const handleRefresh = async () =>{
           Product History
         </button>
       </div>
+
       <UTable
         v-if="activeTab === 'lookup'"
         :rows="gridMeta.products"
@@ -848,26 +887,26 @@ const handleRefresh = async () =>{
     </UDashboardPanel>
   </UDashboardPage>
   <!-- New Product Detail Modal -->
-    <UDashboardModal
-    v-model="modalMeta.isProductModalOpen"
-    :title="modalMeta.modalTitle"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1000px] sm:max-w-7xl',
-    }"
-  >
-    <ProductsForm
-      @close="handleModalClose"
-      @save="handleModalSave"
-      :selected-product="gridMeta.selectedProductId"
-      :is-modal="true"
-    />
-    </UDashboardModal>
-  </template>
+  <UDashboardModal
+  v-model="modalMeta.isProductModalOpen"
+  :title="modalMeta.modalTitle"
+  :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[1000px] sm:max-w-7xl',
+  }"
+>
+  <ProductsForm
+    @close="handleModalClose"
+    @save="handleModalSave"
+    :selected-product="gridMeta.selectedProductId"
+    :is-modal="true"
+  />
+  </UDashboardModal>
+
 </template>
 <style scoped></style>
