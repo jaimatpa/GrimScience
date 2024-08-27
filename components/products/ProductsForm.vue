@@ -2,7 +2,7 @@
 import type { FormError, FormSubmitEvent } from '#ui/types'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css';
-const { handleFileInput, files} = useFileStorage()
+const { handleFileInput, files} = useFileStorage();
 
 const emit = defineEmits(['close', 'save'])
 const props = defineProps({
@@ -261,6 +261,7 @@ const handleClose = async () => {
 const handleFileUpload = (event) => {
   fileName.value = event.target.files[0].name
 }
+
 const onSubmit = async (event: FormSubmitEvent<any>) => {
 
   if(props.selectedProduct === null) { // Create Product
@@ -336,7 +337,21 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
 const modalMeta = ref({
     isProductModalOpen: false,
     modalTitle: "New Product",
+    isPartsLookupModelOpne: false,
+    partsLookupModalCategory:null,
+    partsLookupModalSubCategory: null
 })
+const handlePartsLookup = (category, subCategory) => {
+  modalMeta.value.isPartsLookupModelOpne = true
+  modalMeta.value.modalTitle = "Parts Lookup"
+  modalMeta.value.partsLookupModalCategory = category
+  modalMeta.value.partsLookupModalSubCategory = subCategory
+} 
+
+const handleModalClose = () => {
+  modalMeta.value.isPartsLookupModelOpne = false;
+};
+
 
 if(props.selectedProduct !== null) 
   editInit()
@@ -613,7 +628,7 @@ else
       formData.PRODUCTLINE === null
       ">
           <div class="my-2">
-            ``<div class="font-bold">
+            <div class="font-bold">
               Ready Ref
             </div>
           </div>
@@ -732,9 +747,20 @@ else
               label="Corian#"
               name="CryothermCorianNumber"
             >
+            <div class="flex flex-row">
               <UInput
                 v-model="formData.CryothermCorianNumber"
+                
               />
+              <button
+                  type="button"
+                  class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                  @click="handlePartsLookup('Corian','CRYOTherm Case')"
+                >
+                  ...
+              </button>
+            </div>
+              
             </UFormGroup>
           </div>
           <div class="basis-1/5">
@@ -1014,6 +1040,21 @@ else
       </div>
 
     </UForm>
+
+    <!-- Parts List Modal -->
+    <UDashboardModal
+      v-model="modalMeta.isPartsLookupModelOpne"
+      :title="modalMeta.modalTitle"
+      :description="modalMeta.modalDescription"
+      :ui="{
+        title: 'text-lg',
+        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1800px] sm:max-w-9xl'
+      }"
+    >
+      <MaterialsPartsPartList :is-page="false" :category="modalMeta.partsLookupModalCategory" :subCategory="modalMeta.partsLookupModalSubCategory"  />
+    </UDashboardModal>
     
 
   </template>

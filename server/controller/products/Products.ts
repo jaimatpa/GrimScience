@@ -16,7 +16,6 @@ const applyFilters = (params) => {
   });
   
   if (params.CODE === 'true') {
-    console.log(params.CODE)
     whereClause['CODE']= {
       [Op.not]: 'Inactive'
     };

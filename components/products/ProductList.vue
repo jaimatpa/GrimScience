@@ -378,6 +378,7 @@ const handleBulkInactive = async () => {
 }
 const handleCostCalculation = async () => {
   if (!Number.isNaN(gridMeta.value.selectProduct.SELLINGPRICE)) {
+    console.log(gridMeta.value.selectProduct.SELLINGPRICE)
     loadingOverlay.value = true
     await useApiFetch('/api/products/costandprofit/'+gridMeta.value.selectedProductId, {
       method: 'GET',
