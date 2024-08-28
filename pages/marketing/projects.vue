@@ -223,7 +223,8 @@ watch(selectedOptions, (newSelectedOptions) => {
     })
   }
   const handleModalClose = () => {
-    modalMeta.value.isCustomerModalOpen = false
+    modalMeta.value.isCustomerModalOpen = false;
+    
   }
   const handleModalSave = async () => {
     handleModalClose()
@@ -304,6 +305,7 @@ watch(selectedOptions, (newSelectedOptions) => {
     
     modalMeta.value.isCustomerModalOpen = true
     modalMeta.value.modalTitle = "New Project";
+    gridMeta.value.selectedCustomerId =null;
 
   }
 </script>

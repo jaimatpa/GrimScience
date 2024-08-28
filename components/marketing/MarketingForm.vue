@@ -104,29 +104,56 @@ const columnemployeeHours= [{
 const weekly = ref([]);
 
 
-const weeklyColumns = [{
-  key: 'week',
-  label: 'Week'
+const gridMeta = ref({
+  defaultColumns: <UTableColumn[]>[{
+    key: 'week',
+    label: 'Week'
+  }, {
+    key: 'Operation',
+    label: 'Operation'
+  }, {
+    key: 'WorkCenter',
+    label: 'Work Center'
+  }, {
+    key: 'Hours',
+    label: 'Hrs'
+  }, {
+    key: 'reworkhrs',
+    label: 'Rework Hours'
+  }, {
+    key: 'verified',
+    label: 'Verified'
+  }, {
+    key: 'delete',
+    label: 'Del',
+    kind: 'actions'
+  }],
 
-},{
-  key:'Operation',
-  label:'Operation'
-},{
-  key:'WorkCenter',
-  label:'Work Center'
-},{
-  key:'Hours',
-  label:'Hrs'
-},{
-  key:'reworkhrs',
-  label:'Rework Hours'
-},{
-  key:'verified',
-  label:'Verified'
-}
+  isLoading: false
+});
 
-]
+const gridMeta1 = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: 'StartTime',
+      label: 'Date'
+    },
+    {
+      key: 'Name',
+      label: 'Employee'
+    },
+    {
+      key: 'Hours',
+      label: 'Hrs.'
+    }, {
+    key: 'delete',
+    label: 'Del',
+    kind: 'actions'
+  }
+  ],
 
+  isLoading: false
+});
 
 
 
@@ -214,7 +241,8 @@ const customersFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false)
 const customerExist = ref(true)
 const markets = ref([])
-const professions = ref([])
+const professions = ref([]);
+const totalHours=ref();
 const categories = ref([])
 const conferences = ref([])
 const usstates = ref([])
@@ -341,7 +369,9 @@ const handleRowClick = async () => {
       onResponse({ response }) {
         if(response.status === 200) {
           employeeHours.value=response._data.body;
-           console.log("employees",response._data.body);
+          console.log("dd",response._data.body);
+          totalHours.value = response._data.body[0]?.totalHour;
+           console.log("total hour is",totalHours.value);
       
         }
       },
@@ -362,6 +392,8 @@ const handleRowClick = async () => {
 
 
 const editInit = async () => {
+  console.log("project is",props.selectedCustomer);
+  if(props.selectedCustomer!=null){
   loadingOverlay.value = true;
   console.log("project is",)
   await useApiFetch(`/api/projects/${props.selectedCustomer}`, {
@@ -382,6 +414,10 @@ const editInit = async () => {
       customerExist.value = false
     }
   })
+
+  subCategories();
+  part();
+}
   propertiesInit();
   await useApiFetch(`/api/projects/linkedJob/getJob/${props.selectedCustomer}`, {
       method: 'GET',
@@ -402,7 +438,17 @@ const editInit = async () => {
 
     })
 
-    await useApiFetch(`/api/projects/operations/${props.selectedCustomer}`, {
+    getOperation();
+
+
+
+
+
+  loadingOverlay.value = false
+}
+
+const getOperation = async () => {
+await useApiFetch(`/api/projects/operations/${props.selectedCustomer}`, {
       method: 'GET',
       
       onResponse({ response }) {
@@ -413,12 +459,7 @@ const editInit = async () => {
       }
     })
 
-
-
-
-
-  loadingOverlay.value = false
-}
+  }
 
 const getInventory = async () => {
   loadingOverlay.value = true;
@@ -717,6 +758,56 @@ await useApiFetch(`/api/projects/linkedJob/${props.selectedCustomer}`, {
 const  handleRowDoubleClick=()=>{
   modalMeta.value.manuFactureModal=true; 
 }
+ const deleteOperation=async(row)=>{
+  console.log("row id in operations",row);
+  await useApiFetch(`/api/projects/operations/operation/${row.uniqueID}`, {
+      method: 'DELETE',
+      
+      onResponse({ response }) {
+        if(response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-check-circle',
+            color: 'green'
+          })
+          getOperation();
+        }
+      }
+    })
+
+ }
+
+ const deleteHour=async(row)=>{
+  console.log("row id in operations",row);
+  await useApiFetch(`/api/projects/operations/operation/${row.UID}`, {
+      method: 'DELETE',
+      
+      onResponse({ response }) {
+        if(response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-check-circle',
+            color: 'green'
+          })
+       
+        }
+      }
+      , params: {
+        UniqueID: row.UID.value,
+       
+      }
+    })
+    handleRowClick();
+ }
+
+
+
+ 
+
+
+
 
 
 const insertInventory = async () => {
@@ -986,24 +1077,17 @@ else
 
 
     </div>
-        <div v-else-if="item.key === 'Operation'" class="space-y-3">
+    <div v-else-if="item.key === 'Operation' && props.selectedCustomer !== null" class="space-y-3">
             <div class="grid grid-cols-1 mt-6 h-48">
          
-              <UTable :rows="weekly" :columns="weeklyColumns" v-slot:row="{ row }" @select="onSelect" @click="handleRowClick"  @dblclick="handleRowDoubleClick">
+              <UTable :rows="weekly" :columns="gridMeta.defaultColumns"  @select="onSelect" @click="handleRowClick"  @dblclick="handleRowDoubleClick">
+                <template #delete-data="{row}">
+          <UTooltip text="Delete" class="flex justify-center">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="deleteOperation(row)"/>
+          </UTooltip>
+        </template>
+              </UTable>
 
-    <!-- <template >
-      <tr >
-        <td>{{ row.OperationID }}</td>
-        <td>{{ row.JobID }}</td>
-        <td>{{ row.Operation }}</td>
-        <td>{{ row.WorkCenter }}</td>
-        <td>{{ row.Hours }}</td>
-        <td>{{ row.EmployeeName }}</td>
-        <td>{{ row.Department }}</td>
-        <td>{{ row.HourlyWage }}</td>
-      </tr>
-    </template> -->
-  </UTable>
 
 
 
@@ -1014,8 +1098,20 @@ else
         <div class="flex flex-row space-x-4 mt-2">
         <div class="grid grid-cols-1 mt-6 h-48 basis-1/2 ">
                 <h2 class="font-medium">Employee Hours For Selected Operation</h2>
-              <UTable :rows="employeeHours" :columns="columnemployeeHours" />
-
+                <UTable :rows="employeeHours" :columns="gridMeta1.defaultColumns">
+                    <template #delete-data="{ row }">
+                      <UTooltip text="Delete" class="flex justify-center">
+                        <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="deleteHour(row)" />
+                      </UTooltip>
+                    </template>
+                  </UTable>
+                 
+                  
+                  <h1 class="mt-5 flex justify-end mr-2 font-bold">Total Hours: {{ totalHours }}</h1>
+                  
+                  
+                  
+                  
                 </div>
                 <div class="basis-1/2 ">
                 <div class="flex flex-row mt-6 ">

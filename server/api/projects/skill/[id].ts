@@ -41,7 +41,7 @@ console.log("exist is",idExist)
           return { body: { deletedID }, message: 'Skill deleted successfully' }
         } else {
           setResponseStatus(event, 404);
-          return { error: 'The customer does not exist' }
+          return { error: 'The id  does not exist' }
         }
       default:
         setResponseStatus(event, 405);

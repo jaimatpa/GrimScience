@@ -420,26 +420,52 @@ WHERE JobID = :jobId;
   }
 };
 
+
+export const deleteJobOperation = async (uniqueID) => {
+  console.log("Deleting job operation with uniqueID:", uniqueID);
+  
+  const query = `
+    DELETE FROM GrimmIS34.dbo.tblJobOperations
+    WHERE uniqueID = :uniqueID;
+  `;
+
+  try {
+    await sequelize.query(query, {
+      replacements: { uniqueID },
+      type: QueryTypes.DELETE, // use DELETE type here
+    });
+
+    console.log("Successfully deleted job operation.");
+  } catch (error) {
+    console.error("Error deleting job operation:", error);
+    throw error; // rethrow the error if you want it to propagate
+  }
+};
+
+
+
 export default getJobOperationsWithEmployees;
 
   export const getOperationHoursWorked = async (operationID, jobID) => {
     console.log("opera id is",operationID);
   const query = `
-    SELECT 
-      tblOperationHoursWorked.uniqueID AS UID, 
-      StartTime, 
-      (fname + ' ' + lname) AS Name, 
-      tblOperationHoursWorked.Hours AS Hours 
-    FROM 
-      tblOperationHoursWorked 
-    JOIN 
-      tblEmployee 
-    ON 
-      tblOperationHoursWorked.EmployeeID = tblEmployee.uniqueID 
-    WHERE 
-      JobID = :jobID 
-    AND 
-      OperationID = :operationID
+   SELECT 
+    tblOperationHoursWorked.uniqueID AS UID, 
+    StartTime, 
+    (fname + ' ' + lname) AS Name, 
+    tblOperationHoursWorked.Hours AS Hours,
+    SUM(tblOperationHoursWorked.Hours) OVER() AS totalHour
+FROM 
+    tblOperationHoursWorked 
+JOIN 
+    tblEmployee 
+ON 
+    tblOperationHoursWorked.EmployeeID = tblEmployee.uniqueID 
+WHERE 
+    JobID = :jobID 
+AND 
+    OperationID = :operationID
+
   `;
 
   try {
@@ -453,6 +479,51 @@ export default getJobOperationsWithEmployees;
     throw error;
   }
 }
+
+
+
+
+export const deleteOperationHoursWorked = async (uniqueID) => {
+  console.log("unique id is",uniqueID);
+  const checkQuery = `
+    SELECT 
+      uniqueID 
+    FROM 
+      tblOperationHoursWorked 
+    WHERE 
+      uniqueID = :uniqueID
+  `;
+
+  const deleteQuery = `
+    DELETE FROM 
+      tblOperationHoursWorked 
+    WHERE 
+      uniqueID = :uniqueID
+  `;
+
+  try {
+    // Check if the uniqueID exists
+    const checkResult = await sequelize.query(checkQuery, {
+      replacements: { uniqueID },
+      type: QueryTypes.SELECT
+    });
+
+    if (checkResult.length === 0) {
+      return { message: 'uniqueID does not exist' };
+    }
+
+    // Proceed to delete if the uniqueID exists
+    const deleteResult = await sequelize.query(deleteQuery, {
+      replacements: { uniqueID },
+      type: QueryTypes.DELETE
+    });
+
+    return deleteResult;
+  } catch (error) {
+    console.error('Error executing query:', error);
+    throw error;
+  }
+};
 
 
 export const getDistinctPartTypes = async () => {
@@ -508,44 +579,48 @@ export const getDistinctSubCategories = async () => {
 };
 
 
-
 export const getUsedPart = async (filterParams) => {
-  console.log("param for part", filterParams);
-  const { UniqueID, PARTTYPE, SUBCATEGORY, MODEL, DESCRIPTION } = filterParams;
-  let where: any = {};
+  console.log("Parameters for part:", filterParams);
+  const { UniqueID, parttype, subcategory, MODEL, DESCRIPTION } = filterParams;
+  let where = {};
 
+  // Build the 'where' clause based on provided filter parameters
   if (UniqueID) where['UniqueID'] = UniqueID;
-  if (PARTTYPE) where['PARTTYPE'] = { [Op.eq]: PARTTYPE };
-  if (SUBCATEGORY) where['SUBCATEGORY'] = { [Op.eq]: SUBCATEGORY };
+  if (parttype) where['PARTTYPE'] = { [Op.eq]: parttype };
+  if (subcategory) where['SUBCATEGORY'] = { [Op.eq]: subcategory };
   if (MODEL) where['MODEL'] = { [Op.like]: `%${MODEL}%` };
   if (DESCRIPTION) where['DESCRIPTION'] = { [Op.like]: `%${DESCRIPTION}%` };
 
-  console.log("Where Clause", where);
+  console.log("Where Clause:", where);
 
-  const productInfos = await tblBP.findAll({
-    attributes: [
-      'UniqueID',
-      'instanceID',
-      'PARTTYPE',
-      'SUBCATEGORY',
-      'MODEL',
-      'DESCRIPTION',
-      'OnHand',
-      'PRIMARYPRICE1',
-      'UNIT'
-    ],
-    where: {
-      partflag: 1,
-      ...where,
-    },
-    limit: 50,
-    order: [['MODEL', 'ASC']],
-    raw: true,
-  });
+  try {
+    const productInfos = await tblBP.findAll({
+      attributes: [
+        'UniqueID',
+        'instanceID',
+        'PARTTYPE',
+        'SUBCATEGORY',
+        'MODEL',
+        'DESCRIPTION',
+        'OnHand',
+        'PRIMARYPRICE1',
+        'UNIT'
+      ],
+      where: {
+        partflag: 1,
+        ...where,
+      },
+      limit: 50,
+      order: [['MODEL', 'ASC']],
+      raw: true,
+    });
 
-  return productInfos;
+    return productInfos;
+  } catch (error) {
+    console.error("Error fetching product info:", error);
+    throw error; // Rethrow the error after logging it
+  }
 };
-
 
 
 export const getPartDetails = async (jobID, operationID) => {
@@ -636,6 +711,25 @@ export const getSteps = async (PlanID) => {
 };
 
 
+export const DeleteSteps = async (UniqueID) => {
+  console.log("unisss",UniqueID);
+  const query = `
+   DELETE FROM tblSteps WHERE UniqueID = :UniqueID
+  `;
+
+  try {
+    const [results, metadata] = await sequelize.query(query, {
+      replacements: { UniqueID },
+      type: QueryTypes.DELETE
+    });
+    return metadata; // metadata will contain information about the affected rows
+  } catch (error) {
+    console.error('Error executing query:', error);
+    throw error;
+  }
+};
+
+
 
 
 export const getSkillCategory = async () => {
@@ -678,10 +772,27 @@ FROM tblSkills;
   }
 };
 
+const applyFiltersForSkill = (filterParams) => {
+  let whereClause = 'WHERE 1=1'; // Default clause to handle empty filters
+
+  if (filterParams.skill) {
+    whereClause += ' AND UniqueID LIKE :skill';  // Assumes you handle this parameter with wildcards elsewhere
+  }
+  if (filterParams.Catagory) {
+    whereClause += ' AND Catagory = :Catagory';
+  }
+  if (filterParams.subcatagory) {
+    whereClause += ' AND subcatagory = :subcatagory';
+  }
+
+  return whereClause;
+};
 
 
 
-export const getAllSkill = async (page, pageSize, sortBy, sortOrder) => {
+export const getAllSkill = async (page, pageSize, sortBy, sortOrder, filterParams) => {
+  console.log("filterParams", filterParams);
+
   // Parse and set pagination values
   const limit = parseInt(pageSize, 10) || 10;
   const offset = ((parseInt(page, 10) - 1) || 0) * limit;
@@ -690,18 +801,33 @@ export const getAllSkill = async (page, pageSize, sortBy, sortOrder) => {
   const orderColumn = sortBy || 'UniqueID';
   const orderDirection = sortOrder || 'ASC';
 
+  // Generate the WHERE clause using applyFiltersForSkill
+  const whereClause = applyFiltersForSkill(filterParams);
+
   // Raw query for fetching data with pagination and sorting (SQL Server syntax)
   const query = `
     SELECT *
     FROM tblSkills
+    ${whereClause}
     ORDER BY ${orderColumn} ${orderDirection}
-    OFFSET ? ROWS
-    FETCH NEXT ? ROWS ONLY
+    OFFSET :offset ROWS
+    FETCH NEXT :limit ROWS ONLY
   `;
 
-  // Execute the raw query
+  console.log("Generated Query:", query); // Log the query for debugging
+  console.log("Replacements:", {
+    offset,
+    limit,
+    ...filterParams
+  }); // Log the replacements for debugging
+
+  // Execute the raw query with replacements
   const results = await sequelize.query(query, {
-    replacements: [offset, limit],
+    replacements: {
+      offset,
+      limit,
+      ...filterParams
+    },
     type: QueryTypes.SELECT,
   });
 
@@ -709,19 +835,22 @@ export const getAllSkill = async (page, pageSize, sortBy, sortOrder) => {
 };
 
 export const createSkill = async (data) => {
-  const { Name,catagory,subcatagory,weeks} = data; // Assuming these are the fields in tblSkills
+  const { Name,Catagory,subcatagory,weeks,date,courseoutline,frequency} = data; // Assuming these are the fields in tblSkills
 
   const query = `
-    INSERT INTO tblSkills (Name, catagory, subcatagory,weeks,WorkCenterID)
-    VALUES (:Name, :catagory,:subcatagory,:weeks,'0')
+    INSERT INTO tblSkills (Name, Catagory,courseoutline,date, subcatagory,weeks,WorkCenterID,frequency)
+    VALUES (:Name, :Catagory,:subcatagory,:date,:courseoutline,frequency,:weeks,'0')
   `;
 
   const [result, metadata] = await sequelize.query(query, {
     replacements: {
       Name: Name,
-      catagory: catagory,
+      Catagory: Catagory,
       subcatagory: subcatagory,
-      weeks:weeks
+      weeks:weeks,
+      courseoutline:courseoutline,
+      date:date,
+      frequency:frequency
     },
   });
 
@@ -787,8 +916,9 @@ export const updateSkill = async (id, formData) => {
       [Name] = :Name,
       WorkCenterID = '0',  -- This is set as a static value
       weeks = :weeks,
-      Catagory = :catagory,
+      Catagory = :Catagory,
       subcatagory = :subcatagory,
+      frequency=:frequency,
       [date] = :date,
       [by] = :by,  -- Escaping 'by' to avoid syntax error
       courseoutline = :courseoutline
@@ -800,11 +930,12 @@ export const updateSkill = async (id, formData) => {
       id,
       Name: formData.Name,
       weeks: formData.weeks,
-      catagory: formData.catagory,
+      Catagory: formData.Catagory,
       subcatagory: formData.subcatagory,
       date: formData.date,
       by: formData.by,  // Ensure 'by' is included in formData if needed
-      courseoutline: formData.courseoutline
+      courseoutline: formData.courseoutline,
+      frequency:formData.frequency
     },
     type: QueryTypes.UPDATE
   });

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { number } from 'yup';
+import type { UTableColumn } from '~/types';
 
 const items = ref([]);
 const isOpen = ref(false);
@@ -14,6 +15,30 @@ const props = defineProps({
   }// Or use the correct type based on your data
 });
 const partsTable2 = ref([{}]);
+const partsTable2Columns = [{
+  key: 'Qty',
+  label: 'Qty'
+}, {
+  key: 'model',
+  label: 'Part #'
+}, {
+  key: 'Description',
+  label: 'Description'
+},
+{
+  key:'inventoryCost',
+  label:'Cost'
+},{
+  key:'inventoryUnit',
+  label:'Unit'
+}]
+
+const jobColumns = [{
+  key: 'label',
+  label: 'Linked Job#'
+}]
+
+
 const headerFilters = ref({
   parttype: {
     filter: 'parttype ',
@@ -26,13 +51,42 @@ const headerFilters = ref({
 });
 
 const filterValues = ref({
-  parttype: null,
-  subcategory: null,
+  PARTTYPE: null,
+  SUBCATEGORY: null,
+  MODEL:null,
+  DESCRIPTION:null
 
   })
 onMounted(() => {
   init();
 });
+
+const columns = [
+  {
+    key: 'PARTTYPE',
+    label: 'Category'
+  },
+  {
+    key: 'SUBCATEGORY',
+    label: 'Sub'
+  },
+  {
+    key: 'MODEL',
+    label: 'Part#'
+  },
+  {
+    key: 'DESCRIPTION',
+    label: 'Description'
+  },
+  {
+    key: 'UNIT',
+    label: 'UNIT'
+  }
+];
+
+
+
+
 
 const handleFilterInputChange = async (event, name) => {
     if (filterValues.value.hasOwnProperty(name)) {
@@ -103,7 +157,7 @@ const handleFilterChange = () => {
     params: cleanedParams,  // Pass the cleanedParams directly
     onResponse({ response }) {
       if (response.status === 200) {
-        console.log("the  props is",props.selectedCustomer);
+        console.log("paramt is",cleanedParams);
         items.value=response._data.body;
       }
     }
@@ -150,7 +204,7 @@ const onSelect = async (row) => {
     <div class="basis-1/2 h-[500px] overflow-auto flex flex-wrap gap-4">
       <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
         <template v-if="value.options.length > 1">
-          <div class="basis-1/7 max-w-[200px]">
+          <div class="basis-1/7 max-w-[110px]">
             <UFormGroup
               :label="value.filter"
               :name="key"
@@ -162,15 +216,41 @@ const onSelect = async (row) => {
               />
             </UFormGroup>
           </div>
+       
+
+
         </template>
+        
       </template>
+      <div class="basis-1/7 max-w-[70px]">
+              <UFormGroup
+              >
+                <UInput
+                class="mt-6"
+                   v-model="filterValues.MODEL"
+                 @update:model-value="handleFilterChange()"
+                 
+                />
+              </UFormGroup>
+            </div>
+ <div class="basis-1/7 max-w-[140px]">
+              <UFormGroup
+            
+              >
+                <UInput
+                 class="mt-6"
+                     v-model="filterValues.DESCRIPTION"
+                 @update:model-value="handleFilterChange()"
+                />
+              </UFormGroup>
+            </div>
       <div>
-        <UTable :rows="items" @select="onSelect" @dblclick="handleRowClick() " />
+        <UTable  :rows="items" :columns="columns" @select="onSelect" @dblclick="handleRowClick() " />
       </div>
     </div>
 
     <div class="basis-1/2 h-[500px] overflow-auto">
-      <UTable :rows="partsTable2" />
+      <UTable :columns="partsTable2Columns" :rows="partsTable2" />
     </div>
   </div>
   <UModal v-model="isOpen">

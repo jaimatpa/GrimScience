@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-  import type { UTableColumn } from '~/types';
+  import type skill from '~/server/api/projects/skill';
+import type { UTableColumn } from '~/types';
 
   onMounted(() => {
     init()
@@ -16,20 +17,15 @@
   const descIcon = "i-heroicons-bars-arrow-down-20-solid"
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
-  const headerFilters = ref({
-    skill: {
-      label: 'Skill#',
-      filter: 'Skill',
-      options: []
-    }, 
+  const headerFilters = ref({ 
     category: {
       label: 'Category', 
-      filter: 'source',
+      filter: 'Catagory',
       options: []
     }, 
     subCategory: {
       label: 'Subcategory', 
-      filter: 'subCategory', 
+      filter: 'subcatagory', 
       options: []
     }, 
   })
@@ -73,18 +69,9 @@
     modalTitle: "New Customer",
   })
   const filterValues = ref({
-    market: null,
-    source: null,
-    ParadynamixCatagory: null,
-    SourceConfrence: null,
-    number: null,
-    fname: null,
-    lname: null,
-    company1: null,
-    homephone: null,
-    workphone: null,
-    state: null,
-    zip: null
+    skill: null,
+    Catagory:null,
+    subcatagory:null
   })
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
@@ -124,6 +111,14 @@
       })
     }
   }
+
+  const handleModalClose = () => {
+    modalMeta.value.isCustomerModalOpen = false
+  }
+  const handleModalSave = async () => {
+    handleModalClose()
+    fetchGridData()
+  }
   const fetchGridData = async () => {
     gridMeta.value.isLoading = true
     await useApiFetch('/api/customers/numbers', {
@@ -148,6 +143,7 @@
       gridMeta.value.page = Math.ceil(gridMeta.value.numberOfCustomers / gridMeta.value.pageSize) | 1
     }
     // table data coming in there
+    console.log("filter value is",filterValues.value);
     await useApiFetch('/api/projects/skill', {
       method: 'GET',
       params: {
@@ -155,6 +151,7 @@
         pageSize: gridMeta.value.pageSize, 
         sortBy: gridMeta.value.sort.column,
         sortOrder: gridMeta.value.sort.direction,
+        ...filterValues.value,
       }, 
       onResponse({ response }) {
         if(response.status === 200) {
@@ -210,13 +207,7 @@
       }
     })
   }
-  const handleModalClose = () => {
-    modalMeta.value.isCustomerModalOpen = false
-  }
-  const handleModalSave = async () => {
-    handleModalClose()
-    fetchGridData()
-  }
+
   const handlePageChange = async () => {
     fetchGridData()
   }
@@ -293,8 +284,8 @@
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar class="gmsPurpleHeader" 
-        title="Customer List"
+      <UDashboardNavbar class="gmsTealHeader" 
+        title="Skill Lookup"
       >
       </UDashboardNavbar>
 
@@ -303,6 +294,17 @@
       <UDashboardToolbar>
         <template #left>
           <div class="flex flex-row space-x-3">
+            <div class="basis-1/7 max-w-[200px]">
+              <UFormGroup
+                label="skill"
+                name="skill"
+              >
+                <UInput
+                  v-model="filterValues.skill"
+                  @update:model-value="handleFilterChange()"
+                />
+              </UFormGroup>
+            </div>
             <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
               <template v-if="value.options.length > 1">
                 <div class="basis-1/7 max-w-[200px]">
@@ -319,27 +321,8 @@
                 </div>
               </template>
             </template>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Zip"
-                name="zip"
-              >
-                <UInput
-                  v-model="filterValues.zip"
-                  @update:model-value="handleFilterChange()"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup
-                label="Quantity"
-                name="Quantity"
-              >
-                <div class="text-center text-bold">
-                  {{ gridMeta.numberOfCustomers }}
-                </div>
-              </UFormGroup>
-            </div>
+            
+           
           </div>
         </template>
         <template #right>
@@ -446,7 +429,7 @@
       width: 'w-[1000px] sm:max-w-7xl'
     }"
   >
-       <MarketingManuFactureSkillForm :selectedSkill="gridMeta.selectedSkillId"/>
+       <MarketingManuFactureSkillForm @save="handleModalSave"  :selectedSkill="gridMeta.selectedSkillId"/>
 
   </UDashboardModal>
   <!-- Order Modal -->

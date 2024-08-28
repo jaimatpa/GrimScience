@@ -2,12 +2,13 @@
 import type subcategory from '~/server/api/projects/usedParts/subcategory';
 import type { FormError, FormSubmitEvent } from '#ui/types'
 import DatePickerClient from '~/components/common/DatePicker.client.vue';
+import { format } from 'date-fns';
 
 useSeoMeta({
     title: 'Grimm-skill'
   })
 const formData = reactive({
-  catagory: null,
+  Catagory: null,
   subcatagory: null,
   Name: null,
   weeks:null,
@@ -16,6 +17,7 @@ const formData = reactive({
   courseoutline:null,
 
 })
+const emit = defineEmits(['close', 'save'])
 const props = defineProps({
   selectedSkill: {
     type: [String, Number, null],
@@ -61,6 +63,8 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       }
     });
   }
+  emit('save')
+  
 
 
   
@@ -107,8 +111,13 @@ onMounted(() => {
         method: 'GET',
         onResponse({ response }) {
           if(response.status === 200) {
-            subCategory.value=response._data.body;
-            console.log("the response is like",response._data.body);
+            subCategory.value = response._data.body
+  .filter(item => item != null) // Filter out null or undefined values
+  .map(item => {
+    // Perform any additional mapping if needed
+    return item;
+  });
+            console.log("sub catagory is",response._data.body);
           }
         }
       })
@@ -129,19 +138,19 @@ onMounted(() => {
     >
 
 <div class="flex flex-row space-x-3">
-        <div class="basis-1/5">
+        <div class="basis-2/6">
           <UFormGroup
             label="Categeory"
             name="Categeory"
           >
             <USelectMenu
-              v-model="formData.catagory"
+              v-model="formData.Catagory"
               placeholder="Categeory"
               :options="category"
             />
           </UFormGroup>
         </div>
-        <div class="basis-1/5">
+        <div class="basis-2/6">
           <UFormGroup
             label="Sub Category"
             name="Sub Category"
@@ -153,19 +162,27 @@ onMounted(() => {
             />
           </UFormGroup>
         </div>
-
-        <div class="basis-1/5">
+        <div class="basis-2/6">
           <UFormGroup
-            label="Description"
-            name="Description"
+            label="Frequency"
+            name="Frequency"
           >
             <UInput
-              v-model="formData.Name"
-              placeholder="Description"
+              v-model="formData.frequency"
+              placeholder="Frequency"
+              :options="subCategory"
             />
           </UFormGroup>
         </div>
-        <div class="basis-1/5">
+
+
+
+
+    </div>
+<div class="flex flex-row space-x-3">
+
+       
+  <div class="basis-2/6">
           <UFormGroup
             label="Weeks"
             name="Weeks"
@@ -177,7 +194,7 @@ onMounted(() => {
           </UFormGroup>
         </div>
 
-        <div class="basis-1/5">
+        <div class="basis-2/6">
           <UFormGroup
             label="Course Outline"
             name="Course Outline"
@@ -189,13 +206,13 @@ onMounted(() => {
           </UFormGroup>
         </div>
 
-        <div class="basis-1/2">
+        <div class="basis-2/6">
                 <UFormGroup
                   label="Date Opened"
                   name="DOpened"
                 >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                          <UButton icon="i-heroicons-calendar-days-20-solid"   variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                          <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.date, 'd MMM, yyy')"  variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                           <template #panel="{ close }">
                             <DatePickerClient v-model="formData.date" is-required @close="close" />
 
@@ -203,9 +220,20 @@ onMounted(() => {
                         </UPopover>
                     </UFormGroup>
               </div>
+  </div>
+    <div >
+          <UFormGroup
+            label="Description"
+            name="Description"
+          >
+            <UTextarea
+              v-model="formData.Name"
+              placeholder="Description"
+            />
+          </UFormGroup>
+        </div>
 
 
-    </div>
     <UButton color="cyan" variant="outline"
           type="submit"
           label="Save"

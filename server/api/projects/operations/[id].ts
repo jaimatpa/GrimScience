@@ -1,5 +1,6 @@
 import { isExists } from 'date-fns';
-import getJobOperationsWithEmployees, { getLinkedJobs, GetInventoryDatas} from '~/server/controller/projects/projects';
+import getJobOperationsWithEmployees, { deleteJobOperation } from '~/server/controller/projects/projects';
+
 
 export default eventHandler(async (event) => {
   try {
@@ -17,7 +18,17 @@ export default eventHandler(async (event) => {
        
           console.log('susccsul', workCenter);
           return { body: workCenter, message: '' };
-        } else {
+        } 
+        case 'DELETE':
+        if(workCenter){
+        const  deletedID = await deleteJobOperation(id);
+         return { body: { deletedID }, message: 'Operation deleted successfully' }
+
+
+        }
+        
+        
+        else {
           setResponseStatus(event, 404);
           return { error: 'The project does not exist' };
         }
@@ -33,3 +44,4 @@ export default eventHandler(async (event) => {
     return { error: 'Internal Server Error' };
   }
 });
+

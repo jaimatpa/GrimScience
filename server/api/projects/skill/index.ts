@@ -3,10 +3,11 @@ import { createSkill, getAllSkill } from "~/server/controller/projects/projects"
 export default eventHandler(async (event) => {
     try {
       const method = event._method;
-      const { page, pageSize, sortBy, sortOrder } = getQuery(event);
+      const { page, pageSize, sortBy, sortOrder,...filterParams } = getQuery(event);
+      console.log("skill params are",filterParams)
       switch(method.toUpperCase()) {
         case 'GET':
-          const numberOfCustomers = await getAllSkill(page, pageSize, sortBy, sortOrder);
+          const numberOfCustomers = await getAllSkill(page, pageSize, sortBy, sortOrder,filterParams);
           return { body: numberOfCustomers, message: '' } // or { _data: { body: numberOfCustomers }, message: '' } if required
           case 'POST':
             const data = await readBody(event)

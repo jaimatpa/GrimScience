@@ -26,6 +26,24 @@ const jobList = ref([]);
 const joblistLabel=ref([]);
 const PlanID=ref([]);
 const planData=ref([]);
+
+const planDatacolumns = [{
+  key: 'Step',
+  label: 'Step'
+}, {
+  key: 'Description',
+  label: 'Desc'
+},{
+  key: 'delete',
+label: 'Del',
+  kind: 'actions'
+}]
+
+const jobColumns = [{
+  key: 'label',
+  label: 'Linked Job#'
+}]
+
 const modalMeta = ref({
     skillModal: false,
 
@@ -73,79 +91,42 @@ const newEntry = ref({
   CostPerUnit: 10
 });
 
-
-
-
-
-const productProjects= [{
-  "Linked Job #": '1',
- 
-}, {
-    "Linked Job #": '1',
-
-}, {
-    "Linked Job #": '1',
-
-}, {
-    "Linked Job #": '1',
-}, {
-    "Linked Job #": '1',
-}, {
-    "Linked Job #": '1',
-
-}]
-
 const employeeHours= ref([{}]);
 
 
 
 
 const weekly = ref([]);
+const gridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: 'week',
+      label: 'Week',
+    },
+    {
+      key: 'Operation',
+      label: 'Operation',
+    },
+    {
+      key: 'WorkCenter',
+      label: 'Work Center',
+    },
+    {
+      key: 'Hours',
+      label: 'Hours',
+    },
+    {
+        key: 'delete',
+        label: 'Del',
+        kind: 'actions'
+      }
+    
+  ],
 
-const orders = [{
-  po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
+  isLoading: false
+});
 
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}]
+
 
 
 
@@ -592,6 +573,50 @@ const handleClose = async () => {
   }
 }
 
+
+
+
+const onStepDelete = async (row: any) => {
+  console.log("unique id is",row);
+  await useApiFetch('/api/projects/planDetails', {
+      method: 'DELETE',
+
+      onResponse({ response }) {
+        if(response.status === 200) {
+            planData.value=response._data.body;
+      
+        }
+      },
+      params: {
+        UniqueID:row.UniqueID
+      }
+      
+    });
+    handleRowClick();
+
+  }
+
+
+
+const onDelete = async (row: any) => {
+    console.log("row is ",row.uniqueID);
+    await useApiFetch(`/api/projects/operations/${row?.uniqueID}`, {
+      method: 'DELETE', 
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-trash-solid',
+            color: 'green'
+          })
+          
+        }
+      }
+    })
+    init();
+
+  }
 const onSubmit = async () => {
   modalMeta.value.skillModal=true;
 
@@ -678,34 +703,66 @@ else
       >
       </UDashboardNavbar>
   <div class="flex flex-row">
-    <div class="h-[500px] w-[65%]">
-      <UTable :rows="weekly" @select="onSelect" @click="handleRowClick" />
-    </div>
-      <div class="m-5">
-        <div class="h-[250px] w-[70%]">
-      <UTable :rows="planData" />
-    </div>
-
-
-    <div class="mt-5">
-      <UTable :rows="productProjects" />
-    </div>
-    <UButton color="cyan" variant="outline"
-          type=""
-          label="Add Skill"
-          @click="onSubmit"
-          
-        />
-      </div>
-
-
+    <div class="h-[400px] w-[65%] overflow-y-auto">
+    <UTable
+      :rows="weekly"
+      :columns="gridMeta.defaultColumns"
+      @select="onSelect"
+      @click="handleRowClick"
+    >
+      <template #delete-data="{ row }">
+        <UTooltip text="Delete" class="flex justify-center">
+          <UButton
+            color="gray"
+            variant="ghost"
+            icon="i-heroicons-trash"
+            @click="onDelete(row)"
+          />
+        </UTooltip>
+      </template>
+    </UTable>
   </div>
+     <div class="m-5">
+      <div class="h-[250px] w-[450px] overflow-y-auto ml-5">
+  <UTable class="mb-5" :columns="planDatacolumns" :rows="planData">
+    <template #delete-data="{ row }">
+      <UTooltip text="Delete" class="flex justify-center">
+        <UButton
+          color="gray"
+          variant="ghost"
+          icon="i-heroicons-trash"
+          @click="onStepDelete(row)"
+        />
+      </UTooltip>
+    </template>
+  </UTable>
+</div>
+
+
+
+    <!-- <div class="m-5">
+      <UTable :rows="productProjects" />
+    </div> -->
+<div   class="flex mt-5 justify-end">
+  <UButton color="cyan" variant="outline"
+        type=""
+        label="Add Skill"
+        @click="onSubmit"
+  
+        
+      />
+    </div>
+
+
+</div>
+
+</div>
 </template>
 
 
 <UDashboardModal
     v-model="modalMeta.skillModal"
-    title="Site Visit"
+    title="Skills"
     :ui="{
       title: 'text-lg',
       header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 

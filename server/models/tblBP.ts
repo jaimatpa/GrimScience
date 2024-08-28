@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from "../utils/databse";
 
-const tblBP = sequelize.define('tblBP', {
+const tblBP = sequelize.define(' ', {
    UniqueID: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
