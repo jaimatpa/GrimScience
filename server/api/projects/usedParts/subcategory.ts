@@ -1,6 +1,4 @@
-import {   getEmployees, getJobTypes } from '~/server/controller/jobs';
-import { getEmployeess } from '~/server/controller/projects/projects';
-
+import { getDistinctSubCategories } from '~/server/controller/projects/projects';
 
 export default eventHandler(async (event) => {
   try {
@@ -8,8 +6,8 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        const jobTypes = await getEmployeess()
-        return { body: jobTypes, message: '' }
+        const markets = await getDistinctSubCategories()
+        return { body: markets, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

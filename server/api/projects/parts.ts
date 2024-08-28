@@ -1,4 +1,4 @@
-import { getDistinctModels } from '~/server/controller/projects/projects';
+import { getBasicModels } from '~/server/controller/projects/projects';
 
 export default eventHandler(async (event) => {
   try {
@@ -8,8 +8,8 @@ export default eventHandler(async (event) => {
     switch(method.toUpperCase()){
       case 'GET':
         console.log("subb categoyyyss",filterParams.subCategory,filterParams.subCategory);
-        const subcategories = await getDistinctModels(filterParams.category,filterParams.subCategory);
-        return { body: subcategories, message: '' }
+        const parts = await getBasicModels(filterParams.category,filterParams.subCategory);
+        return { body: parts, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
