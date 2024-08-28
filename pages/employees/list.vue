@@ -90,7 +90,7 @@ const gridMeta = ref({
   pageSize: 50,
   numberOfEmployee: 0,
   employess: [],
-  selectedEmpployeeId: null,
+  selectedEmpployee: null,
   sort: {
     column: "UniqueID",
     direction: "asc",
@@ -202,24 +202,24 @@ const handlePageChange = async () => {
 };
 
 const onCreate = () => {
-  gridMeta.value.selectedEmpployeeId = null;
+  gridMeta.value.selectedEmpployee = null;
   modalMeta.value.modalTitle = "New Employee";
   modalMeta.value.modalDescription = "Add a new employee";
   modalMeta.value.isEmployeeModalOpen = true;
 };
 
 const onEdit = (row) => {
-  gridMeta.value.selectedEmpployeeId = row?.UniqueID;
+  gridMeta.value.selectedEmpployee = row;
   modalMeta.value.modalTitle = "Edit";
   modalMeta.value.modalDescription = "Edit Employee information";
   modalMeta.value.isEmployeeModalOpen = true;
 };
 
 const onSelect = async (row) => {
-  gridMeta.value.selectedEmpployeeId = row?.UniqueID;
+  gridMeta.value.selectedEmpployee = row;
 };
 const onDblClick = async () => {
-  if (gridMeta.value.selectedEmpployeeId) {
+  if (gridMeta.value.selectedEmpployee) {
     modalMeta.value.modalTitle = "Edit";
     modalMeta.value.modalDescription = "Edit Employee information";
     modalMeta.value.isEmployeeModalOpen = true;
@@ -335,24 +335,6 @@ const handleModalSave = async () => {
         </template>
       </UDashboardToolbar>
 
-      <!-- New Employee Detail Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isEmployeeModalOpen"
-        :title="modalMeta.modalTitle"
-        :description="modalMeta.modalDescription"
-        :ui="{
-          width: 'w-[1600px] sm:max-w-8xl',
-          body: { padding: 'py-0 sm:pt-0' },
-        }"
-      >
-        <EmployeeForm
-          @close="handleModalClose"
-          @save="handleModalSave"
-          :selected-employee="gridMeta.selectedEmpployeeId"
-          :is-modal="true"
-        />
-      </UDashboardModal>
-
       <div class="px-4 py-2 gmsTealTitlebar">
         <h2>Lookup</h2>
       </div>
@@ -459,7 +441,7 @@ const handleModalSave = async () => {
     <EmployeeForm
       @close="handleModalClose"
       @save="handleModalSave"
-      :selected-employee="gridMeta.selectedEmpployeeId"
+      :selected-employee="gridMeta.selectedEmpployee"
       :is-modal="true"
     />
   </UDashboardModal>

@@ -19,6 +19,10 @@
   const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
   const descIcon = "i-heroicons-bars-arrow-down-20-solid"
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
+  const markets = ref([])
+  const professions = ref([])
+  const states = ref([])
+  const territories = ref([])
 
   const quotedColumns = ref([{
     key: 'productline',
@@ -227,7 +231,6 @@
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
-          loadingOverlay.value = false
           for (const key in response._data.body) {
             if (response._data.body[key]) {
               formData[key] = response._data.body[key]
@@ -236,6 +239,43 @@
         }
       }
     })
+
+    await useApiFetch('/api/customers/markets', {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          markets.value = [null, ...response._data.body];
+        }
+      },
+    });
+
+    await useApiFetch('/api/customers/professions', {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          professions.value = [null, ...response._data.body];
+        }
+      },
+    });
+    
+    await useApiFetch('/api/common/usstates', {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          states.value = [null, ...response._data.body];
+        }
+      },
+    });
+
+    await useApiFetch('/api/customers/territories', {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          territories.value = [null, ...response._data.body];
+        }
+      },
+    });
+
     loadingOverlay.value = false
   }
 
@@ -344,7 +384,7 @@
 </script>
 
 <template>
-  <!-- <div class="vl-parent">
+  <div class="vl-parent">
     <loading
       v-model:active="loadingOverlay"
       :is-full-page="true"
@@ -352,7 +392,7 @@
       backgroundColor="#1B2533"
       loader="dots"
     />
-  </div> -->
+  </div>
   <UForm
     :validate="validate"
     :validate-on="['submit']"
@@ -371,7 +411,7 @@
           >
             <USelect
               v-model="filterValues.market"
-              :options="[]"
+              :options="markets"
             />
           </UFormGroup>
         </div>
@@ -382,7 +422,7 @@
           >
             <USelect
               v-model="filterValues.profession"
-              :options="[]"
+              :options="professions"
             />
           </UFormGroup>
         </div>
@@ -393,7 +433,7 @@
           >
             <USelect
               v-model="filterValues.territory"
-              :options="[]"
+              :options="territories"
             />
           </UFormGroup>
         </div>
@@ -404,7 +444,7 @@
           >
             <USelect
               v-model="filterValues.state"
-              :options="[]"
+              :options="states"
             />
           </UFormGroup>
         </div>
@@ -507,7 +547,7 @@
                 label="Date"
               >
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.siteVisitDate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.siteVisitDate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
                     <CommonDatePicker v-model="formData.siteVisitDate" is-required @close="close" />
                   </template>
@@ -613,14 +653,14 @@
             />
           </UFormGroup>
           <UFormGroup
-            label="Position"
+            label="Company 1"
           >
             <UInput 
               v-model="formData.company1"
             />
           </UFormGroup>
           <UFormGroup
-            label="Position"
+            label="Company 2"
           >
             <UInput 
               v-model="formData.company2"
@@ -752,7 +792,7 @@
             label="Date"
           >
             <UPopover  :popper="{ placement: 'bottom-start' }">
-              <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.siteVisitDate, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.siteVisitDate, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
               <template #panel="{ close }">
                 <CommonDatePicker v-model="formData.siteVisitDate" is-required @close="close" />
               </template>

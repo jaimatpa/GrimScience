@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { FormError, FormSubmitEvent } from '#ui/types'
+  import type { FormError, FormSubmitEvent, FormErrorEvent } from '#ui/types'
   import Loading from 'vue-loading-overlay'
   import 'vue-loading-overlay/dist/css/index.css';   
   import type { UTableColumn } from '~/types';
@@ -11,9 +11,35 @@
       type: [Number, String, null],
       required: true
     },
-  })
+    formAction: {
+      type: [Number, String, null],
+      required: false
+    },
+    selectedComplaint: {
+      type: [Number, String, null],
+      required: true
+    },
+    selectedOrder: {
+      type: [Number, String, null],
+      required: true
+    },
+    selectedSerial: {
+      type: [Number, String, null],
+      required: true
+    },
+  })  
+
+  const complaintUniquueId = ref(props.selectedOrder)
   const toast = useToast()
   const loadingOverlay = ref(false)
+  const warnMsg = ref({
+    setSerReportCount : null,
+    warnMsgModalOpen: false,
+  })
+  const showOnSaveAlertModal = ref(false)
+  const formSubmitData = ref(null);
+
+  const formValidationErrors = ref([])
   const formData = reactive({
     customerID: props.selectedCustomer,
     market: null,
@@ -137,11 +163,19 @@
     SERIALNO: null,
     COMPLAINT: null,
     PRODUCTDESC: null,
-    NONCONFORMANCE: null
+    NONCONFORMANCE: null,
+    OPENCASE: "0",
+    INJURYREPORTNO: null,
+    uniqueID: null,
+    ValidComplaintReason: null,
+    FAILINVEST: null,
+    CLOSEDOUTBY: null,
+    MODELNO: null
   })
+  const WARRANTYUNTIL = ref(null)
   const typeOfServiceInfo = ref({
-    reason: null, 
-    failure: null,
+    // reason: null, 
+    // failure: null,
     reasonOptions: []
   })
   const modalMeta = ref({
@@ -155,17 +189,18 @@
     isInjuryReport2ModalOpen: false,
   })
   const selectedServiceReportID = ref(null)
-  const date = ref(new Date())
+  const date = ref(null)
+  const initialComplaint=ref(null)
   const statusGroup = ref([
-    {value: 'open', label: 'Open'}, 
-    {value: 'close', label: 'Close'}
+    {value: '0', label: 'Open'}, 
+    {value: '1', label: 'Close'}
   ])
-  const selectedStatus = ref('open')
+  const OPENCASE = ref(null)
   const riskStatusGroup = ref([
-    {value: 'no', label: 'No'}, 
-    {value: 'yes', label: 'Yes'}
+    {value: '0', label: 'No'}, 
+    {value: '1', label: 'Yes'}
   ])
-  const selectedRiskStatus = ref('no')
+  const INJURYREPORTNO = ref(null)
   const receivedDate = ref(null)
   const nc = ref(null)
   const accessories = ref(null)
@@ -174,8 +209,9 @@
     loadingOverlay.value = true
     await propertiesInit()
   }
+  
   const propertiesInit = async () => {
-    loadingOverlay.value = true
+    // loadingOverlay.value = true
     await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
       method: 'GET',
       onResponse({ response }) {
@@ -187,12 +223,42 @@
             }
           }
         }
-      }
+      },
+      onResponseError() {
+        loadingOverlay.value = false
+        toast.add({
+          title: 'Error',
+          description: 'Fail to get customer information',
+          icon: 'i-heroicons-exclamation-triangle',
+          color: 'red'
+        })
+      } 
     })
     await fetchSerialList();
-    loadingOverlay.value = false
+    await fetchEmployess();
+    // loadingOverlay.value = false
+  }
+  const fetchEmployess = async () => {
+    await useApiFetch(`/api/tbl/tblEmployee?ACTIVE=1`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          const employees = response._data?.body;
+          
+          if (employees?.length) {
+            const formattedEmployees = employees.map(employee => 
+            `#${employee.payrollnumber || 'n/a'} ${employee.fname || ''} ${employee.lname || ''}`
+          );
+        
+          serviceOrderInfo.value.RECBYOptions = formattedEmployees
+          return formattedEmployees;
+        }
+        }
+      }
+    })
   }
   const fetchSerialList = async () => {
+    loadingOverlay.value = true
     await useApiFetch(`/api/invoices/serials/`, {
       method: 'GET',
       params: {
@@ -200,12 +266,17 @@
       },
       onResponse({ response }) {
         if(response.status === 200) {
+          loadingOverlay.value = false
           serialGridMeta.value.serials = response._data.body
         }
+      },
+      onResponseError() {
+        loadingOverlay.value = false
       }
     })
   }
   const fetchComplaintList = async () => {
+    loadingOverlay.value = true
     await useApiFetch(`/api/service/complaints/`, {
       method: 'GET',
       params: {
@@ -213,12 +284,17 @@
       },
       onResponse({ response }) {
         if(response.status === 200) {
+          loadingOverlay.value = false
           complaintGridMeta.value.complaints = response._data.body
         }
+      },
+      onResponseError() {
+        loadingOverlay.value = false
       }
     })
   }
   const fetchInvoiceList = async () => {
+    loadingOverlay.value = true
     await useApiFetch(`/api/invoices/serviceorderinvoices/`, {
       method: 'GET',
       params: {
@@ -226,21 +302,33 @@
       },
       onResponse({ response }) {
         if(response.status === 200) {
+          loadingOverlay.value = false
           invoiceGridMeta.value.invoices = response._data.body
         }
+      },
+      onResponseError() {
+        loadingOverlay.value = false
       }
     })
   }
   const fetchServiceReportList = async () => {
+    loadingOverlay.value = true
     await useApiFetch(`/api/service/servicereports/`, {
       method: 'GET',
       params: {
         COMPLAINTID: complaintGridMeta.value.selectedComplaint.uniqueID
       },
       onResponse({ response }) {
+        let openCount = 0;
         if(response.status === 200) {
+          loadingOverlay.value = false
           serviceReportGridMeta.value.serviceReports = response._data.body
+          
           serviceReportGridMeta.value.serviceReports.forEach((item) => {
+         
+          if (item.ServiceStatus === 'open') {
+              openCount++;
+            }
             let type;
             switch(item.REPAIRDESC) {
               case 0:
@@ -258,10 +346,15 @@
             item.REPAIRDESC = type
           })
         }
+        warnMsg.value.setSerReportCount = openCount;
+      },
+      onResponseError() {
+        loadingOverlay.value = false
       }
     })
   }
   const fetchInvestigationList = async () => {
+    loadingOverlay.value = true
     await useApiFetch(`/api/engineering/investigationcomplaints`, {
       method: 'GET',
       params: {
@@ -269,8 +362,12 @@
       },
       onResponse({ response }) {
         if(response.status === 200) {
+          loadingOverlay.value = false
           investigationGridMeta.value.investigations = response._data.body
         }
+      },
+      onResponseError() {
+        loadingOverlay.value = false
       }
     })
   }
@@ -302,19 +399,19 @@
         }else{
           delete serial.class
         }
-      })
+      })      
       invoiceGridMeta.value.invoices = []
       invoiceGridMeta.value.selectedInvoice = null
       serviceReportGridMeta.value.serviceReports = []
       serviceReportGridMeta.value.selectedServiceReport = null    
-      serviceOrderInfo.value.SERIALNO = null
-      serviceOrderInfo.value.COMPLAINTNUMBER = null
-      serviceOrderInfo.value.COMPLAINTDATE = null
-      serviceOrderInfo.value.COMPLAINT = null
-      serviceOrderInfo.value.PRODUCTDESC = null
-      serviceOrderInfo.value.RECBY = null
-      typeOfServiceInfo.value.reason = null
-      typeOfServiceInfo.value.failure = null
+      serviceOrderInfo.value.SERIALNO = serialGridMeta.value.selectedSerial.serial
+      // serviceOrderInfo.value.COMPLAINTNUMBER = null
+      // serviceOrderInfo.value.COMPLAINTDATE = null
+      // serviceOrderInfo.value.COMPLAINT = null
+      // serviceOrderInfo.value.PRODUCTDESC = null
+      // serviceOrderInfo.value.RECBY = null
+      serviceOrderInfo.value.ValidComplaintReason = null
+      serviceOrderInfo.value.FAILINVEST = null
       if(serialGridMeta.value.selectedSerial) {
         await fetchComplaintList()
         let tmpRECBYOptions = complaintGridMeta.value.complaints.map((item: any) => item.RECBY)
@@ -327,10 +424,11 @@
           }
           return false
         })
+        serviceOrderInfo.value.PRODUCTDESC = complaintGridMeta.value.complaints[0].PRODUCTDESC
         serviceOrderInfo.value.RECBYOptions = filteredRECBYOptions
-        serviceOrderInfo.value.RECBYOptions.unshift(null)
+        serviceOrderInfo.value.RECBYOptions.unshift(null)        
         let tmpReasonOptions = complaintGridMeta.value.complaints.map((item: any) => item.ValidComplaintReason)
-        tmpReasonOptions = tmpReasonOptions.filter(item => item !== '' && item !== null)
+        tmpReasonOptions = tmpReasonOptions.filter(item => item !== '' && item !== null)        
         let uniqueReasonSet = new Set()
         let filteredReasonOptions = tmpReasonOptions.filter(item => {
           if(!uniqueReasonSet.has(item)) {
@@ -354,14 +452,19 @@
       }
     })
     if(complaintGridMeta.value.selectedComplaint) {
+      complaintUniquueId.value = complaintGridMeta.value.selectedComplaint.uniqueID
       serviceOrderInfo.value.SERIALNO = complaintGridMeta.value.selectedComplaint.SERIALNO
       serviceOrderInfo.value.COMPLAINTNUMBER = complaintGridMeta.value.selectedComplaint.COMPLAINTNUMBER
       serviceOrderInfo.value.COMPLAINTDATE = complaintGridMeta.value.selectedComplaint.COMPLAINTDATE
       serviceOrderInfo.value.COMPLAINT = complaintGridMeta.value.selectedComplaint.COMPLAINT
       serviceOrderInfo.value.PRODUCTDESC = complaintGridMeta.value.selectedComplaint.PRODUCTDESC
       serviceOrderInfo.value.RECBY = complaintGridMeta.value.selectedComplaint.RECBY
-      typeOfServiceInfo.value.reason = complaintGridMeta.value.selectedComplaint.ValidComplaintReason
-      typeOfServiceInfo.value.failure = complaintGridMeta.value.selectedComplaint.FAILINVEST
+      serviceOrderInfo.value.ValidComplaintReason = complaintGridMeta.value.selectedComplaint.ValidComplaintReason
+      serviceOrderInfo.value.FAILINVEST = complaintGridMeta.value.selectedComplaint.FAILINVEST
+      serviceOrderInfo.value.OPENCASE = complaintGridMeta.value.selectedComplaint.OPENCASE
+      serviceOrderInfo.value.INJURYREPORTNO = complaintGridMeta.value.selectedComplaint.INJURYREPORTNO
+      serviceOrderInfo.value.CLOSEDOUTBY = complaintGridMeta.value.selectedComplaint.ClosedOutBy
+      WARRANTYUNTIL.value = complaintGridMeta.value.selectedComplaint.WARRANTYUNTIL
       await fetchInvoiceList()
       await fetchServiceReportList()
       await fetchInvestigationList()
@@ -372,6 +475,10 @@
       serviceOrderInfo.value.COMPLAINT = null
       serviceOrderInfo.value.PRODUCTDESC = null
       serviceOrderInfo.value.RECBY = null
+      serviceOrderInfo.value.OPENCASE = null
+      serviceOrderInfo.value.INJURYREPORTNO = null
+      serviceOrderInfo.value.CLOSEDOUTBY = null
+      WARRANTYUNTIL.value = null
       invoiceGridMeta.value.invoices = []
       serviceReportGridMeta.value.serviceReports = []
     }
@@ -427,6 +534,9 @@
     }
     selectedServiceReportID.value = null
     modalMeta.value.isServiceReportModalOpen = true
+  }
+  const onServiceReportClose = async () => {
+    modalMeta.value.isServiceReportModalOpen = false
   }
   const onServiceReportSave = async () => {
     modalMeta.value.isServiceReportModalOpen = false
@@ -532,7 +642,7 @@
     }
   }
   const onPreviewOrderViewBtnClick = () => {
-    if(complaintGridMeta.value.selectedComplaint) {
+    if(complaintGridMeta.value.selectedComplaint?.uniqueID) {
       window.open(`/api/service/orders/exportcomplaints/${complaintGridMeta.value.selectedComplaint?.uniqueID}`)
     } else {
       toast.add({
@@ -590,17 +700,78 @@
   }
   const validate = (state: any): FormError[] => {
     const errors = []
-
+    if (!state.COMPLAINTDATE) errors.push({ path: 'complaintDate', message: 'Required' })
+    if (state.INJURYREPORTNO === null) errors.push({ path: 'injuryReportNo', message: 'Required' })
+    if (state.OPENCASE === null) errors.push({ path: 'openCase', message: 'Required' })
+    if (!state.SERIALNO) errors.push({ path: 'serial', message: 'Required' })
+    formValidationErrors.value = errors  
     return errors
   }
   async function onSubmit(event: FormSubmitEvent<any>) {
-    emit('save', event.data)
-    emit('close')
+    const {RECBYOptions, ...data} = event.data    
+
+    if (warnMsg.value.setSerReportCount > 0 && data.OPENCASE == '1' ) {
+      warnMsg.value.warnMsgModalOpen = true
+      return true;
+    }
+    warnMsg.value.warnMsgModalOpen = false 
+
+    if (data.OPENCASE == '1') {
+      formSubmitData.value = data; // Store the form data
+      showOnSaveAlertModal.value = true;
+    } else {
+      submitForm(data); // Proceed with form submission
+    }
   }
-  if(props.selectedCustomer) 
-    editInit()
-  else 
+
+  const confirmSave = () => {
+    submitForm(formSubmitData.value);
+    showOnSaveAlertModal.value = false; 
+  };
+
+  const submitForm = async (data: any) => {
+    const method = props.formAction == 'add' ? "POST" : "PUT";
+    if (method == 'POST'){
+      data.CustomerID = props.selectedCustomer;
+    }
+    const url = `/api/service/orders/${complaintUniquueId.value}`;
+    
+    await useApiFetch(url, {
+        method: method,
+        body: data,
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: "i-heroicons-check-circle",
+              color: "green",
+            });
+            emit('close')
+          }
+        },
+    });
+  };
+
+  watch(() => serialGridMeta.value.serials, () => {
+    if(serialGridMeta.value.serials.length > 0) {      
+      const uniqueIDFound = serialGridMeta.value?.serials.find(serial => serial?.serial === props.selectedSerial)
+      if(uniqueIDFound) onSerialSelect({UniqueID: uniqueIDFound.UniqueID, class: "bg-gray-200", serial: props.selectedSerial})
+    }
+  })
+  watch(() => complaintGridMeta.value.complaints, () => {
+    if(complaintGridMeta.value.complaints.length > 0) {
+      const uniqueIDFound = complaintGridMeta.value?.complaints.find(complaint => complaint?.COMPLAINTNUMBER === props.selectedComplaint)
+      if(uniqueIDFound) onComplaintSelect(uniqueIDFound)
+    }
+  })
+
+  if (props.selectedCustomer) { 
+    editInit() 
+  }
+  else {
     propertiesInit()
+   }
 </script>
 
 <template>
@@ -616,7 +787,7 @@
   <UForm
     :validate="validate"
     :validate-on="['submit']"
-    :state="formData"
+    :state="serviceOrderInfo"
     @submit="onSubmit"
   >
     <div class="w-full px-3 py-1 bg-slate-400">
@@ -704,7 +875,7 @@
               <UTable
                 :columns="serialGridMeta.defaultColumns"
                 :rows="serialGridMeta.serials"
-                class="w-full"
+                :class="formValidationErrors?.find(e => e.path === 'serial') ? 'border-red-500 w-full' : 'w-full'"
                 :ui="{
                   wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
                   divide: 'divide-gray-200 dark:divide-gray-800',
@@ -911,20 +1082,27 @@
         </div>
         <div class="flex flex-row px-3 py-2">
           <div class="basis-5/12">
-            <div>{{ serviceOrderInfo.COMPLAINTNUMBER?`# ${serviceOrderInfo.COMPLAINTNUMBER}`:'' }}</div>
-            <div>{{ serviceOrderInfo.PRODUCTDESC }}</div>
-            <div>{{ serviceOrderInfo.SERIALNO?`Serial ${serviceOrderInfo.SERIALNO}`: '' }}</div>
+            <div>{{ serviceOrderInfo?.COMPLAINTNUMBER?`# ${serviceOrderInfo.COMPLAINTNUMBER}`:'' }}</div>
+            <div>{{ serviceOrderInfo?.PRODUCTDESC }}</div>
+            <div>{{ serviceOrderInfo?.SERIALNO?`Serial ${serviceOrderInfo.SERIALNO}`: '' }}</div>
           </div>
+          <UFormGroup name="modelNo" class="hidden">
+            <UInput
+              v-model="serviceOrderInfo.MODELNO"
+              />
+            </UFormGroup>
           <div class="basis-4/12">
             <div class="flex flex-row">
               <div class="flex items-center w-[35px] font-medium">Date</div>
               <div class="flex-1 px-4">
+              <UFormGroup name="complaintDate">
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="serviceOrderInfo.COMPLAINTDATE && format(serviceOrderInfo.COMPLAINTDATE, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="serviceOrderInfo.COMPLAINTDATE && format(serviceOrderInfo.COMPLAINTDATE, 'MM/dd/yyyy')" variant="outline" :class="formValidationErrors?.find(e => e.path === 'complaintDate') ? 'ring-red-500' : ''" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                   <template #panel="{ close }">
-                    <CommonDatePicker v-model="date" is-required @close="close" />
+                    <CommonDatePicker v-model="serviceOrderInfo.COMPLAINTDATE" is-required @close="close" />
                   </template>
                 </UPopover>
+              </UFormGroup>
               </div>
             </div>
             <div class="flex flex-row mt-3">
@@ -938,16 +1116,18 @@
             </div>
           </div>
           <div class="basis-3/12">
+            <UFormGroup name="openCase">
             <div class="flex flex-row space-x-5">
-              <URadio 
-                v-for="status of statusGroup"
-                :key = 'status.value'
-                v-model="selectedStatus"
-                v-bind="status"
-              />
-            </div>
+                <URadio 
+                  v-for="status of statusGroup"
+                  :key='status.value'
+                  v-model="serviceOrderInfo.OPENCASE"
+                  v-bind="status"
+                />
+              </div>
+            </UFormGroup>
             <div class="mt-6 flex items-center">
-              Warranty Period
+              Warranty Period: {{  WARRANTYUNTIL }}
             </div>
           </div>
         </div>
@@ -957,7 +1137,7 @@
             name="description"
           >
             <UTextarea
-              :model-value="serviceOrderInfo.COMPLAINT"
+              v-model="serviceOrderInfo.COMPLAINT"
             />
           </UFormGroup>
         </div>
@@ -966,14 +1146,16 @@
             <div class="basis-5/12 flex items-center ml-2">
               Death, Serious Injury, or Risk of Either?
             </div>
-            <div class="basis-3/12 flex flex-row space-x-5 items-center">
-              <URadio 
-                v-for="riskStatus of riskStatusGroup"
-                :key = 'riskStatus.value'
-                v-model="selectedRiskStatus"
-                v-bind="riskStatus"
-              />
-            </div>
+            <UFormGroup name="injuryReportNo" class="basis-3/12 flex flex-row items-center">
+              <div class="flex flex-row space-x-5 items-center">
+                <URadio 
+                  v-for="riskStatus of riskStatusGroup"
+                  :key = 'riskStatus.value'
+                  v-model="serviceOrderInfo.INJURYREPORTNO"
+                  v-bind="riskStatus"
+                />
+              </div>
+            </UFormGroup>
             <div class="basis-4/12 flex flex-row space-x-5 justify-center">
               <UButton label="VIEW#1" @click="onView1BtnClick"/>
               <UButton label="VIEW#2" @click="onView2BtnClick"/>
@@ -981,52 +1163,56 @@
           </div>
         </div>
         <div class="px-3 py-0 mt-1">
-          <div class="flex flex-row space-x-3 border border-gray rounded-md px-2 py-1">
-            <div class="basis-3/12">
-              <UFormGroup
-                label="Received"
-                name="received"
-              >
-                <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(date, 'd MMM, yyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
-                  <template #panel="{ close }">
-                    <CommonDatePicker v-model="receivedDate" is-required @close="close" />
-                  </template>
-                </UPopover>
-              </UFormGroup>
-            </div>
-            <div class="basis-2/12">
-              <UFormGroup
-                label="NC#"
-                name="nc"
-              >
-                <UInput 
-                  v-model="serviceOrderInfo.NONCONFORMANCE"
+          <div class="flex flex-col border border-gray rounded-md px-2 py-1">
+            <span class="text-sm font-semibold">Product Returned</span>
+            <div class="flex flex-row space-x-3">
+              <div class="basis-3/12">
+                <UFormGroup
+                  label="Received"
+                  name="received"
+                >
+                  <UPopover :popper="{ placement: 'bottom-start' }">
+                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="date && format(date, 'd MMM, yyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                    <template #panel="{ close }">
+                      <CommonDatePicker v-model="receivedDate" is-required @close="close" />
+                    </template>
+                  </UPopover>
+                </UFormGroup>
+              </div>
+              <div class="basis-2/12">
+                <UFormGroup
+                  label="NC#"
+                  name="nc"
+                >
+                  <UInput 
+                    v-model="serviceOrderInfo.NONCONFORMANCE"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-5/12">
+                <UFormGroup
+                  label="Accessories Received"
+                  name="accessories received"
+                >
+                  <UInput 
+                    v-model="accessories"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-2/12 flex items-end">
+                <UButton 
+                  icon="i-heroicons-plus-20-solid"
+                  label="Receive"
+                  :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
+                  @click="onReceiveBtnClick"
                 />
-              </UFormGroup>
+              </div>
             </div>
-            <div class="basis-5/12">
-              <UFormGroup
-                label="Accessories Received"
-                name="accessories received"
-              >
-                <UInput 
-                  v-model="accessories"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-2/12 flex items-end">
-              <UButton 
-                icon="i-heroicons-plus-20-solid"
-                label="Receive"
-                :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
-                @click="onReceiveBtnClick"
-              />
-            </div>
+            
           </div>
           <div class="flex flex-row space-x-3 px-4 mt-2">
             <div class="basis-1/4">
-              <UButton icon="i-heroicons-document-text-20-solid" label="Save" color="green" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton type="submit" icon="i-heroicons-document-text-20-solid" label="Save" color="green" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/4">
               <UButton icon="i-heroicons-eye-20-solid" label="Preview Order" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onPreviewOrderViewBtnClick"/>
@@ -1051,9 +1237,10 @@
               name="select"
             >
               <USelect 
-                v-model="typeOfServiceInfo.reason"
-                :options="typeOfServiceInfo.reasonOptions"
+                v-model="serviceOrderInfo.ValidComplaintReason"
+                :options="['','Warranty', 'Quote', 'Billable','Complaint', 'Installation', 'Checkup', 'Info Only']"
               />
+                <!-- :options="typeOfServiceInfo.reasonOptions" -->
             </UFormGroup>
           </div>
           <div class="w-1/2">
@@ -1062,7 +1249,7 @@
               name="failure"
             >
               <UInput 
-                v-model="typeOfServiceInfo.failure"
+                v-model="serviceOrderInfo.FAILINVEST"
               />
             </UFormGroup>
           </div>
@@ -1110,6 +1297,10 @@
             </div>
           </div>
         </div>
+
+        <div v-if="serviceOrderInfo.OPENCASE === '1' && serviceOrderInfo.CLOSEDOUTBY" class="w-full text-center">
+          {{ serviceOrderInfo.CLOSEDOUTBY }}
+        </div>
       </div>
     </div>
   </UForm>
@@ -1121,10 +1312,10 @@
       title: 'text-lg',
       header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl', 
+      width: 'w-[1700px] sm:max-w-9xl', 
     }"
   >
-    <ServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave"/>
+    <ServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave" @close="onServiceReportClose"/>
   </UDashboardModal>
   <!-- Inventory Transaction Modal -->
   <UDashboardModal
@@ -1217,5 +1408,36 @@
     }"
   >
     <ServiceOrderInjuryReport2 :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @close="onInjuryReport2ModalClose"/>
-  </UDashboardModal> 
+  </UDashboardModal>
+  
+  <UDashboardModal
+    v-model="warnMsg.warnMsgModalOpen"
+    description="You cannot close a service order that has open service reports. Please close any open service reports prior to closing this order."
+    :ui="{
+      description: { base: 'text-lg' }, // Increase description text size
+      footer: { base: 'flex  justify-end pr-6' } // Center footer content
+    }"
+  >
+    <template #footer>
+      <UButton  label="ok" variant="outline" color="red" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="warnMsg.warnMsgModalOpen = false"/>
+    </template>
+  </UDashboardModal>
+         
+
+  <!-- Service Order On Save Modal -->
+  <UDashboardModal
+    v-model="showOnSaveAlertModal"
+    description="The System will now relieve inventory and close this complaint. Are you sure you wish to continue?"
+    :ui="{
+      description: { base: 'text-lg' }, // Increase description text size
+      footer: { base: 'flex  justify-end pr-6' } // Center footer content
+    }"
+  >
+    <template #footer>
+      <UButton  label="Yes" variant="outline" color="green" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="confirmSave"/>
+      <UButton  label="No" variant="outline" color="red" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="showOnSaveAlertModal = false"/>
+      <UButton  label="Cancel" variant="outline" color="black" :ui="{base: 'w-24', truncate: 'flex justify-center w-full'}" truncate @click="showOnSaveAlertModal = false"/>
+    </template>
+  </UDashboardModal>
+
 </template>

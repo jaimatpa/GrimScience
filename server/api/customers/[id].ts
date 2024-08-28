@@ -1,22 +1,21 @@
-import { customerExistByID, deleteCustomer, getCustomerDetail, updateCustomer } from '~/server/controller/customers';
+import { customerExistByID, deleteCustomer, getCustomerDetail, updateCustomer, getCustomerUniqueId } from '~/server/controller/customers';
 
 export default eventHandler(async (event) => {
   try {
     const id = event.context.params.id;
     const method = event._method;
-console.log('id.....',id);
 
     const idExist = await customerExistByID(id);
     switch(method.toUpperCase()){
       case 'GET':
-        if (idExist){
-          console.log('idididid',id);
-          
+        if (idExist){     
           const detail = await getCustomerDetail(id)
-          console.log('detaildetaildetail',detail);
-          
           return { body: detail, message: '' };
         } else {
+          const getByNumId = await getCustomerUniqueId(id);
+          if(getByNumId) {
+            return { body: getByNumId, message: '' };
+          }
           setResponseStatus(event, 404);
           return { error: 'The customer does not exist' }
         }
