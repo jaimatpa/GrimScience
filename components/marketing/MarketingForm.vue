@@ -673,7 +673,7 @@ const handleClose = async () => {
 const onSubmit = async (event: FormSubmitEvent<any>) => {
   console.log("insert function calling",form);
   form.PerType=selectedInventory.value;
-  form.ProjectType=selected.value;
+  form.ProjectType=form.Catagory;
   
 
   console.log("selectCategoryForList",selectCategoryForList)

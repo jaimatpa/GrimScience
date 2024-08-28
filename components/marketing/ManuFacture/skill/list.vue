@@ -293,7 +293,7 @@ import type { UTableColumn } from '~/types';
 
       <UDashboardToolbar>
         <template #left>
-          <div class="flex flex-row space-x-3">
+          <div class="flex flex-row space-x-3  ">
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup
                 label="skill"
@@ -338,7 +338,7 @@ import type { UTableColumn } from '~/types';
         :rows="gridMeta.skills"
         :columns="gridMeta.defaultColumns"
         :loading="gridMeta.isLoading"
-        class="w-full"
+        class="w-full h-[400px]  overflow-y-auto"
         :ui="{
           divide: 'divide-gray-200 dark:divide-gray-800', 
           th: { 
