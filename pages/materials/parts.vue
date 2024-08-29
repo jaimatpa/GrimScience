@@ -560,7 +560,7 @@ const onDblClick = async () => {
         padding: 'pt-5 sm:px-9',
       },
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
+      width: 'w-[2500px] sm:max-w-9xl',
     }"
   >
     <InvoiceDetail
