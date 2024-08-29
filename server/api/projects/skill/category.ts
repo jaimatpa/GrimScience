@@ -1,6 +1,5 @@
-import {   getEmployees, getJobTypes } from '~/server/controller/jobs';
-import { getEmployeess } from '~/server/controller/projects/projects';
-
+import { getNumberOfJobs } from '~/server/controller/jobs/Jobs';
+import { getSkillCategory } from '~/server/controller/projects/projects';
 
 export default eventHandler(async (event) => {
   try {
@@ -8,8 +7,9 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        const jobTypes = await getEmployeess()
-        return { body: jobTypes, message: '' }
+        
+        const numberOfCustomers = await getSkillCategory();
+        return { body: numberOfCustomers, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
