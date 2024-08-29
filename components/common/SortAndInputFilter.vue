@@ -28,7 +28,7 @@ const props = defineProps({
 <template>
   <template v-if="props.sortable">
     <div class="flex justify-center">
-      <UButton variant="ghost" color="gray" @click="emit('handleSortingButton', props.sortKey)">
+      <UButton variant="ghost" color="black" @click="emit('handleSortingButton', props.sortKey)">
         {{ props.label }}
         <template #trailing>
           <UIcon 

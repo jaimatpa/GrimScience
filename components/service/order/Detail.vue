@@ -785,12 +785,13 @@
     />
   </div>
   <UForm
+  
     :validate="validate"
     :validate-on="['submit']"
     :state="serviceOrderInfo"
     @submit="onSubmit"
   >
-    <div class="w-full px-3 py-1 bg-slate-400">
+    <div class="w-full px-3 py-1 gmsPurpleTitlebar">
       Customer Information
     </div>
 
@@ -983,10 +984,10 @@
           </div>
         </div>
         <div class="mt-2">
-          <div class="pl-3 bg-slate-400">
+          <div class="pl-3 gmsPurpleTitlebar">
             Service Reports
           </div>
-          <div class="flex flex-col p-3 bg-slate-200 space-x-4">
+          <div class="flex flex-col p-3 bg-gray-300 space-x-4">
             <div class="flex flex-row">
               <div class="basis-3/5 px-2">
                 <UTable
@@ -1077,7 +1078,7 @@
 
     <div class="!my-0 flex flex-row">
       <div class="basis-1/2 border-[1px] border-slate-600 border-l-0 border-b-0 border-t-0">
-        <div class="w-full bg-slate-400 px-3 py-1">
+        <div class="w-full bg-slate-400 px-3 py-1 gmsPurpleTitlebar">
           Service Order
         </div>
         <div class="flex flex-row px-3 py-2">
@@ -1142,7 +1143,7 @@
           </UFormGroup>
         </div>
         <div class="px-3 py-0 mt-1">
-          <div class="flex flex-row border border-gray rounded-md py-1">
+          <div class="flex flex-row border border-gray-500 rounded-md py-1">
             <div class="basis-5/12 flex items-center ml-2">
               Death, Serious Injury, or Risk of Either?
             </div>
@@ -1157,13 +1158,13 @@
               </div>
             </UFormGroup>
             <div class="basis-4/12 flex flex-row space-x-5 justify-center">
-              <UButton label="VIEW#1" @click="onView1BtnClick"/>
-              <UButton label="VIEW#2" @click="onView2BtnClick"/>
+              <UButton label="VIEW#1" color="gms-purple" @click="onView1BtnClick"/>
+              <UButton label="VIEW#2" color="gms-purple" @click="onView2BtnClick"/>
             </div>
           </div>
         </div>
         <div class="px-3 py-0 mt-1">
-          <div class="flex flex-col border border-gray rounded-md px-2 py-1">
+          <div class="flex flex-col border border-gray-500 rounded-md px-2 py-1">
             <span class="text-sm font-semibold">Product Returned</span>
             <div class="flex flex-row space-x-3">
               <div class="basis-3/12">
@@ -1189,7 +1190,7 @@
                   />
                 </UFormGroup>
               </div>
-              <div class="basis-5/12">
+              <div class="basis-4/12">
                 <UFormGroup
                   label="Accessories Received"
                   name="accessories received"
@@ -1199,8 +1200,10 @@
                   />
                 </UFormGroup>
               </div>
-              <div class="basis-2/12 flex items-end">
+              <div class="basis-3/12 flex items-end">
                 <UButton 
+                color="green"
+                variant="outline"
                   icon="i-heroicons-plus-20-solid"
                   label="Receive"
                   :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate
@@ -1210,7 +1213,7 @@
             </div>
             
           </div>
-          <div class="flex flex-row space-x-3 px-4 mt-2">
+          <div class="flex flex-row space-x-3 mt-2">
             <div class="basis-1/4">
               <UButton type="submit" icon="i-heroicons-document-text-20-solid" label="Save" color="green" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
@@ -1227,7 +1230,7 @@
         </div>
       </div>
       <div class="basis-1/2">
-        <div class="w-full bg-slate-400 px-3 py-1">
+        <div class="w-full gmsPurpleTitlebar px-3 py-1">
           Type of Services
         </div>
         <div class="flex flex-row space-x-5 p-5">
@@ -1255,7 +1258,7 @@
           </div>
         </div>
         <div class="flex flex-row space-x-5 p-5">
-          <div class="w-full p-3 border border-gray">
+          <div class="w-full p-3 border border-gray-500">
             <UFormGroup
               label="Investigation Required"
               name="investigation"
@@ -1289,7 +1292,7 @@
             </UFormGroup>
             <div class="flex flex-row space-x-4 justify-end mt-2">
               <div class="w-[120px]">
-                <UButton icon="i-heroicons-plus-20-solid" variant="outline" label="Add" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onInvestigationAddBtnClick"/>
+                <UButton icon="i-heroicons-plus-20-solid" variant="outline" color="green" label="Add" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onInvestigationAddBtnClick"/>
               </div>
               <div class="w-[120px]">
                 <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red" label="Remove" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onInvestigationRemoveBtnClick"/>
@@ -1309,10 +1312,10 @@
     v-model="modalMeta.isServiceReportModalOpen"
     title="Service Report"
     :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1700px] sm:max-w-9xl', 
+      title: 'text-lg text-white',
+      header: { base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader' }, 
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl', 
     }"
   >
     <ServiceReportDetail :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" :selected-service-report="selectedServiceReportID" @save="onServiceReportSave" @close="onServiceReportClose"/>

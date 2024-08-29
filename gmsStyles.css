@@ -178,6 +178,7 @@ color:#fff!important;
 
 .gmsPurpleTitlebar {
   background-color: #bb8abc;
+  color: #000;
 }
 
 /* --- */
@@ -230,4 +231,18 @@ color:#fff!important;
 /* Button Styles */
 button {
   transition: all 0.1s;
+}
+
+.gms-modalHeader {
+  border-radius: 5px 5px 0 0;
+  margin-top:-15px;
+  padding: 1rem 1rem 0.5rem 1rem;
+}
+
+.gms-modalForm {
+padding:0;
+padding-bottom: 1rem;
+font-size:14px;
+line-height: 1.2;
+color:#000!important;
 }
