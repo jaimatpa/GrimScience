@@ -114,6 +114,7 @@ export const getProductInfos = async (params) => {
 }
 
 export const getParts = async (filterParams) => {
+  console.log("param for part",filterParams);
   const { UniqueID, PARTTYPE, SUBCATEGORY, MODEL, DESCRIPTION } = filterParams
   let where = {}
   if(UniqueID) where['UniqueID'] = UniqueID

@@ -33,14 +33,14 @@ import type { UTableColumn } from '~/types';
         sortDirection: 'none',
         filterable: true
       }, {
-        key: 'MODEL ',
+        key: 'MODEL', 
         label: 'Description',
         sortable: true,
         sortDirection: 'none',
         filterable: true
       }, {
         key: 'PerType',
-        label: 'type',
+        label: 'Type',
         sortable: true,
         sortDirection: 'none',
         filterable: true
@@ -200,39 +200,11 @@ import type { UTableColumn } from '~/types';
 // Watch for changes in selectedOptions and update filterValues
 watch(selectedOptions, (newSelectedOptions) => {
   filterValues.value.selectedOptions = newSelectedOptions;
-  fetchGridData(); // Trigger fetchGridData whenever filterValues changes
+  console.log("filter value is",newSelectedOptions);
+  fetchGridData(); 
 });
 
-  const onCreate = () => {
-    gridMeta.value.selectedCustomerId = null
-    modalMeta.value.modalTitle = "New Customer";
-    modalMeta.value.isCustomerModalOpen = true
-  }
-  const onEdit = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
-    modalMeta.value.modalTitle = "Edit";
-    modalMeta.value.isCustomerModalOpen = true
-  }
-  const onOrderDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
-    modalMeta.value.isOrderDetailModalOpen = true
-  }
-  const onQuoteDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
-    modalMeta.value.isQuoteDetailModalOpen = true
-  }
-  const onServiceOrderDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
-    modalMeta.value.isServiceOrderDetailModalOpen = true
-  }
-  const onSiteVisitDetail = (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID
-    modalMeta.value.isSiteVisitModalOpen = true
-  }
-  const onAdd=()=>{
-    modalMeta.value.isPartsUsed = true
-
-  }
+ 
   const onDelete = async (row: any) => {
 
     await useApiFetch(`/api/jobs/${row?.UniqueID}`, {
@@ -251,7 +223,8 @@ watch(selectedOptions, (newSelectedOptions) => {
     })
   }
   const handleModalClose = () => {
-    modalMeta.value.isCustomerModalOpen = false
+    modalMeta.value.isCustomerModalOpen = false;
+    
   }
   const handleModalSave = async () => {
     handleModalClose()
@@ -329,8 +302,10 @@ watch(selectedOptions, (newSelectedOptions) => {
     }
   }
   const onAdded = () => {
+    
     modalMeta.value.isCustomerModalOpen = true
     modalMeta.value.modalTitle = "New Project";
+    gridMeta.value.selectedCustomerId =null;
 
   }
 </script>
@@ -381,9 +356,6 @@ watch(selectedOptions, (newSelectedOptions) => {
   <div>
     <UCheckbox label="Show Open Only" v-model="checkboxes.ShowOpenOnly" />
   </div>
-  <div>
-      <p>Selected Options: {{ selectedOptions.join(', ') }}</p>
-    </div>
   </div>
   <div>
     <div class="mr-5">
@@ -441,31 +413,6 @@ watch(selectedOptions, (newSelectedOptions) => {
         <template #label-data="{row}">
           <UTooltip text="Label" class="flex justify-center">
             <UButton color="gray" variant="ghost" icon="i-heroicons-tag" @click=""/>
-          </UTooltip>
-        </template>
-        <template #order-data="{row}">
-          <UTooltip text="Order" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-shopping-cart" @click="onOrderDetail(row)"/>
-          </UTooltip>
-        </template>
-        <template #quote-data="{row}">
-          <UTooltip text="Quote" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-currency-dollar" @click="onQuoteDetail(row)"/>
-          </UTooltip>
-        </template>
-        <template #serviceOrder-data="{row}">
-          <UTooltip text="Service Order" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-chat-bubble-left-ellipsis" @click="onServiceOrderDetail(row)"/>
-          </UTooltip>
-        </template>
-        <template #siteVisit-data="{row}">
-          <UTooltip text="Site Visit" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-clipboard-document-list" @click="onSiteVisitDetail(row)"/>
-          </UTooltip>
-        </template>
-        <template #edit-data="{row}">
-          <UTooltip text="Edit" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)"/>
           </UTooltip>
         </template>
         <template #delete-data="{row}">
@@ -531,12 +478,8 @@ watch(selectedOptions, (newSelectedOptions) => {
       width: 'w-[1800px] sm:max-w-9xl'
     }"
   >
-    <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId"/>
+    <!-- <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId"/> -->
   </UDashboardModal>
-
-
-
-
 
   
   <!-- Site Visit Modal -->
