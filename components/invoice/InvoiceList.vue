@@ -366,7 +366,7 @@
                 </UPopover>
               </UFormGroup>
             </div>
-            <div class="min-w-[50px] mt-6 shrink-0">
+            <div class="min-w-[50px] mt-1 shrink-0">
               <UButton :label="'Clear'" @click="() => {filterValues.to = null; filterValues.from = null;}" variant="outline" class="text-xs py-2" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/5 min-w-[150px]">

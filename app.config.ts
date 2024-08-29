@@ -16,6 +16,13 @@ export default defineAppConfig({
         outline: 'bg-{slate}-50 hover:bg-{color}-100 dark:bg-{color}-800'
         
       }
+    },
+
+    formGroup: {
+      wrapper: 'flex flex-col-reverse',
+      label: {
+        wrapper: 'mt-1',
+      },
     }
   }
 })
