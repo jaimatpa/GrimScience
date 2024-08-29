@@ -29,6 +29,15 @@ const props = defineProps({
 })
 </script>
 <template>
+  <template v-if="props.filterable">
+    <div>
+      <USelect
+        :model-value="props.value"
+        :options="props.filterOptions"
+        @update:model-value="event => emit('handleSelectChange', event, props.filterKey)"
+      />
+    </div>
+  </template>
   <template v-if="props.sortable">
     <div>
       <UButton variant="ghost" color="black" @click="emit('handleSortingButton', props.sortKey)">
@@ -45,15 +54,6 @@ const props = defineProps({
   <template v-else>
     <div class="flex justify-center text-center px-[10px] py-[6px]">
       {{ props.label }}
-    </div>
-  </template>
-  <template v-if="props.filterable">
-    <div>
-      <USelect
-        :model-value="props.value"
-        :options="props.filterOptions"
-        @update:model-value="event => emit('handleSelectChange', event, props.filterKey)"
-      />
     </div>
   </template>
 </template>

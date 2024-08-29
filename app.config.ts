@@ -42,6 +42,13 @@ export default defineAppConfig({
         base: 'black',
         color: 'text-black'
       }
+    },
+
+    formGroup: {
+      wrapper: 'flex flex-col-reverse',
+      label: {
+        wrapper: 'mt-1',
+      },
     }
     },
 
