@@ -268,7 +268,7 @@
     <h2>Lookup</h2>
       </div>
 
-      <UDashboardToolbar class="gmsPurpleToolbar">
+      <UDashboardToolbar class="bg-gms-gray-100">
         <template #right>
           <UButton color="green" variant="outline"
             label="New message"
@@ -286,7 +286,6 @@
           divide: 'divide-gray-200 dark:divide-gray-800', 
           th: { 
             base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
           }, 
           td: {
             padding: 'py-1'

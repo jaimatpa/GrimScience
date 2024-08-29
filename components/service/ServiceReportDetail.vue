@@ -658,7 +658,7 @@ else
             <div class="flex flex-row space-x-5">
               <div class="basis-1/2 flex items-center w-full border rounded border-gray-500 px-3 py-1">
                 <div class="flex justify-between w-full">
-                  <URadio v-for="status of statusGroup" :key='status.value' v-model="formData.ServiceStatus"
+                  <URadio v-for="status of statusGroup" :key='status.value' v-model="formData.ServiceStatus" class="gms-ModalFormText"
                     v-bind="status" />
                 </div>
               </div>
@@ -675,7 +675,7 @@ else
               <div class="basis-1/2 flex items-center w-full border rounded border-gray-500 px-3">
                 <div class="flex flex-col space-y-1">
                   <div class="flex justify-between w-full">
-                    <URadio v-for="type of typeGroup" :key='type.value' v-model="formData.REPAIRDESC" v-bind="type" />
+                    <URadio v-for="type of typeGroup" :key='type.value' v-model="formData.REPAIRDESC" class="gms-ModalFormText" v-bind="type" />
                   </div>
                   <div class="flex flex-row">
                     <div class="w-[90px] font-medium flex items-center">
@@ -747,10 +747,10 @@ else
           </div>
           <div class="basis-1/3">
             <div class="border rounded border-slate-500 p-2">
-              <UFormGroup label="Was device performing per specification?">
+              <UFormGroup class="gms-ModalFormText" label="Was device performing per specification?">
                 <div class="flex flex-row space-x-5 pb-1">
                   <URadio v-for="performance of performanceGroup" :key='performance.value'
-                    v-model="formData.performs_to_spec" v-bind="performance" />
+                    v-model="formData.performs_to_spec" class="gms-ModalFormText" v-bind="performance" />
                 </div>
                 <UTextarea v-model="formData.performsnotext" :rows="6" />
               </UFormGroup>
@@ -764,14 +764,14 @@ else
         </div>
         <div class="p-3">
           <UTable :rows="invoiceGridMeta.invoices" :columns="invoiceGridMeta.defaultColumns" :ui="{
-            wrapper: 'h-[155px] border-2 border-gray-300 dark:border-gray-700',
+            wrapper: 'h-[155px] border border-gray-400 gms-ModalFormText',
             divide: 'divide-gray-200 dark:divide-gray-800',
             tr: {
               active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
             },
             th: {
               base: 'sticky top-0 z-10',
-              color: 'bg-white dark:text-gray dark:bg-[#111827]',
+              color: 'bg-white dark:bg-gray-700',
               padding: 'px-2 py-0'
             },
             td: {
@@ -783,7 +783,7 @@ else
               <div></div>
             </template>
           </UTable>
-          <div class="flex flex-row space-x-2 mt-2">
+          <div class="flex flex-row space-x-2 mt-2 fheight-btn-row">
             <div class="basis-1/3 w-full">
               <UButton icon="i-heroicons-plus-20-solid" label="Look-Up Invoice" variant="outline" color="green"
                 :ui="{ base: 'w-full', truncate: 'flex justify-center break-words text-center w-full' }" truncate />
@@ -806,10 +806,10 @@ else
         Warranty Material
       </div>
       <div class="flex flex-row space-x-3 p-3">
-        <div class="w-1/2 mt-4">
+        <div class="w-1/2">
           <UTable :rows="warrantyMaterialGridMeta.warrantyMaterials" :columns="warrantyMaterialGridMeta.defaultColumns"
             :loading="warrantyMaterialGridMeta.isLoading" class="w-full" :ui="{
-              wrapper: 'h-[210px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
+              wrapper: 'h-[170px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -867,9 +867,9 @@ else
           </UTable>
         </div>
         <div class="w-1/2">
-          <div class="flex flex-row space-x-4 py-1">
+          <div class="flex flex-row space-x-4">
             
-            <div class="basis-1/4 w-full">
+            <div class="basis-1/4 w-full mb-1">
               <UButton label="Remove Part" color="gms-purple" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate
                 @click="onRemoveWarranty" />
             </div>
@@ -877,7 +877,7 @@ else
           <UTable :rows="selectedWarrantyMaterialGridMeta.warrantyMaterials"
             :columns="selectedWarrantyMaterialGridMeta.defaultColumns"
             :loading="selectedWarrantyMaterialGridMeta.isLoading" class="w-full" :ui="{
-              wrapper: 'h-[170px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
+              wrapper: 'h-[133px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -897,7 +897,7 @@ else
               <div></div>
             </template>
           </UTable>
-          <div class="flex flex-row space-x-4 py-1">
+          <div class="flex flex-row space-x-4 pt-1">
             <div class="basis-1/3 flex items-center">
               <div class="flex flex-row space-x-2 ">
                 <div class="flex-1 flex items-center">
@@ -950,7 +950,7 @@ else
         <div class="w-1/2">
           <UTable :rows="partGridMeta.parts" :columns="partGridMeta.defaultColumns" :loading="partGridMeta.isLoading"
             class="w-full" :ui="{
-              wrapper: 'h-[210px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
+              wrapper: 'h-[170px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -1011,7 +1011,7 @@ else
         <div class="w-1/2">
           <UTable :rows="selectedPartGridMeta.parts" :columns="selectedPartGridMeta.defaultColumns"
             :loading="selectedPartGridMeta.isLoading" class="w-full" :ui="{
-              wrapper: 'h-[210px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
+              wrapper: 'h-[170px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -1031,7 +1031,7 @@ else
             </template>
           </UTable>
           <div class="italic">
-            Singleclick to Select Part for Non-Conformamce, Double Click to View
+            Singleclick to Select Part for Non-Conformance, Double Click to View
           </div>
         </div>
       </div>

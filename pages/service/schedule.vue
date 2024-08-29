@@ -812,7 +812,7 @@ const onScheduletaskDblClick = async (event) => {
       <div class="px-4 py-2 gmsPurpleTitlebar">
         <h2>Service Report List</h2>
       </div>
-      <UDashboardToolbar>
+      <UDashboardToolbar class="bg-gms-gray-100">
         <div class="flex flex-col w-full">
           <div class="flex justify-between items-center w-full">
             <div class="flex space-x-2">
@@ -865,7 +865,8 @@ const onScheduletaskDblClick = async (event) => {
               <UButton
                 :loading="exportIsLoading"
                 label="Export to Excel"
-                color="gray"
+                color="green"
+                variant="outline"
                 class="h-fit"
                 :disabled="exportIsLoading"
                 @click="excelExport"
@@ -915,7 +916,6 @@ const onScheduletaskDblClick = async (event) => {
             divide: 'divide-gray-200 dark:divide-gray-800',
             th: {
               base: 'sticky top-0 z-10',
-              color: 'bg-white dark:text-gray dark:bg-[#111827]',
               padding: 'p-0',
             },
             td: {

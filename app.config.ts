@@ -95,6 +95,14 @@ export default defineAppConfig({
 
     radio: {
       border: 'border border-black'
+    },
+
+    checkbox: {
+      border: 'border border-black dark:border-gray-200'
+    },
+
+    toggle: {
+      inactive: 'bg-gms-gray-300'
     }
 
   }

@@ -179,6 +179,8 @@ color:#fff!important;
 .gmsPurpleTitlebar {
   background-color: #bb8abc;
   color: #000;
+  font-weight:500;
+  font-size: 15px;
 }
 
 /* --- */
@@ -242,7 +244,25 @@ button {
 .gms-modalForm {
 padding:0;
 padding-bottom: 1rem;
-font-size:14px;
+font-size:13px;
 line-height: 1.2;
 color:#000!important;
+}
+
+.gms-ModalFormText label, .gms-ModalFormText table th, .gms-ModalFormText table td {
+font-size:13px!important;
+}
+
+.i-heroicons-arrows-up-down-20-solid {
+  display:none;
+}
+
+.fheight-btn-row button {
+  height:100%;
+align-items:center;
+}
+
+table tbody td div button, table tbody tr td button {
+  padding-top:0!important;
+  padding-bottom:0!important;
 }

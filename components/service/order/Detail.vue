@@ -878,7 +878,7 @@
                 :rows="serialGridMeta.serials"
                 :class="formValidationErrors?.find(e => e.path === 'serial') ? 'border-red-500 w-full' : 'w-full'"
                 :ui="{
-                  wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                  wrapper: 'h-32 border border-gray-400 dark:border-gray-700 gms-ModalFormText',
                   divide: 'divide-gray-200 dark:divide-gray-800',
                   tr: {
                     active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -910,7 +910,7 @@
                 :rows="complaintGridMeta.complaints"
                 :columns="complaintGridMeta.defaultColumns"
                 :ui="{
-                  wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                  wrapper: 'h-32 border border-gray-400 dark:border-gray-700 gms-ModalFormText',
                   divide: 'divide-gray-200 dark:divide-gray-800',
                   tr: {
                     active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -944,7 +944,7 @@
                     :rows="invoiceGridMeta.invoices"
                     :columns="invoiceGridMeta.defaultColumns"
                     :ui="{
-                      wrapper: 'h-[100px] border-2 border-gray-300 dark:border-gray-700',
+                      wrapper: 'h-[100px] border border-gray-400 dark:border-gray-700 gms-ModalFormText',
                       divide: 'divide-gray-200 dark:divide-gray-800',
                       tr: {
                         active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -994,7 +994,7 @@
                   :rows="serviceReportGridMeta.serviceReports"
                   :columns="serviceReportGridMeta.defaultColumns"
                   :ui="{
-                    wrapper: 'h-24 border-2 border-gray-300 dark:border-gray-700 bg-white dark:text-gray dark:bg-[#111827]',
+                    wrapper: 'h-24 border border-gray-400 dark:border-gray-700 gms-ModalFormText',
                     divide: 'divide-gray-200 dark:divide-gray-800',
                     tr: {
                       active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -1082,8 +1082,8 @@
           Service Order
         </div>
         <div class="flex flex-row px-3 py-2">
-          <div class="basis-5/12">
-            <div>{{ serviceOrderInfo?.COMPLAINTNUMBER?`# ${serviceOrderInfo.COMPLAINTNUMBER}`:'' }}</div>
+          <div class="basis-5/12 leading-6">
+            <div class="font-bold">{{ serviceOrderInfo?.COMPLAINTNUMBER?`# ${serviceOrderInfo.COMPLAINTNUMBER}`:'' }}</div>
             <div>{{ serviceOrderInfo?.PRODUCTDESC }}</div>
             <div>{{ serviceOrderInfo?.SERIALNO?`Serial ${serviceOrderInfo.SERIALNO}`: '' }}</div>
           </div>
@@ -1267,7 +1267,7 @@
                 :rows="investigationGridMeta.investigations"
                 :columns="investigationGridMeta.defaultColumns"
                 :ui="{
-                  wrapper: 'h-32 border-2 border-gray-300 dark:border-gray-700',
+                  wrapper: 'h-32 border-2 border-gray-400 dark:border-gray-700 gms-ModalFormText',
                   divide: 'divide-gray-200 dark:divide-gray-800',
                   tr: {
                     active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'

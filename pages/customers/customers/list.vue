@@ -14,7 +14,7 @@ const toast = useToast();
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
 const descIcon = "i-heroicons-bars-arrow-down-20-solid";
-const noneIcon = "";
+const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const headerFilters = ref({
   markets: {
@@ -459,7 +459,7 @@ const onDblClick = async () => {
             padding: 'p-0',
           },
           td: {
-            padding: 'py-0',
+            padding: 'py-1',
           },
         }"
         :empty-state="{

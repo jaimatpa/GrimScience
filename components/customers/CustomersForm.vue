@@ -691,7 +691,7 @@ else
   
       <div class="flex justify-start gap-3">
         <UButton 
-          color="cyan" 
+          color="primary" 
           variant="outline"
           type="submit"
           :icon="selectedCustomer !== null ? 'i-heroicons-pencil-square': 'i-heroicons-plus'"
@@ -710,7 +710,7 @@ else
             <h2>Serial Record</h2>
           </div>
           <div class="w-[180px] mt-4">
-            <UButton label="View Serial Record" color="cyan" variant="outline" icon="i-heroicons-eye" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}"/>
+            <UButton label="View Serial Record" color="primary" variant="outline" icon="i-heroicons-eye" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}"/>
           </div>
         </div>
         <div class="flex flex-col w-full">

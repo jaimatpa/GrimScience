@@ -295,7 +295,7 @@ const onDelete = async (row: any) => {
     <UDashboardPanel grow>
       <UDashboardNavbar class="gmsTealHeader" title="Organization List">
       </UDashboardNavbar>
-      <UDashboardToolbar>
+      <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
           <div class="flex flex-row space-x-3">
             <div class="basis-1/7 max-w-[200px]">
@@ -310,8 +310,8 @@ const onDelete = async (row: any) => {
         <template #right>
           <UButton
             variant="outline"
-            label="Add Organization"
-            class="bg-gmsTealHeader"
+            label="Add Position"
+            color="green"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
@@ -327,7 +327,6 @@ const onDelete = async (row: any) => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
             padding: 'p-0',
           },
           td: {

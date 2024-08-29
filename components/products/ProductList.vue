@@ -303,7 +303,7 @@ const handleFilterInputChange = async (event, name) => {
         <h2>Sort</h2>
       </div>
 
-      <UDashboardToolbar v-if="props.isPage">
+      <UDashboardToolbar v-if="props.isPage" class="bg-gms-gray-100">
         <template #left>
           <div class="flex flex-row space-x-3">
             <template
@@ -383,7 +383,6 @@ const handleFilterInputChange = async (event, name) => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
             padding: 'p-0',
           },
           td: {
@@ -469,6 +468,9 @@ const handleFilterInputChange = async (event, name) => {
                   color: 'bg-white dark:text-gray dark:bg-[#111827]',
                   padding: 'p-1',
                 },
+                td: {
+                  padding: 'py-1'
+                }
               }"
             />
           </div>
