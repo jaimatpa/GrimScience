@@ -147,7 +147,7 @@ export const getDistinctSubcategories = async (partTypeValue) => {
 export async function getBasicModels(parttype, subCategory) {
   try {
     const results = await tblBP.findAll({
-      attributes: ["description"],
+      attributes: ["UniqueID","instanceID","description", "model"], // Include both description and model
       where: {
         parttype: parttype,
         SubCategory: subCategory,
@@ -158,11 +158,17 @@ export async function getBasicModels(parttype, subCategory) {
       ],
     });
 
-    return results.map((result) => result.get("description"));
+    return results.map((result) => ({
+      description: result.get("description"),
+      model: result.get("model"),
+      UniqueID:result.get("UniqueID"),
+      instanceID:result.get("instanceID")
+    }));
   } catch (error) {
     console.error("Error executing basic query:", error);
   }
 }
+
 
 export const getProjectItem = async (category) => {
   try {
@@ -661,7 +667,7 @@ export const gePartsHours = async (jobID) => {
   const query = `
      SELECT Qty, tblBPID, model, Description, inventoryCost, inventoryUnit 
   FROM tblOperationReworks 
-  JOIN tblbp ON tblOperationReworks.tblBPID = tblbp.uniqueID 
+  JOIN tblbp ON tblOperationReworks.tblBPID = tblbp.uniqueID and tblOperationReworks.OperationID=0
   WHERE JobID = :jobID
   `;
 
@@ -681,7 +687,7 @@ export const gePartsHours = async (jobID) => {
 export const insertOperationRework=async(jobID, operationID, tblBPID, qty)=> {
   try {
       const sql = `INSERT INTO tblOperationReworks (JobID, OperationID, tblBPID, Qty)
-                   VALUES (:JobID, :OperationID, :tblBPID, :Qty)`;
+                   VALUES (:JobID, 0, :tblBPID, :Qty)`;
       await sequelize.query(sql, {
           replacements: { JobID: jobID, OperationID: operationID, tblBPID: tblBPID, Qty: qty },
           type: QueryTypes.INSERT
