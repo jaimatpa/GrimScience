@@ -1,5 +1,5 @@
 import { Op, QueryTypes, Sequelize } from 'sequelize';
-import { tblBP, tblPO, tblVendors } from "~/server/models";
+import { tblBP, tblPO, tblPODetail, tblVendors } from "~/server/models";
 import sequelize from '~/server/utils/databse';
 const applyFilters = (params) => {
   const filterParams = ['NUMBER', 'NAME', 'ZIP'];
@@ -233,3 +233,114 @@ export const getPoByVendor = async (vendor) => {
     throw error;
   }
 };
+
+export const getPOPartsDetails = async (model) => {
+  console.log(model)
+  try {
+    const query = `
+      SELECT *
+      FROM tblPODetail
+      WHERE STOCKNUMBER = :model
+    `;
+
+    const results = await sequelize.query(query, {
+      replacements: { model },
+      type: QueryTypes.SELECT,
+    });
+
+    if (results.length > 0) {
+      return results;
+    }
+
+    throw new Error('Parts Details not found');
+  } catch (error) {
+    console.error('Error querying PO parts details:', error);
+    throw error;
+  }
+};
+export const getPOPartsDetailsByUniqueId = async (UniqueID) => {
+  console.log(UniqueID)
+  try {
+    const query = `
+      SELECT *
+      FROM tblPODetail
+      WHERE POUID = :UniqueID
+    `;
+
+    const results = await sequelize.query(query, {
+      replacements: { UniqueID },
+      type: QueryTypes.SELECT,
+    });
+
+    if (results.length > 0) {
+      return results;
+    }
+
+    throw new Error('PODetail not found');
+  } catch (error) {
+    console.error('Error querying PO parts details:', error);
+    throw error;
+  }
+};
+
+
+
+export async function savePODetailByUniqueId(data) {
+  const {
+    ORDERED,
+    RECEIVED,
+    DESCRIPTION,
+    STOCKNUMBER,
+    PARTNUMBER,
+    UNITPRICE,
+    UNIT,
+    AMOUNT,
+    POUID,
+    PTNUM
+  } = data;
+
+  try {
+    // Raw SQL query to insert data into tblPODetail
+    const [result] = await sequelize.query(
+      `INSERT INTO tblPODetail (ORDERED, RECEIVED, DESCRIPTION, STOCKNUMBER, PARTNUMBER, UNITPRICE, UNIT, AMOUNT,POUID, PTNUM)
+            VALUES (:ORDERED, :RECEIVED, :DESCRIPTION, :STOCKNUMBER, :PARTNUMBER, :UNITPRICE, :UNIT, :AMOUNT,:POUID, :PTNUM)`,
+      {
+        replacements: {
+          ORDERED,
+          RECEIVED,
+          DESCRIPTION,
+          STOCKNUMBER,
+          PARTNUMBER,
+          UNITPRICE,
+          UNIT,
+          AMOUNT,
+          POUID,
+          PTNUM
+        },
+        type: QueryTypes.INSERT
+      }
+    );
+
+    return { success: true, message: 'PO detail saved successfully', result };
+  } catch (error) {
+    throw new Error(`Error saving PO detail: ${error.message}`);
+  }
+}
+
+export async function deletePODetailByStockNumber(stockNumber) {
+  console.log(stockNumber);
+  try {
+    // Raw SQL query to delete data from tblPODetail by STOCKNUMBER
+    const result = await sequelize.query(
+      `DELETE FROM tblPODetail WHERE STOCKNUMBER = :stockNumber`,
+      {
+        replacements: { stockNumber },
+        type: QueryTypes.DELETE
+      }
+    );
+
+    return { success: true, message: 'PO detail deleted successfully', result };
+  } catch (error) {
+    throw new Error(`Error deleting PO detail: ${error.message}`);
+  }
+}

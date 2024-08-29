@@ -1,11 +1,12 @@
-<!-- pages/Vendors.vue -->
 <script lang="ts" setup>
 import Details from '~/components/materials/vendors/Details.vue';
 import PrintLabel from '~/components/materials/vendors/PrintLabel.vue';
 import PurchaseDetails from '~/components/materials/vendors/PurchaseDetails.vue';
+// import PurchaseDetails from '~/components/materials/vendors/PurchaseDetails.vue';
 import SuppliedPartsList from '~/components/materials/vendors/SuppliedPartsList.vue';
 import VendorTable from '~/components/materials/vendors/VendorTable.vue';
 import ViewOrderList from '~/components/materials/vendors/ViewOrderList.vue';
+// import ViewOrderList from '~/components/materials/vendors/ViewOrderList.vue';
 import type { UTableColumn } from '~/types';
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
@@ -212,8 +213,6 @@ const openModal = async (modalName: keyof typeof gridMeta.value.modalData, row: 
     case 'orderDetails':
       showOrderListModal.value = true;
       gridMeta.value.modalData.orderDetails = row;
-
-      // await fetchOrderDetails(row);
       break;
     case 'createPurchaseOrder':
       showCreatePurchaseOrderModal.value = true;
@@ -261,14 +260,12 @@ const onPrintLabel = (row: any) => openModal('printLabel', row);
       </UDashboardModal>
       <UDashboardModal v-model="showOrderListModal" title="Orders List" :ui="modalUIConfig">
         <ViewOrderList :is-modal="true" :modal-data="gridMeta.modalData.orderDetails" />
-        <!-- <PurchaseDetails></PurchaseDetails> -->
       </UDashboardModal>
       <UDashboardModal v-model="showPartsSuppliedModal" title="Supplied Parts Details" :ui="modalUIConfig">
-        <!-- <PartsSuppliedDetails /> -->
-        <SuppliedPartsList :is-modal="true" :modal-data="gridMeta.modalData.partsSupplied" />
+        <SuppliedPartsList :modal-data="gridMeta.modalData.partsSupplied" />
       </UDashboardModal>
       <UDashboardModal v-model="showCreatePurchaseOrderModal" title="Create Purchase Order" :ui="modalUIConfig">
-        <PurchaseDetails></PurchaseDetails>
+        <PurchaseDetails :is-creating="true" :vendor-details="gridMeta.modalData.createPurchaseOrder"></PurchaseDetails>
       </UDashboardModal>
 
     </UDashboardPanel>

@@ -9,7 +9,7 @@
     </UTable>
 
     <UDashboardModal v-model="showPODetailsModal" title="PO Details" :ui="modalUIConfig">
-        <PurchaseDetails :modal-data="selectedRow"></PurchaseDetails>
+        <PurchaseDetails :is-creating="false" :modal-data="selectedRow"></PurchaseDetails>
     </UDashboardModal>
 </template>
 
@@ -18,7 +18,7 @@ import PurchaseDetails from './PurchaseDetails.vue';
 
 const loadingOverlay = ref(false);
 const rows = ref({});
-const selectedRow = ref({});  // Reactive variable to hold the selected row data
+const selectedRow = ref({});
 
 const columns = ref([
     {
@@ -61,7 +61,6 @@ const props = defineProps({
 });
 
 const showPODetailsModal = ref(false);
-
 const fetchPODetails = async (search: string) => {
     loadingOverlay.value = true;
     if (!search) return;
@@ -85,7 +84,7 @@ const fetchPODetails = async (search: string) => {
 };
 
 const onPODetails = (row) => {
-    selectedRow.value = row;  // Set the selected row data
+    selectedRow.value = row;
     showPODetailsModal.value = true;
 };
 
