@@ -102,31 +102,31 @@ const gridMeta = ref({
       sortDirection: "none",
       filterable: true,
     },
-    {
-      key: "label",
-      label: "Label",
-      kind: "actions",
-    },
-    {
-      key: "order",
-      label: "Order",
-      kind: "actions",
-    },
-    {
-      key: "quote",
-      label: "Quote",
-      kind: "actions",
-    },
-    {
-      key: "serviceOrder",
-      label: "Service Order",
-      kind: "actions",
-    },
-    {
-      key: "siteVisit",
-      label: "Site Visit",
-      kind: "actions",
-    },
+    // {
+    //   key: "label",
+    //   label: "Label",
+    //   kind: "actions",
+    // },
+    // {
+    //   key: "order",
+    //   label: "Order",
+    //   kind: "actions",
+    // },
+    // {
+    //   key: "quote",
+    //   label: "Quote",
+    //   kind: "actions",
+    // },
+    // {
+    //   key: "serviceOrder",
+    //   label: "Service Order",
+    //   kind: "actions",
+    // },
+    // {
+    //   key: "siteVisit",
+    //   label: "Site Visit",
+    //   kind: "actions",
+    // },
     // {
     //   key: "edit",
     //   label: "Edit",
@@ -496,7 +496,7 @@ const onDblClick = async () => {
             </div>
           </template>
         </template>
-        <template #label-data="{ row }">
+        <!-- <template #label-data="{ row }">
           <UTooltip text="Label" class="flex justify-center">
             <UButton
               color="black"
@@ -545,7 +545,7 @@ const onDblClick = async () => {
               @click="onSiteVisitDetail(row)"
             />
           </UTooltip>
-        </template>
+        </template> -->
         <!-- <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
             <UButton

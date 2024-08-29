@@ -824,7 +824,6 @@ onMounted(() => {
       :width="250"
       :resizable="{ min: 200, max: 300 }"
       collapsible
-      style="border:0;"
       
     >
       <UDashboardNavbar class="!border-transparent" :ui="{ left: 'flex-1' }">
