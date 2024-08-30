@@ -17,72 +17,49 @@ const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const headerFilters = ref({
-  markets: {
-    label: "Market",
-    filter: "market",
-    options: [],
-  },
-  professions: {
-    label: "Profession",
-    filter: "source",
-    options: [],
-  },
   categories: {
     label: "Category",
-    filter: "ParadynamixCatagory",
+    filter: "PARTTYPE",
     options: [],
   },
-  conferences: {
-    label: "Conference",
-    filter: "SourceConfrence",
+  subcategories: {
+    label: "Sub Catagory",
+    filter: "SUBCATEGORY",
     options: [],
-  },
-  usstates: {
-    label: "State",
-    filter: "state",
-    api: "/api/common/usstates",
-    options: [],
-  },
+  }
 });
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "number",
+      key: "PARTTYPE",
       label: "Category",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "fname",
+      key: "SUBCATEGORY",
       label: "Sub Category",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "lname",
-      label: "Stock#",
+      key: "DESCRIPTION",
+      label: "DESCRIPTION",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "company1",
-      label: "Description",
+      key: "OnHand",
+      label: "OnHand",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "homephone",
-      label: "On Hand",
-      sortable: true,
-      sortDirection: "none",
-      filterable: true,
-    },
-    {
-      key: "workphone",
+      key: "ETLCriticalComponent",
       label: "ETL Critical Component",
       sortable: true,
       sortDirection: "none",
@@ -109,18 +86,11 @@ const modalMeta = ref({
   modalTitle: "New Customer",
 });
 const filterValues = ref({
-  market: null,
-  source: null,
-  ParadynamixCatagory: null,
-  SourceConfrence: null,
-  number: null,
-  fname: null,
-  lname: null,
-  company1: null,
-  homephone: null,
-  workphone: null,
-  state: null,
-  zip: null,
+  PARTTYPE: null,
+  SUBCATEGORY: null,
+  DESCRIPTION: null,
+  OnHand: null,
+  ETLCriticalComponent: null
 });
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
@@ -150,7 +120,7 @@ Object.entries(route.query).forEach(([key, value]) => {
 const init = async () => {
   fetchGridData();
   for (const key in headerFilters.value) {
-    const apiURL = headerFilters.value[key]?.api ?? `/api/customers/${key}`;
+    const apiURL = headerFilters.value[key]?.api ?? `/api/materials/${key}`;
     console.log("Api url is", apiURL);
     await useApiFetch(apiURL, {
       method: "GET",
@@ -164,7 +134,7 @@ const init = async () => {
 };
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
-  await useApiFetch("/api/customers/numbers", {
+  await useApiFetch("/api/materials/numbers", {
     method: "GET",
     params: {
       ...filterValues.value,
@@ -188,7 +158,9 @@ const fetchGridData = async () => {
     gridMeta.value.page =
       Math.ceil(gridMeta.value.numberOfCustomers / gridMeta.value.pageSize) | 1;
   }
-  await useApiFetch("/api/customers/", {
+
+ console.log('filter value is',filterValues);
+  await useApiFetch("/api/materials/parts/parts", {
     method: "GET",
     params: {
       page: gridMeta.value.page,
@@ -200,6 +172,7 @@ const fetchGridData = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         gridMeta.value.customers = response._data.body;
+        console.log("parts are:",gridMeta.value.customers);
       }
       gridMeta.value.isLoading = false;
     },
@@ -354,21 +327,7 @@ const onDblClick = async () => {
                 </div>
               </template>
             </template>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup label="Zip" name="zip">
-                <UInput
-                  v-model="filterValues.zip"
-                  @update:model-value="handleFilterChange()"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup label="Quantity" name="Quantity">
-                <div class="text-center text-bold">
-                  {{ gridMeta.numberOfCustomers }}
-                </div>
-              </UFormGroup>
-            </div>
+         
           </div>
         </template>
         <template #right>

@@ -1,14 +1,15 @@
-import { getAllParts, getParts } from "~/server/controller/materials";
+import { getNumberOfCustomers } from '~/server/controller/customers';
+import { getNumberOfParts } from '../../controller/materials/Parts';
 
 export default eventHandler(async (event) => {
   try {
+    const filterParams = getQuery(event);
     const method = event._method;
-    const {  page, pageSize, sortBy, sortOrder,...filterParams } = getQuery(event);
-
+    
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getAllParts(page, pageSize, sortBy, sortOrder, filterParams);
-        return { body: list, message: '' }
+        const numberOfParts = await getNumberOfParts(filterParams);
+        return { body: numberOfParts, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

@@ -197,3 +197,76 @@ export const getDistinctParts = async (filterParams) => {
 
   return distinctFilteredData;
 }
+
+
+export const getAllParts = async (page, pageSize, sortBy, sortOrder, filterParams) => {
+  console.log("products aree");
+
+  // Determine the number of records to fetch per page, default to 50
+  const limit = parseInt(pageSize, 10) || 50;
+
+  // Calculate the offset for pagination, default to 0 (first page)
+  const offset = ((parseInt(page, 10) - 1) || 0) * limit;
+
+  // Apply filters based on the filterParams object
+  const whereClause = applyPartFilters(filterParams);
+
+  // Fetch the parts data from the database
+  const productInfos = await tblBP.findAll({
+    attributes: [
+      'UniqueID',
+      'instanceID',
+      'PARTTYPE',
+      'SUBCATEGORY',
+      'MODEL',
+      'DESCRIPTION',
+      'OnHand',
+      'PRIMARYPRICE1',
+      'UNIT',
+      'ETLCriticalComponent'
+    ],
+    where: {
+      partflag: 1,  // Only fetch parts with partflag = 1
+      ...whereClause  // Include the dynamic filters
+    },
+    order: [[sortBy || 'MODEL', sortOrder || 'ASC']],  // Default sorting by 'MODEL' in ascending order
+    offset,  // Start from the calculated offset
+    limit,  // Limit the number of records to fetch
+    raw: true  // Return the data as raw objects
+  });
+
+  return productInfos;
+};
+
+// Helper function to create the 'where' clause for filtering
+const applyPartFilters = (params) => {
+  // List of fields that can be filtered
+  const filterParams = ['UniqueID', 'PARTTYPE', 'SUBCATEGORY', 'MODEL', 'DESCRIPTION','OnHand','ETLCriticalComponent'];
+  const whereClause = {};
+
+  // Iterate over each filterable field
+  filterParams.forEach(param => {
+    if (params[param]) {
+      // If a filter value is provided, add a 'LIKE' condition to the whereClause
+      whereClause[param] = {
+        [Op.like]: `%${params[param]}%`
+      };
+    }
+  });
+
+  return whereClause;
+};
+export const getNumberOfParts = async (filterParams) => {
+  // Apply filters based on the filterParams object
+  const whereClause = applyPartFilters(filterParams);
+
+  // Count the number of parts that match the filter criteria
+  const numberOfParts = await tblBP.count({
+    where: {
+      partflag: 1,  // Only count parts with partflag = 1
+      ...whereClause  // Include the dynamic filters
+    }
+  });
+
+  return numberOfParts;
+};
