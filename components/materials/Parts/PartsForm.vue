@@ -113,57 +113,153 @@ const customersFormInstance = getCurrentInstance();
 
 const loadingOverlay = ref(false)
 const customerExist = ref(true)
-const markets = ref([])
+const category = ref([])
+const subCategory=ref([]);
 const professions = ref([])
-const categories = ref([])
-const conferences = ref([])
+const partUnit = ref([])
+const insepctionList = ref([])
 const usstates = ref([])
 const formData = reactive({
   UniqueID: null,
-  market: null,
-  number: null,
-  source: professions[0],
-  sourcedescription: null,
-  SourceConfrence: null,
-  fname: null,
-  mi: null,
-  lname: null,
-  title: null,
-  position: null,
-  company1: null,
-  company2: null,
-  country: null,
-  address: null,
-  city: null,
-  state: null,
-  zip: null,
-  workphone: null,
-  homephone: null,
-  cellphone: null,
-  fax: null,
-  email: null,
-  website: null,
-  notes: null,
-  billcompany1: null,
-  billcompany2: null,
-  billcountry: null,
-  billaddress: null,
-  billcity: null,
-  billstate: null,
-  billzip: null,
-  billphone: null,
-  billfax: null,
-  attn: null,
-  adddate: null,
-  ParadynamixCatagory: null,
-  fullname: null,
-  Extension: null,
-  ExtensionBill: null,
-})
+  instanceID: null,
+  oldproductid: null,
+  oldpartid: null,
+  partflag: null,
+  subassemblyflag: null,
+  productflag: null,
+  supplyflag: null,
+  ALTER2LEADTIME: null,
+  ALTER2MANTXT: null,
+  ALTER2MANNUM: null,
+  ALTER2DEATXT: null,
+  ALTER2DEANUM: null,
+  ALTER2QTY1: null,
+  ALTER2QTY2: null,
+  ALTER2QTY4: null,
+  ALTER2QTY3: null,
+  ALTER2PRICE1: null,
+  ALTER2PRICE4: null,
+  ALTER2PRICE3: null,
+  ALTER2PRICE2: null,
+  ALTER2PRICE5: null,
+  ALTER2QTY5: null,
+  ALTER1LEADTIME: null,
+  ALTER1MANTXT: null,
+  ALTER1MANNUM: null,
+  ALTER1DEATXT: null,
+  ALTER1DEANUM: null,
+  ALTER1QTY1: null,
+  ALTER1QTY2: null,
+  ALTER1QTY4: null,
+  ALTER1QTY3: null,
+  ALTER1PRICE1: null,
+  ALTER1PRICE4: null,
+  ALTER1PRICE3: null,
+  ALTER1PRICE2: null,
+  ALTER1PRICE5: null,
+  ALTER1QTY5: null,
+  PRIMARYQTY5: null,
+  PRIMARYPRICE5: null,
+  PRIMARYPRICE2: null,
+  PRIMARYPRICE3: null,
+  PRIMARYPRICE4: null,
+  PRIMARYPRICE1: null,
+  PRIMARYQTY3: null,
+  PRIMARYQTY4: null,
+  PRIMARYQTY2: null,
+  PRIMARYQTY1: null,
+  PRIMARYDEANUM: null,
+  PRIMARYDEATXT: null,
+  PRIMARYMANNUM: null,
+  PRIMARYMANTXT: null,
+  PRIMARYLEADTIME: null,
+  SELLINGPRICE: null,
+  SUBCATEGORY: null,
+  PARTTYPE: null,
+  SPECIFICATIONS: null,
+  DESCRIPTION: null,
+  STOCKNUMBER: null,
+  UNIT: null,
+  MULTIPLE: null,
+  CODE: null,
+  TODAY: null,
+  PRODUCTLINE: null,
+  MODEL: null,
+  WARRENTY: null,
+  SHIPWEIGHT: null,
+  NETWEIGHTFULL: null,
+  ELECTRICAL: null,
+  NETWEIGHT: null,
+  OnHand: null,
+  AdjustedAmount: null,
+  Reason: null,
+  COMMENT: null,
+  ORDERCOST: null,
+  WORKCENTERS: null,
+  ALTER2UL: null,
+  ALTER1UL: null,
+  PRIMARYUL: null,
+  DRAWINGCUSTOM: null,
+  EQUIPMENTFLAG: null,
+  PlanID: null,
+  GeneralType: null,
+  AccountNumber: null,
+  InventoryUnit: null,
+  InventoryCost: null,
+  HEIGHT: null,
+  WIDTH: null,
+  LENGTH: null,
+  SPECSHEET: null,
+  TANKDEPTH: null,
+  WAXCAPACITY: null,
+  CRYOTHERMSECTIONS: null,
+  CRYOTHERMWALLS: null,
+  CRYTHERMGALLONSLEFT: null,
+  CRYOTHERMGALLONSRIGHT: null,
+  CRYTHERMCATEGORY: null,
+  DURALASTSUBCATEGORY: null,
+  DURALASTCATEGORY: null,
+  PARADYNAMIXSUBCATEGORY: null,
+  PARADYNAMIXCATEGORY: null,
+  CRYOTHERMWARMTANKSWITCHABLE: null,
+  VariablePricing: null,
+  BuiltInHouse: null,
+  minimum: null,
+  CryothermCorianNumber: null,
+  CryothermPcoatNumber: null,
+  CryothermLeftFrame: null,
+  CryothermLeftTank: null,
+  CryothermLeftPump: null,
+  CryothermLeftJets: null,
+  CryothermLeftCunitNumber: null,
+  CryothermRightFrame: null,
+  CryothermRightTank: null,
+  CryothermRightPump: null,
+  CryothermRightJets: null,
+  CrythermRightCunitnumber: null,
+  InspectionLevel: null,
+  MDET: null,
+  MDET1: null,
+  override: null,
+  grossprofit: null,
+  CryoThermControlPanelNumber: null,
+  CryoThermHeaterNumber: null,
+  amps: null,
+  ETLCriticalComponent: null,
+  sds: null,
+  SubassemblyInventoried: null,
+  LeftTankAssembly: null,
+  RightTankAssembly: null,
+  RevisedBy: null,
+  Recommendations: null,
+  StatementOfNeed: null,
+  SupportorProject: null,
+});
+
 
 const editInit = async () => {
   loadingOverlay.value = true
-  await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
+  await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
     method: 'GET',
     onResponse({ response }) {
       if(response.status === 200) {
@@ -185,44 +281,52 @@ const editInit = async () => {
 }
 const propertiesInit = async () => {
   loadingOverlay.value = true
-  await useApiFetch('/api/customers/markets', {
+  await useApiFetch('/api/materials/categories', {
     method: 'GET',
     onResponse({ response }) {
       if(response.status === 200) {
-        markets.value = response._data.body;
+        category.value = response._data.body;
+        console.log('category is ',response._data.body);
       }
     }, 
     onResponseError() {
-      markets.value = []
+      category.value = []
     }
   })
-  await useApiFetch('/api/customers/conferences', {
+  await useApiFetch('/api/materials/subcategories', {
     method: 'GET',
     onResponse({ response }) {
       if(response.status === 200) {
-        conferences.value = response._data.body;
+        subCategory.value = response._data.body;
+    
       }
     }, 
     onResponseError() {
-      conferences.value = []
+      subCategory.value = []
     }
   })
-  await useApiFetch('/api/customers/categories', {
+  await useApiFetch('/api/common/partUnit', {
     method: 'GET',
     onResponse({ response }) {
       if(response.status === 200) {
-        categories.value = response._data.body;
+        console.log("order unit is",response._data.body.unit);
+        partUnit.value = response._data.body
+    .map(item => item.unit)
+    .filter(unit => unit !== null && unit !== undefined);
+
+
       }
     },
     onResponseError() {
-      categories.value = []
+      partUnit.value = []
     }
   })
-  await useApiFetch('/api/customers/professions', {
+  await useApiFetch('/api/common/getInspectionNumbers', {
     method: 'GET',
     onResponse({ response }) {
       if(response.status === 200) {
-        professions.value = response._data.body;
+        insepctionList.value = response._data.body;
+        console.log("insepction ",response._data.body)
       }
     },
     onResponseError() {
@@ -337,8 +441,9 @@ else
             name="fname"
           >
             <UInputMenu
-              v-model="formData.fname"
+              v-model="formData.PARTTYPE"
               placeholder="Category"
+              :options="category"
             />
           </UFormGroup>
         </div>
@@ -349,8 +454,9 @@ else
             name="lname"
           >
             <UInputMenu
-              v-model="formData.lname"
+              v-model="formData.SUBCATEGORY"
               placeholder="Sub Category"
+              :options="subCategory"
             />
           </UFormGroup>
         </div>
@@ -360,7 +466,7 @@ else
             name="title"
           >
             <UInput
-              v-model="formData.title"
+              v-model="formData.STOCKNUMBER"
               placeholder="Stock Number"
             />
           </UFormGroup>
@@ -370,9 +476,10 @@ else
             label="Inspection"
             name="position"
           >
-            <UInput
-              v-model="formData.position"
+            <UInputMenu
+              v-model="formData.InspectionLevel"
               placeholder="Inspection"
+              :options="insepctionList"
             />
           </UFormGroup>
         </div>
@@ -385,9 +492,8 @@ else
             name="market"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              v-model="formData.UNIT"
+              :options="partUnit"
             />
           </UFormGroup>
         </div>
@@ -397,7 +503,7 @@ else
             name="number"
           >
             <UInput
-              v-model="formData.number"
+              v-model="formData.MULTIPLE"
               placeholder=""
             />
           </UFormGroup>
@@ -408,8 +514,7 @@ else
             name="profession"
           >
             <UInputMenu
-              v-model="formData.source"
-              v-model:query="formData.source"
+              v-model:query="formData.InventoryUnit"
               :options="professions"
             />
           </UFormGroup>
@@ -420,9 +525,8 @@ else
             name="Account"
           >
             <UInputMenu
-              v-model="formData.ParadynamixCatagory"
-              v-model:query="formData.ParadynamixCatagory"
-              :options="categories"
+              v-model="formData.AccountNumber"
+              :options="partUnit"
             />
           </UFormGroup>
         </div>
@@ -431,10 +535,9 @@ else
             label="Description"
             name="Description"
           >
-            <UInputMenu
-              v-model="formData.SourceConfrence"
-              v-model:query="formData.SourceConfrence"
-              :options="conferences"
+            <UInput
+              v-model="formData.DESCRIPTION"
+              :options="insepctionList"
             />
           </UFormGroup>
         </div>
@@ -447,9 +550,8 @@ else
             name="Order Cost"
           >
             <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
+              v-model="formData.ORDERCOST"
+              :options="category"
             />
           </UFormGroup>
         </div>
@@ -459,7 +561,7 @@ else
             name="Inventory Cost"
           >
             <UInput
-              v-model="formData.number"
+              v-model="formData.InventoryCost"
               placeholder=""
             />
           </UFormGroup>
@@ -471,7 +573,7 @@ else
           >
             <UInput
            
-
+   v-model="formData.SELLINGPRICE"
             />
           </UFormGroup>
         </div>
@@ -481,6 +583,7 @@ else
             name="Account"
           >
             <UInput
+   v-model="formData.SPECIFICATIONS"
              
             />
           </UFormGroup>
@@ -538,7 +641,7 @@ else
     </div>
     <div>
       <UFormGroup label="Lead Time" name="Lead Time">
-        <UInput placeholder="1" />
+        <UInput placeholder="1" v-model="formData.PRIMARYLEADTIME" />
       </UFormGroup>
     </div>
   </div>
@@ -547,17 +650,17 @@ else
     
     <div>
       <UFormGroup label="Part Number" name="Part Number">
-        <UInput placeholder="" />
+        <UInput v-Model="formData.PRIMARYMANNUM" placeholder="" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup label="Part Number" name="Part Number">
-        <UInput placeholder="1" />
+        <UInput v-model="formData.PRIMARYDEANUM" placeholder="1" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup label="UL Number" name="UL Number">
-        <UInput placeholder="14.56" />
+        <UInput v-model="formData.PRIMARYUL" />
       </UFormGroup>
     </div>
    
@@ -570,27 +673,27 @@ else
         </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.PRIMARYQTY1"  />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.PRIMARYQTY2" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.PRIMARYQTY3" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.PRIMARYQTY4" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.PRIMARYQTY5" />
       </UFormGroup>
     </div>
   </div>
@@ -601,27 +704,27 @@ else
         </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.PRIMARYPRICE1" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.PRIMARYPRICE2" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.PRIMARYPRICE3" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.PRIMARYPRICE4"   />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.PRIMARYPRICE5" />
       </UFormGroup>
     </div>
    
@@ -740,17 +843,17 @@ else
   <div class="grid grid-cols-1 gap-5">
     <div>
       <UFormGroup label="Manufacturer" name="Manufacturer">
-        <UInput placeholder="Garmin" />
+        <UInput placeholder="Garmin" v-model="formData.ALTER1MANTXT" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup label="Dealer" name="Dealer">
-        <UInput placeholder="Walmart.com" />
+        <UInput placeholder="Walmart.com" v-model="formData.ALTER1DEATXT" />
       </UFormGroup>
     </div>
     <div>
-      <UFormGroup label="Lead Time" name="Lead Time">
-        <UInput placeholder="1" />
+      <UFormGroup label="Lead Time" name="Lead Time" >
+        <UInput placeholder="1" v-model="formData.ALTER1LEADTIME" />
       </UFormGroup>
     </div>
   </div>
@@ -759,17 +862,17 @@ else
     
     <div>
       <UFormGroup label="Part Number" name="Part Number">
-        <UInput placeholder="" />
+        <UInput placeholder="" v-model="formData.ALTER1MANNUM" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup label="Part Number" name="Part Number">
-        <UInput placeholder="1" />
+        <UInput placeholder="1"  v-model="formData.ALTER1DEANUM" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup label="UL Number" name="UL Number">
-        <UInput placeholder="14.56" />
+        <UInput placeholder="14.56"  />
       </UFormGroup>
     </div>
    
@@ -782,27 +885,27 @@ else
         </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.ALTER1QTY1" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.ALTER1QTY2" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER1QTY3" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER1QTY4"  />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER1QTY5"  />
       </UFormGroup>
     </div>
   </div>
@@ -813,27 +916,27 @@ else
         </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.ALTER1PRICE1" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER1PRICE2" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER1PRICE3" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER1PRICE4" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.ALTER1PRICE5" />
       </UFormGroup>
     </div>
    

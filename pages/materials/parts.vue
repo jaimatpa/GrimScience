@@ -557,7 +557,7 @@ const onDblClick = async () => {
       width: 'w-[1800px] sm:max-w-9xl',
     }"
   >
-    <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId" />
+
   </UDashboardModal>
   <!-- Site Visit Modal -->
   <UDashboardModal

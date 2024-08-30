@@ -270,3 +270,52 @@ export const getNumberOfParts = async (filterParams) => {
 
   return numberOfParts;
 };
+export const PartsExistByID = async (id) => {
+  try {
+    const count = await tblBP.count({
+      where: { UniqueID: id }
+    });
+    return count > 0;
+  } catch (error) {
+    console.error("Error checking if part exists:", error);
+    throw error; // You may choose to handle errors differently based on your application's needs
+  }
+};
+
+export const getPartsDetail = async (id) => {
+  try {
+    const part = await tblBP.findOne({
+      where: { UniqueID: id }
+    });
+    return part;
+  } catch (error) {
+    console.error("Error fetching part details:", error);
+    throw error; // Handle errors as appropriate for your application
+  }
+};
+
+export const updateParts = async (id, updateData) => {
+  try {
+    const [updated] = await tblBP.update(updateData, {
+      where: { UniqueID: id }
+    });
+    return updated ? id : null;
+  } catch (error) {
+    console.error("Error updating part:", error);
+    throw error; // Handle errors as appropriate for your application
+  }
+};
+
+export const deleteParts = async (id) => {
+  try {
+    const deleted = await tblBP.destroy({
+      where: { UniqueID: id }
+    });
+    return deleted ? id : null;
+  } catch (error) {
+    console.error("Error deleting part:", error);
+    throw error; // Handle errors as appropriate for your application
+  }
+};
+
+
