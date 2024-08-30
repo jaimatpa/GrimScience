@@ -17,8 +17,8 @@ export default eventHandler(async (event) => {
         }
       case 'PUT':
         if (idExist) {
-          const reqData = await readBody(event);
-          const updatedID = await updateProduct(id, reqData)
+          const { data ,files} = await readBody<{ files: File[], data:{} }>(event)
+          const updatedID = await updateProduct(data ,files)
           return { body: { updatedID }, message: 'Product updated successfully' };
         } else {
           setResponseStatus(event, 404);

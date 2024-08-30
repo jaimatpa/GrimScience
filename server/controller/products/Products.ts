@@ -40,7 +40,6 @@ export const getProducts = async (page, pageSize, sortBy, sortOrder, filterParam
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
   const whereClause = applyFilters(filterParams);
-  console.log(whereClause)
   const list = await tblBP.findAll({
     attributes: ['UniqueID', 'MODEL', 'DESCRIPTION', 'grossprofit', 'PRODUCTLINE', "SELLINGPRICE", "CODE"],
     where: {
@@ -121,27 +120,75 @@ export const createProduct = async (data,files) => {
     instanceID: Date.now() + Math.floor(Math.random() * 1000)
   };
   const newProduct = await tblBP.create(createReqData);
+  let SPECSHEET = null
   for ( const file of files ) {
     await storeFileLocally(
         file,
-        newProduct.dataValues.UniqueID+'_'+file.name,
+        newProduct.dataValues.UniqueID+'_'+file.name.split(".pdf")[0],
         '/ProductSpecFiles'
     )
+    SPECSHEET = '/ProductSpecFiles/'+newProduct.dataValues.UniqueID+'_'+file.name
   }
+  let updatedNewProduct = {
+    SPECSHEET
+  };
+  const newUpdatedProduct = await tblBP.update(updatedNewProduct, {
+    where: { UniqueID: newProduct.dataValues.UniqueID }
+  });
   
-  return newProduct;
+  return newUpdatedProduct;
 };
 
-export const updateProduct = async (id, reqData) => {
-  const today = new Date(); 
+export const updateProduct = async (data,files) => {
+  const today = new Date();
+  let SPECSHEET = data.SPECSHEET
+  for ( const file of files ) {
+    await storeFileLocally(
+        file,
+        data.UniqueID+'_'+file.name.split(".pdf")[0],
+        '/ProductSpecFiles'
+    )
+    SPECSHEET = '/ProductSpecFiles/'+data.UniqueID+'_'+file.name
+  }
   let updatedReqData = {
-      ...reqData,
-      TODAY: formatDateForSQLServer(today),
-      instanceID: reqData.instanceID
-    };
+    ...data,
+    TODAY: formatDateForSQLServer(today),
+    instanceID: data.instanceID,
+    SPECSHEET: SPECSHEET
+  };
   await tblBP.update(updatedReqData, {
-    where: { UniqueID: id }
+    where: { UniqueID: data.UniqueID }
   });
+  return data.UniqueID;
+}
+
+export const revisionProduct = async (data, files) => {
+  data.UniqueID = null
+  const tableDetail = await tblBP.findByPk(data.UniqueID);
+  const today = new Date(); 
+
+  let SPECSHEET = data.SPECSHEET
+  for ( const file of files ) {
+    await storeFileLocally(
+        file,
+        data.UniqueID+'_'+file.name.split(".pdf")[0],
+        '/ProductSpecFiles'
+    )
+    SPECSHEET = '/ProductSpecFiles/'+data.UniqueID+'_'+file.name
+  }
+  let updatedReqData = {
+    ...data,
+    CODE: "Revision",
+    TODAY: formatDateForSQLServer(today),
+    instanceID: tableDetail.dataValues.instanceID,
+    SPECSHEET: SPECSHEET
+  };
+  await tblBP.create(updatedReqData);
+  return data.UniqueID;
+}
+
+export const deleteProduct = async (id) => {
+  await tblBP.destroy({ where: { UniqueID: id } });
   return id;
 }
 
@@ -183,27 +230,6 @@ export const bulkInactiveProduct = async (data) => {
 
   return true;
 };
-
-export const revisionProduct = async (id, reqData) => {
-  reqData.UniqueID = null
-  const tableDetail = await tblBP.findByPk(id);
-  const today = new Date(); 
-  let updatedReqData = {
-    ...reqData,
-    CODE: "Revision",
-    TODAY: formatDateForSQLServer(today),
-    instanceID: tableDetail.dataValues.instanceID
-  };
-  await tblBP.create(updatedReqData);
-  return id;
-}
-
-export const deleteProduct = async (id) => {
-  await tblBP.destroy({ where: { UniqueID: id } });
-  return id;
-}
-
-
 let depth = 0;
   async function getLaborHours(lngInstanceID, includeTopLevelLabor = true) {
     depth += 1;
@@ -363,6 +389,104 @@ export const calculateCostsAndProfit = async (id) => {
     grossProfit: parseFloat(grossProfit.toFixed(2))
   };
   
+}
+
+
+export const getProductPartList = async (id) => {
+  // Fetch main table details
+  const tableDetail = await tblBP.findByPk(id);
+  const instanceID = tableDetail.dataValues.instanceID;
+  const qty = 1;
+
+  // Query to get total quantity
+  const table1 = await sequelize.query(`
+    SELECT tblbp.instanceid, SUM(tblbpparts.qty) * :qty AS totalQuantity
+    FROM tblbp
+    INNER JOIN tblBPParts ON tblbp.uniqueid = tblbpparts.partid
+    INNER JOIN tblsteps ON tblsteps.uniqueid = tblbpparts.stepid
+    INNER JOIN tblplan ON tblplan.uniqueid = tblsteps.planid
+    WHERE tblPlan.instanceid IN (:instanceID)
+    GROUP BY tblbp.instanceID
+  `, {
+    replacements: { instanceID: instanceID, qty: qty },
+    type: QueryTypes.SELECT
+  });
+
+  // Calculate labor hours for each item
+  const results = await Promise.all(table1.map(async row => {
+    // Fetch details for each item
+    const table2 = await sequelize.query(`
+      SELECT tblbp.model, tblbp.description, tblbp.inventoryunit, tblbp.ordercost, 
+             tblbp.multiple, tblBP.inventorycost, tblBP.instanceID, code 
+      FROM tblbp 
+      WHERE uniqueid IN (
+        SELECT MAX(uniqueid) FROM tblbp WHERE instanceid = :instanceid
+      )
+    `, {
+      replacements: { instanceid: row['instanceid'] },
+      type: QueryTypes.SELECT
+    });
+
+    // Calculate labor hours
+    const calculateLaborHours = async (instanceID) => {
+      let hours = 0;
+      let results = await sequelize.query(`
+        SELECT builtinhouse FROM tblBP WHERE instanceID = :instanceID
+      `, {
+        replacements: { instanceID: instanceID },
+        type: QueryTypes.SELECT
+      });
+
+      const builtinhouse = results[0].builtinhouse;
+
+      if (builtinhouse === 'False') {
+        // Add top-level labor hours
+        results = await sequelize.query(`
+          SELECT hours FROM tblPlan WHERE instanceID = :instanceID
+        `, {
+          replacements: { instanceID: instanceID },
+          type: QueryTypes.SELECT
+        });
+
+        hours += results.reduce((acc, row) => acc + parseFloat(row.hours), 0);
+
+        // Recursively calculate sub-assembly labor hours
+        results = await sequelize.query(`
+          SELECT (SELECT TOP 1 tblBP.instanceID 
+                  FROM tblBP 
+                  WHERE tblbp.UniqueID = tblBPParts.partid 
+                  ORDER BY tblBP.uniqueID DESC) AS instanceID, 
+                 qty
+          FROM tblBPParts
+          INNER JOIN tblSteps ON tblSteps.uniqueID = tblBPParts.stepID
+          INNER JOIN tblPlan ON tblPlan.uniqueID = tblSteps.PlanID
+          WHERE (SELECT COUNT(tblPlan.uniqueID) 
+                 FROM tblPlan 
+                 WHERE tblPlan.instanceID = (SELECT TOP 1 tblBP.instanceID 
+                                              FROM tblBP 
+                                              WHERE tblbp.UniqueID = tblBPParts.partid 
+                                              ORDER BY tblBP.uniqueID DESC)) > 0
+          AND tblplan.instanceID = :instanceID
+        `, {
+          replacements: { instanceID: instanceID },
+          type: QueryTypes.SELECT
+        });
+
+        for (const row of results) {
+          hours += (await calculateLaborHours(row.instanceID)) * row.qty;
+        }
+      }
+      return hours;
+    };
+
+    const laborHours = await calculateLaborHours(row['instanceid']);
+    table2[0]['quantity'] = row['totalQuantity'];
+    table2[0]['totalCost'] = parseFloat((row['totalQuantity'] * table2[0]['inventorycost']).toFixed(2));
+    table2[0]['laborHours'] = parseFloat(laborHours.toFixed(2));
+    return table2[0];
+  }));
+
+  return results;
 }
 
 

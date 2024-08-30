@@ -286,7 +286,10 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     if(actionType.value === "revision") {
       await useApiFetch(`/api/products/revisions/${props.selectedProduct}`, {
         method: 'PUT',
-        body: event.data, 
+        body: {
+          data: event.data,
+          files: files.value
+        }, 
         onResponse({ response }) {
           if (response.status === 200) {
             toast.add({
@@ -316,7 +319,10 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     } else if(actionType.value === "createOrModify") {
       await useApiFetch(`/api/products/${props.selectedProduct}`, {
         method: 'PUT',
-        body: event.data, 
+        body: {
+          data: event.data,
+          files: files.value
+        }, 
         onResponse({ response }) {
           if (response.status === 200) {
             toast.add({
@@ -339,7 +345,9 @@ const modalMeta = ref({
     modalTitle: "New Product",
     isPartsLookupModelOpne: false,
     partsLookupModalCategory:null,
-    partsLookupModalSubCategory: null
+    partsLookupModalSubCategory: null,
+    isViewPdfModalOpen: false,
+
 })
 const handlePartsLookup = (category, subCategory) => {
   modalMeta.value.isPartsLookupModelOpne = true
@@ -348,10 +356,10 @@ const handlePartsLookup = (category, subCategory) => {
   modalMeta.value.partsLookupModalSubCategory = subCategory
 } 
 
-const handleModalClose = () => {
-  modalMeta.value.isPartsLookupModelOpne = false;
-};
-
+const handleOpenPdf = () => {
+  modalMeta.value.isViewPdfModalOpen = true;
+  modalMeta.value.modalTitle = "Specsheet"
+}
 
 if(props.selectedProduct !== null) 
   editInit()
@@ -597,7 +605,7 @@ else
       <div class="flex flex-row space-x-3">
         <div class="w-1/3">
           <UFormGroup label="Spec Sheet" name="SPECSHEET">
-            <div class="relative">
+            <div class="relative flex flex-row">
               <input
                 type="file"
                 id="file-upload"
@@ -615,8 +623,10 @@ else
                   class="bg-[#9b4b99] text-white px-4 rounded"
                 >
                   ...
-                </button>
+                </button> 
+                
               </label>
+                <a v-if="formData.SPECSHEET != null" class="bg-[#9b4b99] text-white py-1 px-2 ml-2 rounded" :href="formData.SPECSHEET">Download Pdf</a> 
             </div>
           </UFormGroup>
         </div>
@@ -1054,6 +1064,19 @@ else
       }"
     >
       <MaterialsPartsPartList :is-page="false" :category="modalMeta.partsLookupModalCategory" :subCategory="modalMeta.partsLookupModalSubCategory"  />
+    </UDashboardModal>
+
+    <UDashboardModal
+      v-model="modalMeta.isViewPdfModalOpen"
+      :title="modalMeta.modalTitle"
+      :ui="{
+        title: 'text-lg',
+        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1800px] sm:max-w-9xl'
+      }"
+    >
+      <CommonViewPdf :url="formData.SPECSHEET"  />
     </UDashboardModal>
     
 

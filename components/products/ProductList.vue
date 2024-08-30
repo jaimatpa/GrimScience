@@ -122,6 +122,7 @@ const gridMeta = ref({
 const modalMeta = ref({
   isProductModalOpen: false,
   modalTitle: "New Product",
+  isPartsModalOpen: false,
 });
 
 const filterValues = ref({
@@ -459,36 +460,10 @@ const handleFilterInputChange = async (event, name) => {
   }
   fetchGridData();
 };
-const handleRefresh = async () =>{
-  if(gridMeta.value.selectProduct !== null) {
-    await useApiFetch('/api/products/revisions/'+gridMeta.value.selectedProductId, {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          if(response._data.body.length > 0) {
-            revisions.value = response._data.body;
-          }
-        }
-      }, 
-      onResponseError() {
-        revisions.value = []
-      }
-    })
-    await useApiFetch('/api/products/jobhistory/'+gridMeta.value.selectedProductId, {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          if(response._data.body.length > 0) {
-            jobHistory.value = response._data.body;
-          }
-        }
-      }, 
-      onResponseError() {
-        jobHistory.value = []
-      }
-    })
-  }
+const handlePartListModal = () => {
+  modalMeta.value.isPartsModalOpen = true
 }
+
 
 </script>
 
@@ -682,17 +657,6 @@ const handleRefresh = async () =>{
         
       </UTable>
       <div v-else class="flex flex-col overflow-y-scroll">
-        <div class="w-full mt-4 flex items-end justify-end pr-5">
-          <UButton
-            icon="i-f7-arrow-clockwise"
-            variant="outline"
-            color="green"
-            label="Refresh"
-            :ui="{ base: 'w-fit', truncate: 'flex justify-center w-full' }"
-            truncate
-            @click="handleRefresh"
-          />
-        </div>
         <div class="grid grid-cols-2 gap-5 px-5">
           <div>
             <span>Revision History</span>
@@ -858,7 +822,7 @@ const handleRefresh = async () =>{
             <div class="grid grid-cols-2 gap-4">
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Operations</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >Clone Operations</UButton>
-              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Parts List</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handlePartListModal" >View Parts List</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Serials</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleCostCalculation" >View Costs</UButton>
             </div>
@@ -907,6 +871,18 @@ const handleRefresh = async () =>{
     :selected-product="gridMeta.selectedProductId"
     :is-modal="true"
   />
+  </UDashboardModal>
+
+   <!-- Parts List Modal -->
+   <UDashboardModal
+    v-model="modalMeta.isPartsModalOpen"
+    title="Parts Listing"
+    :ui="{
+      width: 'w-[1000px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <ProductsPartList :selected-product="gridMeta.selectedProductId"/>
   </UDashboardModal>
 
 </template>

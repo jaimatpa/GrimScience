@@ -20,7 +20,7 @@ export default defineNuxtConfig({
 
   fileStorage: {
     // enter the absolute path to the location of your storage
-    mount: 'storage',
+    mount: 'public',
 
   },
 

@@ -3,7 +3,7 @@
 
   const props = defineProps({
     isPage: {
-      type: [String, Number, null],
+      type: [Boolean],
       required: true,
     },
     category: {

@@ -26,7 +26,6 @@ const editInit = async () => {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        console.log(response._data.body)
         partList.value = response._data.body;
       }
     },
@@ -80,7 +79,7 @@ const listColumns = ref([
     label: "Total",
   },
   {
-    key: "material_cost",
+    key: "laborHours",
     label: "Sub Ass Hrs",
   },
 ]);
@@ -138,19 +137,7 @@ if (props.selectedJob !== null) editInit();
             truncate
           />
         </div>
-        <div class="mt-5 ml-4">
-          <UButton
-            icon="i-heroicons-chat-bubble-oval-left-ellipsis"
-            variant="outline"
-            color="green"
-            label="Show Sub Assembly Hours"
-            :ui="{
-              base: 'w-fit',
-              truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
-        </div>
+        
       </div>
     </div>
   </UForm>
