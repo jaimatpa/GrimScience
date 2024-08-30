@@ -50,7 +50,7 @@ const applyFilters = (params) => {
 
   // Update this to use 'selectedOptions' if that's the key you're filtering by
   if (params.selectedOptions) {
-    whereClause["Catagory"] = {
+    whereClause["projectType"] = {
       [Op.like]: `%${params.selectedOptions}%`, // Adjust the field if needed
     };
   }

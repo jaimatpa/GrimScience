@@ -121,7 +121,7 @@ import type { UTableColumn } from '~/types';
   }
   const fetchGridData = async () => {
     gridMeta.value.isLoading = true
-    await useApiFetch('/api/customers/numbers', {
+    await useApiFetch('/api/projects/skill/number', {
       method: 'GET',
       params: {
         ...filterValues.value

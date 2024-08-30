@@ -144,6 +144,7 @@ import type { UTableColumn } from '~/types';
   
   }
   const fetchGridData = async () => {
+
     gridMeta.value.isLoading = true
     await useApiFetch('/api/projects/numbers', {
       method: 'GET',
@@ -236,6 +237,7 @@ watch(selectedOptions, (newSelectedOptions) => {
   const handleFilterChange = () => {
     gridMeta.value.page = 1
     fetchGridData()
+    
   }
   const handleSortingButton = async (btnName: string) => {
     gridMeta.value.page = 1

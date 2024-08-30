@@ -1319,7 +1319,7 @@ else
       width: 'w-[1500px] sm:max-w-9xl', 
     }"
   >
-    <PartsList @close="modalMeta.isPartLisingModalOpen = true"/>
+    <MarketingPartList :selectedProduct="selectedCustomer"  @close="modalMeta.isPartLisingModalOpen = true"/>
   </UDashboardModal> 
 
 

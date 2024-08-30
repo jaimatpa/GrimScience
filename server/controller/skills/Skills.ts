@@ -29,6 +29,19 @@ export const getAllSkills = async (sortBy, sortOrder, filterParams) => {
     return list;
 }
 
+export const getSkillCount = async (filterParams) => {
+    const whereClause = applyFilters(filterParams);
+
+    // Count the number of records matching the filters
+    const count = await tblSkills.count({
+        where: whereClause
+    });
+
+    return count;
+}
+
+
+
 export const getSkillsCatagory = async () => {
     const result = await tblSkills.findAll({
         attributes: [
