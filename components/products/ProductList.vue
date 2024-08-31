@@ -122,7 +122,9 @@ const gridMeta = ref({
 const modalMeta = ref({
   isProductModalOpen: false,
   modalTitle: "New Product",
+  modalDescription: "Create new product",
   isPartsModalOpen: false,
+  isOperationsModalOpen: false,
 });
 
 const filterValues = ref({
@@ -248,9 +250,7 @@ const fetchGridData = async () => {
     },
   });
 };
-const excelExport = () => {
 
-};
 const onCreate = () => {
   gridMeta.value.selectedProductId = null;
   modalMeta.value.modalTitle = "New Product";
@@ -285,7 +285,6 @@ const onMultipleSelect = (row) => {
     multipleProductSelect.value = [...multipleProductSelect.value,row?.UniqueID]
   }
 }
-
 const onSelect = async (row) => {
   gridMeta.value.selectedProductId = row?.UniqueID;
   costCalculation.value = {
@@ -339,7 +338,6 @@ const onSelect = async (row) => {
   })
 
 };
-
 const onRevisionSelect = async (row) => {
   gridMeta.value.selectedProductId = row?.UniqueID;
   revisions.value.forEach((pro) => {
@@ -358,7 +356,6 @@ const onDblClick = async () => {
     modalMeta.value.isProductModalOpen = true;
   }
 };
-
 const handleBulkInactive = async () => {
   loadingOverlay.value = true
   await useApiFetch('/api/products/bulkInactiveProduct/', {
@@ -463,6 +460,13 @@ const handleFilterInputChange = async (event, name) => {
 const handlePartListModal = () => {
   modalMeta.value.isPartsModalOpen = true
 }
+const handleOperationtModal = () => {
+  modalMeta.value.isOperationsModalOpen = true
+  modalMeta.value.modalTitle = "Manufacturing Secquence";
+  modalMeta.value.modalDescription = `Manufacturing Secquence ${
+    gridMeta.value.selectProduct.MODEL ? gridMeta.value.selectProduct.MODEL : gridMeta.value.selectProduct.MODEL
+  }`;
+}
 
 
 </script>
@@ -547,7 +551,7 @@ const handlePartListModal = () => {
             variant="outline"
             label="New Product"
             trailing-icon="i-heroicons-plus"
-            @click="onCreate()"
+            @click="onCreate"
           />
         </template>
       </UDashboardToolbar>
@@ -820,7 +824,7 @@ const handlePartListModal = () => {
               </div>
 
             <div class="grid grid-cols-2 gap-4">
-              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Operations</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleOperationtModal" >View Operations</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >Clone Operations</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handlePartListModal" >View Parts List</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Serials</UButton>
@@ -874,7 +878,7 @@ const handlePartListModal = () => {
   </UDashboardModal>
 
    <!-- Parts List Modal -->
-   <UDashboardModal
+  <UDashboardModal
     v-model="modalMeta.isPartsModalOpen"
     title="Parts Listing"
     :ui="{
@@ -883,6 +887,19 @@ const handlePartListModal = () => {
     }"
   >
     <ProductsPartList :selected-product="gridMeta.selectedProductId"/>
+  </UDashboardModal>
+
+  <!-- Manufacturing Sequnce Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isOperationsModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <ProductsManufacturingSequenceForm :selected-product="gridMeta.selectedProductId" />
   </UDashboardModal>
 
 </template>

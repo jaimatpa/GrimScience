@@ -443,6 +443,7 @@ const handleClearCick = () => {
 };
 
 const handleProdOperationSelect = (row) => {
+  console.log(row.UniqueID)
   prodOperationGridMeta.value.selectedOperation = { ...row, class: "" };
   prodOperationGridMeta.value.operations.forEach((c) => {
     if (c.UniqueID === row.UniqueID) {
@@ -456,6 +457,7 @@ const handleProdOperationSelect = (row) => {
     prodOperationGridMeta.value.selectedOperation.UniqueID;
 
   getSchedules();
+
 };
 
 const handleSubOperationSelect = (row) => {
@@ -747,6 +749,16 @@ const modalMeta = ref({
 });
 
 const onDblClick = () => {
+  console.log('dbl')
+  modalMeta.value.isOperationModalOpen = true;
+  modalMeta.value.modalTitle = "Manufacturing Secquence";
+  modalMeta.value.modalDescription = `Manufacturing Secquence ${
+    formData.MODEL ? formData.MODEL : formData.PART
+  }`;
+};
+
+const onDblClickOperation = () => {
+  console.log('dbl')
   modalMeta.value.isOperationModalOpen = true;
   modalMeta.value.modalTitle = "Manufacturing Secquence";
   modalMeta.value.modalDescription = `Manufacturing Secquence ${

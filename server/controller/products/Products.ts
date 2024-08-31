@@ -117,7 +117,6 @@ export const createProduct = async (data,files) => {
     ...data,
     CODE: "Initial",
     TODAY: formatDateForSQLServer(today),
-    instanceID: Date.now() + Math.floor(Math.random() * 1000)
   };
   const newProduct = await tblBP.create(createReqData);
   let SPECSHEET = null
@@ -130,7 +129,8 @@ export const createProduct = async (data,files) => {
     SPECSHEET = '/ProductSpecFiles/'+newProduct.dataValues.UniqueID+'_'+file.name
   }
   let updatedNewProduct = {
-    SPECSHEET
+    SPECSHEET,
+    instanceID: newProduct.dataValues.UniqueID
   };
   const newUpdatedProduct = await tblBP.update(updatedNewProduct, {
     where: { UniqueID: newProduct.dataValues.UniqueID }
