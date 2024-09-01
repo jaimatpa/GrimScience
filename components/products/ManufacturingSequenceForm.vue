@@ -16,6 +16,13 @@ const props = defineProps({
   },
 });
 
+// Retrieve the user cookie
+const user = useCookie<string>('user');
+const username = "#"+user.value.payrollnumber+" "+user.value.fname+" "+user.value.lname
+
+// Parse the JSON string into an object
+// const userData = user ? JSON.parse(user) : null;
+// console.log(userData)
 const toast = useToast();
 const router = useRouter();
 const organizationFormInstance = getCurrentInstance();
@@ -48,7 +55,6 @@ const getOperations = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         prodOperationGridMeta.value.operations = response._data.body.items;
-
         totalHours.value = response._data.body.totalHours
       }
     },
@@ -78,9 +84,13 @@ const propertiesInit = async () => {
 };
 
 const validate = (state: any): FormError[] => {
-  const errors = [];
-  return errors;
-};
+  const errors = []
+  if (!state.Operation) errors.push({ path: 'Operation', message: 'Please enter operation.' })
+  if (!state.week) errors.push({ path: 'week', message: 'Please enter a week.' })
+  if (!state.WorkCenter) errors.push({ path: 'WorkCenter', message: 'Please entter a workcenter.' })
+  if (!state.Hours) errors.push({ path: 'Hours', message: 'Please entter a hours.' })
+  return errors
+}
 const handleClose = async () => {
   if (organizationFormInstance?.vnode?.props.onClose) {
     emit("close");
@@ -89,33 +99,17 @@ const handleClose = async () => {
   }
 };
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  if (props.selectedProduct === null) {
-    // Create New Job
+  if (prodOperationGridMeta.value.selectedOperation === null) {
+    // Create New Operation
     isLoading.value = true;
-    // await useApiFetch("/api/jobs", {
-    //   method: "POST",
-    //   body: data,
-    //   onResponse({ response }) {
-    //     if (response.status === 200) {
-    //       isLoading.value = false;
-    //       toast.add({
-    //         title: "Success",
-    //         description: response._data.message,
-    //         icon: "i-heroicons-check-circle",
-    //         color: "green",
-    //       });
-    //     }
-    //   },
-    // });
-  } else {
-    // Update Job
-    isLoading.value = true;
-    await useApiFetch(`/api/jobs/operations/${formData.UniqueID}`, {
-      method: "PUT",
-      body: event.data,
+    await useApiFetch("/api/products/productoperations/create", {
+      method: "POST",
+      body: {
+        data: {...event.data, skills: stepsGridMeta.value.steps, prodID : props.selectedProduct, username},
+      },
       onResponse({ response }) {
         if (response.status === 200) {
-          getOperations();
+          isLoading.value = false;
           toast.add({
             title: "Success",
             description: response._data.message,
@@ -125,6 +119,32 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       },
     });
+    handleClearCick()
+    await getOperations()
+  } else {
+    // Edit Operation
+    isLoading.value = true;
+    await useApiFetch("/api/products/productoperations/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+      method: "PUT",
+      body: {
+        data: {...event.data, skills: stepsGridMeta.value.steps, prodID : props.selectedProduct, username},
+      },
+      onResponse({ response }) {
+        if (response.status === 200) {
+          isLoading.value = false;
+          prodOperationGridMeta.value.operations = response._data.body.items;
+          totalHours.value = response._data.body.totalHours;
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
+    handleClearCick()
+    await getOperations()
   }
   emit("save");
 };
@@ -186,6 +206,35 @@ const handleClearCick = () => {
   Object.keys(formData).forEach((key) => {
     formData[key] = null;
   });
+  prodOperationGridMeta.value.selectedOperation = null
+  stepsGridMeta.value.selectedStep = null
+  skillGridMeta.value.selectedSkill = null
+  stepsGridMeta.value.steps = []
+  skillGridMeta.value.skills = []
+};
+
+const handleDeleteClick = async () => {
+
+  if(prodOperationGridMeta.value.selectedOperation !== null){
+    loadingOverlay.value = true
+    await useApiFetch("/api/products/productoperations/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+      method: "DELETE",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
+    handleClearCick()
+    await getOperations()
+    loadingOverlay.value = false
+  }
+  
 };
 
 const prodOperationGridMeta = ref({
@@ -390,6 +439,7 @@ else propertiesInit();
                 base: 'w-full',
                 truncate: 'flex justify-center w-full',
               }"
+              @click="handleDeleteClick"
               truncate
             />
           </div>

@@ -23,8 +23,6 @@ export const operationExistByID = async (id) => {
     return false;
 }
 
-
-
 export const getProductOperations = async (id) => {
   const tableDetail = await tblBP.findByPk(id);
   const instanceID = tableDetail.dataValues.instanceID;
@@ -37,10 +35,10 @@ export const getProductOperations = async (id) => {
     replacements: { instanceID },
     type: QueryTypes.SELECT
   });
-  // console.log(plans)
+
   let totalHours = 0;
   const results = await Promise.all(plans.map(async plan => {
-    console.log(plan)
+
     // Calculate cost for each item
     const costDetails = await sequelize.query(`
       SELECT ordercost, Multiple 
@@ -71,7 +69,7 @@ export const getProductOperations = async (id) => {
 
     // Accumulate total hours
     totalHours += item.Hours;
-    // console.log(item)
+
     return item;
   }));
 
@@ -108,7 +106,7 @@ export const getOperationSteps = async (id) => {
       UniqueID: step.UniqueID
     });
   }
-  console.log(stepData)
+
   return {
     steps: stepData,
   };
@@ -123,7 +121,7 @@ export const getOperationSkills = async (id) => {
     replacements: { planUniqueID:id },
     type: QueryTypes.SELECT
   });
-  console.log( planDetails[0].skills)
+
   // Extract and split the skills associated with the plan
   const skills = planDetails[0].skills.split('=');
   const skillData = [];
@@ -147,18 +145,46 @@ export const getOperationSkills = async (id) => {
       }
     }
   }
-  console.log(skillData)
+
   return {
     skills: skillData
   };
 }
 
+const reorderOperations = async (instanceID) => {
+  // Fetch all records for the given instanceID, ordered by week and number
+  const dt = await sequelize.query(`
+    SELECT * FROM tblPlan 
+    WHERE instanceid = :instanceID 
+    ORDER BY CAST(week AS INT), number ASC
+  `, {
+    replacements: { instanceID },
+    type: QueryTypes.SELECT
+  });
+
+  let start = 1;
+
+  // Iterate through each row and update the NUMBER field
+  for (const row of dt) {
+    await sequelize.query(`
+      UPDATE tblPlan 
+      SET NUMBER = :start 
+      WHERE UniqueID = :uniqueID
+    `, {
+      replacements: { start, uniqueID: row.UniqueID },
+      type: QueryTypes.UPDATE
+    });
+    start += 1;
+  }
+};
+
 export const createProductOperation = async (data) => {
 
-  const tableDetail = await tblBP.findByPk(data.id);
+  const tableDetail = await tblBP.findByPk(data.prodID);
   const instanceID = tableDetail.dataValues.instanceID;
 
-  const { Number, Operation, WorkCenter, Hours, week } = data;
+  const { Number, Operation, WorkCenter, Hours, week, skills, username } = data;
+  const strSkills = skills.map(skill => skill.UniqueID).join('=');
 
   if (!Operation || !WorkCenter || !Hours || !week) return { error: 'Please provide all the fields' };
   const today = new Date();
@@ -168,88 +194,107 @@ export const createProductOperation = async (data) => {
     WorkCenter,
     Hours,
     week,
+    skills: strSkills,
     Number: parseInt(Number),
-    PreparedBy: 'Leith',
+    PreparedBy: username,
     PreparedDate: formatDateForSQLServer(today),
     ApprovedBy: '',
     ApprovedDate: '',
 
   }
 
-  const newOperaion = await tblBP.create(createOperation);
-  return newOperaion
-
-}
-
-const addOrUpdatePlan = async (data, instanceID) => {
-  const { txtOperation, cboWorkCenter, txtStep, txtHours, txtweek, lstSkills, tag } = data;
-
-  // Validate input
-  if (!txtOperation || !cboWorkCenter || !txtStep || !txtHours || !txtweek) return;
-
-  let xxx = tag || 0;
-
-  // Fetch existing plan data
-  const existingPlan = await sequelize.query(`
-    SELECT * FROM tblPlan WHERE uniqueid = :uniqueID
-  `, {
-    replacements: { uniqueID: xxx },
-    type: QueryTypes.SELECT
-  });
-
-  let isNew = false;
-  let planRecord;
-
-  if (existingPlan.length === 0) {
-    planRecord = {}; // New record
-    isNew = true;
-  } else {
-    planRecord = existingPlan[0]; // Existing record
-  }
-
-  // Set plan record fields
-  planRecord.instanceid = instanceID;
-  planRecord.operation = txtOperation;
-  planRecord.Week = txtweek;
-  planRecord.workcenter = cboWorkCenter;
-  planRecord.hours = parseFloat(txtHours);
-  planRecord.Number = parseInt(txtStep);
-  planRecord.PreparedBy = gStrEmployee;
-  planRecord.PreparedDate = new Date().toLocaleDateString();
-  planRecord.ApprovedBy = '';
-  planRecord.ApprovedDate = '';
-
-  // Handle skills
-  const strSkills = lstSkills.map(skill => skill.tag).join('=');
-  planRecord.skills = strSkills;
-
-  // Save or update the record
-  if (isNew) {
-    await tblPlan.create(planRecord);
-  } else {
-    await tblPlan.update(planRecord, { where: { uniqueid: xxx } });
-  }
-
-  // Clear form fields
-  data.txtHours = '';
-  data.txtOperation = '';
-  data.txtweek = '';
-  data.txtStep = '';
-  data.cboWorkCenter = '';
-  data.lstSkills = [];
-
-  const str = cboWorkCenter;
+  const newOperation = await tblPlan.create(createOperation);
 
   // Reorder operations (implement this function as needed)
   await reorderOperations(instanceID);
+  return newOperation
 
-  // Reload the manufacturing sequence
-  await getManufacturingSequence(instanceID);
+}
 
-  data.cboWorkCenter = str;
-};
+export const editProductOperation = async (data,id) => {
+  const tableDetail = await tblBP.findByPk(data.prodID);
+  const instanceID = tableDetail.dataValues.instanceID;
 
+  const { Number, Operation, WorkCenter, Hours, week, skills, username } = data;
+  const strSkills = skills.map(skill => skill.UniqueID).join('=');
 
+  if (!Operation || !WorkCenter || !Hours || !week) return { error: 'Please provide all the fields' };
+  const today = new Date();
+  const editOperation = {
+    Operation,
+    WorkCenter,
+    Hours,
+    week,
+    skills: strSkills,
+    Number: parseInt(Number),
+    PreparedBy: username,
+    PreparedDate: formatDateForSQLServer(today),
+    ApprovedBy: '',
+    ApprovedDate: '',
+
+  }
+
+  await tblPlan.update(editOperation, {
+    where: { UniqueID: id}
+  });
+  await reorderOperations(instanceID);
+
+  return id
+
+}
+
+export const deleteProductOperation = async (id) => {
+
+  // Fetch steps related to the plan
+  const steps = await sequelize.query(`
+    SELECT * FROM tblsteps 
+    WHERE planid = :planUniqueID
+  `, {
+    replacements: { planUniqueID:id },
+    type: QueryTypes.SELECT
+  });
+
+  // Loop through each step and delete related records from tblsteps, tblBPParts, and tblMedia
+  for (const step of steps) {
+    const stepID = step.UniqueID;
+
+    await sequelize.query(`
+      DELETE FROM tblsteps 
+      WHERE UniqueID = :stepID
+    `, {
+      replacements: { stepID },
+      type: QueryTypes.DELETE
+    });
+
+    await sequelize.query(`
+      DELETE FROM tblBPParts 
+      WHERE stepid = :stepID
+    `, {
+      replacements: { stepID },
+      type: QueryTypes.DELETE
+    });
+
+    await sequelize.query(`
+      DELETE FROM tblMedia 
+      WHERE StepID = :stepID
+    `, {
+      replacements: { stepID },
+      type: QueryTypes.DELETE
+    });
+  }
+
+  // Delete the plan itself from tblplan
+  await sequelize.query(`
+    DELETE FROM tblplan 
+    WHERE UniqueID = :planUniqueID
+  `, {
+    replacements: { planUniqueID:id },
+    type: QueryTypes.DELETE
+  });
+  await reorderOperations(instanceID);
+  return id
+
+}
 
 export const OperationExistByID = async (id: number | string) => {
   const tableDetail = await tblJobOperations.findByPk(id);
@@ -257,11 +302,6 @@ export const OperationExistByID = async (id: number | string) => {
     return true;
   else
     return false;
-}
-
-export const deleteOperation = async (id) => {
-  await tblJobOperations.destroy({ where: { UniqueID: id } });
-  return id;
 }
 
 export const getJobOperationDetail = async (id) => {

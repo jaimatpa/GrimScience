@@ -6,8 +6,8 @@ export default eventHandler(async (event) => {
     switch(method.toUpperCase()){
       case 'POST':
         const { data } = await readBody<{ data:{} }>(event)
-        const newCustomer = await createProductOperation(data)
-        return { body: { newCustomer }, message: 'New operation created successfully!'}
+        const newOperation = await createProductOperation(data)
+        return { body: { newOperation }, message: 'New operation created successfully!'}
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
