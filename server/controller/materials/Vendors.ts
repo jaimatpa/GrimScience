@@ -284,7 +284,6 @@ export const getPOPartsDetailsByUniqueId = async (UniqueID) => {
 };
 
 
-
 export async function savePODetailByUniqueId(data) {
   const {
     ORDERED,
@@ -300,32 +299,59 @@ export async function savePODetailByUniqueId(data) {
   } = data;
 
   try {
-    // Raw SQL query to insert data into tblPODetail
-    const [result] = await sequelize.query(
-      `INSERT INTO tblPODetail (ORDERED, RECEIVED, DESCRIPTION, STOCKNUMBER, PARTNUMBER, UNITPRICE, UNIT, AMOUNT,POUID, PTNUM)
-            VALUES (:ORDERED, :RECEIVED, :DESCRIPTION, :STOCKNUMBER, :PARTNUMBER, :UNITPRICE, :UNIT, :AMOUNT,:POUID, :PTNUM)`,
-      {
-        replacements: {
-          ORDERED,
-          RECEIVED,
-          DESCRIPTION,
-          STOCKNUMBER,
-          PARTNUMBER,
-          UNITPRICE,
-          UNIT,
-          AMOUNT,
-          POUID,
-          PTNUM
-        },
-        type: QueryTypes.INSERT
-      }
-    );
+    // Start a transaction
+    const transaction = await sequelize.transaction();
 
-    return { success: true, message: 'PO detail saved successfully', result };
+    try {
+      // Raw SQL query to insert data into tblPODetail
+      await sequelize.query(
+        `INSERT INTO tblPODetail (ORDERED, RECEIVED, DESCRIPTION, STOCKNUMBER, PARTNUMBER, UNITPRICE, UNIT, AMOUNT, POUID, PTNUM)
+            VALUES (:ORDERED, :RECEIVED, :DESCRIPTION, :STOCKNUMBER, :PARTNUMBER, :UNITPRICE, :UNIT, :AMOUNT, :POUID, :PTNUM)`,
+        {
+          replacements: {
+            ORDERED,
+            RECEIVED,
+            DESCRIPTION,
+            STOCKNUMBER,
+            PARTNUMBER,
+            UNITPRICE,
+            UNIT,
+            AMOUNT,
+            POUID,
+            PTNUM
+          },
+          type: QueryTypes.INSERT,
+          transaction
+        }
+      );
+
+      // Query the database to retrieve the inserted data
+      const [result] = await sequelize.query(
+        `SELECT * FROM tblPODetail WHERE POUID = :POUID AND PTNUM = :PTNUM`,
+        {
+          replacements: {
+            POUID,
+            PTNUM
+          },
+          type: QueryTypes.SELECT,
+          transaction
+        }
+      );
+
+      // Commit the transaction
+      await transaction.commit();
+
+      return { success: true, message: 'PO detail saved successfully', data: result };
+    } catch (error) {
+      // Rollback the transaction if any error occurs
+      await transaction.rollback();
+      throw new Error(`Error saving PO detail: ${error.message}`);
+    }
   } catch (error) {
-    throw new Error(`Error saving PO detail: ${error.message}`);
+    throw new Error(`Transaction error: ${error.message}`);
   }
 }
+
 
 export async function deletePODetailByStockNumber(stockNumber) {
   console.log(stockNumber);

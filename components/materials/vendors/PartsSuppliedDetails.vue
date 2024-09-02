@@ -2,9 +2,11 @@
 import { format, parseISO } from 'date-fns';
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css';
-
-
-const InventoryTransactions = ref([])
+const required = ref({})
+const jobList = ref([])
+const usedOn = ref([])
+const workplaces = ref([])
+const InventoryTransactions = ref([]);
 const InventoryTransactionsColumns = [
     {
         key: 'UID',
@@ -139,7 +141,7 @@ const fetchTransactionsByModel = async (search: string) => {
 const fetchPODetailsByInstanceId = async (search: string) => {
     loadingOverlay.value = true;
     if (!search) return;
-
+    console.log(search);
     try {
         const response = await useApiFetch(`/api/materials/vendors/podetails?instanceId=${search}`, {
             method: 'GET',
@@ -178,6 +180,29 @@ const fetchRevisionsByInstanceId = async (search: string) => {
         loadingOverlay.value = false;
     }
 };
+const fetchWorkCentersBy = async () => {
+    try {
+        const response = await useApiFetch('/api/materials/vendors/workcenters', {
+            method: 'GET',
+        });
+        if (response) {
+            console.log(response)
+            const workCenterIds = props.modalData.WORKCENTERS
+                .split(',')
+                .map(id => id.trim())
+                .filter(id => id !== "");
+
+            const filteredResponse = response.filter(val => workCenterIds.includes(val.UniqueId));
+
+            workplaces.value = filteredResponse;
+        } else {
+            console.log('Unexpected response structure or status code:', response);
+        }
+    } catch (error) {
+        console.error(error);
+        return { workcenters: [] };
+    }
+}
 const fetchAccountLists = async () => {
     loadingOverlay.value = true;
     try {
@@ -216,10 +241,61 @@ const fetchPartUnits = async () => {
         loadingOverlay.value = false;
     }
 };
-
+const fetchUsedOn = async (instanceID) => {
+    try {
+        // Make a GET request to your API endpoint
+        const response = await useApiFetch('/api/materials/vendors/usedOn', {
+            method: 'GET',
+            query: {
+                instanceId: instanceID,
+            }
+        });
+        usedOn.value = response;
+        console.log(response);
+    } catch (error) {
+        console.error('Error fetching job list:', error);
+    }
+};
+const fetchJobs = async (model) => {
+    try {
+        // Make a GET request to your API endpoint
+        const response = await useApiFetch('/api/materials/vendors/getJob', {
+            method: 'GET',
+            query: {
+                model,
+            }
+        });
+        jobList.value = response;
+        console.log(response);
+    } catch (error) {
+        console.error('Error fetching job list:', error);
+    }
+};
+const fetchRequired = async (model) => {
+    try {
+        // Make a GET request to your API endpoint
+        const response = await useApiFetch('/api/materials/vendors/getRequired', {
+            method: 'GET',
+            query: {
+                model,
+            }
+        });
+        required.value = response[0];
+        console.log(response);
+    } catch (error) {
+        console.error('Error fetching job list:', error);
+    }
+}
 const fetchAllData = async () => {
     loadingOverlay.value = true;
-    console.log(props.modalData.PARTTYPE)
+    console.log('PARTTYPE:', props.modalData.PARTTYPE, 'MODEL:', props.modalData.MODEL, 'instanceID:', props.modalData.instanceID);
+
+    if (!props.modalData.PARTTYPE || !props.modalData.MODEL || !props.modalData.instanceID) {
+        console.error('Missing required modalData fields');
+        loadingOverlay.value = false;
+        return;
+    }
+
     try {
         await Promise.all([
             fetchPartCategories(),
@@ -228,7 +304,11 @@ const fetchAllData = async () => {
             fetchSubCategories(props.modalData.PARTTYPE),
             fetchTransactionsByModel(props.modalData.MODEL),
             fetchRevisionsByInstanceId(props.modalData.instanceID),
-            fetchPODetailsByInstanceId(props.modalData.instanceID)
+            fetchPODetailsByInstanceId(props.modalData.instanceID),
+            fetchUsedOn(props.modalData.instanceID),
+            fetchWorkCentersBy(),
+            fetchJobs(props.modalData.MODEL),
+            fetchRequired(props.modalData.MODEL)
         ]);
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -237,14 +317,18 @@ const fetchAllData = async () => {
     }
 };
 
-watch(() => props.modalData, (newVal) => {
-    if (newVal) { // Check if modalData is received
-        fetchAllData();
-    }
-}, { deep: true, immediate: true });
+// watch(() => props.modalData, (newVal) => {
+//     if (newVal && newVal.PARTTYPE && newVal.MODEL && newVal.instanceID) { // Ensure modalData is fully received
+//     }
+// }, { deep: true, immediate: true });
+fetchAllData();
+
 function formatDate(unformattedDate: string): string {
     const date = parseISO(unformattedDate);
     return format(date, 'yyyy-MM-dd HH:mm:ss');
+}
+const save = () => {
+
 }
 </script>
 
@@ -259,14 +343,17 @@ function formatDate(unformattedDate: string): string {
     </template>
     <template v-else>
         <UForm class="space-y-4" :state="modalData">
-            <div class="flex gap-3">
-                <UCard class="">
-                    <template #header>
-                        Parts Information
-                    </template>
-                    <div class="space-y-3">
+            <div class="flex flex-col gap-4">
+
+                <div class="space-y-3">
+
+                    <div class="gap-4 flex flex-col">
                         <UCard>
-                            <div class="grid grid-cols-4 gap-3">
+                            <template #header>
+                                Parts Information
+                            </template>
+                            <div class="grid grid-cols-4 gap-4">
+
                                 <div class="basis-1/5">
                                     <UFormGroup label="Category" name="categories">
                                         <USelectMenu v-model="modalData.PARTTYPE" :options="partCategories">
@@ -292,6 +379,7 @@ function formatDate(unformattedDate: string): string {
                                     </UFormGroup>
                                 </div>
                             </div>
+
                             <div class="flex flex-row space-x-3">
                                 <div class="flex gap-3 basis-1/5">
                                     <div class="basis-3/4">
@@ -344,12 +432,18 @@ function formatDate(unformattedDate: string): string {
                                 </div>
 
                             </div>
-
-
                         </UCard>
 
-                        <UCard>
-                            <!-- First Grid Section -->
+
+                    </div>
+
+
+
+                    <div class="flex gap-4">
+                        <UCard class="w-full">
+                            <template #header>
+                                Primary Manufacturer
+                            </template>
                             <div class="flex flex-row space-x-5">
 
                                 <div class="grid grid-cols-1 gap-5">
@@ -369,7 +463,6 @@ function formatDate(unformattedDate: string): string {
                                         </UFormGroup>
                                     </div>
                                 </div>
-                                <!-- Second Grid Section -->
                                 <div class="grid grid-cols-1 gap-5">
 
                                     <div>
@@ -390,8 +483,8 @@ function formatDate(unformattedDate: string): string {
 
                                 </div>
 
-                                <div class="flex flex-row space-x-2">
-                                    <div class="grid grid-cols-1 gap-1">
+                                <div class="flex flex-row space-x-2 ">
+                                    <div class="grid grid-cols-1 gap-1 flex-grow">
                                         <div class="basis-1/2 text-center">
                                             Qty
                                         </div>
@@ -469,8 +562,10 @@ function formatDate(unformattedDate: string): string {
                             </div>
 
                         </UCard>
-                        <UCard>
-                            <!-- First Grid Section -->
+                        <UCard class="w-full">
+                            <template #header>
+                                Secondary Manufacturer
+                            </template>
                             <div class="flex flex-row space-x-5">
 
                                 <div class="grid grid-cols-1 gap-5">
@@ -490,7 +585,6 @@ function formatDate(unformattedDate: string): string {
                                         </UFormGroup>
                                     </div>
                                 </div>
-                                <!-- Second Grid Section -->
                                 <div class="grid grid-cols-1 gap-5">
 
                                     <div>
@@ -575,10 +669,6 @@ function formatDate(unformattedDate: string): string {
 
                                     </div>
                                 </div>
-
-
-
-
                             </div>
 
                             <div class="grid grid-cols-1 gap-5">
@@ -591,85 +681,108 @@ function formatDate(unformattedDate: string): string {
 
                         </UCard>
                     </div>
-                </UCard>
+                </div>
 
-                <div class="space-y-3">
+                <div class="grid grid-cols-4 gap-4">
 
-                    <!-- <div class="grid grid-cols-1">
-                        <UCard class="mt-6 h-48 overflow-y-auto">
-                            <UTable :rows="[]" />
+                    <div class="grid grid-cols-1">
+                        <UCard class="overflow-y-auto">
+                            <template #header>
+                                Workplaces
+                            </template>
+                            <UTable :rows="workplaces" />
                         </UCard>
-                    </div> -->
-                    <UCard>
-                        <div class="space-y-2 mt-2">
-                            <div class="flex items-center space-x-2">
-                                <UFormGroup label="On Order">
-                                    <UInput />
-                                </UFormGroup>
-                            </div>
+                    </div>
+                    <div class="col-span-2">
+                        <UCard>
+                            <template #header>
+                                Qty Information
+                            </template>
+                            <div class="flex flex-wrap gap-4">
+                                <div class="flex items-center space-x-2">
+                                    <UFormGroup label="On Order">
+                                        <UInput v-model="required.ordered" />
+                                    </UFormGroup>
+                                </div>
 
-                            <div class="flex items-center space-x-2">
-                                <UFormGroup label="On Hand">
-                                    <UInput v-model="modalData.OnHand" />
-                                </UFormGroup>
-                            </div>
+                                <div class="flex items-center space-x-2">
+                                    <UFormGroup label="On Hand">
+                                        <UInput v-model="modalData.OnHand" />
+                                    </UFormGroup>
+                                </div>
 
-                            <div class="flex items-center space-x-2">
-                                <UFormGroup label="Required">
-                                    <UInput v-model="modalData.OnHand" />
-                                </UFormGroup>
-                            </div>
+                                <div class="flex items-center space-x-2">
+                                    <UFormGroup label="Required">
+                                        <UInput v-model="required.required" />
+                                    </UFormGroup>
+                                </div>
 
-                            <div class="flex items-center space-x-2">
-                                <UFormGroup label="Available">
-                                    <UInput />
-                                </UFormGroup>
+                                <div class="flex items-center space-x-2">
+                                    <UFormGroup label="Available" v-model="modalData.PRIMARYQTY1">
+                                        <UInput />
+                                    </UFormGroup>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <UFormGroup label="Minimum">
+                                        <UInput v-model="modalData.minimum" />
+                                    </UFormGroup>
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <UFormGroup label="Minimum">
-                                    <UInput v-model="modalData.minimum" />
-                                </UFormGroup>
+                        </UCard>
+                    </div>
+                    <div class="grid grid-cols-1">
+                        <UCard>
+                            <template #header>
+                                Revisions
+                            </template>
+                            <div class="h-40 overflow-y-auto">
+                                <UTable :rows="revisions" :columns="revisionsColumns" />
                             </div>
+                        </UCard>
+
+                    </div>
+                </div>
+                <div class="grid grid-cols-6 gap-4">
+
+                    <UCard class="col-span-2">
+                        <template #header>
+                            Used ON
+                        </template>
+                        <div class="overflow-y-auto h-96">
+                            <UTable :rows="usedOn" :columns="[{ key: 'Expr1', label: 'Jobs' }]" />
+
                         </div>
                     </UCard>
-                    <div class="grid grid-cols-1">
-                        <UCard class="h-48 overflow-y-auto">
-                            <UTable :rows="revisions" :columns="revisionsColumns" />
-                        </UCard>
+                    <UCard class="col-span-1">
+                        <template #header>
+                            Jobs
+                        </template>
+                        <div class="overflow-y-auto h-96">
+                            <UTable :rows="jobList" />
 
-                    </div>
-
-
-                </div>
-                <div>
-
-                    <div class="grid grid-cols-1 mt-6 h-48 w-72">
-
-                        <UCard class="h-48 overflow-y-auto">
-                            <UTable :rows="poDetails" :columns="poDetailsColumns" />
-                        </UCard>
-                    </div>
-                    <div class="">
-                        <UFormGroup label="Comments" name="Comments">
-                            <UTextarea class="w-48 " v-model="modalData.COMMENT" />
-                        </UFormGroup>
-                    </div>
-
-
-
-                </div>
-                <div class="grid grid-cols-1 mt-6 h-48 w-60">
-                    <UCard class="h-48 overflow-y-auto">
-                        <UTable :columns="InventoryTransactionsColumns" :rows="InventoryTransactions" />
+                        </div>
                     </UCard>
+                    <UCard class=" col-span-2">
+                        <template #header>
+                            Inventory transactions
+                        </template>
+                        <div class="overflow-y-auto h-96">
+
+                            <UTable :columns="InventoryTransactionsColumns" :rows="InventoryTransactions" />
+                        </div>
+                    </UCard>
+                    <UCard class="col-span-1">
+                        <UFormGroup label="Comments" name="Comments">
+                            <UTextarea v-model="modalData.COMMENT" />
+                        </UFormGroup>
+                    </UCard>
+
 
                 </div>
 
             </div>
-
             <div class="flex justify-end gap-3">
-                <UButton color="red" variant="outline" :label="!isModal ? 'Go back' : 'Cancel'" />
-                <UButton color="cyan" variant="outline" type="submit" label="Save" />
+                <UButton color="cyan" variant="outline" @click="save()" type="submit" label="Save" />
             </div>
         </UForm>
     </template>

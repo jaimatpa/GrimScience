@@ -43,9 +43,11 @@
                     <UTable :ui="uiConfig" :rows="poRows" :columns="poColumns" />
                     <template #footer>
                         <div>
-                            <UButton @click="syncToQB" color="blue" class="mr-2">Sync To QB</UButton>
-                            <UButton @click="createAsset" color="green" class="mr-2">Create Asset</UButton>
-                            <UButton @click="recalcAllReceivings" color="gms-blue">Recalc All Receivings</UButton>
+                            <UButton @click="syncToQB" color="green" variant="outline" class="mr-2">Sync To QB</UButton>
+                            <UButton @click="createAsset" color="teal" variant="outline" class="mr-2">Create Asset
+                            </UButton>
+                            <UButton @click="recalcAllReceivings" variant="outline" color="blue">Recalc All Receivings
+                            </UButton>
                         </div>
                     </template>
                 </UCard>
@@ -143,17 +145,21 @@
         <div class="mt-4 flex justify-between">
 
             <div>
-                <UButton @click="viewPO" color="blue" class="mr-2">View PO</UButton>
-                <UButton @click="save" color="green" class="mr-2">Save</UButton>
-                <UButton @click="deleteInvoice" color="red">Delete</UButton>
+                <!-- <UButton @click="viewPO" color="blue" class="mr-2">View PO</UButton> -->
+                <UButton @click="save" color="gms-blue" class="mr-2">Save</UButton>
+                <UButton @click="deleteInvoice" variant="outline" color="red">Delete</UButton>
             </div>
         </div>
     </UCard>
-
+    <UDashboardModal v-model="showCreateAssetModal" title="Create Asset" :ui="modalUIConfig">
+        <CreateAssets />
+    </UDashboardModal>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from 'vue';
+import CreateAssets from './CreateAssets.vue';
+const showCreateAssetModal = ref(false);
 
 const quantity = ref(1)
 const price = ref(326.95000)
@@ -215,6 +221,7 @@ const syncToQB = () => {
 
 const createAsset = () => {
     // Implement create asset logic
+    showCreateAssetModal.value = true
 }
 
 const recalcAllReceivings = () => {
@@ -300,5 +307,10 @@ const shipToOptions = [
     'Louisville, KY',
     'Buffalo, NY'
 ];
-
+const modalUIConfig = {
+    title: 'text-lg',
+    header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[1800px] sm:max-w-9xl',
+};
 </script>

@@ -20,7 +20,7 @@
                             </div>
                         </div>
                         <UFormGroup label="Ship To">
-                            <UInput v-model="shipTo" icon="i-heroicons-envelope" />
+                            <UInputMenu v-model="shipTo" :options="shipToOptions" icon="i-heroicons-envelope" />
                         </UFormGroup>
                     </div>
                 </UCard>
@@ -164,14 +164,12 @@
         </div>
         <template #footer>
             <div class="mt-4 flex gap-3 justify-end">
-                <UButton>Save</UButton>
                 <UButton>Preview Purchase</UButton>
                 <UButton @click="openVendorInvoice">Receive Goods</UButton>
             </div>
         </template>
     </UCard>
 
-    <!-- <VendorInvoiceModal v-if="showVendorInvoice" @close="closeVendorInvoice" /> -->
     <UDashboardModal v-model="showVendorInvoice" title="Vendor Invoice" :ui="modalUIConfig">
         <VendorInvoice />
     </UDashboardModal>
@@ -184,9 +182,6 @@
             <div class="flex gap-4 mt-4">
                 <UButton @click="handleCreatePo">
                     Submit
-                </UButton>
-                <UButton variant="outline" color='red'>
-                    Cancel
                 </UButton>
             </div>
         </div>
@@ -201,7 +196,12 @@ import { format } from 'date-fns';
 const addNewPoItemModal = ref({
     isOpen: false,
     data: null
-})
+});
+const shipToOptions = ref([
+    "707 Gilman Avenue",
+    "PO Box 2134",
+    "2422 Waterford Rd.0"
+])
 const toast = useToast()
 
 // const terms = ref('');
@@ -280,8 +280,8 @@ const poDateInputType = computed(() => {
     return props.modalData.DATE ? 'input' : 'date' || props.vendorDetails?.DATE ? 'input' : 'date'
 })
 const shipTo = computed({
-    get: () => props.isCreating ? createFormData.ADDESS : props.modalData.ADDESS,
-    set: (value) => props.isCreating ? createFormData.ADDESS = value : props.modalData.ADDESS = value
+    get: () => props.isCreating ? createFormData.Shipto : props.modalData.Shipto,
+    set: (value) => props.isCreating ? createFormData.Shipto = value : props.modalData.Shipto = value
 })
 
 const vendorName = computed(() => props.isCreating ? createFormData.NAME : props.modalData.NAME)
@@ -349,7 +349,10 @@ const openclosed = computed({
     get: () => props.isCreating ? createFormData.OPENCLOSED : props.modalData.OPENCLOSED,
     set: (value) => props.isCreating ? createFormData.OPENCLOSED = value : props.modalData.OPENCLOSED = value
 })
-const authorized = ref('Joseph Grimm')
+const authorized = computed({
+    get: () => props.isCreating ? createFormData.AuthorizedBy : props.modalData.AuthorizedBy,
+    set: (value) => props.isCreating ? createFormData.AuthorizedBy = value : props.modalData.AuthorizedBy = value
+})
 const showVendorInvoice = ref(false)
 const orderDetails = ref([])
 const stockNumber = ref('000000');
@@ -377,7 +380,12 @@ const fobOptions = [
     'Denver, CO',
     'Washington, D.C.'
 ];
-const authorizedUsers = ref([]);
+const authorizedUsers = ref([
+    "Joseph Grimm",
+    'Esteal Hendricks',
+    'John Lantz',
+    'Douglas Wright'
+]);
 const suppliedParts = ref([]);
 const isLoadingDetails = ref(false);
 const formData = ref({
@@ -458,7 +466,7 @@ const detailsColumns = ref([
         label: 'ID Tag',
     },
 ]);
-console.log({ vendorDetails: props.vendorDetails })
+// console.log({ vendorDetails: props.vendorDetails })
 const fetchVendorSuppliedParts = async () => {
     isLoadingDetails.value = true;
     try {
@@ -587,6 +595,7 @@ const handleCreatePo = async () => {
                 }
             }
         });
+        addNewPoItemModal.value.isOpen = false;
     } catch (error) {
         console.error('Unexpected error:', error);
     } finally {
@@ -623,19 +632,24 @@ const deleteStock = async () => {
         onResponse({ response }) {
             if (response) {
                 console.log(response._data.body)
-                // toast.add({
-                //     title: "Error",
-                //     description: "Fetched ",
-                //     icon: 'i-heroicons-check-circle',
-                //     color: 'red'
-                // })
-                createFormData.IREMAIL = response._data.body.IREMAIL;
                 createFormData.NAME = response._data.body.NAME;
+                createFormData.IREMAIL = response._data.body.IREMAIL;
                 createFormData.IRPHONE = response._data.body.IRPHONE;
+                createFormData.IRNAME = response._data.body.IRNAME;
+                createFormData.IRFAX = response._data.body.IRFAX;
+                createFormData.VENDORDATE = response._data.body.VENDORDATE;
+                createFormData.ADDESS = response._data.body.ADDESS;
+                createFormData.VENDORFOB = `${response._data.body.CITY} +" " + ${response._data.body.STATE}`;
+                createFormData.AuthorizedBy = response._data.body.ApprovedBy;
+                createFormData.WEBSITE = response._data.body.WEBSITE;
+                createFormData.CITYSTATEZIP = `${response._data.body.CITY + " " + response._data.body.STATE + " " + response._data.body.ZIP}`;
             }
         }
     });
 })();
+const saveVendor = async function () {
+
+}
 const modalUIConfig = {
     title: 'text-lg',
     header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
