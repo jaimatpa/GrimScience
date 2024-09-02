@@ -1,5 +1,7 @@
-import { Op, Sequelize } from 'sequelize';
-import { tblBP } from "~/server/models";
+import { DATE, Op, QueryTypes, Sequelize } from 'sequelize';
+import models from '~/server/api/jobs/models';
+import { tblBP, tblInventoryTransactionDetails, tblInventoryTransactionDetails } from "~/server/models";
+import sequelize from '~/server/utils/databse';
 
 export const getProductLines = async () => {
   const distinctProductInfos = await tblBP.findAll({
@@ -296,6 +298,7 @@ export const getPartsDetail = async (id) => {
 
 export const updateParts = async (id, updateData) => {
   try {
+    updateData.TODAY = updateData.TODAY || new Date();
     const [updated] = await tblBP.update(updateData, {
       where: { UniqueID: id }
     });
@@ -315,6 +318,220 @@ export const deleteParts = async (id) => {
   } catch (error) {
     console.error("Error deleting part:", error);
     throw error; // Handle errors as appropriate for your application
+  }
+};
+
+
+
+export const getPOPartsDetailsByUniqueId = async (UniqueID) => {
+  console.log("unique id is",UniqueID)
+  try {
+    const query = `
+      SELECT *
+      FROM tblPODetail
+      WHERE POUID = :UniqueID
+    `;
+
+    const results = await sequelize.query(query, {
+      replacements: { UniqueID },
+      type: QueryTypes.SELECT,
+    });
+
+    if (results.length > 0) {
+      return results;
+    }
+
+    throw new Error('PODetail not found');
+  } catch (error) {
+    console.error('Error querying PO parts details:', error);
+    throw error;
+  }
+};
+
+
+
+export async function savePODetailByUniqueId(data) {
+  const {
+    ORDERED,
+    RECEIVED,
+    DESCRIPTION,
+    STOCKNUMBER,
+    PARTNUMBER,
+    UNITPRICE,
+    UNIT,
+    AMOUNT,
+    POUID,
+    PTNUM
+  } = data;
+
+  try {
+    // Raw SQL query to insert data into tblPODetail
+    const [result] = await sequelize.query(
+      `INSERT INTO tblPODetail (ORDERED, RECEIVED, DESCRIPTION, STOCKNUMBER, PARTNUMBER, UNITPRICE, UNIT, AMOUNT,POUID, PTNUM)
+            VALUES (:ORDERED, :RECEIVED, :DESCRIPTION, :STOCKNUMBER, :PARTNUMBER, :UNITPRICE, :UNIT, :AMOUNT,:POUID, :PTNUM)`,
+      {
+        replacements: {
+          ORDERED,
+          RECEIVED,
+          DESCRIPTION,
+          STOCKNUMBER,
+          PARTNUMBER,
+          UNITPRICE,
+          UNIT,
+          AMOUNT,
+          POUID,
+          PTNUM
+        },
+        type: QueryTypes.INSERT
+      }
+    );
+
+    return { success: true, message: 'PO detail saved successfully', result };
+  } catch (error) {
+    throw new Error(`Error saving PO detail: ${error.message}`);
+  }
+}
+
+export async function deletePODetailByStockNumber(stockNumber) {
+  console.log(stockNumber);
+  try {
+    // Raw SQL query to delete data from tblPODetail by STOCKNUMBER
+    const result = await sequelize.query(
+      `DELETE FROM tblPODetail WHERE STOCKNUMBER = :stockNumber`,
+      {
+        replacements: { stockNumber },
+        type: QueryTypes.DELETE
+      }
+    );
+
+    return { success: true, message: 'PO detail deleted successfully', result };
+  } catch (error) {
+    throw new Error(`Error deleting PO detail: ${error.message}`);
+  }
+}
+
+
+
+
+
+export const getPODetailsByInstanceId = async (instanceId:any) => {
+  try {
+    // Execute raw SQL query
+    const results = await sequelize.query(
+      `SELECT
+        tblpo.ponumber,
+        tblpo.uniqueid,
+        tblpo.date,
+        tblpo.NAME,
+        tblpodetail.ORDERED,
+        tblpodetail.RECEIVED
+        FROM tblpo
+        INNER JOIN tblpodetail ON tblpodetail.pouid = tblpo.uniqueid
+        INNER JOIN tblbp ON tblbp.uniqueid = tblpodetail.ptnum
+        WHERE tblbp.instanceid = :instanceId
+        ORDER BY CAST(tblpo.date AS DATETIME) DESC;
+`,
+      {
+        replacements: { instanceId },
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    return results;
+  } catch (error) {
+    console.error('Error fetching PO details:', error);
+    throw error;
+  }
+};
+
+
+export const getInventoryTransactionsByModel = async (model: any) => {
+  console.log('modle is ',model);
+  try {
+    const query = `
+          SELECT tblInventoryTransactions.*, 
+          tblInventoryTransactions.UniqueID AS UID, 
+          tblInventoryTransactionDetails.onhand AS onhandITD, 
+          QtyChange, 
+          tblBP.Description, 
+          tblBP.model
+          FROM tblInventoryTransactionDetails
+          LEFT JOIN tblInventoryTransactions ON tblInventoryTransactionDetails.InventoryTransactionID = tblInventoryTransactions.UniqueID
+          LEFT JOIN tblBP ON tblBP.UniqueID = tblInventoryTransactionDetails.BPID
+          WHERE tblBP.model = :model
+          ORDER BY tblInventoryTransactions.dated DESC;
+`;
+
+    const results = await sequelize.query(query, {
+      replacements: { model: model },
+      type: QueryTypes.SELECT,
+    });
+    console.log(results);
+    return results;
+
+  } catch (error) {
+    console.error('Error fetching inventory transactions:', error);
+    throw error;
+  }
+};
+
+export const getVendorNames = async () => {
+  try {
+    // Define the raw SQL query with DISTINCT
+    const query = 'SELECT DISTINCT Name FROM tblVendors';
+
+    // Execute the raw query
+    const results = await sequelize.query(query, {
+      type: QueryTypes.SELECT
+    });
+
+    // Transform results to get an array of names
+    const names = results.map(result => result.Name);
+
+    // Return the array of names
+    return names;
+  } catch (error) {
+    console.error('Error fetching vendor names:', error);
+    throw error;
+  }
+};
+export const getRevisions = async (instanceId:any) => {
+  try {
+      const bpList = await tblBP.findAll({
+          attributes: ['uniqueid', 'today', 'code', 'revisedby'],
+          where: {
+              instanceid: instanceId
+          },
+          order: [
+              [Sequelize.literal('CAST(today AS DATETIME)'), 'DESC']
+          ],
+          raw: true
+      });
+      return bpList;
+  } catch (error) {
+      throw new Error(`Error fetching data for instanceId ${instanceId} from table tblBP: ${error.message}`);
+  }
+};
+
+
+export const getTotalRequiredByModel = async (model:any) => {
+  try {
+    const query = `
+      SELECT number, ROUND(SUM(required), 0) AS TotalRequired
+      FROM MRP8
+      WHERE model = :model
+      GROUP BY number
+    `;
+
+    const [results, metadata] = await sequelize.query(query, {
+      replacements: { model: model },
+      type: QueryTypes.SELECT,
+      raw: true
+    });
+
+    return results;
+  } catch (error) {
+    throw new Error(`Error fetching data for model ${model} from table MRP8: ${error.message}`);
   }
 };
 

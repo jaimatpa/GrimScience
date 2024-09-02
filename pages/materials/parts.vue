@@ -6,7 +6,7 @@ onMounted(() => {
 });
 
 useSeoMeta({
-  title: "Grimm-Customers",
+  title: "Grimm-Parts",
 });
 
 const route = useRoute();
@@ -71,6 +71,8 @@ const gridMeta = ref({
   numberOfCustomers: 0,
   customers: [],
   selectedCustomerId: null,
+  selectedPartInstanceId:null,
+  selectedPartModdel:null,
   sort: {
     column: "UniqueID",
     direction: "asc",
@@ -83,7 +85,7 @@ const modalMeta = ref({
   isQuoteDetailModalOpen: false,
   isServiceOrderDetailModalOpen: false,
   isSiteVisitModalOpen: false,
-  modalTitle: "New Customer",
+  modalTitle: "New Parts",
 });
 const filterValues = ref({
   PARTTYPE: null,
@@ -289,7 +291,10 @@ const excelExport = async () => {
   exportIsLoading.value = false;
 };
 const onSelect = async (row) => {
+  console.log("row is in there",row);
   gridMeta.value.selectedCustomerId = row?.UniqueID;
+  gridMeta.value.selectedPartInstanceId=row?.instanceID;
+  gridMeta.value.selectedPartModdel=row?.MODEL;
 };
 const onDblClick = async () => {
   if (gridMeta.value.selectedCustomerId) {
@@ -343,7 +348,7 @@ const onDblClick = async () => {
           <UButton
             color="green"
             variant="outline"
-            label="New customer"
+            label="New Part"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
@@ -505,7 +510,9 @@ const onDblClick = async () => {
       @close="handleModalClose"
       @save="handleModalSave"
       :selected-customer="gridMeta.selectedCustomerId"
+      :selectedPartInstace ="gridMeta.selectedPartInstanceId"
       :is-modal="true"
+      :selectedPartModel="gridMeta.selectedPartModdel"
     />
   </UDashboardModal>
   <!-- Order Modal -->
