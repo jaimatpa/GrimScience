@@ -105,7 +105,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     await useApiFetch("/api/products/productoperations/create", {
       method: "POST",
       body: {
-        data: {...event.data, skills: stepsGridMeta.value.steps, prodID : props.selectedProduct, username},
+        data: {...event.data, skills: skillGridMeta.value.skills, prodID : props.selectedProduct, username},
       },
       onResponse({ response }) {
         if (response.status === 200) {
@@ -127,7 +127,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     await useApiFetch("/api/products/productoperations/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
       method: "PUT",
       body: {
-        data: {...event.data, skills: stepsGridMeta.value.steps, prodID : props.selectedProduct, username},
+        data: {...event.data, skills: skillGridMeta.value.skills, prodID : props.selectedProduct, username},
       },
       onResponse({ response }) {
         if (response.status === 200) {
@@ -172,7 +172,6 @@ const handleProdOperationSelect = async (row) => {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        console.log(response._data.body.steps)
         stepsGridMeta.value.steps = response._data.body.steps;
       }
     },
@@ -189,7 +188,6 @@ const handleProdOperationSelect = async (row) => {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        console.log(response._data.body.skills)
         skillGridMeta.value.skills = response._data.body.skills;
       }
     },
@@ -330,6 +328,11 @@ const handleSkillClick = () => {
 const handleStepModalClose = () => {
   modalMeta.value.isStepInformationModalOpen = false;
 };
+
+const handleSkillModalClose = (data) => {
+  skillGridMeta.value.skills = [...skillGridMeta.value.skills,data]
+  modalMeta.value.isSkillModalOpen = false
+}
 
 const handleModalClose = () => {
   modalMeta.value.isPartsModalOpen = false;
@@ -681,10 +684,10 @@ else propertiesInit();
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <ProductsPartList :selected-product="selectedProduct"/>
+    <ProductsPartList :selected-product="props.selectedProduct"/>
   </UDashboardModal>
 
-  <!-- Job Skill Modal -->
+  <!-- Product Skill Modal -->
   <UDashboardModal
     v-model="modalMeta.isSkillModalOpen"
     :title="modalMeta.modalTitle"
@@ -694,7 +697,7 @@ else propertiesInit();
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobSkillForm :is-modal="true" />
+    <ProductsSkillForm :is-modal="true" @close="handleSkillModalClose"/>
   </UDashboardModal>
 
   <!-- New Step Info Modal -->
@@ -707,7 +710,7 @@ else propertiesInit();
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobStepInformationForm
+    <ProductsProdStepInformationForm
       :operation-id="prodOperationGridMeta.selectedOperation.UniqueID"
       @close="handleStepModalClose"
       :is-modal="true"

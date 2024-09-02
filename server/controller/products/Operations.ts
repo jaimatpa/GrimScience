@@ -92,7 +92,7 @@ export const getOperationSteps = async (id) => {
 
   // Array to hold the steps and skills data
   const stepData = [];
-
+  console.log(steps)
   // Loop through each step to process and format data
   for (const step of steps) {
     const Step = (parseInt(step.Step) >= 0)
@@ -121,6 +121,8 @@ export const getOperationSkills = async (id) => {
     replacements: { planUniqueID:id },
     type: QueryTypes.SELECT
   });
+
+  console.log(planDetails)
 
   // Extract and split the skills associated with the plan
   const skills = planDetails[0].skills.split('=');
@@ -216,6 +218,7 @@ export const editProductOperation = async (data,id) => {
   const instanceID = tableDetail.dataValues.instanceID;
 
   const { Number, Operation, WorkCenter, Hours, week, skills, username } = data;
+  console.log(skills)
   const strSkills = skills.map(skill => skill.UniqueID).join('=');
 
   if (!Operation || !WorkCenter || !Hours || !week) return { error: 'Please provide all the fields' };
@@ -244,7 +247,8 @@ export const editProductOperation = async (data,id) => {
 }
 
 export const deleteProductOperation = async (id) => {
-
+  const tableDetail = await tblPlan.findByPk(id);
+  const instanceID = tableDetail.dataValues.instanceid;
   // Fetch steps related to the plan
   const steps = await sequelize.query(`
     SELECT * FROM tblsteps 
