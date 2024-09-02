@@ -543,7 +543,7 @@ const links = [
       },
       {
         label: "Serials",
-        to: "/materials/serials",
+        to: "/materials/serials/list",
       },
       {
         label: "MRP",
