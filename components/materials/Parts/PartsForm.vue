@@ -968,17 +968,17 @@ else
   <div class="grid grid-cols-1 gap-5">
     <div>
       <UFormGroup label="Manufacturer" name="Manufacturer">
-        <UInput placeholder="Garmin" />
+        <UInput placeholder="Garmin" v-model="formData.ALTER2MANTXT"  />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup label="Dealer" name="Dealer">
-        <UInput placeholder="Walmart.com" />
+        <UInput placeholder="Walmart.com" v-model="formData.ALTER2DEATXT"  />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup label="Lead Time" name="Lead Time">
-        <UInput placeholder="1" />
+        <UInput placeholder="1"  v-model="formData.ALTER2LEADTIME"/>
       </UFormGroup>
     </div>
   </div>
@@ -987,17 +987,17 @@ else
     
     <div>
       <UFormGroup label="Part Number" name="Part Number">
-        <UInput placeholder="" />
+        <UInput placeholder=""  v-model="formData.ALTER2MANNUM"  />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup label="Part Number" name="Part Number">
-        <UInput placeholder="1" />
+        <UInput placeholder="1"  v-model="formData.ALTER2DEANUM" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup label="UL Number" name="UL Number">
-        <UInput placeholder="14.56" />
+        <UInput placeholder="14.56" v-model="formData.ALTER2UL" />
       </UFormGroup>
     </div>
    
@@ -1010,27 +1010,27 @@ else
         </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER2QTY1"    />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER2QTY2" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER2QTY3" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER2QTY3"/>
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER2QTY4" />
       </UFormGroup>
     </div>
   </div>
@@ -1041,27 +1041,27 @@ else
         </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.ALTER2PRICE1"  />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.ALTER2PRICE2"  />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput  v-model="formData.ALTER2PRICE3" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.ALTER2PRICE4" />
       </UFormGroup>
     </div>
     <div>
       <UFormGroup >
-        <UInput />
+        <UInput v-model="formData.ALTER2PRICE5" />
       </UFormGroup>
     </div>
    
