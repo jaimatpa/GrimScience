@@ -122,10 +122,10 @@ const gridMeta = ref({
 });
 const modalMeta = ref({
     isSerialModalOpen: false,
-    isOrderDetailModalOpen: false,
-    isQuoteDetailModalOpen: false,
-    isServiceOrderDetailModalOpen: false,
-    isSiteVisitModalOpen: false,
+    isCustomerModalOpen: false,
+    // isQuoteDetailModalOpen: false,
+    // isServiceOrderDetailModalOpen: false,
+    // isSiteVisitModalOpen: false,
     modalTitle: "New Serial",
 });
 const filterValues = ref({
@@ -209,13 +209,13 @@ const fetchGridData = async () => {
 
                 gridMeta.value.serials = response._data.body.map((serial) => {
                     // Create the customerDetails property
-                  const customerDetails = `${serial.lname || ""} ${serial.fname || ""}, ${serial.company1 || ""}`;
-                  const customerNumber = serial.number;
+                    const customerDetails = `${serial.lname || ""} ${serial.fname || ""}, ${serial.company1 || ""}`;
+                    const customerNumber = serial.number;
 
                     // Return a new object with all existing properties plus the new customerDetails property
                     return {
                         ...serial,
-                      CustomerDetails: customerDetails.trim(),
+                        CustomerDetails: customerDetails.trim(),
                         CustomerNumber: customerNumber,
                     };
                 });
@@ -319,20 +319,6 @@ const excelExport = async () => {
     exportIsLoading.value = false;
 };
 
-const getCustomerSiteVisit = async () => {
-    await useApiFetch("/api/sitevisit/sitevisit", {
-        method: "GET",
-        params: {
-            CustomerID: gridMeta.value.selectedSerialId,
-        },
-        onResponse({ response }) {
-            if (response.status === 200) {
-                sitevisitGridMeta.value.options = response._data.body;
-            }
-        },
-    });
-};
-
 const onSelect = async (row) => {
     gridMeta.value.selectedSerialId = row?.uid;
 
@@ -354,11 +340,11 @@ const handleSelect = () => {
 };
 const onDblClick = async () => {
     if (gridMeta.value.selectedSerialId) {
-        modalMeta.value.modalTitle = "Edit";
-        modalMeta.value.isSerialModalOpen = true;
+        modalMeta.value.isCustomerModalOpen = true;
+        // modalMeta.value.modalTitle = "Edit";
+        // modalMeta.value.isSerialModalOpen = true;
     }
 };
-
 </script>
 
 <template>
@@ -501,5 +487,20 @@ const onDblClick = async () => {
         <MaterialsSerialsForm @close="handleModalClose" @save="handleModalSave" :selected-serial="gridMeta.selectedSerialId" :is-modal="true" />
     </UDashboardModal>
 
+    <!-- Customer Detail Modal -->
+    <UDashboardModal
+        v-model="modalMeta.isCustomerModalOpen"
+        title="Customer Detail"
+        :ui="{
+            title: 'text-lg',
+            header: {
+                base: 'flex flex-row min-h-[0] items-center',
+                padding: 'pt-5 sm:px-9',
+            },
+            body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+            width: 'w-[1000px] sm:max-w-7xl',
+        }">
+        <CustomersForm @close="" @save="fetchGridData" :selected-customer="parseInt(gridMeta.selectSerial?.Customer)" :is-modal="true" />
+    </UDashboardModal>
 </template>
 <style scoped></style>
