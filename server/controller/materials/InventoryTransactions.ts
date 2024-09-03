@@ -56,7 +56,7 @@ export const getInventoryTransactions = async (filterParams) => {
         }, 
         {
           model: tblJobs,
-          attributes: ['NUMBER'],
+          attributes: ['UniqueID', 'NUMBER'],
           where: jobWhere,
           required: !JobID?false:true
         }
@@ -72,7 +72,8 @@ export const getInventoryTransactions = async (filterParams) => {
         Dated: item.Dated,
         By: item.By,
         Justification: item.Justification,
-        JobID: item.tblJob?.NUMBER??null,
+        JobID: item.tblJob?.NUMBER ?? null,
+        JobUniqueID: item.tblJob?.UniqueID ?? null,
         ServiceReportID: !item.ServiceReportID?null:item.ServiceReportID,
         InvoiceID: !item.InvoiceID?null:item.InvoiceID,
         VendorInvoiceID: !item.VendorInvoiceID?null:item.VendorInvoiceID,
