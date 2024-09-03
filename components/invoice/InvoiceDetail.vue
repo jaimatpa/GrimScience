@@ -256,7 +256,7 @@
   }
   const propertiesInit = async () => {
     loadingOverlay.value = true
-    await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
+    await useApiFetch(`/api/customers/${props.selectedCustomer ? props.selectedCustomer : formData.customerid}`, {
       method: 'GET',
       onResponse({ response }) {
         if(response.status === 200) {
