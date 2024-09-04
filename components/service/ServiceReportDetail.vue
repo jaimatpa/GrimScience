@@ -794,7 +794,7 @@ else
             </div>
             <div class="basis-1/3 w-full">
               <UButton icon="i-heroicons-minus-circle-20-solid" label="Unlink" variant="outline" color="red"
-                :ui="{ base: 'w-full', truncate: 'flex justify-center break-words text-center w-full h-full' }"
+                :ui="{ base: 'w-full', truncate: 'flex justify-center break-words text-center w-full' }"
                 truncate />
             </div>
           </div>

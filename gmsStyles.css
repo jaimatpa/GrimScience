@@ -196,6 +196,9 @@ color:#fff!important;
 
 .gmsTealTitlebar {
   background-color: #91bdca;
+  color: #000;
+  font-weight:500;
+  font-size: 15px;
 }
 
 /* --- */
@@ -211,6 +214,9 @@ color:#fff!important;
 
 .gmsBlueTitlebar {
   background-color: #7491bd;
+  color: #000;
+  font-weight:500;
+  font-size: 15px;
 }
 
 /* --- */
@@ -226,6 +232,9 @@ color:#fff!important;
 
 .gmsRedTitlebar {
   background-color: #bf5163;
+  color: #000;
+  font-weight:500;
+  font-size: 15px;
 }
 
 /* --- */
@@ -249,9 +258,17 @@ line-height: 1.2;
 color:#000!important;
 }
 
-.gms-ModalFormText label, .gms-ModalFormText table th, .gms-ModalFormText table td {
-font-size:13px!important;
+.gms-modalForm .text-sm:not(button) {
+  font-size:13px!important; 
 }
+
+/* .gms-modalForm label.text-sm, .gms-modalForm table th.text-sm, .gms-modalForm table td.text-sm {
+  font-size:13px!important; 
+} */
+
+/* .gms-ModalFormText label, .gms-ModalFormText table th, .gms-ModalFormText table td {
+font-size:13px!important;
+} */
 
 .i-heroicons-arrows-up-down-20-solid {
   display:none;
