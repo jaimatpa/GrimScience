@@ -1070,7 +1070,7 @@
               <div class="flex flex-row space-x-3">
                 <div class="basis-7/12 flex items-end justify-end">
                   <div class="">
-                    <UButton label="Calculate" :ui="{base: 'justify-center'}"/>
+                    <UButton label="Calculate" color="gms-purple" :ui="{base: 'justify-center'}"/>
                   </div>
                 </div>
                 <div class="basis-5/12">
