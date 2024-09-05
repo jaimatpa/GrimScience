@@ -1,6 +1,6 @@
-import { DATE, Op, QueryTypes, Sequelize } from 'sequelize';
+import { DataTypes, DATE, Op, QueryTypes, Sequelize } from 'sequelize';
 import models from '~/server/api/jobs/models';
-import { tblBP, tblInventoryTransactionDetails, tblInventoryTransactionDetails } from "~/server/models";
+import { tblAccounts, tblBP, tblInventoryTransactionDetails, tblInventoryTransactionDetails } from "~/server/models";
 import sequelize from '~/server/utils/databse';
 
 export const getProductLines = async () => {
@@ -296,18 +296,123 @@ export const getPartsDetail = async (id) => {
   }
 };
 
+
+const formatDate = (isoDateString: string): string => {
+  const date = new Date(isoDateString);
+
+  // Extract year, month, day, hours, minutes, seconds
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is zero-indexed
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  // Format as YYYY-MM-DD HH:mm:ss.SSS
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.000`;
+};
+
 export const updateParts = async (id, updateData) => {
+  console.log("Updated data:", updateData, id);
+
+  // Filter out keys with null or undefined values
+  const filteredData = Object.keys(updateData).reduce((acc, key) => {
+    if (updateData[key] !== null && updateData[key] !== undefined && key !== 'UniqueID') {
+      acc[key] = updateData[key];
+    }
+    return acc;
+  }, {});
+
   try {
-    updateData.TODAY = updateData.TODAY || new Date();
-    const [updated] = await tblBP.update(updateData, {
-      where: { UniqueID: id }
+    if (Object.keys(filteredData).length === 0) {
+      console.log("No fields to update.");
+      return;
+    }
+
+    // Generate the SET clause of the SQL query
+    const setClause = Object.keys(filteredData)
+      .map((key) => `[${key}] = :${key}`)
+      .join(', ');
+
+    // Construct the raw SQL query
+    const sql = `
+      UPDATE [GrimmIS34].[dbo].[tblBP]
+      SET ${setClause}
+      WHERE [UniqueID] = :UniqueID
+    `;
+
+    console.log("Executing SQL:", sql);
+
+    // Execute the SQL query with Sequelize
+    const [results, metadata] = await sequelize.query(sql, {
+      replacements: {
+        UniqueID: id,
+        ...filteredData
+      },
+      type: QueryTypes.UPDATE
     });
-    return updated ? id : null;
+
+    console.log("Update successful. Affected rows:", metadata);
+    return metadata > 0 ? id : null;
   } catch (error) {
-    console.error("Error updating part:", error);
-    throw error; // Handle errors as appropriate for your application
+    console.error("Error updating parts:", error);
+    throw error; // Re-throw error for further handling
   }
 };
+
+export const createParts = async (data: any) => {
+  // Filter out keys with null or undefined values
+  const filteredData = Object.keys(data).reduce((acc, key) => {
+    if (data[key] !== null && data[key] !== undefined) {
+      acc[key] = data[key];
+    }
+    return acc;
+  }, {});
+
+  // Extract column names and values for the insert statement
+  const columns = Object.keys(filteredData).join(', ');
+  const values = Object.keys(filteredData).map(key => `:${key}`).join(', ');
+
+  // Step 1: Get the next instanceID
+  let instanceID;
+  try {
+    const [result] = await sequelize.query(
+      `SELECT ISNULL(MAX(instanceID), 0) + 1 AS newInstanceID FROM [GrimmIS34].[dbo].[tblBP]`,
+      { type: QueryTypes.SELECT }
+    );
+    instanceID = result.newInstanceID;
+  } catch (error) {
+    console.error("Error fetching next instanceID:", error);
+    throw error; // Re-throw error for further handling
+  }
+
+  // Step 2: Insert the new record with the new instanceID
+  try {
+    const sql = `
+      INSERT INTO [GrimmIS34].[dbo].[tblBP] (instanceID, ${columns})
+      VALUES (:instanceID, ${values});
+    `;
+
+    // Add the instanceID to the filteredData
+    filteredData.instanceID = instanceID;
+
+    const [results] = await sequelize.query(sql, {
+      replacements: filteredData,
+      type: QueryTypes.INSERT
+    });
+
+    // Return the newly created record's ID (assuming auto-increment primary key)
+    const newId = results[0]; // Adjust based on your DB setup
+    console.log("Insert successful. New record ID:", newId);
+    return newId;
+  } catch (error) {
+    console.error("Error creating part:", error);
+    throw error; // Re-throw error for further handling
+  }
+};
+
+
+
 
 export const deleteParts = async (id) => {
   try {
@@ -536,3 +641,98 @@ export const getTotalRequiredByModel = async (model:any) => {
 };
 
 
+export const getAccountList = async () => {
+  try {
+      const accountList = await tblAccounts.findAll({
+          attributes: [
+              [Sequelize.fn('DISTINCT', Sequelize.col('AcctNumber')), 'AcctNumber'],
+              'Description'
+          ],
+          order: [['AcctNumber', 'ASC']],
+          raw: true
+      });
+      // Format the results into an array of strings
+      const formattedList = accountList.map(account =>
+          `#${account.AcctNumber}  ${account.Description}`
+      );
+
+      return formattedList;
+  } catch (error) {
+      throw new Error(`Error fetching data from table tblAccounts: ${error.message}`);
+  }
+};
+export const updatePartsByRevisionID = async (data: any, instanceId: any) => {
+  // Ensure instanceId is set properly
+  if (!instanceId) {
+    throw new Error("Instance ID is required");
+  }
+  
+  console.log("Instance ID:", instanceId);
+
+  // Filter out keys with null or undefined values, except for uniqueID
+  const filteredData = Object.keys(data).reduce((acc, key) => {
+    if (data[key] !== undefined && (key === 'uniqueID' || data[key] !== null)) {
+      acc[key] = data[key];
+    }
+    return acc;
+  }, {});
+
+  // Add the instanceId to the filteredData for insertion
+  filteredData.instanceID = instanceId;
+
+  // Extract column names and values for the insert statement
+  const columns = Object.keys(filteredData).join(', ');
+  const values = Object.keys(filteredData).map(key => `:${key}`).join(', ');
+
+  // Construct the SQL query
+  const sql = `
+    INSERT INTO [GrimmIS34].[dbo].[tblBP] (${columns})
+    VALUES (${values});
+  `;
+
+  try {
+    // Execute the SQL query
+    const [results] = await sequelize.query(sql, {
+      replacements: filteredData,
+      type: QueryTypes.INSERT
+    });
+
+    // Return the newly created record's ID (assuming auto-increment primary key)
+    const newId = results[0]; // Adjust based on your DB setup
+    console.log("Insert successful. New record ID:", newId);
+    return newId;
+  } catch (error) {
+    console.error("Error inserting part:", error);
+    throw error; // Re-throw error for further handling
+  }
+};
+
+
+export const getAllPartsExport = async (sortBy, sortOrder, filterParams) => {
+  // Create the 'where' clause for filtering
+  const whereClause = applyPartFilters(filterParams);
+
+  // Fetch the parts data from the database
+  const productInfos = await tblBP.findAll({
+    attributes: [
+      'UniqueID',
+      'instanceID',
+      'PARTTYPE',
+      'SUBCATEGORY',
+      'MODEL',
+      'DESCRIPTION',
+      'OnHand',
+      'PRIMARYPRICE1',
+      'UNIT',
+      'ETLCriticalComponent'
+    ],
+    where: {
+      partflag: 1,  // Only fetch parts with partflag = 1
+      ...whereClause  // Include the dynamic filters
+    },
+    order: [[sortBy || 'MODEL', sortOrder || 'ASC']],  // Default sorting by 'MODEL' in ascending order
+    raw: true  // Return the data as raw objects
+  });
+
+  return productInfos;
+};

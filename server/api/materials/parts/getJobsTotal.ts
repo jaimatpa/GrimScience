@@ -1,31 +1,36 @@
-
-import { eventHandler, getQuery, createError } from 'h3';
-import { getRevisions,getTotalRequiredByModel } from '~/server/controller/materials';
-
+import { QueryTypes } from "sequelize";
+import sequelize from "~/server/utils/databse";
 
 export default eventHandler(async (event) => {
-    try {
-        const method = event._method;
-        const { modelId} = getQuery(event);
-        console.log("model is in there ",modelId);
+    const method = event.node.req.method;
+    switch (method.toUpperCase()) {
+        case 'GET':
+            const { instanceId } = getQuery(event);
+            const query = `
+                SELECT DISTINCT 
+                    '#' + tblA.MODEL + ' ' + tblA.DESCRIPTION AS Expr1, 
+                    tblA.instanceID 
+                FROM 
+                    tblBP AS tblA 
+                    INNER JOIN tblBPParts ON tblBPParts.instanceid = tblA.instanceID 
+                    INNER JOIN tblBP AS tblB ON tblBPParts.partid = tblB.UniqueID 
+                WHERE 
+                    tblB.InstanceID = :instanceId
+                ORDER BY 
+                    '#' + tblA.MODEL + ' ' + tblA.DESCRIPTION DESC;
+            `;
+            const data = await sequelize.query(query, {
+                replacements: { instanceId },
+                type: QueryTypes.SELECT,
+                plain: false,
+                raw: true
+            });
+            // console.log('Query Results:', met    adata);
 
-        if (!modelId) {
-            event.node.res.statusCode = 400;
-            return { error: 'instanceId is required' };
-        }
-        switch (method.toUpperCase()) {
-            case 'GET':
-                const result = await getTotalRequiredByModel (modelId as string);
-                return { body: result, message: '' };
-            default:
-                event.node.res.statusCode = 405;
-                return { error: 'Method Not Allowed' };
-        }
-    } catch (error) {
-        throw createError({
-            statusCode: 500,
-            statusMessage: `Error fetching inventory transactions: ${error.message}`,
-        });
+            return data
+
+        default:
+            event.node.res.statusCode = 405;
+            return { error: 'Method Not Allowed' };
     }
 });
-

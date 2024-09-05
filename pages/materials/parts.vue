@@ -45,6 +45,13 @@ const gridMeta = ref({
       filterable: true,
     },
     {
+      key: "MODEL",
+      label: "Stock#",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
       key: "DESCRIPTION",
       label: "DESCRIPTION",
       sortable: true,
@@ -92,7 +99,8 @@ const filterValues = ref({
   SUBCATEGORY: null,
   DESCRIPTION: null,
   OnHand: null,
-  ETLCriticalComponent: null
+  ETLCriticalComponent: null,
+  MODEL:null
 });
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
@@ -134,6 +142,7 @@ const init = async () => {
     });
   }
 };
+
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
   await useApiFetch("/api/materials/numbers", {
@@ -182,7 +191,7 @@ const fetchGridData = async () => {
 };
 const onCreate = () => {
   gridMeta.value.selectedCustomerId = null;
-  modalMeta.value.modalTitle = "New Customer";
+  modalMeta.value.modalTitle = "New Parts";
   modalMeta.value.isCustomerModalOpen = true;
 };
 const onEdit = (row) => {
@@ -190,22 +199,8 @@ const onEdit = (row) => {
   modalMeta.value.modalTitle = "Edit";
   modalMeta.value.isCustomerModalOpen = true;
 };
-const onOrderDetail = (row) => {
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-  modalMeta.value.isOrderDetailModalOpen = true;
-};
-const onQuoteDetail = (row) => {
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-  modalMeta.value.isQuoteDetailModalOpen = true;
-};
-const onServiceOrderDetail = (row) => {
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-  modalMeta.value.isServiceOrderDetailModalOpen = true;
-};
-const onSiteVisitDetail = (row) => {
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-  modalMeta.value.isSiteVisitModalOpen = true;
-};
+
+
 const onDelete = async (row: any) => {
   await useApiFetch(`/api/customers/${row?.UniqueID}`, {
     method: "DELETE",
@@ -223,7 +218,8 @@ const onDelete = async (row: any) => {
   });
 };
 const handleModalClose = () => {
-  modalMeta.value.isCustomerModalOpen = false;
+  console.log("it's coming modal")
+  modalMeta.value.isCustomerModalOpen=false;
 };
 const handleModalSave = async () => {
   handleModalClose();
@@ -287,7 +283,7 @@ const excelExport = async () => {
       if (value !== null) return `${key}=${value}`;
     })
     .join("&");
-  location.href = `/api/customers/exportlist?${paramsString}`;
+  location.href = `/api/materials/parts/exportList?${paramsString}`;
   exportIsLoading.value = false;
 };
 const onSelect = async (row) => {
@@ -408,56 +404,10 @@ const onDblClick = async () => {
             </div>
           </template>
         </template>
-        <template #label-data="{ row }">
-          <UTooltip text="Label" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-tag"
-              @click=""
-            />
-          </UTooltip>
-        </template>
-        <template #order-data="{ row }">
-          <UTooltip text="Order" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-shopping-cart"
-              @click="onOrderDetail(row)"
-            />
-          </UTooltip>
-        </template>
-        <template #quote-data="{ row }">
-          <UTooltip text="Quote" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-currency-dollar"
-              @click="onQuoteDetail(row)"
-            />
-          </UTooltip>
-        </template>
-        <template #serviceOrder-data="{ row }">
-          <UTooltip text="Service Order" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-chat-bubble-left-ellipsis"
-              @click="onServiceOrderDetail(row)"
-            />
-          </UTooltip>
-        </template>
-        <template #siteVisit-data="{ row }">
-          <UTooltip text="Site Visit" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-clipboard-document-list"
-              @click="onSiteVisitDetail(row)"
-            />
-          </UTooltip>
-        </template>
+  
+    
+
+
         <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
             <UButton
@@ -515,74 +465,6 @@ const onDblClick = async () => {
       :selectedPartModel="gridMeta.selectedPartModdel"
     />
   </UDashboardModal>
-  <!-- Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isOrderDetailModalOpen"
-    title="Invoice"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[2500px] sm:max-w-9xl',
-    }"
-  >
-    <InvoiceDetail
-      :selected-customer="gridMeta.selectedCustomerId"
-      @close="modalMeta.isOrderDetailModalOpen = false"
-    />
-  </UDashboardModal>
-  <!-- Quote Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isQuoteDetailModalOpen"
-    title="Quote"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1000px] sm:max-w-7xl',
-    }"
-  >
-    <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId" />
-  </UDashboardModal>
-  <!-- Service Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isServiceOrderDetailModalOpen"
-    title="Service Order"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
-  >
-
-  </UDashboardModal>
-  <!-- Site Visit Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isSiteVisitModalOpen"
-    title="Site Visit"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
-  >
-    <CustomersSiteVisitDetail
-      :selected-customer="gridMeta.selectedCustomerId"
-    />
-  </UDashboardModal>
+ 
 </template>
 <style scoped></style>

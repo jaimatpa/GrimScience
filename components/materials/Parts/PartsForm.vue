@@ -5,28 +5,21 @@ import { format } from "date-fns";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
 
-const people = [
+
+
+
+const accountList = ref([]);
+const revisions = ref([]);
+const workplaces = ref([]);
+const workplacesColumns = [
   {
-    name: "Lindsay Walton",
-  },
-  {
-    name: "Lindsay Walton",
-  },
-  {
-    name: "Lindsay Walton",
-  },
-  {
-    name: "Lindsay Walton",
-  },
-  {
-    name: "Lindsay Walton",
-  },
-  {
-    name: "Lindsay Walton",
-  },
+    key: "location",
+    label: "location",
+  }
 ];
 
-const revisions = ref([]);
+
+
 const revisionsColumns = [
   {
     key: "code",
@@ -90,12 +83,12 @@ const InventoryTransactionsColumns = [
 const jobDetails = ref([]);
 const jobDetailsColumns = [
   {
-    key: "number",
+    key: "Expr1",
     label: "Jobs",
   },
   {
-    key: "TotalRequired",
-    label: "TotalRequired",
+    key: "instanceID",
+    label: "instance",
   },
 ];
 
@@ -136,7 +129,7 @@ const formData = reactive({
   instanceID: null,
   oldproductid: null,
   oldpartid: null,
-  partflag: null,
+  partflag: 1,
   subassemblyflag: null,
   productflag: null,
   supplyflag: null,
@@ -297,6 +290,7 @@ const editInit = async () => {
   });
   propertiesInit();
   loadingOverlay.value = false;
+  fetchWorkCentersBy();
 };
 const propertiesInit = async () => {
   loadingOverlay.value = true;
@@ -349,7 +343,7 @@ const propertiesInit = async () => {
       insepctionList.value = [];
     },
   });
-  loadingOverlay.value = true;
+
 
   await useApiFetch(
     `/api/materials/parts/parts/transactions?model=${props.selectedPartModel}`,
@@ -381,20 +375,22 @@ const propertiesInit = async () => {
     },
   });
   await useApiFetch(
-    `/api/materials/parts/getJobsTotal?modelId=${props.selectedPartModel}`,
-    {
-      method: "GET",
-      onResponse({ response }) {
-        if (response.status === 200) {
-          console.log("jobdetails", response._data.body);
-          jobDetails.value = response._data.body;
-        }
-      },
-      onResponseError() {
-        // orders = []
-      },
-    }
-  );
+  `/api/materials/parts/getJobsTotal?instanceId=${props.selectedPartInstace}`,
+  {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        console.log("jobdetails", response._data);
+        jobDetails.value =response._data;
+      }
+    },
+    onResponseError({ response }) {
+      console.error("Error fetching job details:", response);
+      // Handle error, maybe reset jobDetails or show a notification
+    },
+  }
+);
+
 
   await useApiFetch(
     `/api/materials/parts/parts/podetails?instanceId=${props.selectedPartInstace}`,
@@ -427,6 +423,26 @@ const propertiesInit = async () => {
       },
     }
   );
+
+
+
+
+  await useApiFetch("/api/materials/parts/accountsList",
+    {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          console.log("the value of accountlist", response._data.body);
+          accountList.value = response._data.body;
+        }
+      },
+      onResponseError() {
+        // orders = []
+      },
+    }
+  );
+
+
 
   await useApiFetch("/api/common/usstates", {
     method: "GET",
@@ -503,34 +519,105 @@ const validate = (state: any): FormError[] => {
   return errors;
 };
 const handleClose = async () => {
-  if (customersFormInstance?.vnode?.props.onClose) {
+  // Check if props.selectedPartInstace is defined and has vnode with onClose
+  if (props.selectedPartInstace?.vnode?.props?.onClose) {
     emit("close");
   } else {
+    // Fallback to go back in the router history
     router.go(-1);
   }
 };
+
+
+
+const fetchWorkCentersBy = async () => {
+    try {
+        const response = await useApiFetch('/api/materials/workcenter', {
+            method: 'GET',
+        });
+        if (response) {
+            console.log(response)
+            const workCenterIds = formData.WORKCENTERS
+                .split(',')
+                .map(id => id.trim()) 
+                .filter(id => id !== ""); 
+
+            const filteredResponse = response.filter(val => workCenterIds.includes(val.UniqueId));
+
+            workplaces.value = filteredResponse;
+            console.log("work center is",filteredResponse);
+        } else {
+            console.log('Unexpected response structure or status code:', response);
+        }
+    } catch (error) {
+        console.error(error);
+        return { workcenters: [] };
+    }
+}
 
 function formatDate(date: Date): string {
   return format(date, 'yyyy-MM-dd HH:mm:ss');
 }
 
-const onSubmit = async (event: FormSubmitEvent<any>) => {
+const revision=async()=>{
+  if(props.selectedPartInstace!=null){
+    console.log("meth dfadsf");
 
-  console.log("form data is",event.data)
-    await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
-      method: "PUT",
-      body: event.data,
-      onResponse({ response }) {
-        if (response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: "i-heroicons-check-circle",
-            color: "green",
-          });
-        }
-      },
-    });
+    const response = await useApiFetch(`/api/materials/parts/parts/revision?instanceIdForRevision=${props.selectedPartInstace}&id=${props.selectedCustomer}`, {
+        method: "PUT",
+      });
+ 
+
+}
+
+
+
+
+
+}
+
+
+const onSubmit = async (event: FormSubmitEvent<any>) => {
+  if(props.selectedCustomer!=null){
+
+    
+      console.log("form data is",event.data)
+        await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
+          method: "PUT",
+          body: event.data,
+          onResponse({ response }) {
+            if (response.status === 200) {
+              console.log("status is",response.status);
+              toast.add({
+                title: "Success",
+                description: response._data.message,
+                icon: "i-heroicons-check-circle",
+                color: "green",
+              });
+            }
+          },
+        });
+       
+
+  }
+  else{
+    console.log("form data is",event.data)
+        await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
+          method: "POST",
+          body: event.data,
+          onResponse({ response }) {
+            if (response.status === 200) {
+              toast.add({
+                title: "Success",
+                description: response._data.message,
+                icon: "i-heroicons-check-circle",
+                color: "green",
+              });
+            }
+          },
+        });
+  }
+   emit('save');
 
 };
 
@@ -561,6 +648,10 @@ else propertiesInit();
       class="space-y-4"
       @submit="onSubmit"
     >
+    <div class="gmsBlueTitlebar pl-2 h-6">
+  <label class="text-white font-bold">Part Information</label>
+</div>
+
       <div>
         <div>
           <div class="flex flex-row space-x-5">
@@ -616,7 +707,7 @@ else propertiesInit();
             <div class="basis-1/5">
               <UFormGroup label="Inventory Unit" name="profession">
                 <UInputMenu
-                  v-model:query="formData.InventoryUnit"
+                  v-model="formData.InventoryUnit"
                   :options="partUnit"
                 />
               </UFormGroup>
@@ -625,7 +716,7 @@ else propertiesInit();
               <UFormGroup label="Account#" name="Account">
                 <UInputMenu
                   v-model="formData.AccountNumber"
-                  :options="partUnit"
+                  :options="accountList"
                 />
               </UFormGroup>
             </div>
@@ -678,8 +769,10 @@ else propertiesInit();
               </UFormGroup>
             </div>
           </div>
-          <div class="mt-[30px] text-center">
-            <div class="basis-1/2">Primary Vendor</div>
+       
+
+          <div class="gmsBlueTitlebar mt-3 ">
+            <div class=" pl-2 text-white font-bold">Primary Vendor</div>
           </div>
 
           <div class="grid grid-cols-3 gap-3 mt-2">
@@ -799,31 +892,43 @@ else propertiesInit();
         <div></div>
       </div>
 
-      <div class="flex flex-row">
-        <div class="basis-1/2 text-center">Alternative Vendor #1</div>
-        <div class="basis-1/2 text-center">Alternative Vendor #2</div>
+      <div class="flex flex-row  mt-[30px]">
+
+     
+         <div class="basis-1/2 gmsBlueTitlebar">
+            <div class="pl-2  text-white font-bold">Alternative Vendor #1</div>
+          </div>
+<div class="basis-1/2 ml-2  gmsBlueTitlebar">
+
+  <div class=" text-white pl-2 font-bold">Alternative Vendor #2</div>
+  </div>
       </div>
 
       <div class="flex flex-row space-x-5">
         <div class="basis-1/2">
           <!-- Shipping Information -->
-          <div class="flex flex-row space-x-5 mt-5">
+          <div class="flex flex-row space-x-5 ">
             <!-- First Grid Section -->
             <div class="grid grid-cols-1 gap-5">
               <div>
                 <UFormGroup label="Manufacturer" name="Manufacturer">
-                  <UInput
-                    placeholder="Garmin"
+                  <UInputMenu
                     v-model="formData.ALTER1MANTXT"
+                    :options="vendorList"
                   />
+
+
+
                 </UFormGroup>
               </div>
               <div>
                 <UFormGroup label="Dealer" name="Dealer">
-                  <UInput
-                    placeholder="Walmart.com"
+        
+                  <UInputMenu
                     v-model="formData.ALTER1DEATXT"
+                    :options="vendorList"
                   />
+
                 </UFormGroup>
               </div>
               <div>
@@ -927,16 +1032,20 @@ else propertiesInit();
             <div class="grid grid-cols-1 gap-5">
               <div>
                 <UFormGroup label="Manufacturer" name="Manufacturer">
-                  <UInput
+               
+                  <UInputMenu
                     placeholder="Garmin"
                     v-model="formData.ALTER2MANTXT"
+                     :options="vendorList"
                   />
                 </UFormGroup>
               </div>
               <div>
                 <UFormGroup label="Dealer" name="Dealer">
-                  <UInput
-                    placeholder="Walmart.com"
+                 
+                  <UInputMenu
+                  :options="vendorList"
+                 
                     v-model="formData.ALTER2DEATXT"
                   />
                 </UFormGroup>
@@ -1038,8 +1147,11 @@ else propertiesInit();
       </div>
 
       
+      <div class="gmsBlueTitlebar mt-4 ">
+            <div class=" pl-2 text-white font-bold">Inventory</div>
+          </div>
 
-<div class="flex flex-row space-x-3 mt-6">
+<div class="flex flex-row space-x-3 ">
   <!-- Left Side - Job Details Table -->
   <div class="basis-1/3">
     <UTable :rows="jobDetails" :columns="jobDetailsColumns" />
@@ -1057,18 +1169,9 @@ else propertiesInit();
     <UTable :rows="poDetails" :columns="poDetailsColumns" class="h-96 w-full" />
   </div>
 </div>
-
-
-<p >Inventory Transactions</p>
-<div class="flex flex-row space-x-3 mt-6">
-  <!-- Left Side - Inventory Transactions Table -->
-  <div class="basis-1/2 h-96 overflow-auto">
-    <UTable :columns="InventoryTransactionsColumns" :rows="InventoryTransactions" />
-  </div>
-
   <!-- Right Side - Inputs and People Table -->
-  <div class="basis-1/2">
-    <div class="space-y-2 mt-2">
+  <div class="flex flex-row   p-3">
+    <div class="space-y-2 mr-2 mt-4  basis-1/2">
       <div class="flex items-center space-x-2">
         <label>On Order</label>
         <UInput class="flex-1" />
@@ -1087,17 +1190,34 @@ else propertiesInit();
       </div>
       <div class="flex items-center space-x-2">
         <label>Minimum</label>
-        <UInput class="flex-1" />
+        <UInput class="flex-1" v-model="formData.minimum" />
       </div>
     </div>
 
-    <div class="mt-6">
-      <UTable :rows="people" class="h-48 w-full" />
+    <div class="ml-4 basis-1/2">
+      <UTable :rows="workplaces" :columns="workplacesColumns" class="h-48 w-full" />
     </div>
   </div>
 
 
+
+<div class="space-x-3 mt-6">
+  <!-- Left Side - Inventory Transactions Table -->
+
+  <div class="gmsBlueTitlebar  ">
+          <div class=" pl-2 text-white font-bold">Inventory Transactions</div>
+        </div>
+  <div class="basis-1/2 h-96 overflow-auto">
+    <UTable :columns="InventoryTransactionsColumns" :rows="InventoryTransactions" />
+  </div>
+
+
+
+
 </div>
+<div class="gmsBlueTitlebar mt-4 ">
+            <div class=" pl-2 text-white font-bold">Revision History</div>
+          </div>
 <div class="flex flex-row space-x-3">
   <!-- Left Side - Revisions Table -->
   <div class="basis-1/2 h-32 overflow-auto">
@@ -1105,9 +1225,15 @@ else propertiesInit();
   </div>
 
   <!-- Right Side - Revised By Input -->
-  <UFormGroup label="Revised By" name="fname" class="basis-1/2">
-    <UInputMenu placeholder="Revised By" />
-  </UFormGroup>
+   <div class=basis-1/2> 
+     <UFormGroup label="Revised By" name="fname" class="basis-1/2">
+       <UInputMenu placeholder="Revised By" />
+     </UFormGroup>
+     <UFormGroup  class="basis-1/2 mt-1">
+       <UButton color="cyan" variant="outline" @click="revision()" label="Revision" />
+     </UFormGroup>
+    </div>
+
 </div>
 
 
