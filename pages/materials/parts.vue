@@ -193,6 +193,10 @@ const onCreate = () => {
   gridMeta.value.selectedCustomerId = null;
   modalMeta.value.modalTitle = "New Parts";
   modalMeta.value.isCustomerModalOpen = true;
+  gridMeta.value.selectedPartInstanceId = null;
+  gridMeta.value.selectedPartModdel=null;
+
+
 };
 const onEdit = (row) => {
   gridMeta.value.selectedCustomerId = row?.UniqueID;

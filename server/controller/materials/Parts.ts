@@ -373,6 +373,7 @@ export const createParts = async (data: any) => {
   const columns = Object.keys(filteredData).join(', ');
   const values = Object.keys(filteredData).map(key => `:${key}`).join(', ');
 
+console.log("data a is",data);
   // Step 1: Get the next instanceID
   let instanceID;
   try {
@@ -661,24 +662,27 @@ export const getAccountList = async () => {
       throw new Error(`Error fetching data from table tblAccounts: ${error.message}`);
   }
 };
+
+
 export const updatePartsByRevisionID = async (data: any, instanceId: any) => {
   // Ensure instanceId is set properly
   if (!instanceId) {
-    throw new Error("Instance ID is required");
+    throw new Error("Instance ID is required.");
   }
-  
-  console.log("Instance ID:", instanceId);
 
-  // Filter out keys with null or undefined values, except for uniqueID
+  // Filter out keys with null, undefined values, and 'UniqueID'
   const filteredData = Object.keys(data).reduce((acc, key) => {
-    if (data[key] !== undefined && (key === 'uniqueID' || data[key] !== null)) {
+    if (data[key] !== undefined && data[key] !== null && key !== 'UniqueID') {
       acc[key] = data[key];
     }
     return acc;
   }, {});
 
-  // Add the instanceId to the filteredData for insertion
-  filteredData.instanceID = instanceId;
+  const now = new Date();
+  const isoString = now.toISOString();
+  filteredData.TODAY =isoString;
+  filteredData.CODE='Revision';
+
 
   // Extract column names and values for the insert statement
   const columns = Object.keys(filteredData).join(', ');
@@ -697,16 +701,14 @@ export const updatePartsByRevisionID = async (data: any, instanceId: any) => {
       type: QueryTypes.INSERT
     });
 
-    // Return the newly created record's ID (assuming auto-increment primary key)
-    const newId = results[0]; // Adjust based on your DB setup
-    console.log("Insert successful. New record ID:", newId);
-    return newId;
+    // Return the result after successful insertion
+    console.log("Insert successful. Record inserted.");
+    return results;
   } catch (error) {
     console.error("Error inserting part:", error);
     throw error; // Re-throw error for further handling
   }
 };
-
 
 export const getAllPartsExport = async (sortBy, sortOrder, filterParams) => {
   // Create the 'where' clause for filtering

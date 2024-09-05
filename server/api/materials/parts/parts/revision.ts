@@ -27,7 +27,7 @@ export default eventHandler(async (event) => {
     const detail1 = await getPartsDetail(id);
     console.log("details are", detail1);
     // Update part by revision ID
-    const updatedRevisionID = await updatePartsByRevisionID(detail1,instanceIdForRevision);
+    const updatedRevisionID = await updatePartsByRevisionID(detail1.dataValues,instanceIdForRevision);
 
     return {
       body: { updatedRevisionID },

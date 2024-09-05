@@ -408,22 +408,7 @@ const propertiesInit = async () => {
     }
   );
 
-  await useApiFetch(
-    `/api/materials/parts/revisions?instanceId=${props.selectedPartInstace}`,
-    {
-      method: "GET",
-      onResponse({ response }) {
-        if (response.status === 200) {
-          console.log("the value of revision", response._data.body);
-          revisions.value = response._data.body;
-        }
-      },
-      onResponseError() {
-        // orders = []
-      },
-    }
-  );
-
+getRevisions();
 
 
 
@@ -528,7 +513,24 @@ const handleClose = async () => {
   }
 };
 
+const getRevisions=async()=>{
+  await useApiFetch(
+    `/api/materials/parts/revisions?instanceId=${props.selectedPartInstace}`,
+    {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          console.log("the value of revision", response._data.body);
+          revisions.value = response._data.body;
+        }
+      },
+      onResponseError() {
+        // orders = []
+      },
+    }
+  );
 
+}
 
 const fetchWorkCentersBy = async () => {
     try {
@@ -565,13 +567,26 @@ const revision=async()=>{
 
     const response = await useApiFetch(`/api/materials/parts/parts/revision?instanceIdForRevision=${props.selectedPartInstace}&id=${props.selectedCustomer}`, {
         method: "PUT",
+        onResponse({ response }) {
+            if (response.status === 200) {
+              console.log("status is",response.status);
+              toast.add({
+                title: "Success",
+                description: "Revision Add",
+                icon: "i-heroicons-check-circle",
+                color: "green",
+              });
+            }
+          },
+
+
       });
  
 
 }
 
 
-
+getRevisions();
 
 
 }
@@ -579,7 +594,10 @@ const revision=async()=>{
 
 const onSubmit = async (event: FormSubmitEvent<any>) => {
   if(props.selectedCustomer!=null){
-
+console.log("event is",event.data);
+    const now = new Date();
+    const isoString = now.toISOString();
+    event.data.TODAY =isoString;
     
       console.log("form data is",event.data)
         await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
@@ -651,6 +669,7 @@ else propertiesInit();
     <div class="gmsBlueTitlebar pl-2 h-6">
   <label class="text-white font-bold">Part Information</label>
 </div>
+<div class="overflow-auto">
 
       <div>
         <div>
@@ -738,7 +757,7 @@ else propertiesInit();
             </div>
             <div class="basis-1/5">
               <UFormGroup label="Inventory Cost" name="Inventory Cost">
-                <UInput v-model="formData.InventoryCost" placeholder="" />
+                <UInput v-model="formData.InventoryCost"  placeholder="" />
               </UFormGroup>
             </div>
             <div class="basis-1/5">
@@ -1153,7 +1172,7 @@ else propertiesInit();
 
 <div class="flex flex-row space-x-3 ">
   <!-- Left Side - Job Details Table -->
-  <div class="basis-1/3">
+  <div class="basis-1/3 h-96 overflow-auto">
     <UTable :rows="jobDetails" :columns="jobDetailsColumns" />
   </div>
 
@@ -1229,8 +1248,16 @@ else propertiesInit();
      <UFormGroup label="Revised By" name="fname" class="basis-1/2">
        <UInputMenu placeholder="Revised By" />
      </UFormGroup>
-     <UFormGroup  class="basis-1/2 mt-1">
-       <UButton color="cyan" variant="outline" @click="revision()" label="Revision" />
+     <UFormGroup  class="basis-1/2 mt-2 ">
+      <UButton 
+  color="cyan" 
+  :disabled="props.selectedPartInstace==null" 
+  variant="outline" 
+  @click="revision" 
+  label="Revision" 
+  
+/>
+
      </UFormGroup>
     </div>
 
@@ -1238,14 +1265,10 @@ else propertiesInit();
 
 
       <div class="flex justify-end gap-3">
-        <UButton
-          color="red"
-          variant="outline"
-          :label="!isModal ? 'Go back' : 'Cancel'"
-          @click="handleClose"
-        />
+      
         <UButton color="cyan" variant="outline" type="submit" label="Save" />
       </div>
+    </div>
     </UForm> 
   </template>
 </template>
