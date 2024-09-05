@@ -348,7 +348,7 @@ const handleModalSave = async () => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            padding: 'p-0',
+            padding: 'pb-0',
           },
           td: {
             padding: 'py-1',
@@ -363,7 +363,7 @@ const handleModalSave = async () => {
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
-            <div class="px-4 py-3.5">
+            <div class="">
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange"
@@ -383,13 +383,13 @@ const handleModalSave = async () => {
             </div>
           </template>
           <template v-else class="bg-slate-400">
-            <div class="flex justify-center text-center w-[53px]">
+            <div class="flex w-[53px]">
               {{ column.label }}
             </div>
           </template>
         </template>
         <template #edit-data="{ row }">
-          <UTooltip text="Edit" class="flex justify-center">
+          <UTooltip text="Edit" class="flex">
             <UButton
               color="gray"
               variant="ghost"
@@ -399,7 +399,7 @@ const handleModalSave = async () => {
           </UTooltip>
         </template>
         <template #delete-data="{ row }">
-          <UTooltip text="Delete" class="flex justify-center">
+          <UTooltip text="Delete" class="flex">
             <UButton
               color="gray"
               variant="ghost"
@@ -409,7 +409,7 @@ const handleModalSave = async () => {
           </UTooltip>
         </template>
       </UTable>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
           <UPagination
             :max="7"
@@ -419,7 +419,7 @@ const handleModalSave = async () => {
             @update:model-value="handlePageChange()"
           />
         </div>
-      </div>
+      </div> -->
     </UDashboardPanel>
   </UDashboardPage>
   <!-- New Employee Detail Modal -->

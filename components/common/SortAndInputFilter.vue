@@ -36,20 +36,20 @@ const props = defineProps({
     </div>
   </template>
   <template v-if="props.sortable">
-    <div class="flex justify-center">
+    <div class="flex justify-start align-sortable">
       <UButton variant="ghost" color="black" @click="emit('handleSortingButton', props.sortKey)">
         {{ props.label }}
         <template #trailing>
           <UIcon 
             :name="props.sortIcon" 
-            class="w-5 h-5" 
+            class="w-auto" 
           />
         </template>
       </UButton>
     </div>
   </template>
   <template v-else>
-    <div class="flex justify-center text-center px-[10px] py-[6px]">
+    <div class="py-1.5" style="white-space:nowrap;">
       {{ props.label }}
     </div>
   </template>

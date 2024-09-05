@@ -775,7 +775,7 @@ const colors = computed(() =>
 
 const getUiConfig = (link) => {
   return {
-    wrapper: "relative !min-h-[auto] !min-w-[auto]",
+    wrapper: "relative !min-h-[auto] !min-w-[auto] border-b-[1px] border-white",
     container: link.backgroundClass,
     base: "group text-white relative flex items-center gap-1.5 px-2.5 py-1.5 w-full rounded-md font-medium text-sm focus:outline-none focus-visible:outline-none dark:focus-visible:outline-none focus-visible:before:ring-inset focus-visible:before:ring-2 focus-visible:before:ring-primary-500 dark:focus-visible:before:ring-primary-400 before:absolute before:inset-px before:rounded-md disabled:cursor-not-allowed disabled:opacity-75",
     active: link.activeClass,
@@ -815,104 +815,81 @@ onMounted(() => {
 
 <template>
   <div class="bg-gms-gray-400" style="height:100vh;width:100vw;">
-  <UDashboardLayout style="max-width:1500px;background-color:#fff;margin-left:auto;margin-right:auto;">
+    <UDashboardLayout style="max-width:1500px;background-color:#fff;margin-left:auto;margin-right:auto;">
 
-    <slot />
+      <slot />
 
-    <UDashboardPanel 
-      class="bg-gms-gray-400"
-      :width="250"
-      :resizable="{ min: 200, max: 300 }"
-      collapsible
-      
-    >
-      <UDashboardNavbar class="!border-transparent" :ui="{ left: 'flex-1' }">
-        <template #left>
-          <div class="w-full p-3 mt-5 flex justify-center items-center">
-            <img
-              src="../public/grimm_logo_menu_dropshadow_v2.png"
-              alt="Grimm Avatar"
-            />
-          </div>
-        </template>
-      </UDashboardNavbar>
+      <UDashboardPanel class="bg-gms-gray-400" :width="250" :resizable="{ min: 200, max: 300 }" collapsible>
+        <UDashboardNavbar class="!border-transparent" :ui="{ left: 'flex-1' }">
+          <template #left>
+            <div class="w-full p-3 mt-5 flex justify-center items-center">
+              <img src="../public/grimm_logo_menu_dropshadow_v2.png" alt="Grimm Avatar" />
+            </div>
+          </template>
+        </UDashboardNavbar>
 
-      <UDashboardSidebar
-        :ui="{
+        <UDashboardSidebar :ui="{
           body: 'flex-1 px-4 flex flex-col !gap-y-0 overflow-y-auto',
-        }"
-      >
-        <template #header>
-          <div class="text-center  mt-2 mb-2">
-          <UAvatar
-              src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAPFBMVEXk5ueutLepsLPo6uursbXJzc/p6+zj5ea2u76orrKvtbi0ubzZ3N3O0dPAxcfg4uPMz9HU19i8wcPDx8qKXtGiAAAFTElEQVR4nO2d3XqzIAyAhUD916L3f6+f1m7tVvtNINFg8x5tZ32fQAIoMcsEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQTghAJD1jWtnXJPP/54IgNzZQulSmxvTH6oYXX4WS+ivhTbqBa1r26cvCdCu6i0YXbdZ0o4A1rzV+5IcE3YE+z58T45lqo7g1Aa/JY5tgoqQF3qb382x7lNzBLcxft+O17QUYfQI4IIeklKsPSN4i6LKj/7Zm8n99RbHJpEw9gEBXNBpKIYLJqKYRwjOikf//r+J8ZsVuacbqCMNleI9TqGLGqMzhnVdBOdd6F/RlrFijiCoVMk320CBIahUxTWI0KKEcJqKbMdpdJb5QvdHq6wCI5qhKlgGMS/RBHkubWDAE+QZxB4xhCyDiDkLZxgGEVdQldzSKbTIhmZkFkSEPcVvmBn2SMuZB9od7fQDsMiDdKJjFUSCQarM5WirZ3C2TT/htYnyPcPfgrFHWz0BI74gr6J/IZiGUxAZGQLqmvQLTrtE/Go4YxhVRIpEw+sww1IIcqr5NKmUUzLF3d4/qPkYIp2T/obPuemlojFUR4t9Q2Vojhb7BmgElWHzLPH8hucfpefPNFTVgs9h1AdU/Pin96vwWbWdf+X9Absn3OdO34aMdsDnP8WgKYisTqI6CkNGqZQo1XA6Ef6AU32SJzOcBukHPF07/xNSgmHKa5BOhtezv6mA/rYJpwXNAnbRZ1XuF3BzDcO3vpA3+ny2909gbqE4hhD3LIPhLLyBNhPZvbZ3B+3tPYa18A7auSlXQayKwTPNLKDcuOB0xPYKDPFTkWsevQPRZ1J8Hji9I1KQ34r7hZhrwNwOZ97QxNx0drwn4QI0wQk1DcEsfKCWKdxVvxPSNUIp/knmAXT+nT+Ko3+0H96rcNb3m1fx7MBTJdeBJ7uFcWsc0wvgAsC4pROW0l2inbAmIBv/7GZmuhQH6API2rr8T0e6yuZJ+80A9LZeG62T3tik31XwxtwZcizKuTHkMjB1WdZde4Kmic/A5ZI3rr1ae21d08PlVHYfAaxw9G9CYRbJ+8ZdbTcMRV1XM3VdF0M32vtoTdZ0+u29s0OttJ5bz64UwinjaFMVY9vkqc3KKSxN21Xl+0L4Q3Vuv1tYl0pqnX6ms4XetFz7gdZVAgUEoJntfOUe4ZwsHd9FzqQ3Vv6xe41l0XJcqcKl6TZvlv7ClAW3BsqQW4X7ypApB8dmTgK4IX5wvqIVj33HtD2qSG4BqznxdIefL27Y4sahi0MdIdvUsDva8agGGbCtITmCY31MHD2O0uIdh/0rJDQ1VX5Zdxz3rR2QDbv6qXl9vudzqQtGm1Jv9LDXOsfvvB7VcZ8PDKD0mQ1VHPYQ9O+Yj4hR1IUD8rBnn3ho2m8oQMxbCFiKlL2ioSW5heeJqegED52CzxCtcGD3Kv8Wms9EYLyUhwaFIhSMBClevWEmiK/Iaogu4H7sg6ppQhQG8RUqivuTGOAJOg6FfgW0q0M0PQMRMEgXaeNf3SYDZ8PIMI0+wHgr/MgN7wYwpiLjCCqM6ydUDZLQiB6nDdNC8SDyig3jPPpFXGcC9O8BUBDVmgBY59E7Md/35Loe/UVEECEJwYggJjELZ4J71SaQSBeC02n4Da29CayJNA28SAhd2CQyC1Xw6pSmGSINQVuMhAZp4DClan9MgmkDDNmezqwS8sgtlXK/EPBhoaSmYVC/F7IO1jQEdHOlabpKh3+jzLQSTUiq4X2I+Ip/zU8rlaqAvkS21ElR+gqu3zbjjL+hIAiCIAiCIAiCIAiCsCf/AKrfVhSbvA+DAAAAAElFTkSuQmCC"
-              alt="Avatar"
-              size="3xl"
-            />
-          </div>
-          <div class="text-center text-white mb-1">
-            Logged in as Leith Stetson
-          </div>
-          <div class="text-center text-white mb-3 font-bold text-2xl">
-            {{ currentTime }}
-          </div>
-          <div class="text-center text-white mb-10">
-             <UButtonGroup>
-              <UButton label="Time Entry" icon="i-heroicons-plus"  color="green" />
-              <UButton label="Log Out" color="white" icon="i-heroicons-arrow-left-on-rectangle" @click="Logout" />
-             </UButtonGroup>
-          </div>
-          <UDashboardSearchButton />
-        </template>
+        }">
+          <template #header>
+            <div class="text-center  mt-2 mb-2">
+              <UAvatar
+                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAPFBMVEXk5ueutLepsLPo6uursbXJzc/p6+zj5ea2u76orrKvtbi0ubzZ3N3O0dPAxcfg4uPMz9HU19i8wcPDx8qKXtGiAAAFTElEQVR4nO2d3XqzIAyAhUD916L3f6+f1m7tVvtNINFg8x5tZ32fQAIoMcsEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQTghAJD1jWtnXJPP/54IgNzZQulSmxvTH6oYXX4WS+ivhTbqBa1r26cvCdCu6i0YXbdZ0o4A1rzV+5IcE3YE+z58T45lqo7g1Aa/JY5tgoqQF3qb382x7lNzBLcxft+O17QUYfQI4IIeklKsPSN4i6LKj/7Zm8n99RbHJpEw9gEBXNBpKIYLJqKYRwjOikf//r+J8ZsVuacbqCMNleI9TqGLGqMzhnVdBOdd6F/RlrFijiCoVMk320CBIahUxTWI0KKEcJqKbMdpdJb5QvdHq6wCI5qhKlgGMS/RBHkubWDAE+QZxB4xhCyDiDkLZxgGEVdQldzSKbTIhmZkFkSEPcVvmBn2SMuZB9od7fQDsMiDdKJjFUSCQarM5WirZ3C2TT/htYnyPcPfgrFHWz0BI74gr6J/IZiGUxAZGQLqmvQLTrtE/Go4YxhVRIpEw+sww1IIcqr5NKmUUzLF3d4/qPkYIp2T/obPuemlojFUR4t9Q2Vojhb7BmgElWHzLPH8hucfpefPNFTVgs9h1AdU/Pin96vwWbWdf+X9Absn3OdO34aMdsDnP8WgKYisTqI6CkNGqZQo1XA6Ef6AU32SJzOcBukHPF07/xNSgmHKa5BOhtezv6mA/rYJpwXNAnbRZ1XuF3BzDcO3vpA3+ny2909gbqE4hhD3LIPhLLyBNhPZvbZ3B+3tPYa18A7auSlXQayKwTPNLKDcuOB0xPYKDPFTkWsevQPRZ1J8Hji9I1KQ34r7hZhrwNwOZ97QxNx0drwn4QI0wQk1DcEsfKCWKdxVvxPSNUIp/knmAXT+nT+Ko3+0H96rcNb3m1fx7MBTJdeBJ7uFcWsc0wvgAsC4pROW0l2inbAmIBv/7GZmuhQH6API2rr8T0e6yuZJ+80A9LZeG62T3tik31XwxtwZcizKuTHkMjB1WdZde4Kmic/A5ZI3rr1ae21d08PlVHYfAaxw9G9CYRbJ+8ZdbTcMRV1XM3VdF0M32vtoTdZ0+u29s0OttJ5bz64UwinjaFMVY9vkqc3KKSxN21Xl+0L4Q3Vuv1tYl0pqnX6ms4XetFz7gdZVAgUEoJntfOUe4ZwsHd9FzqQ3Vv6xe41l0XJcqcKl6TZvlv7ClAW3BsqQW4X7ypApB8dmTgK4IX5wvqIVj33HtD2qSG4BqznxdIefL27Y4sahi0MdIdvUsDva8agGGbCtITmCY31MHD2O0uIdh/0rJDQ1VX5Zdxz3rR2QDbv6qXl9vudzqQtGm1Jv9LDXOsfvvB7VcZ8PDKD0mQ1VHPYQ9O+Yj4hR1IUD8rBnn3ho2m8oQMxbCFiKlL2ioSW5heeJqegED52CzxCtcGD3Kv8Wms9EYLyUhwaFIhSMBClevWEmiK/Iaogu4H7sg6ppQhQG8RUqivuTGOAJOg6FfgW0q0M0PQMRMEgXaeNf3SYDZ8PIMI0+wHgr/MgN7wYwpiLjCCqM6ydUDZLQiB6nDdNC8SDyig3jPPpFXGcC9O8BUBDVmgBY59E7Md/35Loe/UVEECEJwYggJjELZ4J71SaQSBeC02n4Da29CayJNA28SAhd2CQyC1Xw6pSmGSINQVuMhAZp4DClan9MgmkDDNmezqwS8sgtlXK/EPBhoaSmYVC/F7IO1jQEdHOlabpKh3+jzLQSTUiq4X2I+Ip/zU8rlaqAvkS21ElR+gqu3zbjjL+hIAiCIAiCIAiCIAiCsCf/AKrfVhSbvA+DAAAAAElFTkSuQmCC"
+                alt="Avatar" size="3xl" />
+            </div>
+            <div class="text-center text-white mb-1">
+              Logged in as Leith Stetson
+            </div>
+            <div class="text-center text-white mb-3 font-bold text-2xl">
+              {{ currentTime }}
+            </div>
+            <div class="text-center text-white mb-10">
+              <UButtonGroup>
+                <UButton label="Time Entry" icon="i-heroicons-plus" color="green" />
+                <UButton label="Log Out" color="white" icon="i-heroicons-arrow-left-on-rectangle" @click="Logout" />
+              </UButtonGroup>
+            </div>
+            <UDashboardSearchButton />
+          </template>
 
-        <UDashboardSidebarLinks
-          v-for="link in links"
-          :key="link.id"
-          :links="[link]"
-          :ui="getUiConfig(link)"
-        />
+          <UDashboardSidebarLinks v-for="link in links" :key="link.id" :links="[link]" :ui="getUiConfig(link)" />
 
 
-        <!-- <UDashboardSidebarLinks
+          <!-- <UDashboardSidebarLinks
           :links="[{ label: 'Colors', draggable: true, children: colors }]"
           @update:links="colors => defaultColors = colors"
         /> -->
 
-        <div class="flex-1" />
+          <!-- <div class="flex-1" /> -->
 
-        <!-- <UDashboardSidebarLinks :links="footerLinks" /> -->
+          <!-- <UDashboardSidebarLinks :links="footerLinks" /> -->
 
-        <UDivider class="white-divider" />
 
-        <template #footer>
-          <!-- ~/components/UserDropdown.vue -->
-          <CommonUserDropdown />
-        </template>
+          
+            <template #footer>
 
-                
-      </UDashboardSidebar>
-    </UDashboardPanel>
-    <div class="hidden bg-slate-50 hover:bg-{color}-100 dark:bg-{color}-800"></div>
-    
+              <!-- ~/components/UserDropdown.vue -->
+              <CommonUserDropdown class="border-t-[1px] border-white py-1 mt-[-8px]" />
+            </template>
+          
 
-    <ClientOnly>
-      <LazyUDashboardSearch :groups="groups" />
-    </ClientOnly>
+        </UDashboardSidebar>
+      </UDashboardPanel>
+      <div class="hidden bg-slate-50 hover:bg-{color}-100 dark:bg-{color}-800"></div>
 
-  </UDashboardLayout>
-</div>
 
-  <UDashboardModal
-    title="Time Entry"
-    :ui="{
+      <ClientOnly>
+        <LazyUDashboardSearch :groups="groups" />
+      </ClientOnly>
+
+    </UDashboardLayout>
+  </div>
+
+  <UDashboardModal title="Time Entry" :ui="{
       width: 'w-[1800px] sm:max-w-9xl',
       body: { padding: 'py-0 sm:pt-0' },
-    }"
-  >
-    <ServiceReportDetail
-      :selected-complaint="null"
-    />
+    }">
+    <ServiceReportDetail :selected-complaint="null" />
   </UDashboardModal>
 
 </template>
-

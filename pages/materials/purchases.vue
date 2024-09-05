@@ -258,7 +258,7 @@ fetchPurchasesData();
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            padding: 'p-0',
+            padding: 'pb-0',
           },
           td: {
             padding: `py-1`,
@@ -273,7 +273,7 @@ fetchPurchasesData();
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind === 'actions'">
-            <div class="px-4 py-3.5">
+            <div class="">
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange"
@@ -330,13 +330,13 @@ fetchPurchasesData();
               </UButton>
             </div>
           </div>
-          <UPagination
+          <!-- <UPagination
             :max="7"
             :page-count="gridMeta.pageSize"
             :total="gridMeta.numberOfPurchases | 0"
             v-model="gridMeta.page"
             @update:model-value="handlePageChange()"
-          />
+          /> -->
         </div>
       </div>
       <div class="px-4 py-2 gmsBlueTitlebar">
