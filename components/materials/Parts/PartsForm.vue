@@ -6,7 +6,7 @@ import 'vue-loading-overlay/dist/css/index.css';
 
 const people = [{
   name: 'Lindsay Walton',
- 
+
 }, {
   name: 'Lindsay Walton',
 
@@ -22,74 +22,74 @@ const people = [{
 
 const InventoryTransactions = [{
   id: '5645',
-  date:5/5/12,
-  Qty:'2',
+  date: 5 / 5 / 12,
+  Qty: '2',
 }, {
-    id: '5645',
-  date:5/5/12,
-  Qty:'2',
+  id: '5645',
+  date: 5 / 5 / 12,
+  Qty: '2',
 
 }, {
-    id: '5645',
-  date:5/5/12,
-  Qty:'2',
+  id: '5645',
+  date: 5 / 5 / 12,
+  Qty: '2',
 }, {
-    id: '5645',
-  date:5/5/12,
-  Qty:'2',
+  id: '5645',
+  date: 5 / 5 / 12,
+  Qty: '2',
 }, {
-    id: '5645',
-  date:5/5/12,
-  Qty:'2',
+  id: '5645',
+  date: 5 / 5 / 12,
+  Qty: '2',
 }, {
-    id: '5645',
-  date:5/5/12,
-  Qty:'2',
+  id: '5645',
+  date: 5 / 5 / 12,
+  Qty: '2',
 }]
 
 const orders = [{
   po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
+  date: 5 / 5 / 12,
+  ordered: '2',
+  recieved: '54',
   Price: '',
- vender:'dfkalsdf',
+  vender: 'dfkalsdf',
 }, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
+  po: 'PO54654',
+  date: 5 / 5 / 12,
+  ordered: '2',
+  recieved: '54',
   Price: '',
- vender:'dfkalsdf',
+  vender: 'dfkalsdf',
 
 }, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
+  po: 'PO54654',
+  date: 5 / 5 / 12,
+  ordered: '2',
+  recieved: '54',
   Price: '',
- vender:'dfkalsdf',
+  vender: 'dfkalsdf',
 }, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
+  po: 'PO54654',
+  date: 5 / 5 / 12,
+  ordered: '2',
+  recieved: '54',
   Price: '',
- vender:'dfkalsdf',
+  vender: 'dfkalsdf',
 }, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
+  po: 'PO54654',
+  date: 5 / 5 / 12,
+  ordered: '2',
+  recieved: '54',
   Price: '',
- vender:'dfkalsdf',
+  vender: 'dfkalsdf',
 }, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
+  po: 'PO54654',
+  date: 5 / 5 / 12,
+  ordered: '2',
+  recieved: '54',
   Price: '',
- vender:'dfkalsdf',
+  vender: 'dfkalsdf',
 }]
 
 
@@ -101,7 +101,7 @@ const props = defineProps({
   selectedCustomer: {
     type: [String, Number, null],
     required: true
-  }, 
+  },
   isModal: {
     type: [Boolean]
   }
@@ -166,7 +166,7 @@ const editInit = async () => {
   await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
     method: 'GET',
     onResponse({ response }) {
-      if(response.status === 200) {
+      if (response.status === 200) {
         loadingOverlay.value = false
         customerExist.value = true
         for (const key in response._data.body) {
@@ -175,8 +175,8 @@ const editInit = async () => {
           }
         }
       }
-    }, 
-    onResponseError({}) {
+    },
+    onResponseError({ }) {
       customerExist.value = false
     }
   })
@@ -188,10 +188,10 @@ const propertiesInit = async () => {
   await useApiFetch('/api/customers/markets', {
     method: 'GET',
     onResponse({ response }) {
-      if(response.status === 200) {
+      if (response.status === 200) {
         markets.value = response._data.body;
       }
-    }, 
+    },
     onResponseError() {
       markets.value = []
     }
@@ -199,10 +199,10 @@ const propertiesInit = async () => {
   await useApiFetch('/api/customers/conferences', {
     method: 'GET',
     onResponse({ response }) {
-      if(response.status === 200) {
+      if (response.status === 200) {
         conferences.value = response._data.body;
       }
-    }, 
+    },
     onResponseError() {
       conferences.value = []
     }
@@ -210,7 +210,7 @@ const propertiesInit = async () => {
   await useApiFetch('/api/customers/categories', {
     method: 'GET',
     onResponse({ response }) {
-      if(response.status === 200) {
+      if (response.status === 200) {
         categories.value = response._data.body;
       }
     },
@@ -221,7 +221,7 @@ const propertiesInit = async () => {
   await useApiFetch('/api/customers/professions', {
     method: 'GET',
     onResponse({ response }) {
-      if(response.status === 200) {
+      if (response.status === 200) {
         professions.value = response._data.body;
       }
     },
@@ -229,19 +229,19 @@ const propertiesInit = async () => {
       professions.value = []
     }
   })
-  await useApiFetch('/api/common/usstates',  {
+  await useApiFetch('/api/common/usstates', {
     method: 'GET',
     onResponse({ response }) {
-      if(response.status === 200) {
+      if (response.status === 200) {
         usstates.value = response._data.body;
       }
     },
     onResponseError() {
       usstates.value = [
-        "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", 
-        "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
-        "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", 
-        "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", 
+        "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+        "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+        "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+        "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
         "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
       ];
     }
@@ -256,19 +256,19 @@ const validate = (state: any): FormError[] => {
   return errors
 }
 const handleClose = async () => {
-  if(customersFormInstance?.vnode?.props.onClose) {
+  if (customersFormInstance?.vnode?.props.onClose) {
     emit('close')
   } else {
     router.go(-1)
   }
 }
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  if(props.selectedCustomer === null) { // Create Customer
+  if (props.selectedCustomer === null) { // Create Customer
     await useApiFetch('/api/customers', {
       method: 'POST',
-      body: event.data, 
+      body: event.data,
       onResponse({ response }) {
-        if(response.status === 200) {
+        if (response.status === 200) {
           toast.add({
             title: "Success",
             description: response._data.message,
@@ -281,7 +281,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   } else { // Update Customer
     await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
       method: 'PUT',
-      body: event.data, 
+      body: event.data,
       onResponse({ response }) {
         if (response.status === 200) {
           toast.add({
@@ -297,786 +297,770 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   emit('save')
 }
 
-if(props.selectedCustomer !== null) 
+if (props.selectedCustomer !== null)
   editInit()
-else 
+else
   propertiesInit()
 </script>
 
 <template>
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
   <template v-if="!props.isModal && !customerExist">
-    <CommonNotFound
-      :name="'Customer not found'"
-      :message="'The customer you are looking for does not exist'"
-      :to="'/customers/customers/list'"
-    />
+    <CommonNotFound :name="'Customer not found'" :message="'The customer you are looking for does not exist'"
+      :to="'/customers/customers/list'" />
   </template>
   <template v-else>
-    <UForm
-      :validate="validate"
-      :validate-on="['submit']"
-      :state="formData"
-      class="space-y-4"
-      @submit="onSubmit"
-    >
-    <div class="flex flex-row">
-        <div>
-      <div class="flex flex-row space-x-3">
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Category"
-            name="fname"
-          >
-            <UInputMenu
-              v-model="formData.fname"
-              placeholder="Category"
-            />
-          </UFormGroup>
-        </div>
-       
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Sub Category"
-            name="lname"
-          >
-            <UInputMenu
-              v-model="formData.lname"
-              placeholder="Sub Category"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Stock Number"
-            name="title"
-          >
-            <UInput
-              v-model="formData.title"
-              placeholder="Stock Number"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Inspection"
-            name="position"
-          >
-            <UInput
-              v-model="formData.position"
-              placeholder="Inspection"
-            />
-          </UFormGroup>
-        </div>
-      </div>
-  
-      <div class="flex flex-row space-x-3">
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Order Unit"
-            name="market"
-          >
-            <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Multiple"
-            name="number"
-          >
-            <UInput
-              v-model="formData.number"
-              placeholder=""
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Inventory Unit"
-            name="profession"
-          >
-            <UInputMenu
-              v-model="formData.source"
-              v-model:query="formData.source"
-              :options="professions"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Account#"
-            name="Account"
-          >
-            <UInputMenu
-              v-model="formData.ParadynamixCatagory"
-              v-model:query="formData.ParadynamixCatagory"
-              :options="categories"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Description"
-            name="Description"
-          >
-            <UInputMenu
-              v-model="formData.SourceConfrence"
-              v-model:query="formData.SourceConfrence"
-              :options="conferences"
-            />
-          </UFormGroup>
-        </div>
-      </div>
-      <div class="flex flex-row space-x-3">
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Order Cost"
-            name="Order Cost"
-          >
-            <UInputMenu
-              v-model="formData.market"
-              v-model:query="formData.market"
-              :options="markets"
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Inventory Cost"
-            name="Inventory Cost"
-          >
-            <UInput
-              v-model="formData.number"
-              placeholder=""
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-1/5">
-          <UFormGroup
-            label="Selling Price"
-            name="Selling Price"
-          >
-            <UInput
-           
-
-            />
-          </UFormGroup>
-        </div>
-        <div class="basis-2/5">
-          <UFormGroup
-            label="Specification"
-            name="Account"
-          >
-            <UInput
-             
-            />
-          </UFormGroup>
-        </div>
-        
-      </div>
-      <div class="flex flex-row space-x-5">
-        <div class="basis-1.2/5">
-          <UFormGroup
-            label="Drawing/Mannul"
-            name="Drawing/Mannul"
-          >
-          <UInput type="file" size="sm" icon="i-heroicons-folder" />
-          </UFormGroup>
-        </div>
-        <div class="basis-1.2/5">
-          <UFormGroup
-            label="PDS"
-            name="PDS"
-          >
-          <UInput type="file" size="sm" icon="i-heroicons-folder" />
-
-          </UFormGroup>
-        </div>
-        <div class="basis-1.2/5">
-          <UFormGroup
-            label="SDS"
-            name="SDS"
-          >
-          <UInput type="file" size="sm" icon="i-heroicons-folder" />
-
-          </UFormGroup>
-        </div>
-       
-        
-      </div>
-    </div>
-<div>
-
-       <div class="grid grid-cols-1 h-48">
-        <UTable :rows="people" />
-         
-        </div>
-     <div class="space-y-2 mt-2">
-            <div class="flex items-center space-x-2">
-  <label >On Order</label>
-  <UInput   class="flex-1" />
-    </div>
-
-    <div class="flex items-center space-x-2">
-  <label >On Hand</label>
-  <UInput  class="flex-1" />
-    </div>
-
-    <div class="flex items-center space-x-2">
-  <label >Required</label>
-  <UInput  class="flex-1" />
-    </div>
-
-    <div class="flex items-center space-x-2">
-  <label >Available</label>
-  <UInput  class="flex-1" />
-    </div>
-    <div class="flex items-center space-x-2">
-  <label >Minimum</label>
-  <UInput class="flex-1" />
-    </div>
-</div>
-<div class="grid grid-cols-1 mt-6 h-48">
-        <UTable :rows="people" />
-         
-        </div>
-        
-
-</div>
-<div>
-
-    <div class="grid grid-cols-1 mt-6 h-48 w-72">
-        <UTable :rows="orders" />
-         
-        </div>
-        <div class="flex flex-row space-x-3">
-        <div class="grid grid-cols-1 mt-6 h-48">
-        <UTable :rows="people" />
-         
-        </div>
-        <div class="">
-          <UFormGroup
-            label="Comments"
-            name="Comments"
-          >
-            <UTextarea 
-          class="w-48 "
-              
-            />
-          </UFormGroup>
-        </div>
-
-    </div>
-    
-    
-</div>
-<div class="grid grid-cols-1 mt-6 h-48 w-60">
-    <UTable :rows="InventoryTransactions" />
-     
-    </div>
-
-</div>
-
-
-      <div class="flex flex-row space-x-5">
-  <!-- First Grid Section -->
-  <div class="grid grid-cols-1 gap-5">
-    <div>
-      <UFormGroup label="Manufacturer" name="Manufacturer">
-        <UInput placeholder="Garmin" />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup label="Dealer" name="Dealer">
-        <UInput placeholder="Walmart.com" />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup label="Lead Time" name="Lead Time">
-        <UInput placeholder="1" />
-      </UFormGroup>
-    </div>
-  </div>
-  <!-- Second Grid Section -->
-  <div class="grid grid-cols-1 gap-5">
-    
-    <div>
-      <UFormGroup label="Part Number" name="Part Number">
-        <UInput placeholder="" />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup label="Part Number" name="Part Number">
-        <UInput placeholder="1" />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup label="UL Number" name="UL Number">
-        <UInput placeholder="14.56" />
-      </UFormGroup>
-    </div>
-   
-  </div>
-
-  <div class="flex flex-row space-x-2">
-    <div class="grid grid-cols-1 gap-1">
-        <div class="basis-1/2 text-center">
-         Qty
-        </div>
-    <div>
-      <UFormGroup >
-        <UInput />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup >
-        <UInput />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup >
-        <UInput />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup >
-        <UInput />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup >
-        <UInput />
-      </UFormGroup>
-    </div>
-  </div>
-  <!-- Second Grid Section -->
-  <div class="grid grid-cols-1 ">
-    <div class="basis-1/2 text-center">
-         Price
-        </div>
-    <div>
-      <UFormGroup >
-        <UInput />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup >
-        <UInput />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup >
-        <UInput />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup >
-        <UInput />
-      </UFormGroup>
-    </div>
-    <div>
-      <UFormGroup >
-        <UInput />
-      </UFormGroup>
-    </div>
-   
-  </div>
-
-
-
-
-  </div>
-
-  <div  class="grid grid-cols-1 gap-5">
-    <div>
-      <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
-        <UInput />
-      </UFormGroup>
-    </div>
-  </div>
-
-
-
-
-
-</div>
-
-
-
-
-      
-
-
-
+    <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
       <div class="flex flex-row">
-        <div class="basis-1/2 text-center">
-          Shipping Information
-        </div>
-        <div class="basis-1/2 text-center">
-          Billing Information
-        </div>
-      </div>
-  
-      <div class="flex flex-row space-x-5">
-        <div class="basis-1/2">
-          <!-- Shipping Information -->
-          <div class="flex flex-col space-y-2">
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Company1"
-                  name="company1"
-                >
-                  <UInput
-                    v-model="formData.company1"
-                    placeholder="Company1"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Company2"
-                  name="company2"
-                >
-                  <UInput
-                    v-model="formData.company2"
-                    placeholder="Company2"
-                  />
-                </UFormGroup>
-              </div>
+        <div class="basis-1/2 border-r-[3px] border-black">
+          <div class="w-full px-3 py-1 gmsBlueTitlebar flex flex-row justify-between">
+            <div>Part Lookup</div>
+            <div class="bg-gms-gray-100">
+              <UCheckbox label="Show ETL Critical Components" />
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup
-                  label="Country"
-                  name="country"
-                >
-                  <UInput
-                    v-model="formData.country"
-                    placeholder="Country"
-                  />
-                </UFormGroup>
+          </div>
+          <div class="w-full p-3 border-b-[3px] border-black">
+
+
+            <div class="flex flex-col space-y-2">
+              <div>
+                <UTable :rows="orders" class="w-full" :ui="{
+                  wrapper: 'h-[115px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+                  divide: 'divide-gray-200 dark:divide-gray-800',
+                  tr: {
+                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                  },
+                  th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white',
+                    padding: 'py-0'
+                  },
+                  td: {
+                    base: 'h-[22px]',
+                    padding: 'py-0'
+                  }
+                }" />
               </div>
+
+              <div class="flex flex-row justify-between">
+                <div>
+                  <UButton color="green" variant="outline" label="Export Window to Excel"
+                    icon="i-heroicons-document-text" />
+                </div>
+
+                <div>
+                  <UFormGroup label="Quantity">
+                    <div class="text-center text-bold">
+                      0
+                    </div>
+                  </UFormGroup>
+                </div>
+
+                <div>
+                  <UButton color="green" variant="outline" label="Export All Inventory"
+                    icon="i-heroicons-arrow-right-start-on-rectangle" />
+                </div>
+
+              </div>
+
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup
-                  label="Address"
-                  name="address"
-                >
-                  <UInput
-                    v-model="formData.address"
-                    placeholder="Address"
-                  />
-                </UFormGroup>
+          </div>
+
+
+          <div class="w-full px-3 py-1 gmsBlueTitlebar">
+            Part Information
+          </div>
+          <div class="flex flex-col p-3 space-y-2 border-b-[3px] border-black">
+            <div class="flex flex-row justify-between">
+
+              <div>
+                <UCheckbox label="Job Subassembly" />
               </div>
+
+              <div>
+                <UCheckbox label="ETL Critical Component" />
+              </div>
+
+              <div>
+                <UCheckbox label="Selling Price Override" />
+              </div>
+
+              <div>
+                <UCheckbox label="Ignore Manufacturing Cost" />
+              </div>
+
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="City"
-                  name="city"
-                >
-                  <UInput
-                    v-model="formData.city"
-                    placeholder="Dallas"
-                  />
+
+            <div class="flex flex-row space-x-2">
+
+              <div class="">
+                <UFormGroup label="Category" name="fname">
+                  <UInputMenu v-model="formData.fname" />
                 </UFormGroup>
               </div>
-              <div class="basis-1/4">
-                <UFormGroup
-                  label="State"
-                  name="state"
-                >
-                  <UInputMenu
-                    v-model="formData.state"
-                    :options="usstates"
-                  />
+
+              <div class="">
+                <UFormGroup label="Sub Category">
+                  <UInputMenu v-model="formData.lname" />
                 </UFormGroup>
               </div>
-              <div class="basis-1/4">
-                <UFormGroup
-                  label="Zip"
-                  name="zip"
-                >
-                  <UInput
-                    v-model="formData.zip"
-                    placeholder="65254"
-                  />
+              <div class="">
+                <UFormGroup label="Stock Number" name="title">
+                  <UInput v-model="formData.title" />
+                </UFormGroup>
+              </div>
+              <div class="">
+                <UFormGroup label="Inspection" name="position">
+                  <UInputMenu v-model="formData.position" />
                 </UFormGroup>
               </div>
             </div>
 
-
-
-
-
-            
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Fax"
-                  name="fax"
-                >
-                  <UInput
-                    v-model="formData.fax"
-                    placeholder="Fax"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Homephone"
-                  name="homephone"
-                >
-                  <UInput
-                    v-model="formData.homephone"
-                    placeholder="(564)-324-2342"
-                  />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-6/12">
-                <UFormGroup
-                  label="Email"
-                  name="email"
-                >
-                  <UInput
-                    v-model="formData.email"
-                    type="email"
-                    placeholder="email"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="basis-5/12">
-                <UFormGroup
-                  label="Workphone"
-                  name="workphone"
-                >
-                  <UInput
-                    v-model="formData.workphone"
-                    placeholder="(564)-324-2342"
-                  />
+            <div class="flex flex-row space-x-2">
+              <div class="basis-2/12">
+                <UFormGroup label="Order Unit" name="market">
+                  <UInputMenu v-model="formData.market" v-model:query="formData.market" :options="markets" />
                 </UFormGroup>
               </div>
               <div class="basis-1/12">
-                <UFormGroup
-                  label="Ext"
-                  name="ext"
-                >
-                  <UInput
-                    v-model="formData.Extension"
-                    placeholder="1"
-                  />
+                <UFormGroup label="Multiple" name="number">
+                  <UInput v-model="formData.number" placeholder="" />
+                </UFormGroup>
+              </div>
+              <div class="basis-2/12">
+                <UFormGroup label="Inventory Unit" name="profession">
+                  <UInputMenu v-model="formData.source" v-model:query="formData.source" :options="professions" />
+                </UFormGroup>
+              </div>
+              <div class="basis-3/12">
+                <UFormGroup label="Account#" name="Account">
+                  <UInputMenu v-model="formData.ParadynamixCatagory" v-model:query="formData.ParadynamixCatagory"
+                    :options="categories" />
+                </UFormGroup>
+              </div>
+              <div class="basis-4/12">
+                <UFormGroup label="Description" name="Description">
+                  <UInput v-model="formData.SourceConfrence" v-model:query="formData.SourceConfrence" />
                 </UFormGroup>
               </div>
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Website"
-                  name="website"
-                >
-                  <UInput
-                    v-model="formData.website"
-                    placeholder="website"
-                  />
+            <div class="flex flex-row space-x-2">
+              <div class="basis-2/12">
+                <UFormGroup label="Order Cost" name="Order Cost">
+                  <UInputMenu v-model="formData.market" v-model:query="formData.market" :options="markets" />
                 </UFormGroup>
               </div>
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Cellphone"
-                  name="cellphone"
-                >
-                  <UInput
-                    v-model="formData.cellphone"
-                    placeholder="(564)-324-2342"
-                  />
+              <div class="basis-2/12">
+                <UFormGroup label="Inventory Cost" name="Inventory Cost">
+                  <UInput v-model="formData.number" placeholder="" />
+                </UFormGroup>
+              </div>
+              <div class="basis-2/12">
+                <UFormGroup label="Selling Price" name="Selling Price">
+                  <UInput />
+                </UFormGroup>
+              </div>
+              <div class="basis-6/12">
+                <UFormGroup label="Specification" name="Account">
+                  <UInput />
+                </UFormGroup>
+              </div>
+
+            </div>
+            <div class="flex flex-row space-x-5">
+              <div class="">
+                <UFormGroup label="Drawing/Manual" name="Drawing/Mannul">
+                  <UInput type="file" size="sm" icon="i-heroicons-folder" />
+                </UFormGroup>
+              </div>
+              <div class="">
+                <UFormGroup label="PDS" name="PDS">
+                  <UInput type="file" size="sm" icon="i-heroicons-folder" />
+
+                </UFormGroup>
+              </div>
+              <div class="">
+                <UFormGroup label="SDS" name="SDS">
+                  <UInput type="file" size="sm" icon="i-heroicons-folder" />
+
+                </UFormGroup>
+              </div>
+
+
+            </div>
+          </div>
+
+
+          <div class="w-full px-3 py-1 gmsBlueTitlebar">
+            Primary Vendor
+          </div>
+          <div class="w-full p-3 flex flex-row space-x-3 border-b-[3px] border-black">
+
+            <div class="basis-6/12 flex flex-col space-y-2">
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup name="Manufacturer">
+                  <UButton block label="Manufacturer" color="gms-blue" />
+                  <UInput />
+                </UFormGroup>
+
+                <UFormGroup label="Part Number" name="Part Number">
+                  <UInput />
+                </UFormGroup>
+              </div>
+
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup name="Dealer">
+                  <UButton block label="Dealer" color="gms-blue" />
+                  <UInput />
+                </UFormGroup>
+
+                <UFormGroup label="Part Number" name="Part Number">
+                  <UInput />
+                </UFormGroup>
+              </div>
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup label="Lead Time" name="Lead Time">
+                  <UInput />
+                </UFormGroup>
+                <UFormGroup label="UL Number" name="UL Number">
+                  <UInput />
                 </UFormGroup>
               </div>
             </div>
-            <div class="flex flex-row space-x-3">
+
+            <div class="basis-4/12 flex flex-col space-y-2">
+              <div class="flex flex-row justify-around ms-6">
+                <div>Qty</div>
+                <div>Price</div>
+              </div>
+              <div class="flex flex-row space-x-2">
+                <div class="mt-2">Min</div>
+                <div class="flex flex-col space-y-2">
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="basis-2/12">
+              <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
+                <UInput />
+              </UFormGroup>
+            </div>
+
+
+
+
+
+
+
+
+          </div>
+
+          <div class="w-full px-3 py-1 gmsBlueTitlebar">
+            Alternate Vendor
+          </div>
+          <div class="w-full p-3 flex flex-row space-x-3">
+
+            <div class="basis-6/12 flex flex-col space-y-2">
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup name="Manufacturer">
+                  <UButton block label="Manufacturer" color="gms-blue" />
+                  <UInput />
+                </UFormGroup>
+
+                <UFormGroup label="Part Number" name="Part Number">
+                  <UInput />
+                </UFormGroup>
+              </div>
+
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup name="Dealer">
+                  <UButton block label="Dealer" color="gms-blue" />
+                  <UInput />
+                </UFormGroup>
+
+                <UFormGroup label="Part Number" name="Part Number">
+                  <UInput />
+                </UFormGroup>
+              </div>
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup label="Lead Time" name="Lead Time">
+                  <UInput />
+                </UFormGroup>
+                <UFormGroup label="UL Number" name="UL Number">
+                  <UInput />
+                </UFormGroup>
+              </div>
+            </div>
+
+            <div class="basis-4/12 flex flex-col space-y-2">
+              <div class="flex flex-row justify-around ms-6">
+                <div>Qty</div>
+                <div>Price</div>
+              </div>
+              <div class="flex flex-row space-x-2">
+                <div class="mt-2">Min</div>
+                <div class="flex flex-col space-y-2">
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="basis-2/12">
+              <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
+                <UInput />
+              </UFormGroup>
+            </div>
+
+
+
+
+
+
+
+
+          </div>
+
+
+
+        </div>
+
+        <div class="basis-1/2">
+          <div class="w-full px-3 py-1 gmsBlueTitlebar">
+            Inventory
+          </div>
+          <div class="w-full flex flex-row p-3 space-x-3 border-b-[3px] border-black">
+            <div class="basis-3/12">
+              <div class="flex flex-col space-y-2">
+
+
+                <div>
+                  <UTable :rows="people" :ui="{
+                    wrapper: 'h-[115px] border-[1px] border-gray-400 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      padding: 'p-1',
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    },
+                    td: {
+                      padding: 'py-0 px-1'
+                    },
+                    checkbox: { padding: 'p-1 w-[10px]' }
+                  }" />
+                </div>
+
+                <div>
+                  <div class="space-y-2 mt-2">
+                    <div class="flex items-center space-x-2">
+                      <label>On Order</label>
+                      <UInput class="flex-1 sm-field" />
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                      <label>On Hand</label>
+                      <UInput class="flex-1 sm-field" />
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                      <label>Required</label>
+                      <UInput class="flex-1 sm-field" />
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                      <label>Available</label>
+                      <UInput class="flex-1 sm-field" />
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <label>Minimum</label>
+                      <UInput class="flex-1 sm-field" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <UTable :rows="people" :ui="{
+                    wrapper: 'h-[126px] border-[1px] border-gray-400 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      padding: 'p-1',
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    },
+                    td: {
+                      padding: 'py-0 px-1'
+                    },
+                    checkbox: { padding: 'p-1 w-[10px]' }
+                  }" />
+                </div>
+
+              </div>
+            </div>
+
+
+            <div class="w-5/12">
+              <div class="flex flex-col space-y-2">
+
+                <div>
+                  <UTable :rows="orders" :ui="{
+                    wrapper: 'h-[264px] overflow-y-auto border-[1px] border-gray-400 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      padding: 'p-1',
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    },
+                    td: {
+                      padding: 'p-1'
+                    },
+                    checkbox: { padding: 'p-1 w-[10px]' }
+                  }" />
+                </div>
+
+                <div class="flex flex-row space-x-3">
+                  <div class="w-2/5">
+                    <UTable :rows="people" :ui="{
+                      wrapper: 'border-[1px] border-gray-400 dark:border-gray-700',
+                      tr: {
+                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                      },
+                      th: {
+                        padding: 'p-1',
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                      },
+                      td: {
+                        padding: 'py-0 px-1'
+                      },
+                      checkbox: { padding: 'p-1 w-[10px]' }
+                    }" />
+                  </div>
+                  <div class="w-3/5 h-full">
+                    <UFormGroup label="Comments" name="Comments" class="">
+                      <UTextarea :rows="6" />
+                    </UFormGroup>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="basis-4/12 flex flex-col space-y-2">
+              <div>
+                <UFormGroup label="Inventory Transations">
+                  <UTable :rows="InventoryTransactions" :ui="{
+                    wrapper: 'h-[364px] border-[1px] border-gray-400 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      padding: 'p-1',
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    },
+                    td: {
+                      padding: 'p-1'
+                    },
+                    checkbox: { padding: 'p-1 w-[10px]' }
+                  }" />
+                </UFormGroup>
+              </div>
               <div class="w-full">
-                <UFormGroup
-                  label="Comment"
-                  name="comment"
-                >
-                  <UTextarea
-                    v-model="formData.notes"
-                    :rows="3"
-                    type="text"
-                    placeholder=""
-                  />
+                <UButton icon="i-heroicons-check-badge" label="View Inventory Transations" variant="outline"
+                  :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" />
+              </div>
+            </div>
+
+          </div>
+
+
+          <div class="w-full px-3 py-1 gmsBlueTitlebar">
+            Revision History
+          </div>
+          <div class="w-full flex flex-row p-3 space-x-3 border-b-[3px] border-black">
+            <div class="basis-2/5 flex flex-col space-y-2">
+              <div>
+                <UButton label="Show Rev's" color="gms-blue" />
+              </div>
+
+              <div>
+                <UTable :rows="people" :ui="{
+                  wrapper: 'h-[115px] border-[1px] border-gray-400 dark:border-gray-700',
+                  tr: {
+                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                  },
+                  th: {
+                    padding: 'p-1',
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  },
+                  td: {
+                    padding: 'py-0 px-1'
+                  },
+                  checkbox: { padding: 'p-1 w-[10px]' }
+                }" />
+              </div>
+            </div>
+
+
+            <div class="basis-3/5 flex flex-col space-y-2">
+              <div class="">
+                <UFormGroup label="Revised By">
+                  <UInputMenu v-model="formData.lname" disabled />
                 </UFormGroup>
+              </div>
+              <div class="flex flex-row space-x-2">
+
+                <div class="basis-1/4">
+                  <UButton label="Add" color="gms-blue" block />
+                </div>
+                <div class="basis-1/4">
+                  <UButton label="Modify" color="gms-blue" block />
+                </div>
+                <div class="basis-1/4">
+                  <UButton label="Revision" color="gms-blue" block />
+                </div>
+                <div class="basis-1/4">
+                  <UButton label="DELETE" color="BLACK" variant="outline" block />
+                </div>
+              </div>
+
+              <div class="flex flex-col space-y-2">
+                <div class="flex flex-row space-x-2">
+                  <div class="basis-1/3">
+                    <UButton label="Obsolete" color="red" variant="outline" icon="i-heroicons-minus-circle" block />
+                  </div>
+                  <div class="basis-1/3">
+                    <UButton label="Active" variant="outline" icon="i-heroicons-check-badge" block />
+                  </div>
+                  <div class="basis-1/3">
+                    <UButton label="Print Label" variant="outline" icon="i-heroicons-tag" block />
+                  </div>
+                </div>
+                <div class="flex flex-row space-x-2">
+                  <div class="basis-1/3">
+                    <UButton label="Clear Form" color="red" variant="outline" icon="i-f7-rays" block />
+                  </div>
+
+                  <div class="basis-1/3"></div>
+                  <div class="basis-1/3"></div>
+
+                </div>
+
               </div>
             </div>
           </div>
-        </div>
-        <div class="basis-1/2"> 
-          <!-- Billing Information -->
-          <div class="flex flex-col space-y-2">
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Company1"
-                  name="billcompany1"
-                >
-                  <UInput
-                    v-model="formData.billcompany1"
-                    placeholder="Bill Company1"
-                  />
+
+
+          <div class="w-full px-3 py-1 gmsBlueTitlebar">
+            Alternate Vendor
+          </div>
+          <div class="w-full p-3 flex flex-row space-x-3">
+
+            <div class="basis-6/12 flex flex-col space-y-2">
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup name="Manufacturer">
+                  <UButton block label="Manufacturer" color="gms-blue" />
+                  <UInput />
+                </UFormGroup>
+
+                <UFormGroup label="Part Number" name="Part Number">
+                  <UInput />
                 </UFormGroup>
               </div>
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Company2"
-                  name="billcompany2"
-                >
-                  <UInput
-                    v-model="formData.billcompany2"
-                    placeholder="Bill Company2"
-                  />
+
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup name="Dealer">
+                  <UButton block label="Dealer" color="gms-blue" />
+                  <UInput />
+                </UFormGroup>
+
+                <UFormGroup label="Part Number" name="Part Number">
+                  <UInput />
                 </UFormGroup>
               </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup
-                  label="Country"
-                  name="country"
-                >
-                  <UInput
-                    v-model="formData.billcountry"
-                    placeholder="Bill Country"
-                  />
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup label="Lead Time" name="Lead Time">
+                  <UInput />
+                </UFormGroup>
+                <UFormGroup label="UL Number" name="UL Number">
+                  <UInput />
                 </UFormGroup>
               </div>
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup
-                  label="Address"
-                  name="address"
-                >
-                  <UInput
-                    v-model="formData.billaddress"
-                    placeholder="Bill Address"
-                  />
-                </UFormGroup>
+
+            <div class="basis-4/12 flex flex-col space-y-2">
+              <div class="flex flex-row justify-around ms-6">
+                <div>Qty</div>
+                <div>Price</div>
               </div>
+              <div class="flex flex-row space-x-2">
+                <div class="mt-2">Min</div>
+                <div class="flex flex-col space-y-2">
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                </div>
+              </div>
+
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="City"
-                  name="billcity"
-                >
-                  <UInput
-                    v-model="formData.billcity"
-                    placeholder="Dallas"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/4">
-                <UFormGroup
-                  label="State"
-                  name="billstate"
-                >
-                  <UInputMenu
-                    v-model="formData.billstate"
-                    :options="usstates"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/4">
-                <UFormGroup
-                  label="Zip"
-                  name="billzip"
-                >
-                  <UInput
-                    v-model="formData.billzip"
-                    placeholder="65254"
-                  />
-                </UFormGroup>
-              </div>
+
+            <div class="basis-2/12">
+              <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
+                <UInput />
+              </UFormGroup>
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Fax"
-                  name="billfax"
-                >
-                  <UInput
-                    v-model="formData.billfax"
-                    placeholder="Fax"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/2">
-                <UFormGroup
-                  label="Phone"
-                  name="billphone"
-                >
-                  <UInput
-                    v-model="formData.billphone"
-                    placeholder="(564)-324-2342"
-                  />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup
-                  label="Ext"
-                  name="ExtensionBill"
-                >
-                  <UInput
-                    v-model="formData.ExtensionBill"
-                    placeholder=""
-                  />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup
-                  label="Attn"
-                  name="attn"
-                >
-                  <UInput
-                    v-model="formData.attn"
-                    placeholder="Attn"
-                  />
-                </UFormGroup>
-              </div>
-            </div>
+
+
+
+
           </div>
         </div>
       </div>
-  
-      <div class="flex justify-end gap-3">
-        <UButton color="red" variant="outline"
-          :label="!isModal ? 'Go back': 'Cancel'"
-          @click="handleClose"
-        />
-        <UButton color="cyan" variant="outline"
-          type="submit"
-          label="Save"
-        />
-      </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </UForm>
   </template>
 </template>

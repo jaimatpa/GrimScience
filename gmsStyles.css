@@ -283,3 +283,8 @@ table tbody td div button, table tbody tr td button {
   padding-top:0!important;
   padding-bottom:0!important;
 }
+
+.sm-field input {
+  padding-top:2px!important;
+  padding-bottom:2px!important;
+}
