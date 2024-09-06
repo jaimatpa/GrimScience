@@ -28,6 +28,7 @@ const category=ref([{}]);
 const subCategory=ref([{}]);
 const toast = useToast()
 const onSubmit = async (event: FormSubmitEvent<any>) => {
+  console.log("skill form",formData);
 
   if(props.selectedSkill==null){
     await useApiFetch('/api/projects/skill', {
@@ -170,7 +171,7 @@ onMounted(() => {
             <UInput
               v-model="formData.frequency"
               placeholder="Frequency"
-              :options="subCategory"
+             
             />
           </UFormGroup>
         </div>

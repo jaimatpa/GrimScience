@@ -81,7 +81,7 @@ import type { UTableColumn } from '~/types';
     pageSize: 50,
     numberOfProjects: 0, 
     projects: [],
-    selectedCustomerId: null,
+    selectedProjectId: null,
     sort: {
       column: 'UniqueID', 
       direction: 'asc'
@@ -144,6 +144,7 @@ import type { UTableColumn } from '~/types';
   
   }
   const fetchGridData = async () => {
+
     gridMeta.value.isLoading = true
     await useApiFetch('/api/projects/numbers', {
       method: 'GET',
@@ -236,6 +237,7 @@ watch(selectedOptions, (newSelectedOptions) => {
   const handleFilterChange = () => {
     gridMeta.value.page = 1
     fetchGridData()
+    
   }
   const handleSortingButton = async (btnName: string) => {
     gridMeta.value.page = 1
@@ -293,10 +295,10 @@ watch(selectedOptions, (newSelectedOptions) => {
     exportIsLoading.value = false
   }
   const onSelect = async (row) => {
-    gridMeta.value.selectedCustomerId = row?.UniqueID;
+    gridMeta.value.selectedProjectId = row?.UniqueID;
   }
   const onDblClick = async () =>{
-    if(gridMeta.value.selectedCustomerId){
+    if(gridMeta.value.selectedProjectId){
       modalMeta.value.modalTitle = "Edit";
       modalMeta.value.isCustomerModalOpen = true
     }
@@ -305,7 +307,7 @@ watch(selectedOptions, (newSelectedOptions) => {
     
     modalMeta.value.isCustomerModalOpen = true
     modalMeta.value.modalTitle = "New Project";
-    gridMeta.value.selectedCustomerId =null;
+    gridMeta.value.selectedProjectId =null;
 
   }
 </script>
@@ -410,11 +412,7 @@ watch(selectedOptions, (newSelectedOptions) => {
               </div>
             </template>
         </template>
-        <template #label-data="{row}">
-          <UTooltip text="Label" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-tag" @click=""/>
-          </UTooltip>
-        </template>
+   
         <template #delete-data="{row}">
           <UTooltip text="Delete" class="flex justify-center">
             <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)"/>
@@ -428,7 +426,7 @@ watch(selectedOptions, (newSelectedOptions) => {
       </div>
     </UDashboardPanel>
   </UDashboardPage>
-  <!-- New Customer Detail Modal -->
+  <!-- New MarketingForm Detail Modal -->
   <UDashboardModal
     v-model="modalMeta.isCustomerModalOpen"
     :title="modalMeta.modalTitle"
@@ -439,74 +437,9 @@ watch(selectedOptions, (newSelectedOptions) => {
       width: 'w-[1000px] sm:max-w-9xl'
     }"
   >
-    <MarketingForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId" :is-modal="true"/>
-  </UDashboardModal>
-  <!-- Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isOrderDetailModalOpen"
-    title="Invoice"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl', 
-    }"
-  >
-    <InvoiceDetail :selected-customer="gridMeta.selectedCustomerId" @close="modalMeta.isOrderDetailModalOpen = false"/>
-  </UDashboardModal>      
-  <!-- Quote Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isQuoteDetailModalOpen"
-    title="Quote"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1000px] sm:max-w-7xl'
-    }"
-  >
-    <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId"/>
-  </UDashboardModal>
-  <!-- Service Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isServiceOrderDetailModalOpen"
-    title="Service Order"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl'
-    }"
-  >
-    <!-- <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId"/> -->
+    <MarketingForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedProjectId" :is-modal="true"/>
   </UDashboardModal>
 
-  
-  <!-- Site Visit Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isSiteVisitModalOpen"
-    title="Site Visit"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl'
-    }"
-  >
-    <CustomersSiteVisitDetail :selected-customer="gridMeta.selectedCustomerId"/>
-  </UDashboardModal>
-    <!-- is Part Modal -->
-    <UDashboardModal
-    v-model="modalMeta.isPartsUsed"
-    
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-10' },
-      width: 'w-[1500px] sm:max-w-9xl', 
-    }"
-  >
-  </UDashboardModal> 
 </template>
 <style scoped>
 </style>

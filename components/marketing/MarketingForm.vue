@@ -86,17 +86,6 @@ const jobColumns = [{
 
 const employeeHours= ref([{}]);
 
-const columnemployeeHours= [{
-  key: 'StartTime',
-  label: 'Date'
-}, {
-  key: 'Name',
-  label: 'Employee'
-}, {
-  key: 'Hours',
-  label: 'Hrs.'
-}]
-
 
 
 
@@ -158,50 +147,6 @@ const gridMeta1 = ref({
 
 
 
-const orders = [{
-  po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}]
 
 
 const onUsed = () => {
@@ -675,7 +620,7 @@ const handleClose = async () => {
 }
 
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  console.log("insert function calling",form.PART);
+  console.log("insert function calling",form);
   form.PerType=selectedInventory.value;
   form.ProjectType=form.Catagory;
   form.InstanceID=form.PART.value;
@@ -1319,7 +1264,7 @@ else
       width: 'w-[1500px] sm:max-w-9xl', 
     }"
   >
-    <PartsList @close="modalMeta.isPartLisingModalOpen = true"/>
+    <MarketingPartList :selectedProduct="selectedCustomer"  @close="modalMeta.isPartLisingModalOpen = true"/>
   </UDashboardModal> 
 
 
