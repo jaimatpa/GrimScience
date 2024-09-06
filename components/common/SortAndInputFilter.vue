@@ -26,6 +26,15 @@ const props = defineProps({
 })
 </script>
 <template>
+  <template v-if="props.filterable">
+    <div class="flex justify-center">
+      <UInput
+        :model-value="props.value"
+        @update:model-value="event => emit('handleInputChange', event, props.filterKey)"
+        :ui="{wrapper: 'w-full', base: 'w-full'}"
+      />
+    </div>
+  </template>
   <template v-if="props.sortable">
     <div class="flex justify-center">
       <UButton variant="ghost" color="gray" @click="emit('handleSortingButton', props.sortKey)">
@@ -42,15 +51,6 @@ const props = defineProps({
   <template v-else>
     <div class="flex justify-center text-center px-[10px] py-[6px]">
       {{ props.label }}
-    </div>
-  </template>
-  <template v-if="props.filterable">
-    <div class="flex justify-center">
-      <UInput
-        :model-value="props.value"
-        @update:model-value="event => emit('handleInputChange', event, props.filterKey)"
-        :ui="{wrapper: 'w-full', base: 'w-full'}"
-      />
     </div>
   </template>
 </template>

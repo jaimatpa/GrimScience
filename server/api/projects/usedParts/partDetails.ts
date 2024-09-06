@@ -1,15 +1,14 @@
-import {   getEmployees, getJobTypes } from '~/server/controller/jobs';
-import { getEmployeess } from '~/server/controller/projects/projects';
-
+import { getDistinctPartTypes, getPartDetails } from '~/server/controller/projects/projects';
 
 export default eventHandler(async (event) => {
   try {
+    const filterParams = getQuery(event);
     const method = event._method;
     
     switch(method.toUpperCase()){
       case 'GET':
-        const jobTypes = await getEmployeess()
-        return { body: jobTypes, message: '' }
+        const partsDetails = await getPartDetails(filterParams.JobID,filterParams.OperationID)
+        return { body: partsDetails, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

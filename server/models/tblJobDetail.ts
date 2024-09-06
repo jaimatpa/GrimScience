@@ -49,7 +49,7 @@ const tblJobDetail = sequelize.define('tblJobDetail', {
    },
 }, {
    timestamps: false,
-   tableName: 'tblJobDetail'
+   tableName: "tblJobDetail"
 });
 
 export default tblJobDetail;
