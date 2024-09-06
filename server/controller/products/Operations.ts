@@ -15,6 +15,33 @@ const formatDateForSQLServer = (date) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
 
+const reorderOperations = async (instanceID) => {
+  // Fetch all records for the given instanceID, ordered by week and number
+  const dt = await sequelize.query(`
+    SELECT * FROM tblPlan 
+    WHERE instanceid = :instanceID 
+    ORDER BY CAST(week AS INT), number ASC
+  `, {
+    replacements: { instanceID },
+    type: QueryTypes.SELECT
+  });
+
+  let start = 1;
+
+  // Iterate through each row and update the NUMBER field
+  for (const row of dt) {
+    await sequelize.query(`
+      UPDATE tblPlan 
+      SET NUMBER = :start 
+      WHERE UniqueID = :uniqueID
+    `, {
+      replacements: { start, uniqueID: row.UniqueID },
+      type: QueryTypes.UPDATE
+    });
+    start += 1;
+  }
+};
+
 export const operationExistByID = async (id) => {
   const tableDetail = await tblPlan.findByPk(id);
   if (tableDetail)
@@ -59,6 +86,7 @@ export const getProductOperations = async (id) => {
     // Build the response object
     const item = {
       UniqueID: plan.UniqueID,
+      instanceid: plan.instanceid,
       Number: plan.Number,
       week: plan.week,
       Operation: plan.Operation,
@@ -92,7 +120,7 @@ export const getOperationSteps = async (id) => {
 
   // Array to hold the steps and skills data
   const stepData = [];
-  console.log(steps)
+
   // Loop through each step to process and format data
   for (const step of steps) {
     const Step = (parseInt(step.Step) >= 0)
@@ -122,8 +150,6 @@ export const getOperationSkills = async (id) => {
     type: QueryTypes.SELECT
   });
 
-  console.log(planDetails)
-
   // Extract and split the skills associated with the plan
   const skills = planDetails[0].skills.split('=');
   const skillData = [];
@@ -152,33 +178,6 @@ export const getOperationSkills = async (id) => {
     skills: skillData
   };
 }
-
-const reorderOperations = async (instanceID) => {
-  // Fetch all records for the given instanceID, ordered by week and number
-  const dt = await sequelize.query(`
-    SELECT * FROM tblPlan 
-    WHERE instanceid = :instanceID 
-    ORDER BY CAST(week AS INT), number ASC
-  `, {
-    replacements: { instanceID },
-    type: QueryTypes.SELECT
-  });
-
-  let start = 1;
-
-  // Iterate through each row and update the NUMBER field
-  for (const row of dt) {
-    await sequelize.query(`
-      UPDATE tblPlan 
-      SET NUMBER = :start 
-      WHERE UniqueID = :uniqueID
-    `, {
-      replacements: { start, uniqueID: row.UniqueID },
-      type: QueryTypes.UPDATE
-    });
-    start += 1;
-  }
-};
 
 export const createProductOperation = async (data) => {
 

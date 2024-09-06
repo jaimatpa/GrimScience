@@ -93,7 +93,6 @@ const editInit = async () => {
       if(response.status === 200) {
         loadingOverlay.value = false
         productExist.value = true
-        console.log(response._data.body)
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
             formData[key] = response._data.body[key]

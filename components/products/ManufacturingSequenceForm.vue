@@ -55,6 +55,7 @@ const getOperations = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         prodOperationGridMeta.value.operations = response._data.body.items;
+        console.log(prodOperationGridMeta.value.operations)
         totalHours.value = response._data.body.totalHours
       }
     },
@@ -166,21 +167,7 @@ const handleProdOperationSelect = async (row) => {
   formData.WorkCenter = data.WorkCenter;
   formData.Hours = data.Hours;
 
-  stepsGridMeta.value.isLoading = true;
-
-  await useApiFetch("/api/products/operationsteps/"+data.UniqueID, {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        stepsGridMeta.value.steps = response._data.body.steps;
-      }
-    },
-    onResponseError() {
-      stepsGridMeta.value.steps = [];
-    },
-  });
-
-  stepsGridMeta.value.isLoading = false;
+  getOperationSteps()
 
   skillGridMeta.value.isLoading = true;
 
@@ -199,6 +186,27 @@ const handleProdOperationSelect = async (row) => {
   skillGridMeta.value.isLoading = false;
 
 };
+
+const getOperationSteps = async () => {
+
+  stepsGridMeta.value.isLoading = true;
+
+  await useApiFetch("/api/products/operationsteps/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        stepsGridMeta.value.steps = response._data.body.steps;
+      }
+    },
+    onResponseError() {
+      stepsGridMeta.value.steps = [];
+    },
+  });
+
+  stepsGridMeta.value.isLoading = false;
+}
+
+
 
 const handleClearCick = () => {
   Object.keys(formData).forEach((key) => {
@@ -304,8 +312,9 @@ const modalMeta = ref({
   isStepInformationModalOpen: false,
 });
 
-const handleStepClick = () => {
-  if (!prodOperationGridMeta.value.selectedOperation) {
+const handleStepCreate = () => {
+  stepsGridMeta.value.selectedStep.UniqueID = null
+  if (!prodOperationGridMeta.value.selectedOperation == null) {
     toast.add({
       title: "Failed",
       description: "Please select the Operation",
@@ -318,6 +327,33 @@ const handleStepClick = () => {
     modalMeta.value.modalDescription = "Step Information";
   }
 };
+
+const onStepSelect = (row) => {
+  console.log(row.UniqueID)
+  stepsGridMeta.value.selectedStep = row
+  stepsGridMeta.value.steps.forEach((op) => {
+    if (op.UniqueID === row.UniqueID) {
+      op.class = "bg-gray-200";
+    } else {
+      delete op.class;
+    }
+  });
+}
+
+const onStepDblClick = () => {
+  if (!stepsGridMeta.value.selectedStep == null) {
+    toast.add({
+      title: "Failed",
+      description: "Please select a step",
+      icon: "i-heroicons-minus-circle",
+      color: "red",
+    });
+  } else {
+    modalMeta.value.isStepInformationModalOpen = true;
+    modalMeta.value.modalTitle = "Step Information";
+    modalMeta.value.modalDescription = "Step Information";
+  }
+}
 
 const handleSkillClick = () => {
   modalMeta.value.isSkillModalOpen = true;
@@ -545,6 +581,8 @@ else propertiesInit();
                       padding: 'px-2 py-0',
                     },
                   }"
+                  @select="onStepSelect"
+                  @dblclick="onStepDblClick"
                 >
                   <template #empty-state>
                     <div></div>
@@ -580,7 +618,7 @@ else propertiesInit();
                   </div>
                 </div>
                 <div class="flex space-x-3">
-                  <div class="">
+                  <!-- <div class="">
                     <UButton
                       color="blue"
                       label="Refresh"
@@ -590,7 +628,7 @@ else propertiesInit();
                       }"
                       truncate
                     />
-                  </div>
+                  </div> -->
                   <div class="">
                     <UButton
                       icon="i-heroicons-plus"
@@ -601,7 +639,7 @@ else propertiesInit();
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
                       }"
-                      @click="handleStepClick"
+                      @click="handleStepCreate"
                       truncate
                     />
                   </div>
@@ -712,7 +750,11 @@ else propertiesInit();
   >
     <ProductsProdStepInformationForm
       :operation-id="prodOperationGridMeta.selectedOperation.UniqueID"
+      :instance-id="prodOperationGridMeta.selectedOperation.instanceid"
+      :step-id="stepsGridMeta.selectedStep ? stepsGridMeta.selectedStep.UniqueID : null"
+      :next-step="stepsGridMeta.steps.length > 0 ? String.fromCharCode(stepsGridMeta.steps[stepsGridMeta.steps.length - 1].Step.charCodeAt(0) + 1) : 'A'"
       @close="handleStepModalClose"
+      @change="getOperationSteps"
       :is-modal="true"
     />
   </UDashboardModal>

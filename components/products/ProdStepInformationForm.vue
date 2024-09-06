@@ -9,10 +9,21 @@ const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
 const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
-const emit = defineEmits(["close", "save"]);
+const emit = defineEmits(["close","change"]);
 const props = defineProps({
   operationId: {
     type: [String, Number, null],
+    required: true,
+  },
+  instanceId: {
+    type: [String, Number, null],
+    required: true,
+  },
+  stepId:{
+    type: [String, Number, null]
+  },
+  nextStep: {
+    type: [String, null],
     required: true,
   },
   isModal: {
@@ -20,9 +31,9 @@ const props = defineProps({
   },
 });
 
-onMounted(() => {
-  propertiesInit();
-});
+
+const user = useCookie<string>('user');
+const username = "#"+user.value.payrollnumber+" "+user.value.fname+" "+user.value.lname
 
 const toast = useToast();
 const router = useRouter();
@@ -35,6 +46,7 @@ const isKeyModalOpen = ref(false);
 const productQuantity = ref(1);
 const productKey = ref(null);
 const stepFiles = ref([]);
+const deleteFileListId = ref([]);
 
 const formData = reactive({
   Description: null,
@@ -47,6 +59,36 @@ const productFilterValues = ref({
   MODEL: null,
   DESCRIPTION: null,
 });
+
+const editInit = async () => {
+  loadingOverlay.value = true
+  await useApiFetch(`/api/products/operationsteps/stepinfo/${props.stepId}`, {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        console.log(response._data.body)
+
+        for (const key in response._data.body.stepInfo) {
+          if (response._data.body.stepInfo[key] !== undefined) {
+            formData[key] = response._data.body.stepInfo[key]
+          }
+        }
+        partsStockGridMeta.value.parts = response._data.body.parts
+        stepGridMeta.value.steps = response._data.body.media
+      }
+    }, 
+    onResponseError({}) {
+      toast.add({
+        title: "Failed",
+        description: "Some error occured",
+        icon: "i-heroicons-check-circle",
+        color: "red",
+      });
+    }
+  })
+  propertiesInit()
+  loadingOverlay.value = false
+}
 
 const propertiesInit = async () => {
   loadingOverlay.value = true;
@@ -105,19 +147,43 @@ const handleClose = async () => {
   }
 };
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  console.log("ccccc");
-  console.log("props.operationId", props.operationId);
+  loadingOverlay.value = true
+  const formData = new FormData();
 
-  // Create New Step
-  isLoading.value = true;
-  console.log("in api");
+  // Prepare step data
+  const stepData = {
+    stepDescription: event.data.Description,
+    stepLetter: props.nextStep,
+    planID: props.operationId,
+    instanceID: props.instanceId,
+    notes: event.data.notes,
+    UniqueID: props.stepId
+  };
 
-  await useApiFetch("/api/workcenter/steps", {
+
+  formData.append('data', JSON.stringify({
+    stepData,
+    partsList: partsStockGridMeta.value.parts.map(part => ({
+      qty: part.qty,
+      UniqueID: part.UniqueID,
+      key: part.key,
+    })),
+    username,
+    deleteFiles:deleteFileListId.value
+  }));
+
+  // Append files to form data
+  stepFiles.value.forEach((file) => {
+    formData.append('files', file, file.name);
+  });
+
+  // Send the form data to the backend
+  await useApiFetch("/api/products/operationsteps/stepsave", {
     method: "POST",
-    body: event.data,
+    body: formData,
     onResponse({ response }) {
       if (response.status === 200) {
-        isLoading.value = false;
+        loadingOverlay.value = false
         toast.add({
           title: "Success",
           description: response._data.message,
@@ -128,7 +194,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     },
   });
 
-  emit("save");
+  emit("change");
 };
 
 const partsGridMeta = ref({
@@ -158,11 +224,11 @@ const partsGridMeta = ref({
 const partsStockGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "UniqueID",
+      key: "model",
       label: "Stock #",
     },
     {
-      key: "DESCRIPTION",
+      key: "description",
       label: "Description",
     },
     {
@@ -170,7 +236,7 @@ const partsStockGridMeta = ref({
       label: "Qty",
     },
     {
-      key: "UNIT",
+      key: "unit",
       label: "Unit",
     },
     {
@@ -262,8 +328,9 @@ const stepGridMeta = ref({
       label: "Name",
     },
     {
-      key: "step",
+      key: "file",
       label: "File",
+      kind: "actions",
     },
     {
       key: "delete",
@@ -277,19 +344,34 @@ const stepGridMeta = ref({
 });
 
 const handleFileUpload = (event) => {
-  console.log(files)
   const selectedFiles = Array.from(event.target.files);
+  console.log(selectedFiles)
   stepFiles.value = [...stepFiles.value, ...selectedFiles];
-  stepGridMeta.value.steps = stepFiles.value.map(file => ({
+  stepGridMeta.value.steps = [...stepGridMeta.value.steps, ...selectedFiles.map(file => ({
     name: file.name,
-  }));
+    uniqueID: file.lastModified
+  }))];
 }
 
-const removeFile = (fileIndex) => {
-  stepFiles.value.splice(fileIndex, 1);
-  stepGridMeta.value.steps = stepFiles.value.map(file => ({
-    name: file.name,
-  }));
+const removeFile = (id,idx) => {
+
+  console.log(id,idx)
+  console.log(stepGridMeta.value.steps[idx])
+
+  if(stepGridMeta.value.steps[idx].path !== undefined){
+    console.log(1)
+    deleteFileListId.value = [...deleteFileListId.value, stepGridMeta.value.steps[idx].uniqueID]
+  }else{
+    console.log(2)
+    stepFiles.value = stepFiles.value.filter(file => {
+      return file.lastModified !== id
+    })
+  }
+  stepGridMeta.value.steps = stepGridMeta.value.steps.filter(file => {
+    return file.uniqueID !== id
+  })
+  
+  
 };
 
 const onProductDblClick = async () => {
@@ -324,7 +406,7 @@ const handleQuantityClick = () => {
     partsStockGridMeta.value.parts[partIndex].qty = productQuantity.value
     isQuantityModalOpen.value = false
     productKey.value = null
-    productQuantity.value = 0
+    productQuantity.value = 1
   }else{
     if(productQuantity.value > 0) {
       isKeyModalOpen.value = true;
@@ -348,13 +430,13 @@ const handleKeyModalClick = () => {
     partsStockGridMeta.value.parts[partIndex].key = productKey.value
     isKeyModalOpen.value = false
     productKey.value = null
-    productQuantity.value = 0
+    productQuantity.value = 1
   }else{
     if(productKey.value !== null){
       partsStockGridMeta.value.parts = [...partsStockGridMeta.value.parts,{...productGridMeta.value.selectedProduct, qty: productQuantity.value, key: productKey.value}]
       isKeyModalOpen.value = false
       productKey.value = null
-      productQuantity.value = 0
+      productQuantity.value = 1
     }else{
       toast.add({
         title: "Failed",
@@ -410,6 +492,33 @@ const handleRemovePart = () => {
   }
 }
 
+const handleDelteStep = async () => {
+  await useApiFetch(`/api/products/operationsteps/stepinfo/${props.stepId}`, {
+    method: 'DELETE',
+    body: { username: username },
+    onResponse({ response }) {
+      if(response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: "Step deleted successfully",
+          icon: "i-heroicons-check-circle",
+          color: "green",
+        });
+        emit('close')
+        emit('change')
+      }
+    },
+    onResponseError({}) {
+      toast.add({
+        title: "Failed",
+        description: "Failed to delete step",
+        icon: "i-heroicons-exclamation-circle",
+        color: "red",
+      });
+    }
+  });
+}
+
 const closeQuantityModal = () => {
   isQuantityModalOpen.value = false
   productKey.value = null
@@ -422,8 +531,8 @@ const closeKeyModal = () => {
   productQuantity.value = 0
 }
 
-// if (props.selectedJob !== null) editInit();
-// else propertiesInit();
+if (props.stepId !== null) editInit();
+else propertiesInit();
 </script>
 
 <template>
@@ -496,52 +605,31 @@ const closeKeyModal = () => {
                 },
               }"
             >
-            <!-- <template #cell="{ row, index }">
-              <div class="flex justify-between items-center">
-                {{ row.name }}
-                <UButton
-                  color="red"
-                  size="sm"
-                  icon="i-heroicons-minus-circle"
-                  @click="removeFile(index)"
-                />
-              </div>
-            </template> -->
-            <template #delete-data="{ index }">
+            <template #file-data="{ row }">
+              <UTooltip  text="File">
+                <a 
+                  v-if="row.path" 
+                  class=" text-blue underline" 
+                  :href="row.path" 
+                  download
+                >
+                  Download
+                </a>
+                <span v-else></span>
+              </UTooltip>
+            </template>
+            <template #delete-data="{ row , index}">
               <UTooltip text="Delete" >
                 <UButton
-                  color="gray"
+                  color="red"
                   variant="ghost"
                   icon="i-heroicons-minus-circle"
-                  @click="removeFile(index)"
+                  @click="removeFile(row.uniqueID, index)"
                 />
               </UTooltip>
             </template>
             </UTable>
-            <div class="flex justify-between space-x-3 my-4">
-              <div class="">
-                <UButton
-                  color="blue"
-                  label="Remove"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
-              </div>
-              <!-- <div class="">
-                <UButton
-                  color="blue"
-                  label="View Drawing"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
-              </div> -->
-            </div>
+
           </div>
           <div class="w-1/2">
             <div class="pt-4 pl-4 mt-7">
@@ -579,6 +667,7 @@ const closeKeyModal = () => {
                       base: 'w-full',
                       truncate: 'flex justify-center w-full',
                     }"
+                    @click="handleDelteStep"
                     truncate
                   />
                 </div>
@@ -595,28 +684,7 @@ const closeKeyModal = () => {
 
         <div class="flex">
           <div class="w-1/2">
-            <!-- <div class="flex flex-row space-x-3 items-end mb-4 px-4">
-              <div class="">
-                <UFormGroup label="Part Lookup" name="Unit Material Cost">
-                  <UInputMenu :options="[]" />
-                </UFormGroup>
-              </div>
-              <div class="">
-                <UFormGroup label="" name="Unit Material Cost">
-                  <UInputMenu :options="[]" />
-                </UFormGroup>
-              </div>
-              <div class="">
-                <UFormGroup label="" name="ReportsTo">
-                  <UInput placeholder="" />
-                </UFormGroup>
-              </div>
-              <div class="">
-                <UFormGroup label="" name="Job Qty">
-                  <UInput placeholder="" />
-                </UFormGroup>
-              </div>
-            </div> -->
+
             <div class="mt-5">
               <UTable
                 :rows="productGridMeta.products"
