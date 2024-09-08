@@ -66,7 +66,7 @@ const applyFilters = (filterParams) => {
     return whereClause;
 };
 
-// Method to fetch approvals similar to the `setsearch` method in VB
+// Method to fetch approvals
 
 export const getApprovals = async (page, pageSize, sortBy, sortOrder, filterParams) => {
     try {
@@ -114,10 +114,6 @@ export const getApprovals = async (page, pageSize, sortBy, sortOrder, filterPara
                 ${sortField} ${sortDirection}
             OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY;
         `;
-
-        // Log the query and replacements to debug SQL issues
-        // console.log("Generated SQL Query:", query);
-        // console.log("Pagination - Offset:", offset, "Limit:", limit);
 
         // Execute the raw SQL query
         const results = await sequelize.query(query, {
@@ -183,8 +179,6 @@ export const approvePlan = async (uniqueID, employee) => {
     if (uniqueID === null || uniqueID === undefined || employee === null || employee === undefined) {
         throw new Error("Invalid parameters. Please provide a valid UniqueID and Employee ID.");
     }
-
-    // console.log("Approving Plan:", uniqueID, "by Employee:", employee);
 
     const planRecord = await tblPlan.findOne({ where: { UniqueID: uniqueID } });
 

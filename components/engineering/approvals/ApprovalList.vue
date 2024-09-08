@@ -285,7 +285,6 @@ const onDblClick = async () => {
         <UDashboardPage class=" max-h-screen">
             <UDashboardPanel grow>
                 <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader" title="Entries Approvals"> </UDashboardNavbar>
-                <!-- {{ isPage }} -->
                 <div v-if="props.isPage" class="px-4 py-2 gmsBlueTitlebar">
                     <h2>To Be Approved</h2>
                 </div>
