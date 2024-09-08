@@ -28,6 +28,8 @@ let hasApprovePermission = ref(false);
 let readonlyPermission = ref(false);
 let permissionMessage = ref("");
 
+let selectedJobId = ref(null);
+
 const gridMeta = ref({
     defaultColumns: <UTableColumn[]>[
         {
@@ -92,12 +94,7 @@ const gridMeta = ref({
     isLoading: false,
 });
 const modalMeta = ref({
-    isCustomerModalOpen: false,
-    isOrderDetailModalOpen: false,
-    isQuoteDetailModalOpen: false,
-    isServiceOrderDetailModalOpen: false,
-    isSiteVisitModalOpen: false,
-    modalTitle: "New Customer",
+    isManufacturingSequenceModalOpen: false,
 });
 const filterValues = ref({
     model: null,
@@ -251,6 +248,7 @@ const handleFilterInputChange = async (event, name) => {
 
 const onSelect = async (row) => {
     gridMeta.value.selectedApprovalId = row?.uniqueID;
+    gridMeta.value.selectedApproval = row;
 
     gridMeta.value.approvals.forEach((aprv) => {
         if (aprv.uniqueID === row.uniqueID) {
@@ -270,8 +268,10 @@ const handleSelect = () => {
 };
 const onDblClick = async () => {
     if (gridMeta.value.selectedApprovalId) {
-        modalMeta.value.modalTitle = "Edit";
-        modalMeta.value.isCustomerModalOpen = true;
+
+        selectedJobId.value = gridMeta.value.selectedApproval?.jobId;
+
+        modalMeta.value.isManufacturingSequenceModalOpen = true;
     }
 };
 </script>
@@ -369,5 +369,18 @@ const onDblClick = async () => {
             </UDashboardPanel>
         </UDashboardPage>
     </div>
+
+    <!-- Manufacturing Sequnce Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isManufacturingSequenceModalOpen"
+    title="Manufacturing Sequence"
+    description=""
+    :ui="{
+      width: 'w-[1800px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <JobManufacturingSequenceForm :selected-job="selectedJobId" />
+  </UDashboardModal>
 </template>
 <style scoped></style>
