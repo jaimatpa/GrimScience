@@ -83,7 +83,8 @@ export const getApprovals = async (page, pageSize, sortBy, sortOrder, filterPara
         const query = `
             SELECT 
                 tblPlan.UniqueID, 
-                tblBP.MODEL as model, 
+                tblBP.MODEL as model,
+                tblJobs.UniqueID as jobId, 
                 tblPlan.Number as number, 
                 tblPlan.Operation as operation, 
                 tblPlan.PreparedBy as preparedBy, 
@@ -94,13 +95,16 @@ export const getApprovals = async (page, pageSize, sortBy, sortOrder, filterPara
                 tblPlan
             INNER JOIN 
                 tblBP ON tblBP.instanceID = tblPlan.instanceid
+            INNER JOIN 
+                tblJobs ON tblJobs.InstanceID = tblPlan.instanceid
             WHERE 
                 (tblPlan.ApprovedBy IS NULL OR tblPlan.ApprovedBy = '')
                 ${whereClause}
             GROUP BY 
                 tblPlan.Number,
                 tblPlan.UniqueID,                
-                tblBP.MODEL,                 
+                tblBP.MODEL,
+                tblJobs.UniqueID,                 
                 tblPlan.Operation, 
                 tblPlan.PreparedBy, 
                 tblPlan.PreparedDate, 
@@ -125,6 +129,7 @@ export const getApprovals = async (page, pageSize, sortBy, sortOrder, filterPara
         const formattedResults = results.map((row) => ({
             uniqueID: row.UniqueID ?? null,
             model: row.model ?? null,
+            jobId: row.jobId ?? null,
             number: row.number ?? null,
             operation: row.operation ?? null,
             preparedBy: row.preparedBy ?? null,
