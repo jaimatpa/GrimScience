@@ -1,4 +1,4 @@
-import { getApprovals, approvePlan } from '~/server/controller/engineering/approvals'
+import { getApprovals, approvePlan } from '~/server/controller/engineering/Approvals'
 import jwt_decode from "jwt-decode";
 
 export default eventHandler(async (event) => {
