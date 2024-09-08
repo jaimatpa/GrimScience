@@ -2,7 +2,7 @@ import {
   createPurchase,
   deletePurchase,
   getAllPurchase,
-} from "~/server/controller/materials";
+} from "~/server/controller/materials/purchase";
 
 export default eventHandler(async (event) => {
   const method = event._method;
