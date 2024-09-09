@@ -43,6 +43,7 @@ const form=reactive( {
         Catagory:null,
         SubCatagory:null,
         PART:null,
+        InstanceID:null
             });
 
 
@@ -565,7 +566,10 @@ const part = async () => {
         if (response.status === 200) {
           // subCategorielist.value = response._data.body;
           console.log("parts are",response._data.body);
-          partlist.value = response._data.body;
+          partlist.value = response._data.body.map(item => ({
+            label: `${item.model} - ${item.description}`,
+            value: item.instanceID, // or any other identifier you prefer
+          }))
 
    
          
@@ -671,9 +675,12 @@ const handleClose = async () => {
 }
 
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  console.log("insert function calling",form);
+  console.log("insert function calling",form.PART);
   form.PerType=selectedInventory.value;
   form.ProjectType=form.Catagory;
+  form.InstanceID=form.PART.value;
+  console.log("form instance",form.PART.value);
+  form.PART=form.PART.label;
   
 
   console.log("selectCategoryForList",selectCategoryForList)

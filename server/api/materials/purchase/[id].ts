@@ -1,4 +1,4 @@
-import { getPurchaseById } from "~/server/controller/materials";
+import { getPurchaseById } from "~/server/controller/materials/purchase";
 
 export default eventHandler(async (event) => {
   const method = event._method;
