@@ -50,7 +50,7 @@ const applyFilters = (params) => {
 
   // Update this to use 'selectedOptions' if that's the key you're filtering by
   if (params.selectedOptions) {
-    whereClause["Catagory"] = {
+    whereClause["projectType"] = {
       [Op.like]: `%${params.selectedOptions}%`, // Adjust the field if needed
     };
   }
@@ -844,8 +844,9 @@ export const createSkill = async (data) => {
   const { Name,Catagory,subcatagory,weeks,date,courseoutline,frequency} = data; // Assuming these are the fields in tblSkills
 
   const query = `
-    INSERT INTO tblSkills (Name, Catagory,courseoutline,date, subcatagory,weeks,WorkCenterID,frequency)
-    VALUES (:Name, :Catagory,:subcatagory,:date,:courseoutline,frequency,:weeks,'0')
+    INSERT INTO tblSkills (Name, Catagory, courseoutline, date, subcatagory, weeks, WorkCenterID, frequency)
+VALUES (:Name, :Catagory, :courseoutline, :date, :subcatagory, :weeks, '0', :frequency)
+
   `;
 
   const [result, metadata] = await sequelize.query(query, {
