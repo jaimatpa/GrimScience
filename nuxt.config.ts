@@ -14,8 +14,15 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/ui',
     '@nuxt/fonts',
-    '@vueuse/nuxt'
+    '@vueuse/nuxt',
+    'nuxt-file-storage'
   ],
+
+  fileStorage: {
+    // enter the absolute path to the location of your storage
+    mount: 'public',
+
+  },
 
   app: {
     head: {

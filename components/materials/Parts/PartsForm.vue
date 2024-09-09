@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from "#ui/types";
 import { format } from "date-fns";
-
+import { ref } from 'vue';
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
-
-
-
 
 const accountList = ref([]);
 const revisions = ref([]);
@@ -17,7 +14,6 @@ const workplacesColumns = [
     label: "location",
   }
 ];
-
 
 
 const revisionsColumns = [
@@ -442,6 +438,20 @@ const handleClose = async () => {
   }
 };
 
+const files = ref([null, null, null]);
+const errorMessage = ref('');
+const uploadedFiles = ref([]);
+
+  const handleFileChange = (event, index) => {
+    console.log("file",event.target.files[0]);
+    const file = event.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      files.value[index] = file;
+    } else {
+      alert('Please select a PDF file.');
+      event.target.value = '';
+    }
+  };
 const getRevisions=async()=>{
   await useApiFetch(
     `/api/materials/parts/revisions?instanceId=${props.selectedPartInstace}`,
@@ -522,11 +532,65 @@ getRevisions();
 
 
 const onSubmit = async (event: FormSubmitEvent<any>) => {
+  console.log("files are", files.value);
+
+// Check if there are any files to upload
+if (!files.value.some(file => file)) {
+  console.log('No files to upload.');
+  alert('Please upload at least one file.');
+  return;
+}
+
+const formData = new FormData();
+const fileTypes = ['Drawing/Manual', 'PDS', 'SDS'];
+
+// Loop through files and append only if a file exists
+files.value.forEach((file, index) => {
+  if (file) {
+    formData.append(fileTypes[index], file);
+  }
+});
+  try {
+    // Replace '/api/upload' with your actual upload endpoint
+    const response = await fetch('/api/file', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const responseData = await response.json(); // Parse the JSON response
+      console.log('Files uploaded successfully! Response:', responseData);
+      alert('Files uploaded successfully!');
+
+      // You can print individual file details
+      responseData.files.forEach(file => {
+        console.log(`File uploaded: ${file.originalName}, URL: ${file.url}`);
+        if(file.fileType==='SDS'){
+          event.data.sds=file.url;
+        }
+        if(file.fileType==='Drawing/Manual'){
+          event.data.DRAWINGCUSTOM=file.url;
+        }
+
+        
+      });
+
+      files.value = [null, null, null];
+    } else {
+      throw new Error('Upload failed');
+    }
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    alert('An error occurred while uploading the files. Please try again.');
+  }
+
   if(props.selectedCustomer!=null){
 console.log("event is",event.data);
     const now = new Date();
     const isoString = now.toISOString();
     event.data.TODAY =isoString;
+
+
     
       console.log("form data is",event.data)
         await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
@@ -548,7 +612,7 @@ console.log("event is",event.data);
 
   }
   else{
-    console.log("form data is",event.data)
+    console.log("file value is",event.data)
         await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
           method: "POST",
           body: event.data,
@@ -570,6 +634,88 @@ console.log("event is",event.data);
 
 if (props.selectedCustomer !== null) editInit();
 else propertiesInit();
+
+
+
+
+// Ref to store selected files
+const selectedFiles = ref([]);
+
+// Handler for file selection
+const onFileSelected = (event) => {
+  const files = Array.from(event.target.files);
+  selectedFiles.value.push(...files);
+  console.log('Selected files:', selectedFiles.value);
+
+
+};
+
+
+
+const logFormData = (formData) => {
+  for (const [key, value] of formData.entries()) {
+    if (value instanceof File) {
+      console.log(`${key}: File(${value.name}, ${value.size} bytes)`);
+    } else {
+      console.log(`${key}: ${value}`);
+    }
+  }
+};
+
+const handleUpload  = async () => {
+
+  if (selectedFiles.value.length === 0) {
+    console.error('No files selected');
+    return;
+  }
+
+  const formData = new FormData();
+  
+  // Append each file to the FormData object
+  selectedFiles.value.forEach(file => {
+    formData.append('files[]', file);
+    console.log('Selected files xxx:', file);
+    logFormData(formData);
+    
+  });
+
+ try {
+
+  console.log('Selected files:', formData);
+ 
+    await useApiFetch(`/api/materials/parts/parts/`, {
+      method: "POST",
+      body: formData,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
+
+    
+  } catch (error) {
+   
+    toast.add({
+      title: "Error",
+      description: "Failed to upload files.",
+      icon: "i-heroicons-x-circle",
+      color: "red",
+    });
+    
+  }
+
+
+};
+
+
+
+
 </script>
 
 <template>
@@ -599,6 +745,12 @@ else propertiesInit();
   <label class="text-white font-bold">Part Information</label>
 </div>
 <div class="overflow-auto">
+
+
+
+
+
+
 
       <div>
         <div>
@@ -702,20 +854,43 @@ else propertiesInit();
           </div>
           <div class="flex flex-row space-x-5">
             <div class="basis-1.2/5">
-              <UFormGroup label="Drawing/Mannul" name="Drawing/Mannul">
-                <UInput type="file" size="sm" icon="i-heroicons-folder" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1.2/5">
-              <UFormGroup label="PDS" name="PDS">
-                <UInput type="file" size="sm" icon="i-heroicons-folder" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1.2/5">
-              <UFormGroup label="SDS" name="SDS">
-                <UInput type="file" size="sm" icon="i-heroicons-folder" />
-              </UFormGroup>
-            </div>
+              <UFormGroup label="Drawing/Mannul" name="SPECSHEET">
+              <input
+           
+           type="file"
+           @change="(e) => handleFileChange(e, 0)"
+           
+           accept="application/pdf"
+           class="block w-full"
+         />
+        </UFormGroup>
+    </div>
+    <div class="basis-1.2/5">
+      <UFormGroup label="PDS" name="PDS">
+
+      <input
+           
+            type="file"
+            @change="(e) => handleFileChange(e, 1)"
+            accept="application/pdf"
+            class="block w-full"
+          />
+        </UFormGroup>
+        
+    </div>
+    <div class="basis-1.2/5">
+      <UFormGroup label="sds" name="sds">
+      <input
+           
+           type="file"
+           @change="(e) => handleFileChange(e, 2)"
+           accept="application/pdf"
+           class="block w-full"
+         />
+        </UFormGroup>
+
+    </div>
+ 
           </div>
        
 
