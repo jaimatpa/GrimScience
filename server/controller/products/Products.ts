@@ -41,7 +41,7 @@ export const getProducts = async (page, pageSize, sortBy, sortOrder, filterParam
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
   const whereClause = applyFilters(filterParams);
   const list = await tblBP.findAll({
-    attributes: ['UniqueID', 'MODEL', 'DESCRIPTION', 'grossprofit', 'PRODUCTLINE', "SELLINGPRICE", "CODE"],
+    attributes: ['UniqueID', 'MODEL', 'DESCRIPTION', 'grossprofit', 'PRODUCTLINE', "SELLINGPRICE", "CODE", "instanceID"],
     where: {
       ...whereClause,
       TODAY: {

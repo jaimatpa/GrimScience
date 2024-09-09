@@ -189,6 +189,9 @@ export const createProductOperation = async (data) => {
 
   if (!Operation || !WorkCenter || !Hours || !week) return { error: 'Please provide all the fields' };
   const today = new Date();
+  const formattedDate = String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
+  String(today.getDate()).padStart(2, '0') + '/' + 
+  today.getFullYear();
   const createOperation = {
     instanceid: instanceID,
     Operation,
@@ -198,7 +201,7 @@ export const createProductOperation = async (data) => {
     skills: strSkills,
     Number: parseInt(Number),
     PreparedBy: username,
-    PreparedDate: formatDateForSQLServer(today),
+    PreparedDate: formattedDate,
     ApprovedBy: '',
     ApprovedDate: '',
 
@@ -297,6 +300,17 @@ export const deleteProductOperation = async (id) => {
   await reorderOperations(instanceID);
   return id
 
+}
+
+export const getOperationReportData = async (id) => {
+  const reportData = await sequelize.query(`
+    Select (select verified from tblJobOperations where tblJobOperations.PlanID = tblPlan.UniqueID and tblJobOperations.JobID=0) as verified,(select verifiedby from tblJobOperations where tblJobOperations.PlanID = tblPlan.UniqueID and tblJobOperations.JobID=0) as verifiedby,tblPlan.uniqueID as OUID, tblSteps.UniqueID as SID, (select top 1 '#' + model + ' ' + description from tblBP  Where instanceID = tblPlan.InstanceID  and uniqueid in ( select max(uniqueid) from tblbp where instanceid=tblPlan.InstanceID)) as PlanModel, tblPlan.hours,tblBP.ProductLine, tblPlan.Number, tblPlan.Operation, tblSteps.Step, tblSteps.description as StepDescription, tblSteps.notes as notes, tblBPParts.Note, tblBPParts.Qty, tblBP.InventoryUnit, tblBP.model, tblBP.description as BPDescription, tblPlan.WorkCenter, ApprovedBy, ApprovedDate, PreparedBy, PreparedDate  from tblPlan left join tblSteps on tblSteps.PlanID = tblPlan.UniqueID left join tblBPParts on tblBPParts.StepID = tblSteps.UniqueID left join tblBP on tblBP.uniqueID = tblBPParts.partID Where tblPlan.InstanceID = :instanceId Order by tblPlan.Number, cast(step as int), model
+  `, {
+    replacements: { instanceId:id },
+    type: QueryTypes.SELECT
+  });
+
+  return reportData
 }
 
 export const OperationExistByID = async (id: number | string) => {

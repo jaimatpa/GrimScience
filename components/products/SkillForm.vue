@@ -21,6 +21,7 @@ const formData = reactive({
   subcatagory: null,
   weeks: null,
   frequency: null,
+  courseoutline: null,
   date: null,
   by: null,
   WorkCenterID: 0,
@@ -33,20 +34,34 @@ onMounted(() => {
 const init = async () => {
   fetchFrequencies();
   fetchEmployees();
-  fetchSkills();
+  await useApiFetch(`/api/skills/catagory`, {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        fetchSubCategories()
+        headerFilters.value.catagory.options = [null, ...response._data.body];
+        headerFilters.value.catagory.allOptions = [...response._data.body];
+      }
+    },
+  });
+  
+};
 
-  for (const key in headerFilters.value) {
-    const apiURL = `/api/skills/${key}`;
-    await useApiFetch(apiURL, {
-      method: "GET",
-      onResponse({ response }) {
-        if (response.status === 200) {
-          headerFilters.value[key].options = [null, ...response._data.body];
-          headerFilters.value[key].allOptions = [...response._data.body];
-        }
-      },
-    });
-  }
+const fetchSubCategories = async (selectedCategory=null) => {
+  console.log(selectedCategory)
+  await useApiFetch(`/api/skills/subCatagory`, {
+    method: "GET",
+    params: {
+      category: selectedCategory || null,
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        fetchSkills();
+        headerFilters.value.subCatagory.options = [null, ...response._data.body];
+        headerFilters.value.subCatagory.allOptions = [...response._data.body];
+      }
+    },
+  });
 };
 
 const fetchEmployees = async () => {
@@ -123,7 +138,12 @@ const filterValues = ref({
   subcatagory: null,
 });
 
-const handleFilterChange = () => {
+const handleFilterChange = (filterType) => {
+  console.log(filterType)
+  if (filterType === 'Catagory') {
+    const selectedCategory = filterValues.value['Catagory'];
+    fetchSubCategories(selectedCategory);
+  }
   fetchSkills();
 };
 
@@ -163,10 +183,6 @@ const handleEditClick = async () => {
 
 const onDelete = async () => {
   // const id = skillGridMeta.value.selectedSkill.UniqueID;
-  console.log(
-    "skillGridMeta.value.selectedSkill",
-    skillGridMeta.value.selectedSkill
-  );
 
   if (!skillGridMeta.value.selectedSkill) {
     toast.add({
@@ -250,7 +266,7 @@ const skillGridMeta = ref({
     },
     {
       key: "subcatagory",
-      label: "Subcatagory",
+      label: "Subcategory",
     },
     {
       key: "Name",
@@ -279,9 +295,11 @@ const handleSkillSelect = (row) => {
   formData.Catagory = data.Catagory;
   formData.subcatagory = data.subcatagory;
   formData.Name = data.Name;
+  formData.courseoutline = data.courseoutline;
   formData.weeks = data.weeks;
   formData.frequency = data.frequency;
   formData.date = data.date;
+  formData.by = data.by
 };
 
 const handleOperationSkillSelect = async () => {
@@ -291,11 +309,11 @@ const relatedPartsGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
       key: "week",
-      label: "Catagory",
+      label: "Category",
     },
     {
       key: "Operation",
-      label: "Subcatagory",
+      label: "Subcategory",
     },
     {
       key: "WorkCenter",
@@ -339,21 +357,6 @@ const columnGridMeta = ref({
   isLoading: false,
 });
 
-const stepsGridMeta = ref({
-  defaultColumns: <UTableColumn[]>[
-    {
-      key: "step",
-      label: "Step",
-    },
-    {
-      key: "desc",
-      label: "Desc",
-    },
-  ],
-  steps: [],
-  selectedStep: null,
-  isLoading: false,
-});
 
 const modalMeta = ref({
   isWorkCenterModalOpen: false,
@@ -397,7 +400,7 @@ const handleModalClose = () => {
           <UFormGroup label="" name="zip">
             <UInput
               v-model="filterValues.UniqueID"
-              @update:model-value="handleFilterChange()"
+              @update:model-value="handleFilterChange(filterValues.UniqueID)"
             />
           </UFormGroup>
         </div>
@@ -411,7 +414,7 @@ const handleModalClose = () => {
               <USelect
                 v-model="filterValues[`${value.filter}`]"
                 :options="value.options"
-                @change="handleFilterChange()"
+                @change="handleFilterChange(value.filter)"
               />
             </UFormGroup>
           </div>
@@ -449,7 +452,7 @@ const handleModalClose = () => {
 
       <div class="flex flex-row space-x-3 items-end mb-4 mt-5">
         <div class="">
-          <UFormGroup label="Catagory" name="Catagory">
+          <UFormGroup label="Category" name="Catagory">
             <UInputMenu
               v-model="formData.Catagory"
               v-model:query="formData.Catagory"
@@ -489,7 +492,7 @@ const handleModalClose = () => {
       <div class="flex space-x-5 items-end">
         <div class="w-3/5">
           <UFormGroup label="Comment" name="comment">
-            <UTextarea :rows="5" type="text" placeholder="" />
+            <UTextarea v-model="formData.courseoutline" :rows="5" type="text" placeholder="" />
           </UFormGroup>
 
           <div class="flex justify-between mt-5">

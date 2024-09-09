@@ -519,6 +519,60 @@ const handleDelteStep = async () => {
   });
 }
 
+const handleStepUp = async () => {
+  await useApiFetch(`/api/products/operationsteps/upstep`, {
+    method: 'PUT',
+    body: { },
+    onResponse({ response }) {
+      if(response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: "Step up successfully",
+          icon: "i-heroicons-check-circle",
+          color: "green",
+        });
+        emit('close')
+        emit('change')
+      }
+    },
+    onResponseError({}) {
+      toast.add({
+        title: "Failed",
+        description: "Failed to delete step",
+        icon: "i-heroicons-exclamation-circle",
+        color: "red",
+      });
+    }
+  });
+}
+
+const handleStepDown = async () => {
+  await useApiFetch(`/api/products/operationsteps/downstep`, {
+    method: 'PUT',
+    body: { username: username },
+    onResponse({ response }) {
+      if(response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: "Step down successfully",
+          icon: "i-heroicons-check-circle",
+          color: "green",
+        });
+        emit('close')
+        emit('change')
+      }
+    },
+    onResponseError({}) {
+      toast.add({
+        title: "Failed",
+        description: "Failed to delete step",
+        icon: "i-heroicons-exclamation-circle",
+        color: "red",
+      });
+    }
+  });
+}
+
 const closeQuantityModal = () => {
   isQuantityModalOpen.value = false
   productKey.value = null

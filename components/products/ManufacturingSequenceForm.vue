@@ -11,6 +11,10 @@ const props = defineProps({
     type: [String, Number, null],
     required: true,
   },
+  instanceId: {
+    type: [String, Number, null],
+    required: true,
+  },
   isModal: {
     type: [Boolean],
   },
@@ -171,7 +175,7 @@ const handleProdOperationSelect = async (row) => {
 
   skillGridMeta.value.isLoading = true;
 
-  await useApiFetch("/api/products/operationskills/"+data.UniqueID, {
+  await useApiFetch("/api/products/operationskills/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
@@ -196,6 +200,16 @@ const getOperationSteps = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         stepsGridMeta.value.steps = response._data.body.steps;
+        if(stepsGridMeta.value.selectedStep !== null){
+          stepsGridMeta.value.steps.forEach((step) => {
+          if (step.UniqueID === stepsGridMeta.value.selectedStep.UniqueID) {
+            step.class = "bg-gray-200";
+          } else {
+            delete step.class;
+          }
+        });
+        }
+        
       }
     },
     onResponseError() {
@@ -329,13 +343,12 @@ const handleStepCreate = () => {
 };
 
 const onStepSelect = (row) => {
-  console.log(row.UniqueID)
   stepsGridMeta.value.selectedStep = row
-  stepsGridMeta.value.steps.forEach((op) => {
-    if (op.UniqueID === row.UniqueID) {
-      op.class = "bg-gray-200";
+  stepsGridMeta.value.steps.forEach((step) => {
+    if (step.UniqueID === row.UniqueID) {
+      step.class = "bg-gray-200";
     } else {
-      delete op.class;
+      delete step.class;
     }
   });
 }
@@ -353,6 +366,78 @@ const onStepDblClick = () => {
     modalMeta.value.modalTitle = "Step Information";
     modalMeta.value.modalDescription = "Step Information";
   }
+}
+
+const handleStepUp = async () => {
+  if(stepsGridMeta.value.selectedStep !== null){
+    await useApiFetch(`/api/products/operationsteps/upstep`, {
+      method: 'PUT',
+      body: { stepId: stepsGridMeta.value.selectedStep.UniqueID, planId: prodOperationGridMeta.value.selectedOperation.UniqueID },
+      onResponse({ response }) {
+        getOperationSteps()
+        if(response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: "Step up successfully",
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+      onResponseError({}) {
+        toast.add({
+          title: "Failed",
+          description: "Failed to move step",
+          icon: "i-heroicons-exclamation-circle",
+          color: "red",
+        });
+      }
+    });
+  }else{
+    toast.add({
+      title: "Failed",
+      description: "Please select a step",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
+    });
+  }
+  
+}
+
+const handleStepDown = async () => {
+  if(stepsGridMeta.value.selectedStep !== null){
+    await useApiFetch(`/api/products/operationsteps/downstep`, {
+      method: 'PUT',
+      body: {stepId: stepsGridMeta.value.selectedStep.UniqueID, planId: prodOperationGridMeta.value.selectedOperation.UniqueID },
+      onResponse({ response }) {
+        getOperationSteps()
+        if(response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: "Step down successfully",
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+      onResponseError({}) {
+        toast.add({
+          title: "Failed",
+          description: "Failed to move step",
+          icon: "i-heroicons-exclamation-circle",
+          color: "red",
+        });
+      }
+    });
+  }else{
+    toast.add({
+      title: "Failed",
+      description: "Please select a step",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
+    });
+  }
+  
 }
 
 const handleSkillClick = () => {
@@ -376,6 +461,10 @@ const handleModalClose = () => {
 
 const onPartsClick = () => {
   modalMeta.value.isPartsModalOpen = true;
+};
+
+const previewOperationReport = () => {
+  window.open(`/api/products/exportoperation/${props.instanceId}`);
 };
 
 if (props.selectedProduct !== null) editInit();
@@ -526,10 +615,11 @@ else propertiesInit();
                   base: 'w-fit',
                   truncate: 'flex justify-center w-full',
                 }"
+                @click="previewOperationReport"
                 truncate
               />
               <UButton
-                label="Site Visit"
+                label="Clipboard"
                 color="green"
                 variant="outline"
                 icon="i-heroicons-clipboard-document-list"
@@ -602,6 +692,7 @@ else propertiesInit();
                         truncate: 'flex justify-center w-full',
                       }"
                       truncate
+                      @click="handleStepDown"
                     />
                   </div>
                   <div class="">
@@ -614,6 +705,7 @@ else propertiesInit();
                         truncate: 'flex justify-center w-full',
                       }"
                       truncate
+                      @click="handleStepUp"
                     />
                   </div>
                 </div>

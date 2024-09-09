@@ -21,7 +21,7 @@ export const getAllSkills = async (sortBy, sortOrder, filterParams) => {
     const whereClause = applyFilters(filterParams);
 
     const list = await tblSkills.findAll({
-        attributes: ['UniqueID', 'Name', 'Catagory', 'subcatagory', 'weeks', 'frequency', 'date', 'by'],
+        attributes: ['UniqueID', 'Name', 'Catagory', 'subcatagory', 'weeks', 'frequency', 'date', 'by', 'courseoutline'],
         where: whereClause,
         order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
     });
@@ -67,17 +67,23 @@ export const getSkillsFrequency = async () => {
     return distinctfrequency;
 }
 
-export const getSkillsSubCatagory = async () => {
+export const getSkillsSubCatagory = async (category = null) => {
+    const whereClause = {
+        [Op.and]: [
+            { 'subcatagory': { [Op.ne]: null } },
+            { 'subcatagory': { [Op.ne]: '' } }
+        ]
+    };
+
+    if (category) {
+        whereClause[Op.and].push({ 'Catagory': category });
+    }
+
     const result = await tblSkills.findAll({
         attributes: [
             [Sequelize.fn('DISTINCT', Sequelize.col('subcatagory')), 'subcatagory']
         ],
-        where: {
-            [Op.and]: [
-                { 'subcatagory': { [Op.ne]: null } },
-                { 'subcatagory': { [Op.ne]: '' } }
-            ]
-        },
+        where: whereClause,
         order: [['subcatagory', 'ASC']],
         raw: true
     });
@@ -95,6 +101,13 @@ export const SkillExistById = async (id: number | string) => {
 }
 
 export const createNewSkill = async (data) => {
+    // Input validation
+    if (!data.Name) {
+        throw Error("Enter a skill name before you continue." );
+    }
+    if (!data.Category) {
+        throw Error("Select a category before you continue.");
+    }
     const createReqData = {
         ...data,
     };

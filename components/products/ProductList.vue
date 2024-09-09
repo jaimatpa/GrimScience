@@ -286,6 +286,8 @@ const onMultipleSelect = (row) => {
   }
 }
 const onSelect = async (row) => {
+  gridMeta.value.selectProduct = row
+  console.log(gridMeta.value.selectProduct)
   gridMeta.value.selectedProductId = row?.UniqueID;
   costCalculation.value = {
     materialCost: null,
@@ -339,6 +341,7 @@ const onSelect = async (row) => {
 
 };
 const onRevisionSelect = async (row) => {
+  console.log(row)
   gridMeta.value.selectedProductId = row?.UniqueID;
   revisions.value.forEach((pro) => {
     if (pro.UniqueID === row.UniqueID) {
@@ -899,7 +902,7 @@ const handleOperationtModal = () => {
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <ProductsManufacturingSequenceForm :selected-product="gridMeta.selectedProductId" />
+    <ProductsManufacturingSequenceForm :selected-product="gridMeta.selectedProductId" :instance-id="gridMeta.selectProduct.instanceID" />
   </UDashboardModal>
 
 </template>

@@ -195,9 +195,6 @@ export const deleteStep = async (id, employeeName) => {
   // Fetch step details based on the unique ID (Me.Tag in VB.NET)
   const tableDetail = await tblSteps.findByPk(id);
 
-  console.log(tableDetail.dataValues.PLANID)
-
-
   // Delete related records from tblsteps, tblBPParts, and tblMedia
   await sequelize.query(`
     DELETE FROM tblsteps WHERE uniqueid = :stepUniqueID
@@ -283,5 +280,120 @@ export const deleteStep = async (id, employeeName) => {
   // frmMfgSequence.lvw_SelectedIndexChanged could be another function triggered here
   // await handleListViewChange();  // Placeholder for this function
 
+  // Fetch all steps related to the plan and order them by step number
+    const steps = await sequelize.query(`
+      SELECT * FROM tblSteps 
+      WHERE PLANID = :planID 
+      ORDER BY step
+    `, {
+      replacements: { planID:tableDetail.dataValues.PLANID },
+      type: QueryTypes.SELECT
+    });
+
+    // Clear the step list
+    let i = 0;
+
+    // Reassign step numbers and update tblSteps
+    for (const row of steps) {
+      i++;
+      
+      await sequelize.query(`
+        UPDATE tblSteps 
+        SET step = :newStep 
+        WHERE uniqueID = :stepID
+      `, {
+        replacements: { newStep: i, stepID: row.UniqueID },
+        type: QueryTypes.UPDATE
+      });
+    }
+
   return id;
 };
+
+
+export const downStpe = async (stepId, planId) => {
+  if (!stepId) {
+    throw Error('No step id provided')
+  }
+
+  // Update the selected step by adding 1.5 to the step number
+  await sequelize.query(`
+    UPDATE tblSteps
+    SET step = step + 1.5
+    WHERE uniqueID = :stepID
+  `, {
+    replacements: { stepID: stepId },
+    type: QueryTypes.UPDATE
+  });
+
+  // Fetch all steps related to the plan and order them by step number
+  const steps = await sequelize.query(`
+    SELECT * FROM tblSteps 
+    WHERE PLANID = :planId 
+    ORDER BY step
+  `, {
+    replacements: { planId },
+    type: QueryTypes.SELECT
+  });
+
+  // Clear the step list
+  let i = 0;
+
+  // Reassign step numbers and update tblSteps
+  for (const row of steps) {
+    i++;
+    
+    await sequelize.query(`
+      UPDATE tblSteps 
+      SET step = :newStep 
+      WHERE uniqueID = :stepID
+    `, {
+      replacements: { newStep: i, stepID: row.UniqueID },
+      type: QueryTypes.UPDATE
+    });
+  }
+
+}
+
+export const upStpe = async (stepId, planId) => {
+  if (!stepId) {
+    throw Error('No step id provided')
+  }
+
+  // Update the selected step by adding 1.5 to the step number
+  await sequelize.query(`
+    UPDATE tblSteps
+    SET step = step - 1.5
+    WHERE uniqueID = :stepID
+  `, {
+    replacements: { stepID: stepId },
+    type: QueryTypes.UPDATE
+  });
+
+  // Fetch all steps related to the plan and order them by step number
+  const steps = await sequelize.query(`
+    SELECT * FROM tblSteps 
+    WHERE PLANID = :planId 
+    ORDER BY step
+  `, {
+    replacements: { planId },
+    type: QueryTypes.SELECT
+  });
+
+  // Clear the step list
+  let i = 0;
+
+  // Reassign step numbers and update tblSteps
+  for (const row of steps) {
+    i++;
+    
+    await sequelize.query(`
+      UPDATE tblSteps 
+      SET step = :newStep 
+      WHERE uniqueID = :stepID
+    `, {
+      replacements: { newStep: i, stepID: row.UniqueID },
+      type: QueryTypes.UPDATE
+    });
+  }
+}

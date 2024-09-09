@@ -69,7 +69,6 @@ export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams
   return formattedList;
 }
 
-
 export const getNumberOfJobs = async (filterParams) => {
 
     const whereClause = applyFilters(filterParams);
