@@ -213,7 +213,8 @@ const save = async () => {
                 description: response._data.message,
                 icon: 'i-heroicons-check-circle',
                 color: 'green'
-            })
+            });
+            console.log(response)
         }
     });
 };

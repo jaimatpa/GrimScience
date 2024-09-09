@@ -9,10 +9,8 @@ export default eventHandler(async (event) => {
             event.node.res.statusCode = 405;
             return { error: 'Method Not Allowed' };
         }
-
         const body = await readBody(event);
-
-        // Destructure the necessary fields from the body
+        console.log({ body })
         const { ORDERED, RECEIVED, DESCRIPTION, STOCKNUMBER, PARTNUMBER, UNITPRICE, UNIT, AMOUNT, POUID, PTNUM } = body;
 
 
@@ -20,9 +18,7 @@ export default eventHandler(async (event) => {
             event.node.res.statusCode = 400;
             return { error: 'All fields are required' };
         }
-
-        // Pass the data to the controller function
-        const result = await savePODetailByUniqueId({
+        const data = {
             ORDERED,
             RECEIVED,
             DESCRIPTION,
@@ -32,8 +28,16 @@ export default eventHandler(async (event) => {
             UNIT,
             AMOUNT,
             POUID,
-            PTNUM
-        });
+            PTNUM,
+            vendor: body?.vendor,
+            Shipto: body?.shipto,
+            VENDORDATE: body?.VENDORDATE,
+            OPENCLOSED: body?.OPENCLOSED,
+            SALESORDER: body?.SALESORDER,
+            Notes: body.Notes
+        };
+        console.log("data for creation", JSON.stringify(data))
+        const result = await savePODetailByUniqueId(data);
 
         return { body: result, message: 'PO detail saved successfully' };
     } catch (error) {

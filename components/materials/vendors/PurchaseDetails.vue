@@ -106,19 +106,7 @@
             </div>
 
             <UCard>
-                <UTable :rows="suppliedParts" @select="(row) => {
-                    addNewPoItemModal.isOpen = true;
-                    addNewPoItemModal.data = row
-                    formData.RECEIVED = 0;
-                    formData.DESCRIPTION = row.DESCRIPTION;
-                    formData.STOCKNUMBER = row.MODEL;
-                    formData.PARTNUMBER = row.ALTER1MANNUM;
-                    formData.UNITPRICE = row.ALTER1PRICE1;
-                    formData.UNIT = row.UNIT;
-                    formData.POUID = row.UniqueID;
-                    formData.PTNUM = row.instanceID;
-                    console.log(row.instanceID)
-                }" :columns="partsCols" class="w-full" :ui="{
+                <UTable :rows="suppliedParts" @select="handleSelectRow" :columns="partsCols" class="w-full" :ui="{
                     divide: 'divide-gray-200 dark:divide-gray-800',
                     th: {
                         base: 'sticky top-0 z-10',
@@ -193,6 +181,18 @@
 import { ref, computed } from 'vue'
 import VendorInvoice from './VendorInvoice.vue';
 import { format } from 'date-fns';
+const qty1 = ref(0);
+const qty2 = ref(0);
+const qty3 = ref(0);
+const qty4 = ref(0);
+const qty5 = ref(0);
+
+const price1 = ref(0);
+const price2 = ref(0);
+const price3 = ref(0);
+const price4 = ref(0);
+const price5 = ref(0);
+
 const addNewPoItemModal = ref({
     isOpen: false,
     data: null
@@ -466,7 +466,6 @@ const detailsColumns = ref([
         label: 'ID Tag',
     },
 ]);
-// console.log({ vendorDetails: props.vendorDetails })
 const fetchVendorSuppliedParts = async () => {
     isLoadingDetails.value = true;
     try {
@@ -535,31 +534,6 @@ watch(orderDetails, (newOrderDetails) => {
 });
 
 
-watch(() => addNewPoItemModal.value.data, (newData) => {
-    if (newData.ALTER1PRICE1 === "") {
-        toast.add({
-            title: "Error",
-            description: "No Price Found",
-            icon: 'i-heroicons-check-circle',
-            color: 'red'
-        })
-        return addNewPoItemModal.value.isOpen = false
-    }
-    if (newData) {
-        formData.value = {
-            ORDERED: newData.ORDERED,
-            RECEIVED: 0,
-            DESCRIPTION: newData.DESCRIPTION,
-            STOCKNUMBER: newData.MODEL,
-            PARTNUMBER: newData.ALTER1MANNUM,
-            UNITPRICE: newData.ALTER1PRICE1,
-            UNIT: newData.UNIT,
-            AMOUNT: 0,
-            POUID: newData.UniqueID,
-            PTNUM: newData.instanceID
-        };
-    }
-});
 
 
 const openVendorInvoice = () => {
@@ -578,30 +552,47 @@ const setStockDetails = (row) => {
 
 const handleCreatePo = async () => {
     isLoadingDetails.value = true;
-    const calculatedAmount = formData.value.UNITPRICE * formData.value.ORDERED;
-    console.log({
-        ...formData.value, AMOUNT: calculatedAmount
-    })
+    let orderedQuantity = parseFloat(formData.value.ORDERED);
+    let unitPrice = parseFloat(formData.value.UNITPRICE);
+
+    if (price5.value) {
+        unitPrice = parseFloat(price5.value);
+    } else if (price4.value) {
+        unitPrice = parseFloat(price4.value);
+    } else if (price3.value) {
+        unitPrice = parseFloat(price3.value);
+    } else if (price2.value) {
+        unitPrice = parseFloat(price2.value);
+    } else if (price1.value) {
+        unitPrice = parseFloat(price1.value);
+    }
+
+    const calculatedAmount = unitPrice * orderedQuantity;
+    formData.value.UNITPRICE = unitPrice;
     try {
-        await useApiFetch('/api/materials/vendors/savePODetails', {
+        const response = await useApiFetch('/api/materials/vendors/savePODetails', {
             method: 'POST',
             body: {
-                ...formData.value, AMOUNT: calculatedAmount
-            },
-            onResponse({ response }) {
-                if (response) {
-                    console.log({ response: response._data.body })
-                    orderDetails.value = response._data.body || [];
-                }
+                ...formData.value,
+                AMOUNT: calculatedAmount,
+                vendor: props.isCreating ? props.vendorDetails : null,
+                VENDORDATE: vendorDate,
+                Shipto: shipTo,
+                OPENCLOSED: openclosed,
+                SALESORDER: salesOrder,
+                Notes: notes
             }
         });
-        addNewPoItemModal.value.isOpen = false;
+        if (response) {
+            addNewPoItemModal.value.isOpen = false;
+        }
     } catch (error) {
         console.error('Unexpected error:', error);
     } finally {
         isLoadingDetails.value = false;
     }
 };
+
 const deleteStock = async () => {
 
     await useApiFetch('/api/materials/vendors/deleteStock', {
@@ -647,6 +638,43 @@ const deleteStock = async () => {
         }
     });
 })();
+const handleSelectRow = (row) => {
+    addNewPoItemModal.value.isOpen = true;
+    addNewPoItemModal.value.data = row;
+
+    formData.value.RECEIVED = 0;
+    formData.value.DESCRIPTION = row.DESCRIPTION;
+    formData.value.STOCKNUMBER = row.MODEL;
+    formData.value.PARTNUMBER = row.ALTER1MANNUM;
+    // formData.value.UNITPRICE = row.ALTER1PRICE1;
+    formData.value.UNIT = row.UNIT;
+    formData.value.POUID = row.UniqueID;
+    formData.value.PTNUM = row.instanceID;
+
+
+    qty1.value = row.PRIMARY1QTY1 || row.ALTER1QTY1 || 0;
+    qty2.value = row.PRIMARY2QTY2 || row.ALTER2QTY2 || 0;
+    qty3.value = row.PRIMARY3QTY3 || row.ALTER3QTY3 || 0;
+    qty4.value = row.PRIMARY4QTY4 || row.ALTER4QTY4 || 0;
+    qty5.value = row.PRIMARY5QTY5 || row.ALTER5QTY5 || 0;
+
+    price1.value = row.PRIMARYPRICE1 || row.ALTER1PRICE1 || 0;
+    price2.value = row.PRIMARYPRICE2 || row.ALTER2PRICE2 || 0;
+    price3.value = row.PRIMARYPRICE3 || row.ALTER3PRICE3 || 0;
+    price4.value = row.PRIMARYPRICE4 || row.ALTER4PRICE4 || 0;
+    price5.value = row.PRIMARYPRICE5 || row.ALTER5PRICE5 || 0;
+    if (row.approvalstatus === "Not Used on Medical Devices" || row.approvalstatus === "Not Approved") {
+        console.log("error: no approval status")
+        toast.add({
+            title: "Error",
+            description: `Error. You are attempting to add an FDA medical device part from an unapproved vendor. Vendor's current status is: ${row.approvalstatus}`,
+            icon: 'i-heroicons-check-circle',
+            color: 'red'
+        })
+        return;
+    }
+};
+
 const saveVendor = async function () {
 
 }

@@ -59,12 +59,12 @@ const props = defineProps({
         type: [Boolean]
     }
 });
-
+console.log(props.modalData)
 const showPODetailsModal = ref(false);
 const fetchPODetails = async (search: string) => {
     loadingOverlay.value = true;
     if (!search) return;
-
+    console.log(search)
     try {
         const response = await useApiFetch(`/api/materials/vendors/getAllPo?vendor=${search}`, {
             method: 'GET',

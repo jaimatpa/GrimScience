@@ -2,11 +2,20 @@
 import { format, parseISO } from 'date-fns';
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css';
-const required = ref({})
-const jobList = ref([])
-const usedOn = ref([])
-const workplaces = ref([])
+import Workcenter from './Workcenter.vue';
+const required = ref({});
+const jobList = ref([]);
+const usedOn = ref([]);
+const matchingWorkplaces = ref([])
+const workplaces = ref([]);
 const InventoryTransactions = ref([]);
+const showWorkCenter = ref(false);
+const partCategories = ref([]);
+const subCategories = ref([]);
+const inspectionNumbers = ref([]);
+const accountList = ref([]);
+const partsList = ref([]);
+
 const InventoryTransactionsColumns = [
     {
         key: 'UID',
@@ -35,32 +44,6 @@ const revisionsColumns = [
 
 ];
 const poDetails = ref([])
-const poDetailsColumns = [
-    {
-        key: 'ponumber',
-        label: 'PO Number'
-    },
-    {
-        key: 'uniqueid',
-        label: 'Unique ID'
-    },
-    {
-        key: 'date',
-        label: 'Date'
-    },
-    {
-        key: 'NAME',
-        label: 'Name'
-    },
-    {
-        key: 'ORDERED',
-        label: 'Ordered'
-    },
-    {
-        key: 'RECEIVED',
-        label: 'Received'
-    }
-];
 
 
 const loadingOverlay = ref(false);
@@ -76,11 +59,6 @@ const props = defineProps({
     }
 })
 console.log('from props', props.modalData)
-const partCategories = ref([]);
-const subCategories = ref([]);
-const inspectionNumbers = ref([]);
-const accountList = ref([]);
-const partsList = ref([]);
 
 // const loadingOverlay = ref(false)
 const customerExist = ref(true)
@@ -181,26 +159,33 @@ const fetchRevisionsByInstanceId = async (search: string) => {
     }
 };
 const fetchWorkCentersBy = async () => {
+    loadingOverlay.value = true;
+
     try {
         const response = await useApiFetch('/api/materials/vendors/workcenters', {
             method: 'GET',
         });
+        // const workCenterIds = ;
         if (response) {
-            console.log(response)
+            console.log(response);
+
             const workCenterIds = props.modalData.WORKCENTERS
                 .split(',')
-                .map(id => id.trim())
-                .filter(id => id !== "");
-
-            const filteredResponse = response.filter(val => workCenterIds.includes(val.UniqueId));
-
-            workplaces.value = filteredResponse;
+                .map(id => id.trim())  // Trim any whitespace
+                .filter(id => id !== "")
+            workplaces.value = response;
+            matchingWorkplaces.value = response.filter(workplace =>
+                workCenterIds.includes(workplace.UniqueId)
+            );
         } else {
             console.log('Unexpected response structure or status code:', response);
         }
     } catch (error) {
         console.error(error);
         return { workcenters: [] };
+    } finally {
+        loadingOverlay.value = false;
+
     }
 }
 const fetchAccountLists = async () => {
@@ -242,6 +227,8 @@ const fetchPartUnits = async () => {
     }
 };
 const fetchUsedOn = async (instanceID) => {
+    loadingOverlay.value = true;
+
     try {
         // Make a GET request to your API endpoint
         const response = await useApiFetch('/api/materials/vendors/usedOn', {
@@ -254,6 +241,8 @@ const fetchUsedOn = async (instanceID) => {
         console.log(response);
     } catch (error) {
         console.error('Error fetching job list:', error);
+    } finally {
+        loadingOverlay.value = false;
     }
 };
 const fetchJobs = async (model) => {
@@ -316,11 +305,12 @@ const fetchAllData = async () => {
         loadingOverlay.value = false;
     }
 };
-
-// watch(() => props.modalData, (newVal) => {
-//     if (newVal && newVal.PARTTYPE && newVal.MODEL && newVal.instanceID) { // Ensure modalData is fully received
-//     }
-// }, { deep: true, immediate: true });
+const modalUIConfig = {
+    title: 'text-lg',
+    header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[1800px] sm:max-w-9xl',
+};
 fetchAllData();
 
 function formatDate(unformattedDate: string): string {
@@ -330,6 +320,8 @@ function formatDate(unformattedDate: string): string {
 const save = () => {
 
 }
+
+
 </script>
 
 <template>
@@ -688,9 +680,16 @@ const save = () => {
                     <div class="grid grid-cols-1">
                         <UCard class="overflow-y-auto">
                             <template #header>
-                                Workplaces
+                                <div class="flex justify-between">
+                                    <span>
+                                        Workplaces
+                                    </span>
+                                    <UButton @click="showWorkCenter = true">Add</UButton>
+                                </div>
                             </template>
-                            <UTable :rows="workplaces" />
+                            <div class="h-40 overflow-y-auto">
+                                <UTable :rows="matchingWorkplaces" />
+                            </div>
                         </UCard>
                     </div>
                     <div class="col-span-2">
@@ -786,4 +785,7 @@ const save = () => {
             </div>
         </UForm>
     </template>
+    <UDashboardModal v-model="showWorkCenter" title="Select Workcenter" :ui="modalUIConfig">
+        <Workcenter :work-centers="workplaces" />
+    </UDashboardModal>
 </template>
