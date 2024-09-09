@@ -429,80 +429,9 @@ getRevisions();
 
 
 
-  await useApiFetch("/api/common/usstates", {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        usstates.value = response._data.body;
-      }
-    },
-    onResponseError() {
-      usstates.value = [
-        "AL",
-        "AK",
-        "AZ",
-        "AR",
-        "CA",
-        "CO",
-        "CT",
-        "DE",
-        "FL",
-        "GA",
-        "HI",
-        "ID",
-        "IL",
-        "IN",
-        "IA",
-        "KS",
-        "KY",
-        "LA",
-        "ME",
-        "MD",
-        "MA",
-        "MI",
-        "MN",
-        "MS",
-        "MO",
-        "MT",
-        "NE",
-        "NV",
-        "NH",
-        "NJ",
-        "NM",
-        "NY",
-        "NC",
-        "ND",
-        "OH",
-        "OK",
-        "OR",
-        "PA",
-        "RI",
-        "SC",
-        "SD",
-        "TN",
-        "TX",
-        "UT",
-        "VT",
-        "VA",
-        "WA",
-        "WV",
-        "WI",
-        "WY",
-      ];
-    },
-  });
   loadingOverlay.value = false;
 };
-const validate = (state: any): FormError[] => {
-  const errors = [];
-  if (!state.fname)
-    errors.push({ path: "fname", message: "Please enter your frist name." });
-  if (!state.lname)
-    errors.push({ path: "lname", message: "Please enter a your last name." });
-  if (!state.email)
-    errors.push({ path: "email", message: "Please enter an email." });
-  return errors;
-};
+
 const handleClose = async () => {
   // Check if props.selectedPartInstace is defined and has vnode with onClose
   if (props.selectedPartInstace?.vnode?.props?.onClose) {
@@ -923,7 +852,7 @@ else propertiesInit();
   </div>
       </div>
 
-      <div class="flex flex-row space-x-5">
+      <div class="flex flex-row space-x-5 mt-2">
         <div class="basis-1/2">
           <!-- Shipping Information -->
           <div class="flex flex-row space-x-5 ">
@@ -1046,7 +975,7 @@ else propertiesInit();
         </div>
         <div class="basis-1/2">
           <!-- Billing Information -->
-          <div class="flex flex-row space-x-5 mt-5">
+          <div class="flex flex-row space-x-5 ">
             <!-- First Grid Section -->
             <div class="grid grid-cols-1 gap-5">
               <div>
