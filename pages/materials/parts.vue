@@ -6,7 +6,7 @@ onMounted(() => {
 });
 
 useSeoMeta({
-  title: "Grimm-Customers",
+  title: "Grimm-Parts",
 });
 
 const route = useRoute();
@@ -17,72 +17,56 @@ const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const headerFilters = ref({
-  markets: {
-    label: "Market",
-    filter: "market",
-    options: [],
-  },
-  professions: {
-    label: "Profession",
-    filter: "source",
-    options: [],
-  },
   categories: {
     label: "Category",
-    filter: "ParadynamixCatagory",
+    filter: "PARTTYPE",
     options: [],
   },
-  conferences: {
-    label: "Conference",
-    filter: "SourceConfrence",
+  subcategories: {
+    label: "Sub Catagory",
+    filter: "SUBCATEGORY",
     options: [],
-  },
-  usstates: {
-    label: "State",
-    filter: "state",
-    api: "/api/common/usstates",
-    options: [],
-  },
+  }
 });
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "number",
+      key: "PARTTYPE",
       label: "Category",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "fname",
+      key: "SUBCATEGORY",
       label: "Sub Category",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "lname",
+      key: "MODEL",
       label: "Stock#",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "company1",
-      label: "Description",
+      key: "DESCRIPTION",
+      label: "DESCRIPTION",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "homephone",
-      label: "On Hand",
+      key: "OnHand",
+      label: "OnHand",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "workphone",
+      key: "ETLCriticalComponent",
       label: "ETL Critical Component",
       sortable: true,
       sortDirection: "none",
@@ -94,6 +78,8 @@ const gridMeta = ref({
   numberOfCustomers: 0,
   customers: [],
   selectedCustomerId: null,
+  selectedPartInstanceId:null,
+  selectedPartModdel:null,
   sort: {
     column: "UniqueID",
     direction: "asc",
@@ -106,21 +92,15 @@ const modalMeta = ref({
   isQuoteDetailModalOpen: false,
   isServiceOrderDetailModalOpen: false,
   isSiteVisitModalOpen: false,
-  modalTitle: "New Customer",
+  modalTitle: "New Parts",
 });
 const filterValues = ref({
-  market: null,
-  source: null,
-  ParadynamixCatagory: null,
-  SourceConfrence: null,
-  number: null,
-  fname: null,
-  lname: null,
-  company1: null,
-  homephone: null,
-  workphone: null,
-  state: null,
-  zip: null,
+  PARTTYPE: null,
+  SUBCATEGORY: null,
+  DESCRIPTION: null,
+  OnHand: null,
+  ETLCriticalComponent: null,
+  MODEL:null
 });
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
@@ -150,7 +130,7 @@ Object.entries(route.query).forEach(([key, value]) => {
 const init = async () => {
   fetchGridData();
   for (const key in headerFilters.value) {
-    const apiURL = headerFilters.value[key]?.api ?? `/api/customers/${key}`;
+    const apiURL = headerFilters.value[key]?.api ?? `/api/materials/${key}`;
     console.log("Api url is", apiURL);
     await useApiFetch(apiURL, {
       method: "GET",
@@ -162,9 +142,10 @@ const init = async () => {
     });
   }
 };
+
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
-  await useApiFetch("/api/customers/numbers", {
+  await useApiFetch("/api/materials/numbers", {
     method: "GET",
     params: {
       ...filterValues.value,
@@ -188,7 +169,9 @@ const fetchGridData = async () => {
     gridMeta.value.page =
       Math.ceil(gridMeta.value.numberOfCustomers / gridMeta.value.pageSize) | 1;
   }
-  await useApiFetch("/api/customers/", {
+
+ console.log('filter value is',filterValues);
+  await useApiFetch("/api/materials/parts/parts", {
     method: "GET",
     params: {
       page: gridMeta.value.page,
@@ -200,6 +183,7 @@ const fetchGridData = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         gridMeta.value.customers = response._data.body;
+        console.log("parts are:",gridMeta.value.customers);
       }
       gridMeta.value.isLoading = false;
     },
@@ -207,30 +191,20 @@ const fetchGridData = async () => {
 };
 const onCreate = () => {
   gridMeta.value.selectedCustomerId = null;
-  modalMeta.value.modalTitle = "New Customer";
+  modalMeta.value.modalTitle = "New Parts";
   modalMeta.value.isCustomerModalOpen = true;
+  gridMeta.value.selectedPartInstanceId = null;
+  gridMeta.value.selectedPartModdel=null;
+
+
 };
 const onEdit = (row) => {
   gridMeta.value.selectedCustomerId = row?.UniqueID;
   modalMeta.value.modalTitle = "Edit";
   modalMeta.value.isCustomerModalOpen = true;
 };
-const onOrderDetail = (row) => {
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-  modalMeta.value.isOrderDetailModalOpen = true;
-};
-const onQuoteDetail = (row) => {
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-  modalMeta.value.isQuoteDetailModalOpen = true;
-};
-const onServiceOrderDetail = (row) => {
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-  modalMeta.value.isServiceOrderDetailModalOpen = true;
-};
-const onSiteVisitDetail = (row) => {
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-  modalMeta.value.isSiteVisitModalOpen = true;
-};
+
+
 const onDelete = async (row: any) => {
   await useApiFetch(`/api/customers/${row?.UniqueID}`, {
     method: "DELETE",
@@ -248,7 +222,8 @@ const onDelete = async (row: any) => {
   });
 };
 const handleModalClose = () => {
-  modalMeta.value.isCustomerModalOpen = false;
+  console.log("it's coming modal")
+  modalMeta.value.isCustomerModalOpen=false;
 };
 const handleModalSave = async () => {
   handleModalClose();
@@ -312,11 +287,14 @@ const excelExport = async () => {
       if (value !== null) return `${key}=${value}`;
     })
     .join("&");
-  location.href = `/api/customers/exportlist?${paramsString}`;
+  location.href = `/api/materials/parts/exportList?${paramsString}`;
   exportIsLoading.value = false;
 };
 const onSelect = async (row) => {
+  console.log("row is in there",row);
   gridMeta.value.selectedCustomerId = row?.UniqueID;
+  gridMeta.value.selectedPartInstanceId=row?.instanceID;
+  gridMeta.value.selectedPartModdel=row?.MODEL;
 };
 const onDblClick = async () => {
   if (gridMeta.value.selectedCustomerId) {
@@ -354,21 +332,7 @@ const onDblClick = async () => {
                 </div>
               </template>
             </template>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup label="Zip" name="zip">
-                <UInput
-                  v-model="filterValues.zip"
-                  @update:model-value="handleFilterChange()"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/7 max-w-[200px]">
-              <UFormGroup label="Quantity" name="Quantity">
-                <div class="text-center text-bold">
-                  {{ gridMeta.numberOfCustomers }}
-                </div>
-              </UFormGroup>
-            </div>
+         
           </div>
         </template>
         <template #right>
@@ -384,7 +348,7 @@ const onDblClick = async () => {
           <UButton
             color="green"
             variant="outline"
-            label="New customer"
+            label="New Part"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
@@ -444,56 +408,10 @@ const onDblClick = async () => {
             </div>
           </template>
         </template>
-        <template #label-data="{ row }">
-          <UTooltip text="Label" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-tag"
-              @click=""
-            />
-          </UTooltip>
-        </template>
-        <template #order-data="{ row }">
-          <UTooltip text="Order" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-shopping-cart"
-              @click="onOrderDetail(row)"
-            />
-          </UTooltip>
-        </template>
-        <template #quote-data="{ row }">
-          <UTooltip text="Quote" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-currency-dollar"
-              @click="onQuoteDetail(row)"
-            />
-          </UTooltip>
-        </template>
-        <template #serviceOrder-data="{ row }">
-          <UTooltip text="Service Order" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-chat-bubble-left-ellipsis"
-              @click="onServiceOrderDetail(row)"
-            />
-          </UTooltip>
-        </template>
-        <template #siteVisit-data="{ row }">
-          <UTooltip text="Site Visit" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-clipboard-document-list"
-              @click="onSiteVisitDetail(row)"
-            />
-          </UTooltip>
-        </template>
+  
+    
+
+
         <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
             <UButton
@@ -546,77 +464,11 @@ const onDblClick = async () => {
       @close="handleModalClose"
       @save="handleModalSave"
       :selected-customer="gridMeta.selectedCustomerId"
+      :selectedPartInstace ="gridMeta.selectedPartInstanceId"
       :is-modal="true"
+      :selectedPartModel="gridMeta.selectedPartModdel"
     />
   </UDashboardModal>
-  <!-- Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isOrderDetailModalOpen"
-    title="Invoice"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
-  >
-    <InvoiceDetail
-      :selected-customer="gridMeta.selectedCustomerId"
-      @close="modalMeta.isOrderDetailModalOpen = false"
-    />
-  </UDashboardModal>
-  <!-- Quote Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isQuoteDetailModalOpen"
-    title="Quote"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1000px] sm:max-w-7xl',
-    }"
-  >
-    <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId" />
-  </UDashboardModal>
-  <!-- Service Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isServiceOrderDetailModalOpen"
-    title="Service Order"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
-  >
-    <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId" />
-  </UDashboardModal>
-  <!-- Site Visit Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isSiteVisitModalOpen"
-    title="Site Visit"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
-  >
-    <CustomersSiteVisitDetail
-      :selected-customer="gridMeta.selectedCustomerId"
-    />
-  </UDashboardModal>
+ 
 </template>
 <style scoped></style>

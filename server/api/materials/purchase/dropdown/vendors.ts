@@ -1,4 +1,4 @@
-import { getVendorDropDownList } from "~/server/controller/materials";
+import { getVendorDropDownList } from "~/server/controller/materials/purchase";
 
 export default eventHandler(async (event) => {
   const method = event._method;
