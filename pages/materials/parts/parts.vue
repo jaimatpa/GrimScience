@@ -106,7 +106,7 @@ const modalMeta = ref({
   isQuoteDetailModalOpen: false,
   isServiceOrderDetailModalOpen: false,
   isSiteVisitModalOpen: false,
-  modalTitle: "New Customer",
+  modalTitle: "New Part",
 });
 const filterValues = ref({
   market: null,
