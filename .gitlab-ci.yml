@@ -1,4 +1,4 @@
-image: node
+image: node:18
 
 before_script:  
   - chmod -R 1777 /tmp
@@ -11,7 +11,7 @@ before_script:
 cache:
   paths:
     - node_modules/
-
+    - .yarn-cache
 stages:
   - test
   - build
@@ -36,7 +36,7 @@ build test:
     - cat .env
     - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" ./pages/login.vue
     - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" ./components/common/UserDropdown.vue
-    - yarn
+    - yarn install --cache-folder .yarn-cache
 #    - yarn generate --fail-on-error
     - yarn build --fail-on-error
 
@@ -57,7 +57,7 @@ build dev:
     - cat .env
     - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" ./pages/login.vue
     - sed -i "s/{COMMIT}/$CI_COMMIT_REF_SLUG $CI_COMMIT_SHORT_SHA/g" ./components/common/UserDropdown.vue
-    - yarn
+    - yarn --cache-folder .yarn-cache
 #    - yarn generate --fail-on-error
     - yarn build --fail-on-error
     
