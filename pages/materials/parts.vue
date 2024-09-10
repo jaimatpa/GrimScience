@@ -367,7 +367,7 @@ const onDblClick = async () => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            padding: 'p-0',
+            padding: 'pb-0',
           },
           td: {
             padding: 'py-1',
@@ -382,7 +382,7 @@ const onDblClick = async () => {
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
-            <div class="px-4 py-3.5">
+            <div class="">
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange"
@@ -432,7 +432,7 @@ const onDblClick = async () => {
           </UTooltip>
         </template>
       </UTable>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
           <UPagination
             :max="7"
@@ -442,22 +442,21 @@ const onDblClick = async () => {
             @update:model-value="handlePageChange()"
           />
         </div>
-      </div>
+      </div> -->
     </UDashboardPanel>
   </UDashboardPage>
-  <!-- New Customer Detail Modal -->
+  <!-- Parts Detail Modal -->
   <UDashboardModal
     v-model="modalMeta.isCustomerModalOpen"
     :title="modalMeta.modalTitle"
     :ui="{
-      title: 'text-lg',
+      title: 'text-lg text-white',
       header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
+        base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
       },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1500px] sm:max-w-9xl',
+      }"
   >
     <MaterialsPartsForm
       @close="handleModalClose"

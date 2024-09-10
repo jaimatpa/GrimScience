@@ -383,7 +383,7 @@ const handleFilterInputChange = async (event, name) => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            padding: 'p-0',
+            padding: 'pb-0',
           },
           td: {
             padding: 'py-1',
@@ -398,7 +398,7 @@ const handleFilterInputChange = async (event, name) => {
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
-            <div class="px-4 py-3.5">
+            <div class="">
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange"
@@ -418,13 +418,13 @@ const handleFilterInputChange = async (event, name) => {
             </div>
           </template>
           <template v-else class="bg-slate-400">
-            <div class="flex justify-center text-center w-[53px]">
+            <div class="flex w-[53px]">
               {{ column.label }}
             </div>
           </template>
         </template>
         <template #edit-data="{ row }">
-          <UTooltip text="Edit" class="flex justify-center">
+          <UTooltip text="Edit" class="flex">
             <UButton
               color="gray"
               variant="ghost"
@@ -434,7 +434,7 @@ const handleFilterInputChange = async (event, name) => {
           </UTooltip>
         </template>
         <template #delete-data="{ row }">
-          <UTooltip text="Delete" class="flex justify-center">
+          <UTooltip text="Delete" class="flex">
             <UButton
               color="gray"
               variant="ghost"
@@ -491,7 +491,7 @@ const handleFilterInputChange = async (event, name) => {
           </div>
         </div>
       </div>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div
           v-if="props.isPage && activeTab === 'lookup'"
           class="flex flex-row justify-end mr-20 mt-1"
@@ -503,7 +503,7 @@ const handleFilterInputChange = async (event, name) => {
             v-model="gridMeta.page"
             @update:model-value="handlePageChange()"
           />
-        </div>
+        </div> -->
 
         <!-- <div v-if="!props.isPage">
           <div class="mt-3 w-[120px]">
@@ -522,7 +522,7 @@ const handleFilterInputChange = async (event, name) => {
             </UButton>
           </div>
         </div> -->
-      </div>
+      <!-- </div> -->
     </UDashboardPanel>
   </UDashboardPage>
   <!-- New Product Detail Modal -->
@@ -530,13 +530,12 @@ const handleFilterInputChange = async (event, name) => {
   v-model="modalMeta.isProductModalOpen"
   :title="modalMeta.modalTitle"
   :ui="{
-    title: 'text-lg',
+    title: 'text-lg text-white',
     header: {
-      base: 'flex flex-row min-h-[0] items-center',
-      padding: 'pt-5 sm:px-9',
+      base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
     },
-    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-    width: 'w-[1000px] sm:max-w-7xl',
+    body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+    width: 'w-[1250px] sm:max-w-9xl',
   }"
 >
   <ProductsForm

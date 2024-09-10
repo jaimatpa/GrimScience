@@ -15,6 +15,21 @@ const workplacesColumns = [
   }
 ];
 
+const people = [{
+  name: 'Lindsay Walton',
+
+}, {
+  name: 'Lindsay Walton',
+
+}, {
+  name: 'Lindsay Walton',
+}, {
+  name: 'Lindsay Walton',
+}, {
+  name: 'Lindsay Walton',
+}, {
+  name: 'Lindsay Walton',
+}]
 
 const revisionsColumns = [
   {
@@ -1015,17 +1030,96 @@ const handleUpload  = async () => {
         <div></div>
       </div>
 
-      <div class="flex flex-row  mt-[30px]">
-
-     
-         <div class="basis-1/2 gmsBlueTitlebar">
-            <div class="pl-2  text-white font-bold">Alternative Vendor #1</div>
+      <div class="w-full px-3 py-1 gmsBlueTitlebar">
+            Alternate Vendor
           </div>
-<div class="basis-1/2 ml-2  gmsBlueTitlebar">
+          <div class="w-full p-3 flex flex-row space-x-3">
 
-  <div class=" text-white pl-2 font-bold">Alternative Vendor #2</div>
-  </div>
-      </div>
+            <div class="basis-6/12 flex flex-col space-y-2">
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup name="Manufacturer">
+                  <UButton block label="Manufacturer" color="gms-blue" />
+                  <UInput />
+                </UFormGroup>
+
+                <UFormGroup label="Part Number" name="Part Number">
+                  <UInput />
+                </UFormGroup>
+              </div>
+
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup name="Dealer">
+                  <UButton block label="Dealer" color="gms-blue" />
+                  <UInput />
+                </UFormGroup>
+
+                <UFormGroup label="Part Number" name="Part Number">
+                  <UInput />
+                </UFormGroup>
+              </div>
+              <div class="flex flex-row space-x-1 items-end">
+                <UFormGroup label="Lead Time" name="Lead Time">
+                  <UInput />
+                </UFormGroup>
+                <UFormGroup label="UL Number" name="UL Number">
+                  <UInput />
+                </UFormGroup>
+              </div>
+            </div>
+
+            <div class="basis-4/12 flex flex-col space-y-2">
+              <div class="flex flex-row justify-around ms-6">
+                <div>Qty</div>
+                <div>Price</div>
+              </div>
+              <div class="flex flex-row space-x-2">
+                <div class="mt-2">Min</div>
+                <div class="flex flex-col space-y-2">
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                    <UFormGroup>
+                      <UInput />
+                    </UFormGroup>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
 
       <div class="flex flex-row space-x-5 mt-2">
         <div class="basis-1/2">
@@ -1270,9 +1364,241 @@ const handleUpload  = async () => {
       </div>
 
       
-      <div class="gmsBlueTitlebar mt-4 ">
-            <div class=" pl-2 text-white font-bold">Inventory</div>
+      <div class="basis-1/2">
+          <div class="w-full px-3 py-1 gmsBlueTitlebar">
+            Inventory
           </div>
+          <div class="w-full flex flex-row p-3 space-x-3 border-b-[3px] border-black">
+            <div class="basis-3/12">
+              <div class="flex flex-col space-y-2">
+
+
+                <div>
+                  <UTable :rows="people" :ui="{
+                    wrapper: 'h-[115px] border-[1px] border-gray-400 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      padding: 'p-1',
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    },
+                    td: {
+                      padding: 'py-0 px-1'
+                    },
+                    checkbox: { padding: 'p-1 w-[10px]' }
+                  }" />
+                </div>
+
+                <div>
+                  <div class="space-y-2 mt-2">
+                    <div class="flex items-center space-x-2">
+                      <label>On Order</label>
+                      <UInput class="flex-1 sm-field" />
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                      <label>On Hand</label>
+                      <UInput class="flex-1 sm-field" />
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                      <label>Required</label>
+                      <UInput class="flex-1 sm-field" />
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                      <label>Available</label>
+                      <UInput class="flex-1 sm-field" />
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <label>Minimum</label>
+                      <UInput class="flex-1 sm-field" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <UTable :rows="people" :ui="{
+                    wrapper: 'h-[126px] border-[1px] border-gray-400 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      padding: 'p-1',
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    },
+                    td: {
+                      padding: 'py-0 px-1'
+                    },
+                    checkbox: { padding: 'p-1 w-[10px]' }
+                  }" />
+                </div>
+
+              </div>
+            </div>
+
+
+            <div class="w-5/12">
+              <div class="flex flex-col space-y-2">
+
+                <div>
+                  <UTable :rows="orders" :ui="{
+                    wrapper: 'h-[264px] overflow-y-auto border-[1px] border-gray-400 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      padding: 'p-1',
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    },
+                    td: {
+                      padding: 'p-1'
+                    },
+                    checkbox: { padding: 'p-1 w-[10px]' }
+                  }" />
+                </div>
+
+                <div class="flex flex-row space-x-3">
+                  <div class="w-2/5">
+                    <UTable :rows="people" :ui="{
+                      wrapper: 'border-[1px] border-gray-400 dark:border-gray-700',
+                      tr: {
+                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                      },
+                      th: {
+                        padding: 'p-1',
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                      },
+                      td: {
+                        padding: 'py-0 px-1'
+                      },
+                      checkbox: { padding: 'p-1 w-[10px]' }
+                    }" />
+                  </div>
+                  <div class="w-3/5 h-full">
+                    <UFormGroup label="Comments" name="Comments" class="">
+                      <UTextarea :rows="6" />
+                    </UFormGroup>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="basis-4/12 flex flex-col space-y-2">
+              <div>
+                <UFormGroup label="Inventory Transations">
+                  <UTable :rows="InventoryTransactions" :ui="{
+                    wrapper: 'h-[364px] border-[1px] border-gray-400 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      padding: 'p-1',
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    },
+                    td: {
+                      padding: 'p-1'
+                    },
+                    checkbox: { padding: 'p-1 w-[10px]' }
+                  }" />
+                </UFormGroup>
+              </div>
+              <div class="w-full">
+                <UButton icon="i-heroicons-check-badge" label="View Inventory Transations" variant="outline"
+                  :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" />
+              </div>
+            </div>
+
+          </div>
+
+
+          <div class="w-full px-3 py-1 gmsBlueTitlebar">
+            Revision History
+          </div>
+          <div class="w-full flex flex-row p-3 space-x-3 border-b-[3px] border-black">
+            <div class="basis-2/5 flex flex-col space-y-2">
+              <div>
+                <UButton label="Show Rev's" color="gms-blue" />
+              </div>
+
+              <div>
+                <UTable :rows="people" :ui="{
+                  wrapper: 'h-[115px] border-[1px] border-gray-400 dark:border-gray-700',
+                  tr: {
+                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                  },
+                  th: {
+                    padding: 'p-1',
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  },
+                  td: {
+                    padding: 'py-0 px-1'
+                  },
+                  checkbox: { padding: 'p-1 w-[10px]' }
+                }" />
+              </div>
+            </div>
+
+
+            <div class="basis-3/5 flex flex-col space-y-2">
+              <div class="">
+                <UFormGroup label="Revised By">
+                  <UInputMenu v-model="formData.lname" disabled />
+                </UFormGroup>
+              </div>
+              <div class="flex flex-row space-x-2">
+
+                <div class="basis-1/4">
+                  <UButton label="Add" color="gms-blue" block />
+                </div>
+                <div class="basis-1/4">
+                  <UButton label="Modify" color="gms-blue" block />
+                </div>
+                <div class="basis-1/4">
+                  <UButton label="Revision" color="gms-blue" block />
+                </div>
+                <div class="basis-1/4">
+                  <UButton label="DELETE" color="BLACK" variant="outline" block />
+                </div>
+              </div>
+
+              <div class="flex flex-col space-y-2">
+                <div class="flex flex-row space-x-2">
+                  <div class="basis-1/3">
+                    <UButton label="Obsolete" color="red" variant="outline" icon="i-heroicons-minus-circle" block />
+                  </div>
+                  <div class="basis-1/3">
+                    <UButton label="Active" variant="outline" icon="i-heroicons-check-badge" block />
+                  </div>
+                  <div class="basis-1/3">
+                    <UButton label="Print Label" variant="outline" icon="i-heroicons-tag" block />
+                  </div>
+                </div>
+                <div class="flex flex-row space-x-2">
+                  <div class="basis-1/3">
+                    <UButton label="Clear Form" color="red" variant="outline" icon="i-f7-rays" block />
+                  </div>
+
+                  <div class="basis-1/3"></div>
+                  <div class="basis-1/3"></div>
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+
 
 <div class="flex flex-row space-x-3 ">
   <!-- Left Side - Job Details Table -->
@@ -1354,13 +1680,13 @@ const handleUpload  = async () => {
      </UFormGroup>
      <UFormGroup  class="basis-1/2 mt-2 ">
       <UButton 
-  color="cyan" 
-  :disabled="props.selectedPartInstace==null" 
-  variant="outline" 
-  @click="revision" 
-  label="Revision" 
-  
-/>
+        color="cyan" 
+        :disabled="props.selectedPartInstace==null" 
+        variant="outline" 
+        @click="revision" 
+        label="Revision" 
+        
+      />
 
      </UFormGroup>
     </div>

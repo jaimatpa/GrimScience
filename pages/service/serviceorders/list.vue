@@ -380,7 +380,7 @@
       <div class="px-4 py-2 gmsPurpleTitlebar">
         <h2>Order Lookup</h2>
       </div>
-      <div class="flex flex-row px-10 pt-4 bg-gms-gray-100">
+      <div class="flex flex-row px-4 pt-4 bg-gms-gray-100">
         <template v-for="checkbox in headerCheckboxes">
           <div class="basis-1/5">
             <UCheckbox
@@ -400,6 +400,7 @@
           divide: 'divide-gray-200 dark:divide-gray-800', 
           th: { 
             base: 'sticky top-0 z-10',
+            padding: 'pb-0',
           }, 
           td: {
             padding: 'py-1'
@@ -411,7 +412,7 @@
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.key === 'failure'">
-            <div class="min-w-[200px]">
+            <div class="">
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton" 
                 @handle-input-change="handleFilterInputChange"
@@ -425,6 +426,7 @@
             </div>
           </template>
           <template v-else>
+            <div class="">
             <CommonSortAndInputFilter
               @handle-sorting-button="handleSortingButton" 
               @handle-input-change="handleFilterInputChange"
@@ -435,14 +437,15 @@
               :filterable="column.filterable"
               :filter-key="column.key"
             />
+          </div>
           </template>
         </template>
       </UTable>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1" >
           <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfServiceOrders || 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
         </div>
-      </div>
+      </div> -->
     </UDashboardPanel>
   </UDashboardPage>
         
