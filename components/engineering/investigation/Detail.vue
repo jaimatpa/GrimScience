@@ -14,12 +14,14 @@
   })
   const toast = useToast()
   const loadingOverlay = ref(false)
+  const productLines = ref([])
+  const employees = ref([])
   const formData = reactive({
     uniqueID: null, 
-    PRODLLINE: null,
+    PRODLINE: null,
     DIAGDATE: null,
     DESCRIPTION: null,
-    PROBELMDESC: null,
+    PROBLEMDESC: null,
     DIAGBY: null,
     PREVENTPROB: null,
     PROBLEMDIAG: null,
@@ -167,6 +169,8 @@
   const propertiesInit = async () => {
     loadingOverlay.value = true
     await fetchInvestigationList();
+    await fetchInvestigationProductLines();
+    await fetchEmployees();
     loadingOverlay.value = false
   }
   const fetchInvestigationList = async () => {
@@ -182,6 +186,59 @@
       }
     })
   }
+
+  const fetchInvestigationProductLines = async () => {
+    await useApiFetch(`/api/engineering/investigations/productlines`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          productLines.value = response._data.body
+
+          console.log(productLines.value)
+        }
+      }
+    })
+  }
+
+  const fetchEmployees = async () => {
+    await useApiFetch(`/api/engineering/investigations/employees`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          employees.value = response._data.body
+        }
+      }
+    })
+  }
+
+  const fetchInvestigationDetails = async () => {
+    await useApiFetch(`/api/engineering/investigations/${investigationGridMeta.value.selectedInvestigation?.uniqueID}`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if (response.status === 200) {
+
+          investigationGridMeta.value.selectedInvestigation = response._data.body
+          
+          Object.keys(formData).forEach((key) => {
+            const value = formData[key];
+            formData[key] = response._data.body[key]
+          })
+        }
+      }
+    })
+  }
+
+  const fetchComplaints = async () => {
+    await useApiFetch(`/api/engineering/investigations/${investigationGridMeta.value.selectedInvestigation?.uniqueID}/complaints`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          complaintGridMeta.value.complaints = response._data.body
+        }
+      }
+    })
+  }
+  
   const handleFilterChange = async (event, name) => {
     if (filterValues.value.hasOwnProperty(name)) {
       filterValues.value[name] = event;
@@ -199,6 +256,8 @@
         delete investigation.class
       }
     })
+
+    fetchInvestigationDetails();
   }
   const onInvestigationDblclick = () => {
     emit('link', investigationGridMeta.value.selectedInvestigation?.uniqueID)
@@ -209,6 +268,18 @@
 
     return errors
   }
+
+  const onClear = () => {
+    investigationGridMeta.value.selectedInvestigation = null;
+    Object.keys(formData).forEach((key) => {
+      formData[key] = null
+    })
+
+    investigationGridMeta.value.investigations.forEach((investigation) => {
+      delete investigation.class
+    })
+  }
+  
   async function onSubmit(event: FormSubmitEvent<any>) {
     emit('close')
   }
@@ -394,8 +465,8 @@
                 label="Product Line"
               >
                 <USelect
-                  v-model="formData.PRODLLINE"
-                  :options="[formData.PRODLLINE]"
+                  v-model="formData.PRODLINE"
+                  :options="productLines"
                 />
               </UFormGroup>
             </div>
@@ -422,29 +493,29 @@
           <div class="flex flex-row space-x-2">
             <div class="flex-1">
               <UFormGroup label="Define Investigations?">
-                <UInput v-model="formData.PROBELMDESC"/>
+                <UInput v-model="formData.PROBLEMDESC"/>
               </UFormGroup>
             </div>
             <div class="min-w-[150px]">
               <UFormGroup label="Diagnosed By">
                 <USelect 
                   v-model="formData.DIAGBY" 
-                  :options="[formData.DIAGBY]"
+                  :options="employees"
                 />
               </UFormGroup>
             </div>
           </div>
           <div class="w-full">
             <UFormGroup label="Investigation(Use the 5 Whys Method at a minium)">
-              <UInput v-model="formData.PROBELMDESC"/>
+              <UTextarea
+                v-model="formData.PREVENTPROB"
+                :rows="6"
+              />              
             </UFormGroup>
           </div>
           <div class="w-full">
             <UFormGroup label="Root Cause">
-              <UTextarea
-                v-model="formData.PROBLEMDIAG"
-                :rows="6"
-              />
+              <UInput v-model="formData.PROBLEMDIAG"/>
             </UFormGroup>
           </div>
           <div class="flex justify-between pt-4">
@@ -452,7 +523,7 @@
               <URadio 
                 v-for="status of statusGroup"
                 :key = 'status.value'
-                v-model="selectedStatus"
+                v-model="formData.Status"
                 v-bind="status"
               />
             </div>
@@ -462,7 +533,7 @@
               </div>
               <div class="flex items-center min-w-[200px]">
                 <div class="w-full">
-                  <USelect v-model="formData.IMPLEMENTBY"/>
+                  <USelect v-model="formData.IMPLEMENTBY" :options="employees"/>
                 </div>
               </div>
             </div>
@@ -473,9 +544,9 @@
               <div class="flex items-center min-w-[200px]">
                 <div class="w-full">
                   <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="serviceOrderInfo.COMPLAINTDATE && format(serviceOrderInfo.COMPLAINTDATE, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+                    <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.IMPLEMENTDATE && format(formData.IMPLEMENTDATE, 'MM/dd/yyyy')" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
                     <template #panel="{ close }">
-                      <CommonDatePicker v-model="date" is-required @close="close" />
+                      <CommonDatePicker v-model="formData.IMPLEMENTDATE" @close="close" />
                     </template>
                   </UPopover>
                 </div>
@@ -569,7 +640,7 @@
             <UButton icon="i-heroicons-pencil" label="Modify" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
           </div>
           <div class="min-w-[150px]">
-            <UButton icon="i-f7-rays" label="Clear" color="red" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+            <UButton icon="i-f7-rays" label="Clear" color="red" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" @click="onClear" truncate/>
           </div>
         </div>
       </div>
