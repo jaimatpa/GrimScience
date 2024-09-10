@@ -1,4 +1,4 @@
-image: node:18
+image: node
 
 before_script:  
   - chmod -R 1777 /tmp
