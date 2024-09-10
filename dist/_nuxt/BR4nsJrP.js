@@ -1,0 +1,1 @@
+import{d as e,u as t,o as a,c as s}from"./RPcYXXev.js";const n={class:"w-full flex items-center text-center justify-center"},l=e({__name:"mrp",setup(r){return t({title:"Grimm-Materials mrp"}),(o,c)=>(a(),s("div",n,"This page is under development and not available yet."))}});export{l as default};

@@ -1,0 +1,1 @@
+import{d as e,u as n,o as t,c as o}from"./RPcYXXev.js";const a={class:"w-full flex items-center text-center justify-center"},l=e({__name:"nonconformance",setup(c){return n({title:"Grimm-Engineering nonconformance"}),(s,r)=>(t(),o("div",a,"This page is under development and not available yet."))}});export{l as default};

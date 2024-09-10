@@ -1,0 +1,1 @@
+import{d as e,u as t,o as n,c as i}from"./RPcYXXev.js";const s={class:"w-full flex items-center text-center justify-center"},l=e({__name:"investigation",setup(a){return t({title:"Grimm-Engineering investigation"}),(o,r)=>(n(),i("div",s,"This page is under development and not available yet."))}});export{l as default};

@@ -1,0 +1,1 @@
+import{d as e,u as t,o as n,c as s}from"./RPcYXXev.js";const r={class:"w-full flex items-center text-center justify-center"},l=e({__name:"orders",setup(o){return t({title:"Grimm-Engineering orders"}),(a,c)=>(n(),s("div",r,"This page is under development and not available yet."))}});export{l as default};

@@ -1,0 +1,1 @@
+import{d as e,u as t,o as n,c as o}from"./RPcYXXev.js";const s={class:"w-full flex items-center text-center justify-center"},l=e({__name:"monitor",setup(a){return t({title:"Grimm-IT monitor"}),(r,c)=>(n(),o("div",s,"This page is under development and not available yet."))}});export{l as default};

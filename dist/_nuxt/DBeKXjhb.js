@@ -1,0 +1,1 @@
+import{d as a,o,e as s,b$ as r}from"./RPcYXXev.js";const l=a({__name:"NotFound.client",props:{name:{type:String},message:{type:String},label:{type:String},to:{type:String}},setup(t){const e=t;return(c,m)=>{const n=r;return o(),s(n,{name:e.name,message:e.message,"clear-button":{label:e.label||"Go Back",to:e.to}},null,8,["name","message","clear-button"])}}});export{l as _};

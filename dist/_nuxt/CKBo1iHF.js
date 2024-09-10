@@ -1,0 +1,1 @@
+import{d as e,u as t,o as s,c as n}from"./RPcYXXev.js";const o={class:"w-full flex items-center text-center justify-center"},c=e({__name:"folders",setup(a){return t({title:"Grimm-Utilities folders"}),(r,i)=>(s(),n("div",o,"This page is under development and not available yet."))}});export{c as default};

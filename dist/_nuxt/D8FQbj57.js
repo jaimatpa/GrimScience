@@ -1,0 +1,1 @@
+import{d as e,u as t,o as s,c as a}from"./RPcYXXev.js";const n={class:"w-full flex items-center text-center justify-center"},c=e({__name:"serials",setup(r){return t({title:"Grimm-Materials serials"}),(o,i)=>(s(),a("div",n,"This page is under development and not available yet."))}});export{c as default};

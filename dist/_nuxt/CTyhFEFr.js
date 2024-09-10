@@ -1,0 +1,1 @@
+import{d as e,u as t,o as n,c as a}from"./RPcYXXev.js";const s={class:"w-full flex items-center text-center justify-center"},l=e({__name:"calibration",setup(o){return t({title:"Grimm-Maintenance equipment"}),(c,i)=>(n(),a("div",s,"This page is under development and not available yet."))}});export{l as default};

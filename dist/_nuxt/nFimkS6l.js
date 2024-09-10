@@ -1,0 +1,1 @@
+import{d as e,u as t,o as s,c as n}from"./RPcYXXev.js";const a={class:"w-full flex items-center text-center justify-center"},l=e({__name:"list",setup(o){return t({title:"Grimm-Customers Visit"}),(i,r)=>(s(),n("div",a,"This page is under development and not available yet."))}});export{l as default};

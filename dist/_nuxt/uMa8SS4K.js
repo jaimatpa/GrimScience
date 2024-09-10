@@ -1,0 +1,1 @@
+import{d as e,u as t,o as r,c as s}from"./RPcYXXev.js";const n={class:"w-full flex items-center text-center justify-center"},l=e({__name:"territories",setup(a){return t({title:"Grimm-Marketing territories"}),(o,i)=>(r(),s("div",n,"This page is under development and not available yet."))}});export{l as default};
