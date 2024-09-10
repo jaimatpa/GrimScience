@@ -1,1 +1,0 @@
-import{d as e,u as t,o as s,c as n}from"./RPcYXXev.js";const a={class:"w-full flex items-center text-center justify-center"},l=e({__name:"settings",setup(i){return t({title:"Grimm-Utilities settings"}),(o,c)=>(s(),n("div",a,"This page is under development and not available yet."))}});export{l as default};

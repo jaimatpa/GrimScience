@@ -1,1 +1,0 @@
-import{d as e,u as t,o as a,c as n}from"./RPcYXXev.js";const s={class:"w-full flex items-center text-center justify-center"},i=e({__name:"journal",setup(o){return t({title:"Grimm-Materials journal"}),(r,l)=>(a(),n("div",s,"This page is under development and not available yet."))}});export{i as default};

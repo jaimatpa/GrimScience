@@ -1,1 +1,0 @@
-import{d as e,u as t,o as n,c as r}from"./RPcYXXev.js";const a={class:"w-full flex items-center text-center justify-center"},l=e({__name:"report",setup(o){return t({title:"Grimm-Marketing report"}),(s,c)=>(n(),r("div",a,"This page is under development and not available yet."))}});export{l as default};

@@ -1,1 +1,0 @@
-import{d as e,u as t,o as n,c as s}from"./RPcYXXev.js";const a={class:"w-full flex items-center text-center justify-center"},l=e({__name:"kqi",setup(i){return t({title:"Grimm-Engineering kqi"}),(o,r)=>(n(),s("div",a,"This page is under development and not available yet."))}});export{l as default};

@@ -6,3 +6,4 @@ package-lock.json
 yarn.lockpnpm-lock.yaml
 yarn.lock
 *.pdf
+dist

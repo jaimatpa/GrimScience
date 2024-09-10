@@ -1,1 +1,0 @@
-import{d as e,u as t,o as n,c as s}from"./RPcYXXev.js";const a={class:"w-full flex items-center text-center justify-center"},i=e({__name:"schedule",setup(c){return t({title:"Grimm-Manufacturing schedule"}),(o,r)=>(n(),s("div",a,"This page is under development and not available yet."))}});export{i as default};

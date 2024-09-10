@@ -1,1 +1,0 @@
-import{d as e,u as t,o as s,c as n}from"./RPcYXXev.js";const o={class:"w-full flex items-center text-center justify-center"},l=e({__name:"projects",setup(a){return t({title:"Grimm-Utilities projects"}),(c,r)=>(s(),n("div",o,"This page is under development and not available yet."))}});export{l as default};

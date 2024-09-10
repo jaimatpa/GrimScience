@@ -1,1 +1,0 @@
-import{d as e,u as t,o as a,c as n}from"./RPcYXXev.js";const s={class:"w-full flex items-center text-center justify-center"},l=e({__name:"capa",setup(c){return t({title:"Grimm-Engineering capa"}),(o,r)=>(a(),n("div",s,"This page is under development and not available yet."))}});export{l as default};
