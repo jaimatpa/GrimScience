@@ -1,6 +1,5 @@
 {
   "name": "grimm-management-system",
-    "private": true,
   "type": "module",
   "scripts": {
     "build": "nuxt build",
