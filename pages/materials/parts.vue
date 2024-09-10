@@ -313,9 +313,9 @@ const onDblClick = async () => {
         <h2>Part Lookup</h2>
       </div>
 
-      <UDashboardToolbar>
+      <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
-          <div class="flex flex-row space-x-3">
+          <div class="flex flex-row space-x-3" style="max-width:930px;">
             <template
               v-for="[key, value] in Object.entries(headerFilters)"
               :key="key"
@@ -367,7 +367,6 @@ const onDblClick = async () => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
             padding: 'p-0',
           },
           td: {

@@ -304,7 +304,7 @@ const handleModalSave = async () => {
         <h2>Sorting</h2>
       </div>
 
-      <UDashboardToolbar class="gmsTealToolbar">
+      <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
           <UFormGroup label="Employee Status" name="state">
             <USelect
@@ -328,7 +328,7 @@ const handleModalSave = async () => {
           <UButton
             variant="outline"
             label="New Employee"
-            class="bg-gmsTealHeader"
+            color="green"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
@@ -348,7 +348,6 @@ const handleModalSave = async () => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
             padding: 'p-0',
           },
           td: {

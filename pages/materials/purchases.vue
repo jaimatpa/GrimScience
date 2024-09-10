@@ -258,7 +258,6 @@ fetchPurchasesData();
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
             padding: 'p-0',
           },
           td: {
@@ -304,31 +303,31 @@ fetchPurchasesData();
         <div class="flex flex-row justify-end mx-10 mt-1 gap-5">
           <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-3">
-              <button
-                class="border border-solid border-gray-300 px-5 py-1 text-sm"
+              <UButton
+                color="gms-gray" variant="outline"
               >
                 Select Purchase Order
-              </button>
-              <button
+              </UButton>
+              <UButton
                 @click="triggerCreatePurchaseModal"
-                class="border border-solid border-gray-300 px-5 py-1 text-sm"
+                color="gms-gray" variant="outline"
               >
                 Create Purchase Order
-              </button>
+              </UButton>
             </div>
             <div class="flex items-center gap-3">
-              <button
+              <UButton
                 @click="triggerViewPurchaseModal"
-                class="border border-solid border-blue-300 px-5 py-1 text-blue-400 text-sm"
+                color="primary" variant="outline"
               >
                 View Purchase Order
-              </button>
-              <button
+              </UButton>
+              <UButton
                 @click="deletePurchase"
-                class="border border-solid border-red-300 px-5 py-1 text-red-400 text-sm"
+                color="red" variant="outline"
               >
                 Delete Purchase Order
-              </button>
+              </UButton>
             </div>
           </div>
           <UPagination
@@ -343,7 +342,7 @@ fetchPurchasesData();
       <div class="px-4 py-2 gmsBlueTitlebar">
         <h2>Date Range Lookup</h2>
       </div>
-      <div class="px-5 py-2">
+      <div class="px-5 py-2 bg-gms-gray-100">
         <div class="flex items-center gap-10">
           <div class="flex items-center gap-2">
             <label for="form">Form</label>
@@ -359,9 +358,9 @@ fetchPurchasesData();
               class="border border-solid border-gray-600 rounded-lg px-2"
             />
           </div>
-          <button class="bg-[steelblue] text-white px-5 py-1 rounded-md">
+          <UButton color="primary" variant="solid">
             Lookup
-          </button>
+          </UButton>
         </div>
       </div>
     </UDashboardPanel>
