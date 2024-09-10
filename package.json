@@ -24,6 +24,7 @@
     "@vueuse/nuxt": "^10.9.0",
     "axios": "^1.7.1",
     "date-fns": "^3.6.0",
+    "duplexer": "^0.1.2",
     "exceljs": "^4.4.0",
     "formidable": "^3.5.1",
     "jsonwebtoken": "^9.0.2",
