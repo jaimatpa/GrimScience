@@ -18,3 +18,6 @@ export default eventHandler(async (event) => {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }
 });
+
+
+

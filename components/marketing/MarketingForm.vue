@@ -182,7 +182,6 @@ const addInventory = () => {
 
 const toast = useToast()
 const router = useRouter()
-const customersFormInstance = getCurrentInstance();
 
 const loadingOverlay = ref(false)
 const customerExist = ref(true)

@@ -1,19 +1,19 @@
 <script lang="ts" setup>
-  import MarketingForm from '~/components/marketing/MarketingForm.vue';
+import MarketingForm from '~/components/marketing/MarketingForm.vue';
 import PartsUsed from '~/components/marketing/PartsUsed.vue';
 import type projects from '~/server/api/projects';
 import type { UTableColumn } from '~/types';
 
-  onMounted(() => {
-    init()
-  })
-  
-  useSeoMeta({
-   title: 'Grimm-Marketing projects'
-  })
+onMounted(() => {
+  init()
+})
 
-  const route = useRoute()
-  const toast = useToast()
+useSeoMeta({
+  title: 'Grimm-Marketing projects'
+})
+
+const route = useRoute()
+const toast = useToast()
 
   const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
   const descIcon = "i-heroicons-bars-arrow-down-20-solid"
@@ -108,38 +108,38 @@ import type { UTableColumn } from '~/types';
     selectedOptions:[],
 
 
-  
-  })
-  const checkboxes = ref({
+
+})
+const checkboxes = ref({
   Marketing: false,
   Accounting: false,
   Engineering: false,
   Manufacturing: false,
   ShowOpenOnly: false
 });
-  const selectedColumns = ref(gridMeta.value.defaultColumns)
-  const exportIsLoading = ref(false)
+const selectedColumns = ref(gridMeta.value.defaultColumns)
+const exportIsLoading = ref(false)
 
-  const columns = computed(() => gridMeta.value.defaultColumns.filter(column => selectedColumns.value.includes(column)))
-  Object.entries(route.query).forEach(([key, value]) => {
-    switch(key.toLowerCase()) {
-      case 'page':
-        gridMeta.value.page = Number(value);
-        break;
-      case 'pagesize':
-        gridMeta.value.pageSize = Number(value);
-        break;
-      case 'sortby':
-        gridMeta.value.sort.column = value as unknown as string;
-        break;
-      case 'sortorder':
-        gridMeta.value.sort.direction = value as unknown as string;
-        break;
-    }
-  })
+const columns = computed(() => gridMeta.value.defaultColumns.filter(column => selectedColumns.value.includes(column)))
+Object.entries(route.query).forEach(([key, value]) => {
+  switch (key.toLowerCase()) {
+    case 'page':
+      gridMeta.value.page = Number(value);
+      break;
+    case 'pagesize':
+      gridMeta.value.pageSize = Number(value);
+      break;
+    case 'sortby':
+      gridMeta.value.sort.column = value as unknown as string;
+      break;
+    case 'sortorder':
+      gridMeta.value.sort.direction = value as unknown as string;
+      break;
+  }
+})
 
-  const init = async () => {
-    fetchGridData()
+const init = async () => {
+  fetchGridData()
 
   
   }
@@ -192,7 +192,7 @@ import type { UTableColumn } from '~/types';
 
 
 
-  const selectedOptions = computed(() => {
+const selectedOptions = computed(() => {
   return Object.entries(checkboxes.value)
     .filter(([key, value]) => value)
     .map(([key]) => key);
@@ -315,11 +315,9 @@ watch(selectedOptions, (newSelectedOptions) => {
 <template>
   <UDashboardPage>
 
-    
+
     <UDashboardPanel grow>
-      <UDashboardNavbar class="gmsBlueHeader" 
-        title="Projects"
-      >
+      <UDashboardNavbar class="gmsBlueHeader" title="Projects">
       </UDashboardNavbar>
 
 
@@ -393,37 +391,64 @@ watch(selectedOptions, (newSelectedOptions) => {
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
-            <div class="px-4 py-3.5">
-              <CommonSortAndInputFilter 
-                @handle-sorting-button="handleSortingButton" 
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key" 
+            <div class="">
+              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                :sort-key="column.key"
                 :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                :filterable="column.filterable"
-                :filter-key="column.key"
-              />
+                :filterable="column.filterable" :filter-key="column.key" />
             </div>
-            </template>
-            <template v-else class='bg-slate-400'>
-              <div class="flex justify-center text-center w-[53px]">
-                {{ column.label  }}
-              </div>
-            </template>
+          </template>
+          <template v-else class='bg-slate-400'>
+            <div class="flex w-[53px]">
+              {{ column.label }}
+            </div>
+          </template>
         </template>
-   
-        <template #delete-data="{row}">
-          <UTooltip text="Delete" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)"/>
+        <template #label-data="{ row }">
+          <UTooltip text="Label" class="flex ">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-tag" @click="" />
+          </UTooltip>
+        </template>
+        <template #order-data="{ row }">
+          <UTooltip text="Order" class="flex ">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-shopping-cart" @click="onOrderDetail(row)" />
+          </UTooltip>
+        </template>
+        <template #quote-data="{ row }">
+          <UTooltip text="Quote" class="flex ">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-currency-dollar" @click="onQuoteDetail(row)" />
+          </UTooltip>
+        </template>
+        <template #serviceOrder-data="{ row }">
+          <UTooltip text="Service Order" class="flex ">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-chat-bubble-left-ellipsis"
+              @click="onServiceOrderDetail(row)" />
+          </UTooltip>
+        </template>
+        <template #siteVisit-data="{ row }">
+          <UTooltip text="Site Visit" class="flex ">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-clipboard-document-list"
+              @click="onSiteVisitDetail(row)" />
+          </UTooltip>
+        </template>
+        <template #edit-data="{ row }">
+          <UTooltip text="Edit" class="flex ">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
+          </UTooltip>
+        </template>
+        <template #delete-data="{ row }">
+          <UTooltip text="Delete" class="flex ">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
           </UTooltip>
         </template>
       </UTable>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
-        <div class="flex flex-row justify-end mr-20 mt-1" >
-          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfProjects | 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
+      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+        <div class="flex flex-row justify-end mr-20 mt-1">
+          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfProjects | 0"
+            v-model="gridMeta.page" @update:model-value="handlePageChange()" />
         </div>
-      </div>
+      </div> -->
     </UDashboardPanel>
   </UDashboardPage>
   <!-- New MarketingForm Detail Modal -->
@@ -441,5 +466,4 @@ watch(selectedOptions, (newSelectedOptions) => {
   </UDashboardModal>
 
 </template>
-<style scoped>
-</style>
+<style scoped></style>

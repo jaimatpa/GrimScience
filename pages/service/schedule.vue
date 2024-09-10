@@ -812,7 +812,7 @@ const onScheduletaskDblClick = async (event) => {
       <div class="px-4 py-2 gmsPurpleTitlebar">
         <h2>Service Report List</h2>
       </div>
-      <UDashboardToolbar>
+      <UDashboardToolbar class="bg-gms-gray-100">
         <div class="flex flex-col w-full">
           <div class="flex justify-between items-center w-full">
             <div class="flex space-x-2">
@@ -865,7 +865,8 @@ const onScheduletaskDblClick = async (event) => {
               <UButton
                 :loading="exportIsLoading"
                 label="Export to Excel"
-                color="gray"
+                color="green"
+                variant="outline"
                 class="h-fit"
                 :disabled="exportIsLoading"
                 @click="excelExport"
@@ -915,8 +916,7 @@ const onScheduletaskDblClick = async (event) => {
             divide: 'divide-gray-200 dark:divide-gray-800',
             th: {
               base: 'sticky top-0 z-10',
-              color: 'bg-white dark:text-gray dark:bg-[#111827]',
-              padding: 'p-0',
+              padding: 'pb-0',
             },
             td: {
               padding: 'py-1',
@@ -931,7 +931,7 @@ const onScheduletaskDblClick = async (event) => {
         >
           <template v-for="column in columns" v-slot:[`${column.key}-header`]>
             <template v-if="column.kind !== 'actions'">
-              <div class="px-4 py-3.5">
+              <div class="">
                 <CommonSortAndInputFilter
                   @handle-sorting-button="handleSortingButton"
                   @handle-input-change="handleFilterInputChange"
@@ -951,7 +951,7 @@ const onScheduletaskDblClick = async (event) => {
               </div>
             </template>
             <template v-else class="bg-slate-400">
-              <div class="flex justify-center text-center w-[53px]">
+              <div class="flex w-[53px]">
                 {{ column.label }}
               </div>
             </template>
@@ -962,7 +962,7 @@ const onScheduletaskDblClick = async (event) => {
             v-slot:[`cell-${column.key}`]="{ row }"
           >
             <template v-if="column.kind !== 'actions'">
-              <div class="px-4 py-3.5">
+              <div class="">
                 <CommonSortAndInputFilter
                   @handle-sorting-button="handleSortingButton"
                   @handle-input-change="handleFilterInputChange"
@@ -998,7 +998,7 @@ const onScheduletaskDblClick = async (event) => {
             </UTooltip>
           </template>
         </UTable>
-        <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+        <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
           <div class="flex flex-row justify-end mr-20 mt-1">
             <UPagination
               :max="7"
@@ -1008,7 +1008,7 @@ const onScheduletaskDblClick = async (event) => {
               @update:model-value="handlePageChange()"
             />
           </div>
-        </div>
+        </div> -->
       </template>
       <template v-else style="height: 100%">
         <bryntum-gantt

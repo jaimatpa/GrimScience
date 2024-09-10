@@ -338,9 +338,9 @@
       <div class="px-4 py-2 gmsPurpleTitlebar">
         <h2>Sales Lookup</h2>
       </div>
-      <UDashboardToolbar>
+      <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
-          <div class="flex flex-row space-x-3">
+          <div class="flex flex-row space-x-3 items-center">
             <div class="basis-1/5 min-w-[150px]">
               <UFormGroup
                 label="From"
@@ -367,7 +367,7 @@
               </UFormGroup>
             </div>
             <div class="min-w-[50px] mt-1 shrink-0">
-              <UButton :label="'Clear'" @click="() => {filterValues.to = null; filterValues.from = null;}" variant="outline" class="text-xs py-2" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton :label="'Clear'" @click="() => {filterValues.to = null; filterValues.from = null;}" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
             </div>
             <div class="basis-1/5 min-w-[150px]">
               <UFormGroup
@@ -394,7 +394,8 @@
             <UButton 
               :loading="exportIsLoading"
               label="Export to Excel" 
-              color="gray"
+              color="green"
+              variant="outline"
               @click="excelExport"
             >
               <template #trailing>
@@ -414,11 +415,9 @@
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: { 
             base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
-            padding: 'p-0'
+            padding: 'pb-0',
           }, 
           td: {
-            base: 'h-[41px]',
             padding: 'py-1'
           }
         }"
@@ -428,7 +427,7 @@
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
-            <div class="px-4 py-3.5">
+            <div class="">
               <CommonSortAndInputFilter 
                 @handle-sorting-button="handleSortingButton" 
                 @handle-input-change="handleFilterInputChange"
@@ -463,11 +462,11 @@
           </UTooltip>
         </template>
       </UTable>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1" >
           <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfOrders | 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
         </div>
-      </div>
+      </div> -->
     </UDashboardPanel>
   </UDashboardPage>
   <!-- Order Modal -->
