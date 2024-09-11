@@ -49,9 +49,9 @@ export default eventHandler(async (event) => {
               <h3 style="margin-top: 20px; margin-bottom: 0; border-bottom: 3px solid black">
                 ${reportData[0][0]["WorkCenter"]}
               </h3>
-              <h6>
+              <h4>
                 Operation
-              </h6>
+              </h4>
               <div style="margin-top: 20px; ;">
                 <div style="display:flex; flex-direction: row; justify-content: space-between;">
                   <h4 style="margin: 0;">

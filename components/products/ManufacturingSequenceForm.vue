@@ -327,8 +327,9 @@ const modalMeta = ref({
 });
 
 const handleStepCreate = () => {
-  stepsGridMeta.value.selectedStep.UniqueID = null
-  if (!prodOperationGridMeta.value.selectedOperation == null) {
+  stepsGridMeta.value.selectedStep = null
+
+  if (prodOperationGridMeta.value.selectedOperation == null) {
     toast.add({
       title: "Failed",
       description: "Please select the Operation",

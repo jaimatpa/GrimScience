@@ -47,10 +47,10 @@ export const getStepInformation = async (id) => {
 
 
   const partData = parts.map(part => ({
-    model: part.MODEL,
-    description: part.DESCRIPTION,
+    MODEL: part.MODEL,
+    DESCRIPTION: part.DESCRIPTION,
     qty: parseFloat(part.qty).toFixed(3),
-    unit: part.InventoryUnit,
+    UNIT: part.InventoryUnit,
     key: part.note,
     isObsolete: part.CODE === 'Obsolete',
     sortOrder: parseInt(part.sortOrder),
@@ -83,7 +83,6 @@ export const getStepInformation = async (id) => {
 export const saveStepDetails = async (stepData, partsList, mediaList, username, deleteFiles) => {
   
   const { stepDescription, stepLetter, planID, instanceID, notes } = stepData;
-  console.log("o;asidfopsadifh", stepData)
 
   if (!stepDescription) {
     throw new Error("Please enter a description to save this step.");

@@ -224,11 +224,11 @@ const partsGridMeta = ref({
 const partsStockGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "model",
+      key: "MODEL",
       label: "Stock #",
     },
     {
-      key: "description",
+      key: "DESCRIPTION",
       label: "Description",
     },
     {
@@ -236,7 +236,7 @@ const partsStockGridMeta = ref({
       label: "Qty",
     },
     {
-      key: "unit",
+      key: "UNIT",
       label: "Unit",
     },
     {
@@ -434,6 +434,7 @@ const handleKeyModalClick = () => {
   }else{
     if(productKey.value !== null){
       partsStockGridMeta.value.parts = [...partsStockGridMeta.value.parts,{...productGridMeta.value.selectedProduct, qty: productQuantity.value, key: productKey.value}]
+      console.log(partsStockGridMeta.value.parts)
       isKeyModalOpen.value = false
       productKey.value = null
       productQuantity.value = 1
@@ -519,59 +520,6 @@ const handleDelteStep = async () => {
   });
 }
 
-const handleStepUp = async () => {
-  await useApiFetch(`/api/products/operationsteps/upstep`, {
-    method: 'PUT',
-    body: { },
-    onResponse({ response }) {
-      if(response.status === 200) {
-        toast.add({
-          title: "Success",
-          description: "Step up successfully",
-          icon: "i-heroicons-check-circle",
-          color: "green",
-        });
-        emit('close')
-        emit('change')
-      }
-    },
-    onResponseError({}) {
-      toast.add({
-        title: "Failed",
-        description: "Failed to delete step",
-        icon: "i-heroicons-exclamation-circle",
-        color: "red",
-      });
-    }
-  });
-}
-
-const handleStepDown = async () => {
-  await useApiFetch(`/api/products/operationsteps/downstep`, {
-    method: 'PUT',
-    body: { username: username },
-    onResponse({ response }) {
-      if(response.status === 200) {
-        toast.add({
-          title: "Success",
-          description: "Step down successfully",
-          icon: "i-heroicons-check-circle",
-          color: "green",
-        });
-        emit('close')
-        emit('change')
-      }
-    },
-    onResponseError({}) {
-      toast.add({
-        title: "Failed",
-        description: "Failed to delete step",
-        icon: "i-heroicons-exclamation-circle",
-        color: "red",
-      });
-    }
-  });
-}
 
 const closeQuantityModal = () => {
   isQuantityModalOpen.value = false
