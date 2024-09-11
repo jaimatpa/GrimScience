@@ -1376,7 +1376,14 @@ const handleUpload  = async () => {
 </div>
 
       <div class="flex justify-end gap-3">
-        <UButton @click="selectPartForProductForm(formData.MODEL)" color="cyan" variant="outline"  label="Select" />
+        <UButton
+          v-if="props.fromProductForm"
+          icon="i-heroicons-cursor-arrow-ripple"
+          variant="outline"
+          color="green"
+          label="Select"
+          @click="selectPartForProductForm(formData.MODEL)"
+        />
         <UButton color="cyan" variant="outline" type="submit" label="Save" />
       </div>
     </div>

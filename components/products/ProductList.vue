@@ -125,6 +125,7 @@ const modalMeta = ref({
   modalDescription: "Create new product",
   isPartsModalOpen: false,
   isOperationsModalOpen: false,
+  isSerialModalOpen: false
 });
 
 const filterValues = ref({
@@ -470,6 +471,11 @@ const handleOperationtModal = () => {
     gridMeta.value.selectProduct.MODEL ? gridMeta.value.selectProduct.MODEL : gridMeta.value.selectProduct.MODEL
   }`;
 }
+const handleSerialsModal = () => {
+  modalMeta.value.isSerialModalOpen = true
+  modalMeta.value.modalTitle = "Serial Record Finished Goods";
+  modalMeta.value.modalDescription = "Serial Record" 
+}
 
 
 </script>
@@ -731,7 +737,7 @@ const handleOperationtModal = () => {
               <div class="flex flex-row space-x-3">
                 
                 
-                <p class="basis-1/3">Product Labot</p>
+                <p class="basis-1/3">Product Labor</p>
 
                 <p>$</p>
                 <UInput class="basis-1/3"
@@ -830,7 +836,7 @@ const handleOperationtModal = () => {
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleOperationtModal" >View Operations</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >Clone Operations</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handlePartListModal" >View Parts List</UButton>
-              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >View Serials</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleSerialsModal">View Serials</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleCostCalculation" >View Costs</UButton>
             </div>
 
@@ -904,6 +910,21 @@ const handleOperationtModal = () => {
   >
     <ProductsManufacturingSequenceForm :selected-product="gridMeta.selectedProductId" :instance-id="gridMeta.selectProduct.instanceID" />
   </UDashboardModal>
+
+  <!-- Serials Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isSerialModalOpen"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <MaterialsSerialsSerialList :is-page="true" :productModel="gridMeta.selectProduct.MODEL" />
+  </UDashboardModal>
+
+
+
+  
 
 </template>
 <style scoped></style>

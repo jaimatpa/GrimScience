@@ -302,9 +302,24 @@ const handleSkillSelect = (row) => {
   formData.by = data.by
 };
 
+const handleSkillReportGenerate = async () => {
+  if (!skillGridMeta.value.selectedSkill) {
+    toast.add({
+      title: "Failed",
+      description: "Please select the skill.",
+      icon: "i-heroicons-minus-circle",
+      color: "red",
+    });
+  } else {
+    const id = skillGridMeta.value.selectedSkill.UniqueID;
+    window.open(`/api/products/exportskill/${id}`);
+  }
+};
+
 const handleOperationSkillSelect = async () => {
   emit('close',skillGridMeta.value.selectedSkill)
 }
+
 const relatedPartsGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
@@ -583,6 +598,7 @@ const handleModalClose = () => {
                     base: 'w-full',
                     truncate: 'flex justify-center w-full',
                   }"
+                  @click="handleSkillReportGenerate"
                   truncate
                 />
               </div>

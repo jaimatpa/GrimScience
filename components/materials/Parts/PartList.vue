@@ -489,7 +489,7 @@ const handleDataFromPartForm = (data) => {
       :selectedPartInstace ="gridMeta.selectedPartInstanceId"
       :is-modal="true"
       :selectedPartModel="gridMeta.selectedPartModdel"
-      :fromPoroductForm="props.fromProductForm"
+      :fromProductForm="props.fromProductForm"
 
     />
   </UDashboardModal>

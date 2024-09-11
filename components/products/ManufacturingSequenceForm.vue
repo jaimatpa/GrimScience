@@ -24,9 +24,6 @@ const props = defineProps({
 const user = useCookie<string>('user');
 const username = "#"+user.value.payrollnumber+" "+user.value.fname+" "+user.value.lname
 
-// Parse the JSON string into an object
-// const userData = user ? JSON.parse(user) : null;
-// console.log(userData)
 const toast = useToast();
 const router = useRouter();
 const organizationFormInstance = getCurrentInstance();
@@ -441,15 +438,42 @@ const handleStepDown = async () => {
   
 }
 
+const handleStepModalClose = () => {
+  modalMeta.value.isStepInformationModalOpen = false;
+};
+
 const handleSkillClick = () => {
   modalMeta.value.isSkillModalOpen = true;
   modalMeta.value.modalTitle = "Skills ";
   modalMeta.value.modalDescription = "";
 };
 
-const handleStepModalClose = () => {
-  modalMeta.value.isStepInformationModalOpen = false;
-};
+const onSkillSelect = (row) => {
+  skillGridMeta.value.selectedSkill = row
+  skillGridMeta.value.skills.forEach((skill) => {
+    if (skill.UniqueID === row.UniqueID) {
+      skill.class = "bg-gray-200";
+    } else {
+      delete skill.class;
+    }
+  });
+}
+
+const handleRemoveSkill = () => {
+  if(skillGridMeta.value.selectedSkill !== null){
+    skillGridMeta.value.skills =  skillGridMeta.value.skills.filter(skill => {
+      return skill.UniqueID !== skillGridMeta.value.selectedSkill.UniqueID
+    })
+  }else{
+    toast.add({
+      title: "Failed",
+      description: "Please select a operation and skill",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
+    });
+  }
+}
+
 
 const handleSkillModalClose = (data) => {
   skillGridMeta.value.skills = [...skillGridMeta.value.skills,data]
@@ -711,17 +735,6 @@ else propertiesInit();
                   </div>
                 </div>
                 <div class="flex space-x-3">
-                  <!-- <div class="">
-                    <UButton
-                      color="blue"
-                      label="Refresh"
-                      :ui="{
-                        base: 'w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                    />
-                  </div> -->
                   <div class="">
                     <UButton
                       icon="i-heroicons-plus"
@@ -762,6 +775,7 @@ else propertiesInit();
                         padding: 'px-2 py-0',
                       },
                     }"
+                    @select="onSkillSelect"
                   >
                     <template #empty-state>
                       <div></div>
@@ -794,6 +808,7 @@ else propertiesInit();
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
                       }"
+                      @click="handleRemoveSkill"
                       truncate
                     />
                   </div>
