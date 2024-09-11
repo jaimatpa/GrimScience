@@ -54,7 +54,7 @@ export { default as tblPAInvestigation } from "./tblPAInvestigation";
 export { default as tblPayableDetail } from "./tblPayableDetail";
 export { default as tblPayables } from "./tblPayables";
 export { default as tblPermissions } from "./tblPermissions";
-
+export { default as tblPurchase } from "./tblPurchase";
 export { default as tblPO } from "./tblPO";
 export { default as tblPODetail } from "./tblPODetail";
 export { default as tblPreventiveActions } from "./tblPreventiveActions";

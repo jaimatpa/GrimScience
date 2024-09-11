@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { Model, Op } from "sequelize";
 import type { QueryValue } from "ufo";
-import { tblPurchase, tblVendors } from "~/server/models";
+import { tblPurchase , tblVendors } from "~/server/models";
 
 const applyFilters = (params: any) => {
   const filterParams = ["UniqueId", "date", "vendor", "phone", "total"];

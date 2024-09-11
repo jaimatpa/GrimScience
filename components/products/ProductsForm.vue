@@ -24,6 +24,7 @@ const fileName = ref(null)
 
 const loadingOverlay = ref(false)
 const productExist = ref(true)
+const selectedFormField = ref(null)
 const PRODUCTLINE = ref([])
 const UNIT = ref([])
 const InventoryUnit = ref([])
@@ -36,6 +37,7 @@ const CRYOTHERMSECTIONS = ref([])
 const CRYOTHERMWARMTANKSWITCHABLE = ref([])
 const DURALASTCATEGORY = ref([])
 const DURALASTSUBCATEGORY = ref([])
+
 
 const formData = reactive({
   UniqueID: null,
@@ -257,6 +259,9 @@ const handleClose = async () => {
     router.go(-1)
   }
 }
+const handlePartsListClose = async () => {
+  modalMeta.value.isPartsLookupModelOpne = false;
+}
 const handleFileUpload = (event) => {
   fileName.value = event.target.files[0].name
 }
@@ -345,19 +350,22 @@ const modalMeta = ref({
     isPartsLookupModelOpne: false,
     partsLookupModalCategory:null,
     partsLookupModalSubCategory: null,
+    partsLookupModalFieldValue: null,
     isViewPdfModalOpen: false,
 
 })
-const handlePartsLookup = (category, subCategory) => {
+const handlePartsLookup = (category, subCategory, fieldName) => {
+  selectedFormField.value = fieldName
   modalMeta.value.isPartsLookupModelOpne = true
   modalMeta.value.modalTitle = "Parts Lookup"
   modalMeta.value.partsLookupModalCategory = category
   modalMeta.value.partsLookupModalSubCategory = subCategory
+  modalMeta.value.partsLookupModalFieldValue = formData[fieldName]
+
 } 
 
-const handleOpenPdf = () => {
-  modalMeta.value.isViewPdfModalOpen = true;
-  modalMeta.value.modalTitle = "Specsheet"
+const setProductFormData = (data) => {
+  formData[selectedFormField.value] = data
 }
 
 if(props.selectedProduct !== null) 
@@ -759,12 +767,11 @@ else
             <div class="flex flex-row">
               <UInput
                 v-model="formData.CryothermCorianNumber"
-                
               />
               <button
                   type="button"
                   class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
-                  @click="handlePartsLookup('Corian','CRYOTherm Case')"
+                  @click="handlePartsLookup('Corian', 'CRYOTherm Case', 'CryothermCorianNumber')"
                 >
                   ...
               </button>
@@ -777,9 +784,18 @@ else
               label="Powder Coat#"
               name="CryothermPcoatNumber"
             >
+            <div class="flex flex-row">
               <UInput
                 v-model="formData.CryothermPcoatNumber"
               />
+              <button
+                  type="button"
+                  class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                  @click="handlePartsLookup('Powder Coat', null, 'CryothermPcoatNumber')"
+                >
+                  ...
+              </button>
+            </div>
             </UFormGroup>
           </div>
           <div class="basis-1/5">
@@ -787,9 +803,19 @@ else
               label="C-Unit#"
               name="CryothermLeftCunitNumber"
             >
-              <UInput
+            <div class="flex flex-row">
+               <UInput
                 v-model="formData.CryothermLeftCunitNumber"
               />
+              <button
+                  type="button"
+                  class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                  @click="handlePartsLookup('Consending Unit', 'Assembly', 'CryothermLeftCunitNumber')"
+                >
+                  ...
+              </button>
+            </div>
+             
             </UFormGroup>
           </div>
           <div class="basis-1/5">
@@ -797,9 +823,19 @@ else
               label="Control Panel#"
               name="CryoThermControlPanelNumber"
             >
-              <UInput
+            <div class="flex flex-row">
+               <UInput
                 v-model="formData.CryoThermControlPanelNumber"
               />
+              <button
+                  type="button"
+                  class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                  @click="handlePartsLookup('Elictrical Assembly', 'Control Panel', 'CryoThermControlPanelNumber')"
+                >
+                  ...
+              </button>
+            </div>
+             
             </UFormGroup>
           </div>
           <div class="basis-1/5">
@@ -807,9 +843,19 @@ else
               label="Heater#"
               name="CryoThermHeaterNumber"
             >
+            <div class="flex flex-row">
               <UInput
                 v-model="formData.CryoThermHeaterNumber"
               />
+              <button
+                  type="button"
+                  class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                  @click="handlePartsLookup('Elictrical', 'Heater', 'CryoThermHeaterNumber')"
+                >
+                  ...
+              </button>
+            </div>
+              
             </UFormGroup>
           </div>
         </div>
@@ -833,9 +879,19 @@ else
                     label="Tank Assembly#"
                     name="LeftTankAssembly"
                   >
+                  <div class="flex flex-row">
                     <UInput
                       v-model="formData.LeftTankAssembly"
                     />
+                    <button
+                        type="button"
+                        class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                        @click="handlePartsLookup('Tank', 'Assembly', 'LeftTankAssembly')"
+                      >
+                        ...
+                    </button>
+                  </div>
+                   
                   </UFormGroup>
                 </div>
                 <div class="basis-1/2">
@@ -855,9 +911,19 @@ else
                     label="Tank#"
                     name="CryothermLeftTank"
                   >
+                  <div class="flex flex-row">
                     <UInput
                       v-model="formData.CryothermLeftTank"
                     />
+                    <button
+                        type="button"
+                        class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                        @click="handlePartsLookup('Tank', null, 'CryothermLeftTank')"
+                      >
+                        ...
+                    </button>
+                  </div>
+                    
                   </UFormGroup>
                 </div>
                 <div class="basis-1/2">
@@ -865,9 +931,19 @@ else
                     label="Pump#"
                     name="CryothermLeftPump"
                   >
+                  <div class="flex flex-row">
                     <UInput
                       v-model="formData.CryothermLeftPump"
                     />
+                    <button
+                        type="button"
+                        class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                        @click="handlePartsLookup('Pump', null, 'CryothermLeftPump')"
+                      >
+                        ...
+                    </button>
+                  </div>
+                    
                   </UFormGroup>
                 </div>
               </div>
@@ -877,9 +953,19 @@ else
                     label="Frame#"
                     name="CryothermLeftFrame"
                   >
+                  <div class="flex flex-row">
                     <UInput
                       v-model="formData.CryothermLeftFrame"
                     />
+                    <button
+                        type="button"
+                        class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                        @click="handlePartsLookup('Frame', null, 'CryothermLeftFrame')"
+                      >
+                        ...
+                    </button>
+                  </div>
+                    
                   </UFormGroup>
                 </div>
                 <div class="basis-1/2">
@@ -906,9 +992,19 @@ else
                         label="Tank Assembly#"
                         name="RightTankAssembly"
                       >
+                      <div class="flex flex-row">
                         <UInput
                           v-model="formData.RightTankAssembly"
                         />
+                        <button
+                            type="button"
+                            class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                            @click="handlePartsLookup('Tank', 'Assembly', 'RightTankAssembly')"
+                          >
+                            ...
+                        </button>
+                      </div>
+                        
                       </UFormGroup>
                     </div>
                     <div class="basis-1/2">
@@ -928,9 +1024,18 @@ else
                         label="Tank#"
                         name="CryothermRightTank"
                       >
+                      <div class="flex flex-row">
                         <UInput
                           v-model="formData.CryothermRightTank"
                         />
+                        <button
+                            type="button"
+                            class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                            @click="handlePartsLookup('Tank', null, 'CryothermRightTank')"
+                          >
+                            ...
+                        </button>
+                      </div>
                       </UFormGroup>
                     </div>
                     <div class="basis-1/2">
@@ -938,9 +1043,19 @@ else
                         label="Pump#"
                         name="CryothermRightPump"
                       >
+                      <div class="flex flex-row">
                         <UInput
                           v-model="formData.CryothermRightPump"
                         />
+                        <button
+                            type="button"
+                            class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                            @click="handlePartsLookup('Pump', null, 'CryothermRightPump')"
+                          >
+                            ...
+                          </button>
+                      </div>
+                        
                       </UFormGroup>
                     </div>
                   </div>
@@ -950,9 +1065,19 @@ else
                         label="Frame#"
                         name="CryothermRightFrame"
                       >
+                      <div class="flex flex-row">
                         <UInput
                           v-model="formData.CryothermRightFrame"
                         />
+                        <button
+                            type="button"
+                            class="bg-[#9b4b99] text-white px-4 rounded -ml-1"
+                            @click="handlePartsLookup('Frame', null, 'CryothermLeftFrame')"
+                          >
+                            ...
+                        </button>
+                      </div>
+                        
                       </UFormGroup>
                     </div>
                     <div class="basis-1/2">
@@ -1054,7 +1179,6 @@ else
     <UDashboardModal
       v-model="modalMeta.isPartsLookupModelOpne"
       :title="modalMeta.modalTitle"
-      :description="modalMeta.modalDescription"
       :ui="{
         title: 'text-lg',
         header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
@@ -1062,7 +1186,15 @@ else
         width: 'w-[1800px] sm:max-w-9xl'
       }"
     >
-      <MaterialsPartsPartList :is-page="false" :category="modalMeta.partsLookupModalCategory" :subCategory="modalMeta.partsLookupModalSubCategory"  />
+      <MaterialsPartsPartList 
+      :is-page="false" 
+      :category="modalMeta.partsLookupModalCategory" 
+      :subCategory="modalMeta.partsLookupModalSubCategory" 
+      :fieldValue="modalMeta.partsLookupModalFieldValue" 
+      :fromProductForm="true" 
+      @productFormData="setProductFormData"
+      @close="handlePartsListClose"
+      />
     </UDashboardModal>
 
   </template>

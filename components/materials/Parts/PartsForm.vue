@@ -5,6 +5,32 @@ import { ref } from 'vue';
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
 
+const emit = defineEmits(["close", "save", "productFormData"]);
+const props = defineProps({
+  selectedCustomer: {
+    type: [String, Number, null],
+    required: true,
+  },
+  isModal: {
+    type: [Boolean],
+  },
+  selectedPartInstace: {
+    type: [String, Number, null],
+    required: true,
+  },
+  selectedPartModel: {
+    type: [String, Number, null],
+    required: true,
+  },
+  fieldName: {
+    type: [String, null],
+  },
+  fromProductForm: {
+    type: [Boolean, null]
+  }
+
+});
+
 const accountList = ref([]);
 const revisions = ref([]);
 const workplaces = ref([]);
@@ -88,24 +114,7 @@ const jobDetailsColumns = [
   },
 ];
 
-const emit = defineEmits(["close", "save"]);
-const props = defineProps({
-  selectedCustomer: {
-    type: [String, Number, null],
-    required: true,
-  },
-  isModal: {
-    type: [Boolean],
-  },
-  selectedPartInstace: {
-    type: [String, Number, null],
-    required: true,
-  },
-  selectedPartModel: {
-    type: [String, Number, null],
-    required: true,
-  },
-});
+
 
 const toast = useToast();
 const router = useRouter();
@@ -259,12 +268,6 @@ const formData = reactive({
 
 
 
-
-
-
-
-
-
 const editInit = async () => {
   loadingOverlay.value = true;
   await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
@@ -273,7 +276,9 @@ const editInit = async () => {
       if (response.status === 200) {
         loadingOverlay.value = false;
         customerExist.value = true;
+        console.log(response._data.body)
         for (const key in response._data.body) {
+
           if (response._data.body[key] !== undefined) {
             formData[key] = response._data.body[key];
           }
@@ -632,10 +637,13 @@ console.log("event is",event.data);
 
 };
 
+const selectPartForProductForm = (model) => {
+  emit('productFormData', model);
+  emit('close');
+}
+
 if (props.selectedCustomer !== null) editInit();
 else propertiesInit();
-
-
 
 
 // Ref to store selected files
@@ -777,7 +785,7 @@ const handleUpload  = async () => {
             <div class="basis-1/5">
               <UFormGroup label="Stock Number" name="title">
                 <UInput
-                  v-model="formData.STOCKNUMBER"
+                  v-model="formData.MODEL"
                   placeholder="Stock Number"
                 />
               </UFormGroup>
@@ -1367,9 +1375,8 @@ const handleUpload  = async () => {
 
 </div>
 
-
       <div class="flex justify-end gap-3">
-      
+        <UButton @click="selectPartForProductForm(formData.MODEL)" color="cyan" variant="outline"  label="Select" />
         <UButton color="cyan" variant="outline" type="submit" label="Save" />
       </div>
     </div>
