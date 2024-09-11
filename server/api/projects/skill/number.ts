@@ -1,4 +1,5 @@
-import { getBasicModels } from '~/server/controller/projects/projects';
+import { getNumberOfJobs } from "~/server/controller/jobs";
+import { getSkillCount } from "~/server/controller/skills";
 
 export default eventHandler(async (event) => {
   try {
@@ -7,9 +8,8 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        console.log("subb categoyyyss",filterParams.subCategory,filterParams.subCategory);
-        const parts = await getBasicModels(filterParams.category,filterParams.subCategory);
-        return { body: parts, message: '' }
+        const numberOfCustomers = await getSkillCount(filterParams);
+        return { body: numberOfCustomers, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
@@ -18,6 +18,3 @@ export default eventHandler(async (event) => {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }
 });
-
-
-

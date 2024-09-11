@@ -1,416 +1,419 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes } from "sequelize";
 import sequelize from "../utils/databse";
 
-const tblBP = sequelize.define('tblBP', {
-   UniqueID: {
+const tblBP = sequelize.define(
+  "tblBP",
+  {
+    UniqueID: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       allowNull: false,
       primaryKey: true,
-   },
-   instanceID: {
+    },
+    instanceID: {
       type: DataTypes.INTEGER,
-   },
-   oldproductid: {
+    },
+    oldproductid: {
       type: DataTypes.INTEGER,
-   },
-   oldpartid: {
+    },
+    oldpartid: {
       type: DataTypes.INTEGER,
-   },
-   partflag: {
+    },
+    partflag: {
       type: DataTypes.BOOLEAN,
-   },
-   subassemblyflag: {
+    },
+    subassemblyflag: {
       type: DataTypes.BOOLEAN,
-   },
-   productflag: {
+    },
+    productflag: {
       type: DataTypes.BOOLEAN,
-   },
-   supplyflag: {
+    },
+    supplyflag: {
       type: DataTypes.BOOLEAN,
-   },
-   ALTER2LEADTIME: {
+    },
+    ALTER2LEADTIME: {
       type: DataTypes.STRING,
-   },
-   ALTER2MANTXT: {
+    },
+    ALTER2MANTXT: {
       type: DataTypes.STRING,
-   },
-   ALTER2MANNUM: {
+    },
+    ALTER2MANNUM: {
       type: DataTypes.STRING,
-   },
-   ALTER2DEATXT: {
+    },
+    ALTER2DEATXT: {
       type: DataTypes.STRING,
-   },
-   ALTER2DEANUM: {
+    },
+    ALTER2DEANUM: {
       type: DataTypes.STRING,
-   },
-   ALTER2QTY1: {
+    },
+    ALTER2QTY1: {
       type: DataTypes.STRING,
-   },
-   ALTER2QTY2: {
+    },
+    ALTER2QTY2: {
       type: DataTypes.STRING,
-   },
-   ALTER2QTY4: {
+    },
+    ALTER2QTY4: {
       type: DataTypes.STRING,
-   },
-   ALTER2QTY3: {
+    },
+    ALTER2QTY3: {
       type: DataTypes.STRING,
-   },
-   ALTER2PRICE1: {
+    },
+    ALTER2PRICE1: {
       type: DataTypes.STRING,
-   },
-   ALTER2PRICE4: {
+    },
+    ALTER2PRICE4: {
       type: DataTypes.STRING,
-   },
-   ALTER2PRICE3: {
+    },
+    ALTER2PRICE3: {
       type: DataTypes.STRING,
-   },
-   ALTER2PRICE2: {
+    },
+    ALTER2PRICE2: {
       type: DataTypes.STRING,
-   },
-   ALTER2PRICE5: {
+    },
+    ALTER2PRICE5: {
       type: DataTypes.STRING,
-   },
-   ALTER2QTY5: {
+    },
+    ALTER2QTY5: {
       type: DataTypes.STRING,
-   },
-   ALTER1LEADTIME: {
+    },
+    ALTER1LEADTIME: {
       type: DataTypes.STRING,
-   },
-   ALTER1MANTXT: {
+    },
+    ALTER1MANTXT: {
       type: DataTypes.STRING,
-   },
-   ALTER1MANNUM: {
+    },
+    ALTER1MANNUM: {
       type: DataTypes.STRING,
-   },
-   ALTER1DEATXT: {
+    },
+    ALTER1DEATXT: {
       type: DataTypes.STRING,
-   },
-   ALTER1DEANUM: {
+    },
+    ALTER1DEANUM: {
       type: DataTypes.STRING,
-   },
-   ALTER1QTY1: {
+    },
+    ALTER1QTY1: {
       type: DataTypes.STRING,
-   },
-   ALTER1QTY2: {
+    },
+    ALTER1QTY2: {
       type: DataTypes.STRING,
-   },
-   ALTER1QTY4: {
+    },
+    ALTER1QTY4: {
       type: DataTypes.STRING,
-   },
-   ALTER1QTY3: {
+    },
+    ALTER1QTY3: {
       type: DataTypes.STRING,
-   },
-   ALTER1PRICE1: {
+    },
+    ALTER1PRICE1: {
       type: DataTypes.STRING,
-   },
-   ALTER1PRICE4: {
+    },
+    ALTER1PRICE4: {
       type: DataTypes.STRING,
-   },
-   ALTER1PRICE3: {
+    },
+    ALTER1PRICE3: {
       type: DataTypes.STRING,
-   },
-   ALTER1PRICE2: {
+    },
+    ALTER1PRICE2: {
       type: DataTypes.STRING,
-   },
-   ALTER1PRICE5: {
+    },
+    ALTER1PRICE5: {
       type: DataTypes.STRING,
-   },
-   ALTER1QTY5: {
+    },
+    ALTER1QTY5: {
       type: DataTypes.STRING,
-   },
-   PRIMARYQTY5: {
+    },
+    PRIMARYQTY5: {
       type: DataTypes.STRING,
-   },
-   PRIMARYPRICE5: {
+    },
+    PRIMARYPRICE5: {
       type: DataTypes.STRING,
-   },
-   PRIMARYPRICE2: {
+    },
+    PRIMARYPRICE2: {
       type: DataTypes.STRING,
-   },
-   PRIMARYPRICE3: {
+    },
+    PRIMARYPRICE3: {
       type: DataTypes.STRING,
-   },
-   PRIMARYPRICE4: {
+    },
+    PRIMARYPRICE4: {
       type: DataTypes.STRING,
-   },
-   PRIMARYPRICE1: {
+    },
+    PRIMARYPRICE1: {
       type: DataTypes.STRING,
-   },
-   PRIMARYQTY3: {
+    },
+    PRIMARYQTY3: {
       type: DataTypes.STRING,
-   },
-   PRIMARYQTY4: {
+    },
+    PRIMARYQTY4: {
       type: DataTypes.STRING,
-   },
-   PRIMARYQTY2: {
+    },
+    PRIMARYQTY2: {
       type: DataTypes.STRING,
-   },
-   PRIMARYQTY1: {
+    },
+    PRIMARYQTY1: {
       type: DataTypes.STRING,
-   },
-   PRIMARYDEANUM: {
+    },
+    PRIMARYDEANUM: {
       type: DataTypes.STRING,
-   },
-   PRIMARYDEATXT: {
+    },
+    PRIMARYDEATXT: {
       type: DataTypes.STRING,
-   },
-   PRIMARYMANNUM: {
+    },
+    PRIMARYMANNUM: {
       type: DataTypes.STRING,
-   },
-   PRIMARYMANTXT: {
+    },
+    PRIMARYMANTXT: {
       type: DataTypes.STRING,
-   },
-   PRIMARYLEADTIME: {
+    },
+    PRIMARYLEADTIME: {
       type: DataTypes.STRING,
-   },
-   SELLINGPRICE: {
+    },
+    SELLINGPRICE: {
       type: DataTypes.STRING,
-   },
-   SUBCATEGORY: {
+    },
+    SUBCATEGORY: {
       type: DataTypes.STRING,
-   },
-   PARTTYPE: {
+    },
+    PARTTYPE: {
       type: DataTypes.STRING,
-   },
-   SPECIFICATIONS: {
+    },
+    SPECIFICATIONS: {
       type: DataTypes.STRING,
-   },
-   DESCRIPTION: {
+    },
+    DESCRIPTION: {
       type: DataTypes.STRING,
-   },
-   STOCKNUMBER: {
+    },
+    STOCKNUMBER: {
       type: DataTypes.STRING,
-   },
-   UNIT: {
+    },
+    UNIT: {
       type: DataTypes.STRING,
-   },
-   MULTIPLE: {
+    },
+    MULTIPLE: {
       type: DataTypes.INTEGER,
-   },
-   CODE: {
+    },
+    CODE: {
       type: DataTypes.STRING,
-   },
-   TODAY: {
+    },
+    TODAY: {
+      type: DataTypes.DATE,
+    },
+    PRODUCTLINE: {
       type: DataTypes.STRING,
-   },
-   PRODUCTLINE: {
+    },
+    MODEL: {
       type: DataTypes.STRING,
-   },
-   MODEL: {
+    },
+    WARRENTY: {
       type: DataTypes.STRING,
-   },
-   WARRENTY: {
+    },
+    SHIPWEIGHT: {
       type: DataTypes.STRING,
-   },
-   SHIPWEIGHT: {
+    },
+    NETWEIGHTFULL: {
       type: DataTypes.STRING,
-   },
-   NETWEIGHTFULL: {
+    },
+    ELECTRICAL: {
       type: DataTypes.STRING,
-   },
-   ELECTRICAL: {
+    },
+    NETWEIGHT: {
       type: DataTypes.STRING,
-   },
-   NETWEIGHT: {
-      type: DataTypes.STRING,
-   },
-   OnHand: {
+    },
+    OnHand: {
       type: DataTypes.INTEGER,
-   },
-   AdjustedAmount: {
+    },
+    AdjustedAmount: {
       type: DataTypes.STRING,
-   },
-   Reason: {
+    },
+    Reason: {
       type: DataTypes.STRING,
-   },
-   COMMENT: {
+    },
+    COMMENT: {
       type: DataTypes.STRING,
-   },
-   ORDERCOST: {
+    },
+    ORDERCOST: {
       type: DataTypes.STRING,
-   },
-   WORKCENTERS: {
+    },
+    WORKCENTERS: {
       type: DataTypes.STRING,
-   },
-   ALTER2UL: {
+    },
+    ALTER2UL: {
       type: DataTypes.STRING,
-   },
-   ALTER1UL: {
+    },
+    ALTER1UL: {
       type: DataTypes.STRING,
-   },
-   PRIMARYUL: {
+    },
+    PRIMARYUL: {
       type: DataTypes.STRING,
-   },
-   DRAWINGCUSTOM: {
+    },
+    DRAWINGCUSTOM: {
       type: DataTypes.STRING,
-   },
-   EQUIPMENTFLAG: {
+    },
+    EQUIPMENTFLAG: {
       type: DataTypes.STRING,
-   },
-   PlanID: {
+    },
+    PlanID: {
       type: DataTypes.INTEGER,
-   },
-   GeneralType: {
+    },
+    GeneralType: {
       type: DataTypes.STRING,
-   },
-   AccountNumber: {
+    },
+    AccountNumber: {
       type: DataTypes.STRING,
-   },
-   InventoryUnit: {
+    },
+    InventoryUnit: {
       type: DataTypes.STRING,
-   },
-   InventoryCost: {
+    },
+    InventoryCost: {
       type: DataTypes.STRING,
-   },
-   HEIGHT: {
+    },
+    HEIGHT: {
       type: DataTypes.STRING,
-   },
-   WIDTH: {
+    },
+    WIDTH: {
       type: DataTypes.STRING,
-   },
-   LENGTH: {
+    },
+    LENGTH: {
       type: DataTypes.STRING,
-   },
-   SPECSHEET: {
+    },
+    SPECSHEET: {
       type: DataTypes.STRING,
-   },
-   TANKDEPTH: {
+    },
+    TANKDEPTH: {
       type: DataTypes.STRING,
-   },
-   WAXCAPACITY: {
+    },
+    WAXCAPACITY: {
       type: DataTypes.STRING,
-   },
-   CRYOTHERMSECTIONS: {
+    },
+    CRYOTHERMSECTIONS: {
       type: DataTypes.STRING,
-   },
-   CRYOTHERMWALLS: {
+    },
+    CRYOTHERMWALLS: {
       type: DataTypes.STRING,
-   },
-   CRYOTHERMGALLONSLEFT: {
+    },
+    CRYOTHERMGALLONSLEFT: {
       type: DataTypes.STRING,
-   },
-   CRYOTHERMGALLONSRIGHT: {
+    },
+    CRYOTHERMGALLONSRIGHT: {
       type: DataTypes.STRING,
-   },
-   CRYOTHERMCATEGORY: {
+    },
+    CRYOTHERMCATEGORY: {
       type: DataTypes.STRING,
-   },
-   DURALASTSUBCATEGORY: {
+    },
+    DURALASTSUBCATEGORY: {
       type: DataTypes.STRING,
-   },
-   DURALASTCATEGORY: {
+    },
+    DURALASTCATEGORY: {
       type: DataTypes.STRING,
-   },
-   PARADYNAMIXSUBCATEGORY: {
+    },
+    PARADYNAMIXSUBCATEGORY: {
       type: DataTypes.STRING,
-   },
-   PARADYNAMIXCATEGORY: {
+    },
+    PARADYNAMIXCATEGORY: {
       type: DataTypes.STRING,
-   },
-   CRYOTHERMWARMTANKSWITCHABLE: {
+    },
+    CRYOTHERMWARMTANKSWITCHABLE: {
       type: DataTypes.STRING,
-   },
-   VariablePricing: {
+    },
+    VariablePricing: {
       type: DataTypes.STRING,
-   },
-   BuiltInHouse: {
+    },
+    BuiltInHouse: {
       type: DataTypes.BOOLEAN,
-   },
-   minimum: {
+    },
+    minimum: {
       type: DataTypes.INTEGER,
-   },
-   CryothermCorianNumber: {
+    },
+    CryothermCorianNumber: {
       type: DataTypes.STRING,
-   },
-   CryothermPcoatNumber: {
+    },
+    CryothermPcoatNumber: {
       type: DataTypes.STRING,
-   },
-   CryothermLeftFrame: {
+    },
+    CryothermLeftFrame: {
       type: DataTypes.STRING,
-   },
-   CryothermLeftTank: {
+    },
+    CryothermLeftTank: {
       type: DataTypes.STRING,
-   },
-   CryothermLeftPump: {
+    },
+    CryothermLeftPump: {
       type: DataTypes.STRING,
-   },
-   CryothermLeftJets: {
+    },
+    CryothermLeftJets: {
       type: DataTypes.STRING,
-   },
-   CryothermLeftCunitNumber: {
+    },
+    CryothermLeftCunitNumber: {
       type: DataTypes.STRING,
-   },
-   CryothermRightFrame: {
+    },
+    CryothermRightFrame: {
       type: DataTypes.STRING,
-   },
-   CryothermRightTank: {
+    },
+    CryothermRightTank: {
       type: DataTypes.STRING,
-   },
-   CryothermRightPump: {
+    },
+    CryothermRightPump: {
       type: DataTypes.STRING,
-   },
-   CryothermRightJets: {
+    },
+    CryothermRightJets: {
       type: DataTypes.STRING,
-   },
-   CryothermRightCunitnumber: {
+    },
+    CryothermRightCunitnumber: {
       type: DataTypes.STRING,
-   },
-   InspectionLevel: {
+    },
+    InspectionLevel: {
       type: DataTypes.STRING,
-   },
-   MDET: {
+    },
+    MDET: {
       type: DataTypes.INTEGER,
-   },
-   MDET1: {
+    },
+    MDET1: {
       type: DataTypes.DECIMAL,
-   },
-   override: {
+    },
+    override: {
       type: DataTypes.STRING,
-   },
-   grossprofit: {
+    },
+    grossprofit: {
       type: DataTypes.STRING,
-   },
-   CryoThermControlPanelNumber: {
+    },
+    CryoThermControlPanelNumber: {
       type: DataTypes.STRING,
-   },
-   CryoThermHeaterNumber: {
+    },
+    CryoThermHeaterNumber: {
       type: DataTypes.STRING,
-   },
-   amps: {
+    },
+    amps: {
       type: DataTypes.STRING,
-   },
-   ETLCriticalComponent: {
+    },
+    ETLCriticalComponent: {
       type: DataTypes.BOOLEAN,
-   },
-   sds: {
+    },
+    sds: {
       type: DataTypes.STRING,
-   },
-   SubassemblyInventoried: {
+    },
+    SubassemblyInventoried: {
       type: DataTypes.STRING,
-   },
-   LeftTankAssembly: {
+    },
+    LeftTankAssembly: {
       type: DataTypes.STRING,
-   },
-   RightTankAssembly: {
+    },
+    RightTankAssembly: {
       type: DataTypes.STRING,
-   },
-   RevisedBy: {
+    },
+    RevisedBy: {
       type: DataTypes.STRING,
-   },
-   Recommendations: {
+    },
+    Recommendations: {
       type: DataTypes.TEXT,
-   },
-   StatementOfNeed: {
+    },
+    StatementOfNeed: {
       type: DataTypes.TEXT,
-   },
-   SupportorProject: {
+    },
+    SupportorProject: {
       type: DataTypes.STRING,
-   },
-}, {
-   tableName: 'tblBp',
-   timestamps: false
-});
-
+    },
+  },
+  {
+    tableName: "tblBp",
+    timestamps: false,
+  }
+);
 
 export default tblBP;

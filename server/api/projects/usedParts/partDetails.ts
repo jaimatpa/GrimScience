@@ -1,4 +1,4 @@
-import { getBasicModels } from '~/server/controller/projects/projects';
+import { getDistinctPartTypes, getPartDetails } from '~/server/controller/projects/projects';
 
 export default eventHandler(async (event) => {
   try {
@@ -7,9 +7,8 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        console.log("subb categoyyyss",filterParams.subCategory,filterParams.subCategory);
-        const parts = await getBasicModels(filterParams.category,filterParams.subCategory);
-        return { body: parts, message: '' }
+        const partsDetails = await getPartDetails(filterParams.JobID,filterParams.OperationID)
+        return { body: partsDetails, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
@@ -18,6 +17,3 @@ export default eventHandler(async (event) => {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }
 });
-
-
-

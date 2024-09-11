@@ -1,15 +1,13 @@
-import { getBasicModels } from '~/server/controller/projects/projects';
+import { getDistinctSubCategories } from '~/server/controller/projects/projects';
 
 export default eventHandler(async (event) => {
   try {
-    const filterParams = getQuery(event);
     const method = event._method;
     
     switch(method.toUpperCase()){
       case 'GET':
-        console.log("subb categoyyyss",filterParams.subCategory,filterParams.subCategory);
-        const parts = await getBasicModels(filterParams.category,filterParams.subCategory);
-        return { body: parts, message: '' }
+        const markets = await getDistinctSubCategories()
+        return { body: markets, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
@@ -18,6 +16,3 @@ export default eventHandler(async (event) => {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }
 });
-
-
-

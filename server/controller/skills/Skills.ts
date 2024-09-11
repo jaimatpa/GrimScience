@@ -21,13 +21,26 @@ export const getAllSkills = async (sortBy, sortOrder, filterParams) => {
     const whereClause = applyFilters(filterParams);
 
     const list = await tblSkills.findAll({
-        attributes: ['UniqueID', 'Name', 'Catagory', 'subcatagory', 'weeks', 'frequency', 'date', 'by', 'courseoutline'],
+        attributes: ['UniqueID', 'Name', 'Catagory', 'subcatagory', 'weeks', 'frequency', 'date', 'by'],
         where: whereClause,
         order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
     });
 
     return list;
 }
+
+export const getSkillCount = async (filterParams) => {
+    const whereClause = applyFilters(filterParams);
+
+    // Count the number of records matching the filters
+    const count = await tblSkills.count({
+        where: whereClause
+    });
+
+    return count;
+}
+
+
 
 export const getSkillsCatagory = async () => {
     const result = await tblSkills.findAll({
@@ -67,23 +80,17 @@ export const getSkillsFrequency = async () => {
     return distinctfrequency;
 }
 
-export const getSkillsSubCatagory = async (category = null) => {
-    const whereClause = {
-        [Op.and]: [
-            { 'subcatagory': { [Op.ne]: null } },
-            { 'subcatagory': { [Op.ne]: '' } }
-        ]
-    };
-
-    if (category) {
-        whereClause[Op.and].push({ 'Catagory': category });
-    }
-
+export const getSkillsSubCatagory = async () => {
     const result = await tblSkills.findAll({
         attributes: [
             [Sequelize.fn('DISTINCT', Sequelize.col('subcatagory')), 'subcatagory']
         ],
-        where: whereClause,
+        where: {
+            [Op.and]: [
+                { 'subcatagory': { [Op.ne]: null } },
+                { 'subcatagory': { [Op.ne]: '' } }
+            ]
+        },
         order: [['subcatagory', 'ASC']],
         raw: true
     });
@@ -101,13 +108,6 @@ export const SkillExistById = async (id: number | string) => {
 }
 
 export const createNewSkill = async (data) => {
-    // Input validation
-    if (!data.Name) {
-        throw Error("Enter a skill name before you continue." );
-    }
-    if (!data.Category) {
-        throw Error("Select a category before you continue.");
-    }
     const createReqData = {
         ...data,
     };
