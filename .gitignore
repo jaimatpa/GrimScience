@@ -2,3 +2,5 @@ node_modules
 .nuxt
 .env
 .output
+*package-lock.json
+**yarn.lock
