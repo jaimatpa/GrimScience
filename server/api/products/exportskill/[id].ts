@@ -19,8 +19,6 @@ export default eventHandler(async (event) => {
         }
     
         const reportData = await getSkillReportData(id)
-
-        console.log(reportData)
         
         let htmlContent = "";
         if (reportData) {

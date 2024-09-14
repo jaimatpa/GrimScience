@@ -50,6 +50,21 @@ export const operationExistByID = async (id) => {
     return false;
 }
 
+export const productExistByModel = async (model) => {
+  const maxItem = await tblPlan.findOne({
+    where: { MODEL: model },
+    order: [['UniqueID', 'DESC']],
+  });
+
+  console.log(maxItem)
+
+  if (!maxItem) {
+    return false;
+  }
+
+  return maxItem.CODE !== 'Inactive';
+};
+
 export const getProductOperations = async (id) => {
   const tableDetail = await tblBP.findByPk(id);
   const instanceID = tableDetail.dataValues.instanceID;
@@ -220,7 +235,7 @@ export const editProductOperation = async (data,id) => {
   const instanceID = tableDetail.dataValues.instanceID;
 
   const { Number, Operation, WorkCenter, Hours, week, skills, username } = data;
-  console.log(skills)
+
   const strSkills = skills.map(skill => skill.UniqueID).join('=');
 
   if (!Operation || !WorkCenter || !Hours || !week) return { error: 'Please provide all the fields' };
@@ -351,3 +366,111 @@ export const getWorkCenter = async () => {
   const distinctWorkCenter = result.map((item: any) => item['WorkCenter']);
   return distinctWorkCenter;
 }
+
+export const cloneOperations = async (sourceModelName, targetModelName, username) => {
+  // Step 1: Fetch target model details
+  const targetModel = await sequelize.query(`
+    SELECT * FROM tblBP WHERE model = :targetModelName AND code <> 'inactive' 
+    AND uniqueid IN (SELECT MAX(uniqueid) FROM tblBP GROUP BY instanceID)
+  `, {
+    replacements: { targetModelName },
+    type: QueryTypes.SELECT
+  });
+
+  if (targetModel.length === 0) {
+    return { error: "This model does not exist. Please create a model before cloning its instructions." };
+  }
+
+  const productInstanceID = targetModel[0].instanceID;
+
+  // Step 2: Fetch source model details
+  const sourceModel = await sequelize.query(`
+    SELECT instanceID FROM tblBP WHERE model = :sourceModelName 
+  `, {
+    replacements: { sourceModelName },
+    type: QueryTypes.SELECT
+  });
+
+  const sourceInstanceID = sourceModel[0].instanceID;
+
+  // Step 3: Fetch operations from the source model
+  const sourceOperations = await sequelize.query(`
+    SELECT uniqueID FROM tblPlan WHERE instanceID = :sourceInstanceID
+  `, {
+    replacements: { sourceInstanceID },
+    type: QueryTypes.SELECT
+  });
+
+  // Step 4: Clone operations and steps
+  for (const operation of sourceOperations) {
+    const operationDetails = await sequelize.query(`
+      SELECT * FROM tblPlan WHERE uniqueID = :operationID
+    `, {
+      replacements: { operationID: operation.uniqueID },
+      type: QueryTypes.SELECT
+    });
+
+    // Create new operation for target model
+    const newOperation = await tblPlan.create({
+      ...operationDetails[0],
+      instanceid: productInstanceID,
+      ApprovedBy: '',
+      ApprovedDate: '',
+      PreparedBy: username,
+      PreparedDate: new Date().toLocaleDateString(),
+    });
+
+    const newOperationID = newOperation.uniqueID;
+
+    // Step 5: Clone steps for the operation
+    const sourceSteps = await sequelize.query(`
+      SELECT * FROM tblSteps WHERE planid = :operationID
+    `, {
+      replacements: { operationID: operation.uniqueID },
+      type: QueryTypes.SELECT
+    });
+
+    for (const step of sourceSteps) {
+      const newStep = await tblSteps.create({
+        ...step,
+        planid: newOperationID,
+      });
+
+      const newStepID = newStep.uniqueID;
+
+      // Step 6: Clone media linked to the step
+      const stepMedia = await sequelize.query(`
+        SELECT * FROM tblMedia WHERE stepid = :stepID
+      `, {
+        replacements: { stepID: step.uniqueID },
+        type: QueryTypes.SELECT
+      });
+
+      for (const media of stepMedia) {
+        await tblMedia.create({
+          ...media,
+          stepid: newStepID,
+        });
+      }
+
+      // Step 7: Clone parts linked to the step
+      const stepParts = await sequelize.query(`
+        SELECT * FROM tblBPParts WHERE stepid = :stepID
+      `, {
+        replacements: { stepID: step.uniqueID },
+        type: QueryTypes.SELECT
+      });
+
+      for (const part of stepParts) {
+        await tblBPParts.create({
+          ...part,
+          stepid: newStepID,
+          instanceid: productInstanceID,
+        });
+      }
+    }
+  }
+
+  return targetModelName;
+};
+

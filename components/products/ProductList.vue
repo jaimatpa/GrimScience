@@ -25,6 +25,9 @@ const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 const activeTab = ref("lookup");
 
+const user = useCookie<string>('user');
+const username = "#"+user.value.payrollnumber+" "+user.value.fname+" "+user.value.lname
+
 function setActiveTab(tab) {
   if(!(tab === "history" && gridMeta.value.selectProduct === null)){
     activeTab.value = tab;
@@ -51,7 +54,7 @@ const loadingOverlay = ref(false);
 const revisions = ref([]);
 const jobHistory = ref([]);
 const multipleProductSelect = ref([]);
-
+const sourceCloneModel = ref(null);
 const costCalculation = ref({
   materialCost: null,
   productLabor: null,
@@ -125,7 +128,8 @@ const modalMeta = ref({
   modalDescription: "Create new product",
   isPartsModalOpen: false,
   isOperationsModalOpen: false,
-  isSerialModalOpen: false
+  isSerialModalOpen: false,
+  isCloneModalOpen: false
 });
 
 const filterValues = ref({
@@ -475,6 +479,50 @@ const handleSerialsModal = () => {
   modalMeta.value.isSerialModalOpen = true
   modalMeta.value.modalTitle = "Serial Record Finished Goods";
   modalMeta.value.modalDescription = "Serial Record" 
+}
+
+const handleCloneModal = () => {
+  sourceCloneModel.value = null
+  modalMeta.value.isCloneModalOpen = true
+}
+
+const handleCloneModalClick = async () => {
+  if(!sourceCloneModel.value){
+    await useApiFetch(`/api/products/productoperations/cloneoperation`, {
+      method: 'PUT',
+      body: { targetId:sourceCloneModel.value, sourceId:gridMeta.value.selectProduct.MODEL, username },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: "Instruction cloned successfully",
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+      onResponseError({}) {
+        toast.add({
+          title: "Failed",
+          description: "Failed to clone instructions",
+          icon: "i-heroicons-exclamation-circle",
+          color: "red",
+        });
+      }
+    });
+  }else{
+    toast.add({
+      title: "Validation Error",
+      description: "Please provide a model",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
+    });
+  }
+}
+
+const closeCloneModal = () => {
+  sourceCloneModel.value = null
+  modalMeta.value.isCloneModalOpen = false
 }
 
 
@@ -834,7 +882,7 @@ const handleSerialsModal = () => {
 
             <div class="grid grid-cols-2 gap-4">
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleOperationtModal" >View Operations</UButton>
-              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" >Clone Operations</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleCloneModal" >Clone Operations</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handlePartListModal" >View Parts List</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleSerialsModal">View Serials</UButton>
               <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleCostCalculation" >View Costs</UButton>
@@ -922,9 +970,47 @@ const handleSerialsModal = () => {
     <MaterialsSerialsSerialList :is-page="true" :productModel="gridMeta.selectProduct.MODEL" />
   </UDashboardModal>
 
-
-
-  
+  <!-- Clone Operation Modal -->
+  <UDashboardModal
+      v-model="modalMeta.isCloneModalOpen"
+      :ui="{
+        header: {
+          base: 'flex flex-row min-h-[0] items-center',
+          padding: 'p-0 pt-1',
+        },
+        body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
+        width: 'w-[300px]',
+      }"
+    >
+      <div>
+        <div class="">
+          <div class="">What model would you like to clone these instructions to?</div>
+          
+        </div>
+        <div class="mt-3">
+          <UInput v-model="sourceCloneModel" ></UInput>
+        </div>
+        
+        <div class="flex flex-row-reverse mt-2">
+          <div class="min-w-[60px]">
+            <UButton
+              label="Clone"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
+              @click="handleCloneModalClick"
+              truncate
+            />
+          </div>
+          <div class="min-w-[60px] mr-3">
+            <UButton
+              label="Cancel"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
+              truncate
+              @click="closeCloneModal"
+            />
+          </div>
+        </div>
+      </div>
+    </UDashboardModal>
 
 </template>
 <style scoped></style>

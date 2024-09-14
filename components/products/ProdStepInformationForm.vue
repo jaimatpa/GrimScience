@@ -766,43 +766,8 @@ else propertiesInit();
                     {{ row.UniqueID }}
                   </div>
                 </template>
-                <!-- <template #edit-data="{row}">
-                <UTooltip text="Detail" class="flex justify-center">
-                  <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onInventoryEdit(row)"/>
-                </UTooltip>
-              </template>
-              <template #delete-data="{row}">
-                <UTooltip text="Delete" class="flex justify-center">
-                  <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onInventoryDelete(row)"/>
-                </UTooltip>
-              </template> -->
               </UTable>
             </div>
-
-            <!-- <UTable
-              :columns="partsGridMeta.defaultColumns"
-              :rows="partsGridMeta.parts"
-              :ui="{
-                wrapper:
-                  'h-[268px] border-2 border-gray-300 dark:border-gray-700',
-                tr: {
-                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                },
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'px-2 py-0',
-                },
-                td: {
-                  base: 'h-[31px]',
-                  padding: 'px-2 py-0',
-                },
-              }"
-            >
-              <template #empty-state>
-                <div></div>
-              </template>
-            </UTable> -->
           </div>
           <div class="w-1/2">
             <div class="pl-4 mt-5">

@@ -20,7 +20,7 @@ const loadingOverlay = ref(false);
 const partList = ref([]);
 const formData = reactive({})
 
-const editInit = async () => {
+const init = async () => {
   loadingOverlay.value = true;
   await useApiFetch(`/api/products/productpartlist/${props.selectedProduct}`, {
     method: "GET",
@@ -84,8 +84,12 @@ const listColumns = ref([
   },
 ]);
 
-if (props.selectedJob !== null) editInit();
-// else propertiesInit();
+const excelExport = async () => {
+  location.href = `/api/products/exportpartlist?id=${props.selectedProduct}`;
+};
+
+init();
+
 </script>
 
 <template>
@@ -134,6 +138,7 @@ if (props.selectedJob !== null) editInit();
               base: 'w-fit',
               truncate: 'flex justify-center w-full',
             }"
+            @click="excelExport"
             truncate
           />
         </div>
