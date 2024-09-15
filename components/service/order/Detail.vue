@@ -1134,7 +1134,7 @@
         </div>
         <div class="px-3 py-0">
           <UFormGroup
-            label="Desicripton"
+            label="Description"
             name="description"
           >
             <UTextarea

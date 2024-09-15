@@ -422,19 +422,17 @@ const handleModalSave = async () => {
       </div> -->
     </UDashboardPanel>
   </UDashboardPage>
-  <!-- New Employee Detail Modal -->
-  <UDashboardModal
+<!-- New Employee Detail Modal -->
+<UDashboardModal
     v-model="modalMeta.isEmployeeModalOpen"
     :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
     :ui="{
-      title: 'text-lg',
+      title: 'text-lg text-white',
       header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
+        base: 'flex flex-row min-h-[0] items-center bg-gms-teal mt-0 gms-modalHeader',
       },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1600px] sm:max-w-8xl',
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
     }"
   >
     <EmployeeForm

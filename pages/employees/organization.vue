@@ -430,14 +430,17 @@ const onDelete = async (row: any) => {
     />
   </UDashboardModal>
 
-  <!-- New Organization Detail Modal -->
-  <UDashboardModal
+<!-- New Organization Detail Modal -->
+<UDashboardModal
     v-model="modalMeta.isOrganizatioModalOpen"
     :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
     :ui="{
-      width: 'w-[1000px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-teal mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1100px] sm:max-w-9xl',
     }"
   >
     <EmployeeOrganizationForm
