@@ -11,6 +11,10 @@ const props = defineProps({
         type: [Number, String, null],
         required: true,
     },
+    isPage: {
+        type: Boolean,
+        default: true,
+    },
 });
 const toast = useToast();
 const loadingOverlay = ref(false);
@@ -497,7 +501,9 @@ else propertiesInit();
     <div class="vl-parent">
         <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533" loader="dots" />
     </div>
+    
     <UForm :validate="validate" :validate-on="['submit']" :state="formData" @submit="onSubmit">
+        <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader w-full" title="Root Cause Investigation"> </UDashboardNavbar>
         <div class="flex flex-row">
             <div class="basis-2/3 border-[1px] border-slate-600 border-l-0 border-b-0 border-t-0 pb-3">
                 <div class="w-full px-3 py-1 bg-slate-400">Lookup</div>
