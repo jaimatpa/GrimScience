@@ -1,5 +1,5 @@
 import { Op, Sequelize } from 'sequelize';
-import { tblBP, tblPlan, tblJobOperations } from "~/server/models";
+import { tblBP, tblPlan, tblSteps, tblBPParts, tblMedia ,tblJobOperations } from "~/server/models";
 import  sequelize  from '../../utils/databse';  
 import { QueryTypes } from 'sequelize';  
 
@@ -51,12 +51,10 @@ export const operationExistByID = async (id) => {
 }
 
 export const productExistByModel = async (model) => {
-  const maxItem = await tblPlan.findOne({
+  const maxItem = await tblBP.findOne({
     where: { MODEL: model },
     order: [['UniqueID', 'DESC']],
   });
-
-  console.log(maxItem)
 
   if (!maxItem) {
     return false;
@@ -368,24 +366,25 @@ export const getWorkCenter = async () => {
 }
 
 export const cloneOperations = async (sourceModelName, targetModelName, username) => {
+
   // Step 1: Fetch target model details
   const targetModel = await sequelize.query(`
-    SELECT * FROM tblBP WHERE model = :targetModelName AND code <> 'inactive' 
-    AND uniqueid IN (SELECT MAX(uniqueid) FROM tblBP GROUP BY instanceID)
+    SELECT * FROM tblBP WHERE MODEL = :targetModelName AND CODE <> 'inactive' 
+    AND uniqueID IN (SELECT MAX(UniqueID) FROM tblBP GROUP BY instanceID)
   `, {
     replacements: { targetModelName },
     type: QueryTypes.SELECT
   });
 
   if (targetModel.length === 0) {
-    return { error: "This model does not exist. Please create a model before cloning its instructions." };
+    throw new Error("This model does not exist. Please create a model before cloning its instructions.");
   }
 
   const productInstanceID = targetModel[0].instanceID;
 
   // Step 2: Fetch source model details
   const sourceModel = await sequelize.query(`
-    SELECT instanceID FROM tblBP WHERE model = :sourceModelName 
+    SELECT instanceID FROM tblBP WHERE MODEL = :sourceModelName 
   `, {
     replacements: { sourceModelName },
     type: QueryTypes.SELECT
@@ -395,7 +394,7 @@ export const cloneOperations = async (sourceModelName, targetModelName, username
 
   // Step 3: Fetch operations from the source model
   const sourceOperations = await sequelize.query(`
-    SELECT uniqueID FROM tblPlan WHERE instanceID = :sourceInstanceID
+    SELECT UniqueID FROM tblPlan WHERE instanceID = :sourceInstanceID
   `, {
     replacements: { sourceInstanceID },
     type: QueryTypes.SELECT
@@ -404,52 +403,68 @@ export const cloneOperations = async (sourceModelName, targetModelName, username
   // Step 4: Clone operations and steps
   for (const operation of sourceOperations) {
     const operationDetails = await sequelize.query(`
-      SELECT * FROM tblPlan WHERE uniqueID = :operationID
+      SELECT * FROM tblPlan WHERE UniqueID = :operationID
     `, {
-      replacements: { operationID: operation.uniqueID },
+      replacements: { operationID: operation.UniqueID },
       type: QueryTypes.SELECT
     });
 
+    
+    // throw new Error("gasdg")
     // Create new operation for target model
+    const today = new Date();
+    const formattedDate = String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
+    String(today.getDate()).padStart(2, '0') + '/' + 
+    today.getFullYear();
     const newOperation = await tblPlan.create({
-      ...operationDetails[0],
       instanceid: productInstanceID,
+      Operation: operationDetails[0].Operation,
+      WorkCenter: operationDetails[0].WorkCenter,
+      Hours: operationDetails[0].Hours,
+      Number: operationDetails[0].Number,
+      week: operationDetails[0].week,
+      skills: operationDetails[0].skills,
+      PreparedBy: username,
+      PreparedDate: formattedDate,
       ApprovedBy: '',
       ApprovedDate: '',
-      PreparedBy: username,
-      PreparedDate: new Date().toLocaleDateString(),
     });
 
-    const newOperationID = newOperation.uniqueID;
-
+    console.log(newOperation)
+    
+    const newOperationID = newOperation.UniqueID;
+    console.log("newOperation",newOperationID)
     // Step 5: Clone steps for the operation
     const sourceSteps = await sequelize.query(`
-      SELECT * FROM tblSteps WHERE planid = :operationID
+      SELECT * FROM tblSteps WHERE PLANID = :operationID
     `, {
-      replacements: { operationID: operation.uniqueID },
+      replacements: { operationID: operation.UniqueID },
       type: QueryTypes.SELECT
     });
 
     for (const step of sourceSteps) {
       const newStep = await tblSteps.create({
-        ...step,
-        planid: newOperationID,
+        Step: step.Step,
+        Description: step.Description,
+        notes: step.notes,
+        PLANID: newOperationID,
       });
 
-      const newStepID = newStep.uniqueID;
+      const newStepID = newStep.UniqueID;
 
       // Step 6: Clone media linked to the step
       const stepMedia = await sequelize.query(`
-        SELECT * FROM tblMedia WHERE stepid = :stepID
+        SELECT * FROM tblMedia WHERE StepID = :stepID
       `, {
-        replacements: { stepID: step.uniqueID },
+        replacements: { stepID: step.UniqueID },
         type: QueryTypes.SELECT
       });
 
       for (const media of stepMedia) {
         await tblMedia.create({
-          ...media,
-          stepid: newStepID,
+          Path: media.Path,
+          Name: media.Name,
+          StepID: newStepID,
         });
       }
 
@@ -457,11 +472,12 @@ export const cloneOperations = async (sourceModelName, targetModelName, username
       const stepParts = await sequelize.query(`
         SELECT * FROM tblBPParts WHERE stepid = :stepID
       `, {
-        replacements: { stepID: step.uniqueID },
+        replacements: { stepID: step.UniqueID },
         type: QueryTypes.SELECT
       });
 
       for (const part of stepParts) {
+        delete part.uniqueid
         await tblBPParts.create({
           ...part,
           stepid: newStepID,
@@ -470,7 +486,7 @@ export const cloneOperations = async (sourceModelName, targetModelName, username
       }
     }
   }
-
+  await reorderOperations(productInstanceID);
   return targetModelName;
 };
 

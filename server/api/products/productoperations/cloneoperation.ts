@@ -5,7 +5,7 @@ export default eventHandler(async (event) => {
     
     const method = event._method;
     const { targetId, sourceId, username } = await readBody(event);
-
+    
     switch(method.toUpperCase()){
       case 'PUT':
         const modelExist = await productExistByModel(targetId);

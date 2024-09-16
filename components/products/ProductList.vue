@@ -487,12 +487,15 @@ const handleCloneModal = () => {
 }
 
 const handleCloneModalClick = async () => {
-  if(!sourceCloneModel.value){
+  if(sourceCloneModel.value){
+    loadingOverlay.value = true
     await useApiFetch(`/api/products/productoperations/cloneoperation`, {
       method: 'PUT',
       body: { targetId:sourceCloneModel.value, sourceId:gridMeta.value.selectProduct.MODEL, username },
       onResponse({ response }) {
         if(response.status === 200) {
+          sourceCloneModel.value = null
+          modalMeta.value.isCloneModalOpen = false
           toast.add({
             title: "Success",
             description: "Instruction cloned successfully",
@@ -510,6 +513,7 @@ const handleCloneModalClick = async () => {
         });
       }
     });
+    loadingOverlay.value = false
   }else{
     toast.add({
       title: "Validation Error",
