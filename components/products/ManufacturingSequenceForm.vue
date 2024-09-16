@@ -250,6 +250,7 @@ const handleDeleteClick = async () => {
     handleClearCick()
     await getOperations()
     loadingOverlay.value = false
+    modalMeta.value.isDeleteModalOpen = false
   }
   
 };
@@ -321,6 +322,7 @@ const modalMeta = ref({
   modalDescription: "View Parts Listing",
   isSkillModalOpen: false,
   isStepInformationModalOpen: false,
+  isDeleteModalOpen: false
 });
 
 const handleStepCreate = () => {
@@ -592,7 +594,7 @@ else propertiesInit();
                 base: 'w-full',
                 truncate: 'flex justify-center w-full',
               }"
-              @click="handleDeleteClick"
+              @click="modalMeta.isDeleteModalOpen = true"
               truncate
             />
           </div>
@@ -865,6 +867,38 @@ else propertiesInit();
       @change="getOperationSteps"
       :is-modal="true"
     />
+  </UDashboardModal>
+
+  <!-- Delete Confirmation Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isDeleteModalOpen"
+    title="Delete operation"
+    description="Are you sure you wish to delete this entire operatin?"
+    icon="i-heroicons-exclamation-circle"
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+      footer: {
+        base: 'ml-16'
+      } as any
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="red"
+        label="Delete"
+        :loading="loadingOverlay"
+        @click="handleDeleteClick"
+      />
+      <UButton
+        color="white"
+        label="Cancel"
+        @click="modalMeta.isDeleteModalOpen = false"
+      />
+    </template>
   </UDashboardModal>
 
 </template>
