@@ -17,6 +17,17 @@ const props = defineProps({
         default: true,
     },
 });
+const partsData = ref('');
+const handleUpdateData = (data) => {
+    formData.PART = data
+    modalMeta.value.isPartsModalOpen = false
+}
+// watch(partsData, (newVal) => {
+//   console.log(newVal, "newVal")
+//   modalMeta.value.isPartsModalOpen = false
+//   // Example of how you might use the data
+//   // formData.PART = newVal
+// })
 const toast = useToast();
 const loadingOverlay = ref(false);
 const productLines = ref([]);
@@ -647,13 +658,13 @@ else propertiesInit();
                             </UFormGroup>
                         </div>
                     </div>
-                    <div class="flex flex-row space-x-2">
+                    <div class="flex flex-row space-x-2 justify-start">
                         <div class="flex-1">
-                            <UFormGroup label="How Was Problem Diagnosed?">
-                                <UInput v-model="formData.PROBLEMDIAG" />
+                            <UFormGroup label="Problem Part(s)">
+                                <UInput v-model="formData.PART" />
                             </UFormGroup>
                         </div>
-                        <div class="min-w-[150px]">
+                        <div class="flex-1 mt-6">
                             <UFormGroup label="">
                                 <UButton color="gray" variant="outline" label="Find Part" @click="onChangePart" />
                             </UFormGroup>
@@ -829,7 +840,7 @@ else propertiesInit();
     <!-- Parts Modal -->
 
     <UDashboardModal
-        v-model="modalMeta.isConfirmRemoveModalOpen"
+        v-model="modalMeta.isPartsModalOpen"
         title="Confirm Remove CAPA"
         :ui="{
             title: 'text-lg',
@@ -838,8 +849,8 @@ else propertiesInit();
                 padding: 'pt-5 sm:px-9',
             },
             body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-            width: 'w-[400px] sm:max-w-9xl',
+            width: 'w-[1200px] sm:max-w-9xl',
         }">
-        <PartsComponent />
+        <PartsComponent @updateData="handleUpdateData" />
     </UDashboardModal>
 </template>
