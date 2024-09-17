@@ -350,7 +350,7 @@ const handleComplaintFilterChange = async (event, name) => {
 };
 const onCapaSelect = async (row) => {
     capaGridMeta.value.selectedCapa = { ...row, class: "" };
-    emit('onCapaSelect', row?.uniqueID)
+    // emit('onCapaSelect', row?.uniqueID)
     capaGridMeta.value.capas.forEach((capa) => {
         if (capa.uniqueID === row.uniqueID) {
             capa.class = "bg-gray-200";
@@ -365,6 +365,10 @@ const onCapaSelect = async (row) => {
     await fetchCapaDetails();
     await fetchComplaints();
     await fetchInvestigations();
+};
+
+const handleSelect = () => {
+    emit("link", capaGridMeta.value.selectedCapa?.uniqueID);
 };
 
 // const onCapaSelect = (row) => {
@@ -879,6 +883,7 @@ conformity & effectiveness including confirmation that there is no adverse affec
                         label="Select"
                         variant="outline"
                         :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
+                        @click="handleSelect"
                         truncate />
                 </div>
             </div>
