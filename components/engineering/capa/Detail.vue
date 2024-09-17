@@ -876,13 +876,14 @@ conformity & effectiveness including confirmation that there is no adverse affec
                     </div>
                 </div>
             </div>
-            <div class="basis-1/3 flex justify-end">
+            <div v-if="!props.isPage" class="basis-1/3 flex justify-end">
                 <div class="min-w-[150px]">
                     <UButton
                         icon="i-heroicons-cursor-arrow-ripple"
                         label="Select"
                         variant="outline"
                         :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
+                        :disabled="formData.uniqueID ? false : true"
                         @click="handleSelect"
                         truncate />
                 </div>
