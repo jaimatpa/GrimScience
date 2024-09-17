@@ -10,7 +10,7 @@ const emit = defineEmits(["close", "link"]);
 const props = defineProps({
     selectedCapa: {
         type: [Number, String, null],
-        required: true,
+        required: false,
     },
     isPage: {
         type: Boolean,
