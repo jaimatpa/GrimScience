@@ -294,7 +294,7 @@ const emit = defineEmits()
 
 const onSelect = async (row) => {
   console.log("row is in there", row);
-  emit('updateData', row?.UniqueID)
+  emit('onPartSelect', row?.UniqueID)
   gridMeta.value.selectedCustomerId = row?.UniqueID;
   gridMeta.value.selectedPartInstanceId=row?.instanceID;
   gridMeta.value.selectedPartModdel=row?.MODEL;
