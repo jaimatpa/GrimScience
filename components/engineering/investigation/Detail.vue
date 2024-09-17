@@ -16,6 +16,12 @@ const props = defineProps({
         default: true,
     },
 });
+
+const handleSelectedCapa = (data) => {
+    formData.PART = data;
+    modalMeta.value.isPartsModalOpen = false;
+};
+
 const toast = useToast();
 const loadingOverlay = ref(false);
 const productLines = ref([]);
@@ -180,7 +186,7 @@ const typeOfServiceInfo = ref({
 });
 const modalMeta = ref({
     isConfirmRemoveModalOpen: false,
-    isInventoryTransactionModalOpen: false,
+    isCapaModalOpen: false,
     isInvoiceModalOpen: false,
     isInvoiceListModalOpen: false,
 });
@@ -882,5 +888,22 @@ else propertiesInit();
                 </div>
             </div>
         </div>
+    </UDashboardModal>
+
+    <!-- CAPA Modal -->
+
+    <UDashboardModal
+        v-model="modalMeta.isCapaModalOpen"
+        title="Confirm Remove CAPA"
+        :ui="{
+            title: 'text-lg',
+            header: {
+                base: 'flex flex-row min-h-[0] items-center bg-white',
+                padding: 'pt-5 sm:px-9',
+            },
+            body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+            width: 'w-[1200px] sm:max-w-9xl',
+        }">
+        <EngineeringCapaDetail :isPage="false" link="handleSelectedCapa" />
     </UDashboardModal>
 </template>
