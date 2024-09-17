@@ -17,33 +17,33 @@ const props = defineProps({
         default: true,
     },
 });
-const partsData = ref('');
-const handleUpdateData = (data) => {
-    formData.PART = data
-    modalMeta.value.isPartsModalOpen = false
-}
-// watch(partsData, (newVal) => {
-//   console.log(newVal, "newVal")
-//   modalMeta.value.isPartsModalOpen = false
-//   // Example of how you might use the data
-//   // formData.PART = newVal
-// })
+const handleSelectedPart = (data) => {
+    formData.PART = data;
+    modalMeta.value.isPartsModalOpen = false;
+};
+
 const toast = useToast();
 const loadingOverlay = ref(false);
 const productLines = ref([]);
 const employees = ref([]);
+const workCenters = ref([]);
+const noNeedValidationsChecked = ref(false);
+const permissionEnabled = ref(false);
 const formData = reactive({
     uniqueID: null,
     PANO: null,
     PRODLINE: null,
     DIAGDATE: null,
+    ACTIONTYPE: null,
     DESCRIPTION: null,
     PROBLEMDESC: null,
     DIAGBY: null,
     PROBLEMDIAG: null,
     PART: null,
+    VENDOR: null,
+    WORKCENTERS: null,
     PREVENTPROB: null,
-    PROBLEMDIAG: null,
+    ECO: null,
     Status: "Open",
     IMPLEMENTBY: null,
     IMPLEMENTDATE: null,
@@ -53,19 +53,25 @@ const investigationGridMeta = ref({
         {
             key: "PANO",
             label: "#",
-            filterable: true,
+            filterable: false,
         },
         {
             key: "PRODLINE",
             label: "Product Line",
-            filterable: true,
+            filterable: false,
             filterOptions: [],
         },
         {
             key: "DIAGDATE",
             label: "Date",
-            filterable: true,
+            filterable: false,
         },
+        {
+            key: "DESCRIPTION",
+            label: "Description",
+            filterable: false,
+        },
+
     ],
     investigations: [],
     selectedInvestigation: null,
@@ -84,15 +90,11 @@ const complaintGridMeta = ref({
             filterable: true,
         },
         {
-            key: "COMPLAINTNUMBER",
-            label: "Complaint#",
+            key: "CUSTOMERNUMBER",
+            label: "Customer#",
             filterable: true,
         },
-        {
-            key: "Shipdate",
-            label: "Ship Date",
-            filterable: false,
-        },
+
     ],
     complaints: [],
     selectedComplaint: null,
@@ -134,12 +136,19 @@ const capaGridMeta = ref({
 const modalMeta = ref({
     isConfirmRemoveModalOpen: false,
     isPartsModalOpen: false,
-    isInvoiceModalOpen: false,
-    isInvoiceListModalOpen: false,
+    isVendorModalOpen: false,
+    isEcoModalOpen: false,
 });
 const statusGroup = ref([
     { value: "Open", label: "Open" },
     { value: "Closed", label: "Closed" },
+]);
+const actionTypes = ref([
+    { value: "", label: "" },
+    { value: "Corrective", label: "Corrective" },
+    { value: "Preventative", label: "Preventative" },
+    { value: "Repair", label: "Repair" },
+
 ]);
 const selectedStatus = ref("open");
 const filterValues = ref({
@@ -155,8 +164,7 @@ const filterValues = ref({
 const complaintsFilterValues = ref({
     COMPLAINTDATE: null,
     SERIALNO: null,
-    COMPLAINTNUMBER: null,
-    Shipdate: null,
+    CUSTOMERNUMBER: null,
 });
 
 const editInit = async () => {
@@ -165,11 +173,32 @@ const editInit = async () => {
 };
 const propertiesInit = async () => {
     loadingOverlay.value = true;
+    await getPermission();
     await fetchCapaList();
-    await fetchInvestigationProductLines();
+    await fetchProductLines();
     await fetchEmployees();
+    await fetchWorkCenters();
     loadingOverlay.value = false;
 };
+
+const getPermission = async () => {
+    await useApiFetch(`/api/engineering/capa/permissions`, {
+        method: "GET",
+        onResponse({ response }) {
+            if (response.status === 200) {
+                const data = response._data.body;
+                if (data?.enabled === true) {
+                    permissionEnabled.value = true;
+                }
+                else {
+                    permissionEnabled.value = false;
+                }
+                console.log(permissionEnabled);
+            }
+        },
+    });
+};
+
 const fetchCapaList = async () => {
     await useApiFetch(`/api/engineering/capa`, {
         method: "GET",
@@ -224,7 +253,7 @@ const onInvestigationCreate = async () => {
     });
 };
 
-const fetchInvestigationProductLines = async () => {
+const fetchProductLines = async () => {
     await useApiFetch(`/api/engineering/investigations/productlines`, {
         method: "GET",
         onResponse({ response }) {
@@ -253,21 +282,21 @@ const fetchCapaDetails = async () => {
             if (response.status === 200) {
                 capaGridMeta.value.selectedCapa = response._data.body;
 
-                // Object.keys(formData).forEach((key) => {
-                //     const value = formData[key];
-                //     formData[key] = response._data.body[key];
-                // });
+                Object.keys(formData).forEach((key) => {
+                    const value = formData[key];
+                    formData[key] = response._data.body[key];
+                });
             }
         },
     });
 };
 
 const fetchComplaints = async () => {
-    await useApiFetch(`/api/engineering/investigations/complaints`, {
+    await useApiFetch(`/api/engineering/capa/complaints`, {
         method: "GET",
         params: {
             ...complaintsFilterValues.value,
-            investigationID: investigationGridMeta.value.selectedInvestigation?.uniqueID,
+            capaId: capaGridMeta.value.selectedCapa?.uniqueID,
         },
         onResponse({ response }) {
             if (response.status === 200) {
@@ -277,35 +306,26 @@ const fetchComplaints = async () => {
     });
 };
 
-const fetchCapas = async () => {
-    await useApiFetch(`/api/engineering/investigations/capas`, {
+const fetchInvestigations = async () => {
+    await useApiFetch(`/api/engineering/capa/investigations`, {
         method: "GET",
         params: {
-            investigationID: investigationGridMeta.value.selectedInvestigation?.uniqueID,
+            PreventiveActionID: capaGridMeta.value.selectedCapa?.uniqueID,
         },
         onResponse({ response }) {
             if (response.status === 200) {
-                capaGridMeta.value.capas = response._data.body;
+                investigationGridMeta.value.investigations = response._data.body;
             }
         },
     });
 };
 
-const removeCapa = async () => {
-    await useApiFetch(`/api/engineering/investigations/capas`, {
-        method: "DELETE",
-        params: {
-            investigationID: parseInt(investigationGridMeta.value.selectedInvestigation?.uniqueID),
-            uid: parseInt(capaGridMeta.value.selectedCapa?.uniqueID),
-        },
+const fetchWorkCenters = async () => {
+    await useApiFetch(`/api/engineering/capa/workcenters`, {
+        method: "GET",
         onResponse({ response }) {
             if (response.status === 200) {
-                modalMeta.value.isConfirmRemoveModalOpen = false;
-                capaGridMeta.value.selectedCapa = null;
-                capaGridMeta.value.capas.forEach((capa) => {
-                    delete capa.class;
-                });
-                fetchCapas();
+                workCenters.value = response._data.body;
             }
         },
     });
@@ -330,6 +350,7 @@ const handleComplaintFilterChange = async (event, name) => {
 };
 const onCapaSelect = async (row) => {
     capaGridMeta.value.selectedCapa = { ...row, class: "" };
+    emit('onCapaSelect', row?.uniqueID)
     capaGridMeta.value.capas.forEach((capa) => {
         if (capa.uniqueID === row.uniqueID) {
             capa.class = "bg-gray-200";
@@ -341,13 +362,9 @@ const onCapaSelect = async (row) => {
     investigationGridMeta.value.selectedInvestigation = null;
     complaintGridMeta.value.selectedComplaint = null;
 
-    fetchCapaDetails();
-    // fetchComplaints();
-    // fetchCapas();
-};
-const onInvestigationDblclick = () => {
-    emit("link", investigationGridMeta.value.selectedInvestigation?.uniqueID);
-    emit("close");
+    await fetchCapaDetails();
+    await fetchComplaints();
+    await fetchInvestigations();
 };
 
 // const onCapaSelect = (row) => {
@@ -361,24 +378,32 @@ const onInvestigationDblclick = () => {
 //     });
 // };
 
-const onChangePart = () => {
-    // reset customer filter values
-    // customerFilterValues.value = {
-    //     market: null,
-    //     source: null,
-    //     ParadynamixCatagory: null,
-    //     SourceConfrence: null,
-    //     number: null,
-    //     fname: null,
-    //     lname: null,
-    //     company1: null,
-    //     homephone: null,
-    //     workphone: null,
-    //     state: null,
-    //     zip: null,
-    // };
+const onWorkcenterChange = (index) => {
 
-    // getCustomers();
+    //for workCenter length add 0 for each index in formData.WORKCENTERS string
+    if(formData.WORKCENTERS === null){
+        formData.WORKCENTERS = "0".repeat(workCenters.value.length);
+    }
+    else if (formData.WORKCENTERS.length < workCenters.value.length) {
+        formData.WORKCENTERS = formData.WORKCENTERS.padEnd(workCenters.value.length, "0");
+    }
+
+    //for each checked checkbox, set the corresponding index to 1
+
+    //break the string into an array of characters then chenge the index of the checked checkbox to 1 and join the array back to a string
+    const workCentersArray = formData.WORKCENTERS.split("");
+    workCentersArray[index] = "1";
+    formData.WORKCENTERS = workCentersArray.join("");
+};
+
+const setWorkCenterChecked = (index) => {
+    if (formData.WORKCENTERS === null) {
+        return false;
+    }
+    return formData.WORKCENTERS[index] === "1";
+};
+
+const onChangePart = () => {
     modalMeta.value.isPartsModalOpen = true;
 };
 
@@ -405,9 +430,6 @@ const onClear = () => {
     capaGridMeta.value.selectedCapa = null;
 };
 
-const previewReport = () => {
-    window.open(`/api/engineering/investigations/previewreport/${investigationGridMeta.value.selectedInvestigation?.uniqueID}`);
-};
 
 async function onSubmit(event: FormSubmitEvent<any>) {
     console.log("submitting");
@@ -502,7 +524,7 @@ else propertiesInit();
                         }"
                         :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
                         @select="onCapaSelect"
-                        @dblclick="onInvestigationDblclick">
+                        @dblclick="">
                         <template v-for="column in capaGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
                             <template v-if="column.kind !== 'actions'">
                                 <template v-if="column.key === 'PRODLINE'">
@@ -549,7 +571,7 @@ else propertiesInit();
                         <UTable
                             :rows="complaintGridMeta.complaints"
                             :columns="complaintGridMeta.defaultColumns"
-                            class="w-full"
+                            class="w-[400px] overflow-y-auto"
                             :ui="{
                                 wrapper: 'overflow-auto h-60 border-2 border-gray-300 dark:border-gray-700',
                                 divide: 'divide-gray-200 dark:divide-gray-800',
@@ -633,6 +655,11 @@ else propertiesInit();
                                 </UPopover>
                             </UFormGroup>
                         </div>
+                        <div class="min-w-[150px]">
+                            <UFormGroup label="Type">
+                                <USelect v-model="formData.ACTIONTYPE" :options="actionTypes" />
+                            </UFormGroup>
+                        </div>
                         <div class="flex-1">
                             <UFormGroup label="Description">
                                 <UInput v-model="formData.DESCRIPTION" />
@@ -671,18 +698,47 @@ else propertiesInit();
                         </div>
                     </div>
 
-
-
-
-                    <div class="w-full">
-                        <UFormGroup label="Investigation(Use the 5 Whys Method at a minium)">
-                            <UTextarea v-model="formData.PREVENTPROB" :rows="6" />
-                        </UFormGroup>
+                    <div class="flex flex-row space-x-2 justify-start">
+                        <div class="flex-1">
+                            <UFormGroup label="Problem Vendor">
+                                <UInput v-model="formData.VENDOR" />
+                            </UFormGroup>
+                        </div>
+                        <div class="flex-1 mt-6">
+                            <UFormGroup label="">
+                                <UButton color="gray" variant="outline" label="Find Vendor" @click="onChangePart" />
+                            </UFormGroup>
+                        </div>
+                        <div class="mt-6 font-semibold">Implement to Correct/Prevent Problem</div>
                     </div>
-                    <div class="w-full">
-                        <UFormGroup label="Root Cause">
-                            <UInput v-model="formData.PROBLEMDIAG" />
-                        </UFormGroup>
+
+                    <div class="flex flex-row space-x-2">
+                        <div class="flex-1 min-w-[200px] h-[150px] overflow-auto">
+                            <!-- Create checkbox for each item in workcenters string array -->
+                            <UFormGroup label="Problem Work">
+                                <div v-for="(workCenter, index) in workCenters" :key="index">
+                                    <input class="me-2" type="checkbox" :id="'workcenter-' + index" :value="workCenter" :checked="setWorkCenterChecked(index)" @change="onWorkcenterChange(index)" />
+                                    <label :for="'workcenter-' + index">{{ workCenter }}</label>
+                                </div>
+                            </UFormGroup>
+                        </div>
+                        <div class="flex-1">
+                            <UFormGroup label="Description">
+                                <UTextarea v-model="formData.PREVENTPROB" :rows="6" />
+                            </UFormGroup>
+                        </div>
+                    </div>
+                    <div class="flex flex-row space-x-2 justify-start">
+                        <div class="flex-1">
+                            <UFormGroup label="Engineering Changes">
+                                <UInput v-model="formData.ECO" />
+                            </UFormGroup>
+                        </div>
+                        <div class="flex-1 mt-6">
+                            <UFormGroup label="">
+                                <UButton color="gray" variant="outline" label="Find ECO" @click="onChangePart" />
+                            </UFormGroup>
+                        </div>
                     </div>
                     <div class="flex justify-between pt-4">
                         <div class="flex flex-row gap-5 p-2 border-[1px] border-slate-200">
@@ -715,6 +771,18 @@ else propertiesInit();
                             </div>
                         </div>
                     </div>
+                    <div class="flex flex-row space-x-2">
+                        <div class="w-full">
+                            <UFormGroup label="">
+                                <div>
+                                    <input class="me-2" type="checkbox" id="noNeedValidqationsChk" :value="noNeedValidationsChecked" :checked="noNeedValidationsChecked"  />
+                                    <label for="noNeedValidqationsChk">Verification & Validation - Not Required because product has been 100% and inspected for specification
+conformity & effectiveness including confirmation that there is no adverse affect on the finished device.</label>
+                                </div>
+                                <div class="mt-2 text-gray-400">If box is unchecked above then Validation and/or Verification is requried. See SOP 10.1</div>
+                            </UFormGroup>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="basis-1/3 flex flex-col">
@@ -724,9 +792,9 @@ else propertiesInit();
                         <UTable
                             :rows="investigationGridMeta.investigations"
                             :columns="investigationGridMeta.defaultColumns"
-                            class="w-full"
+                            class="w-[400px] overflow-y-auto"
                             :ui="{
-                                wrapper: 'overflow-auto h-[370px] border-2 border-gray-300 dark:border-gray-700',
+                                wrapper: 'overflow-auto h-[570px] border-2 border-gray-300 dark:border-gray-700',
                                 divide: 'divide-gray-200 dark:divide-gray-800',
                                 tr: {
                                     active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
@@ -742,7 +810,7 @@ else propertiesInit();
                                 },
                             }"
                             :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-                            @select="onCapaSelect">
+                            @select="">
                             <template v-for="column in investigationGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
                                 <template>
                                     <div class="min-w-[160px]">
@@ -763,34 +831,13 @@ else propertiesInit();
                             </template>
                         </UTable>
                     </div>
-                    <div class="flex flex-row space-x-2">
-                        <div class="w-full">
-                            <UButton label="Add CAPA" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
-                        </div>
-                        <div class="w-full">
-                            <UButton
-                                label="Remove CAPA"
-                                :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-                                :disabled="capaGridMeta.selectedCapa ? false : true"
-                                @click="modalMeta.isConfirmRemoveModalOpen = true"
-                                truncate />
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
         <div class="flex justify-between px-3 py-2">
             <div class="basis-2/3">
                 <div class="flex flex-row space-x-10">
-                    <div class="min-w-[150px]">
-                        <UButton
-                            icon="i-heroicons-eye"
-                            label="Preview Report"
-                            variant="outline"
-                            :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
-                            @click="previewReport"
-                            truncate />
-                    </div>
                     <div class="min-w-[100px]">
                         <UButton
                             icon="i-heroicons-plus"
@@ -799,7 +846,7 @@ else propertiesInit();
                             variant="outline"
                             type="submit"
                             :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
-                            :disabled="formData.uniqueID ? true : false"
+                            :disabled="formData.uniqueID || permissionEnabled == false ? true : false"
                             truncate />
                     </div>
                     <div class="min-w-[150px]">
@@ -809,7 +856,7 @@ else propertiesInit();
                             variant="outline"
                             type="submit"
                             :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
-                            :disabled="formData.uniqueID ? false : true"
+                            :disabled="formData.uniqueID && permissionEnabled == true ? false : true"
                             truncate />
                     </div>
                     <div class="min-w-[150px]">
@@ -820,6 +867,7 @@ else propertiesInit();
                             variant="outline"
                             :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
                             @click="onClear"
+                            :disabled="!permissionEnabled"
                             truncate />
                     </div>
                 </div>
@@ -851,6 +899,6 @@ else propertiesInit();
             body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
             width: 'w-[1200px] sm:max-w-9xl',
         }">
-        <PartsComponent @updateData="handleUpdateData" />
+        <PartsComponent @onPartSelect="handleSelectedPart" />
     </UDashboardModal>
 </template>
