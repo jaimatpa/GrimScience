@@ -1,4 +1,4 @@
-import { getInvestigations, createInvestigation, updateInvestigation } from '~/server/controller/engineering'
+import { getInvestigations, createInvestigation, updateInvestigation } from '~/server/controller/engineering/Investigations'
 
 export default eventHandler(async (event) => {
   try {
