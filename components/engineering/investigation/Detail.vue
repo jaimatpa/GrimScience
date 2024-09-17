@@ -18,8 +18,8 @@ const props = defineProps({
 });
 
 const handleSelectedCapa = (data) => {
-    formData.PART = data;
-    modalMeta.value.isPartsModalOpen = false;
+    // formData.PART = data;
+    modalMeta.value.isCapaModalOpen = false;
 };
 
 const toast = useToast();
@@ -120,83 +120,14 @@ const capaGridMeta = ref({
     selectedCapa: null,
     isLoading: false,
 });
-const serialGridMeta = ref({
-    defaultColumns: <UTableColumn[]>[
-        {
-            key: "serial",
-            label: "Serial",
-        },
-    ],
-    serials: [],
-    selectedSerial: null,
-    isLoading: false,
-});
-const invoiceGridMeta = ref({
-    defaultColumns: <UTableColumn[]>[
-        {
-            key: "orderdate",
-            label: "Date",
-        },
-        {
-            key: "invoicenumber",
-            label: "Invoice#",
-        },
-        {
-            key: "terms",
-            label: "Terms",
-        },
-    ],
-    invoices: [],
-    selectedInvoice: null,
-    isLoading: false,
-});
-const serviceReportGridMeta = ref({
-    defaultColumns: <UTableColumn[]>[
-        {
-            key: "REPAIRDATE",
-            label: "Date",
-        },
-        {
-            key: "REPAIRDESC",
-            label: "Type",
-        },
-        {
-            key: "REPAIRSBY",
-            label: "By",
-        },
-    ],
-    serviceReports: [],
-    selectedServiceReport: null,
-    isLoading: false,
-});
 
-const serviceOrderInfo = ref({
-    COMPLAINTNUMBER: null,
-    COMPLAINTDATE: null,
-    RECBY: null,
-    RECBYOptions: [],
-    SERIALNO: null,
-    COMPLAINT: null,
-    PRODUCTDESC: null,
-});
-const typeOfServiceInfo = ref({
-    reason: null,
-    failure: null,
-    reasonOptions: [],
-});
 const modalMeta = ref({
     isConfirmRemoveModalOpen: false,
     isCapaModalOpen: false,
     isInvoiceModalOpen: false,
     isInvoiceListModalOpen: false,
 });
-const selectedServiceReportID = ref(null);
-const date = ref(new Date());
-const statusGroup = ref([
-    { value: "Open", label: "Open" },
-    { value: "Closed", label: "Closed" },
-]);
-const selectedStatus = ref("open");
+
 const filterValues = ref({
     uniqueID: null,
     PRODLINE: null,
@@ -779,7 +710,7 @@ else propertiesInit();
                     </div>
                     <div class="flex flex-row space-x-2">
                         <div class="w-full">
-                            <UButton label="Add CAPA" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+                            <UButton label="Add CAPA" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" :disabled="investigationGridMeta.selectedInvestigation ? false : true" @click="()=>modalMeta.isCapaModalOpen = true" truncate />
                         </div>
                         <div class="w-full">
                             <UButton
@@ -902,7 +833,7 @@ else propertiesInit();
                 padding: 'pt-5 sm:px-9',
             },
             body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-            width: 'w-[1200px] sm:max-w-9xl',
+            width: 'w-[1400px] overflow-y-auto sm:max-w-9xl',
         }">
         <EngineeringCapaDetail :isPage="false" link="handleSelectedCapa" />
     </UDashboardModal>
