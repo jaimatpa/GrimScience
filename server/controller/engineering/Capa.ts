@@ -1,6 +1,22 @@
 import { Sequelize, Op, QueryTypes } from 'sequelize'
-import { tblPermissions, tblPreventiveActions, tblWorkCenters } from '~/server/models'
+import { tblBP, tblEmployee, tblPermissions, tblPreventiveActions, tblWorkCenters } from '~/server/models'
 import sequelize from '~/server/utils/databse'
+
+const formatDate = (dateString) => {
+  // const date = new Date(dateString);
+  // return date.toISOString(); // Converts date to ISO 8601 format
+
+  const date = new Date(dateString)
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0') // Months are zero-indexed
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  const hours = String(date.getUTCHours()).padStart(2, '0')
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0')
+
+  // Format as YYYY-MM-DD HH:MM:SS
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
 
 export const applyPermissions = async (employeeId) => {
   console.log('Employee ID:', employeeId)
@@ -103,6 +119,133 @@ export const getCapaDetail = async (id) => {
 
   console.log('capaDetail', capaDetail)
   return capaDetail
+}
+
+export const createCapa = async (data) => {
+  try {
+    // Step 1: Check if a Preventive Action already exists with the same description
+    console.log('Check if a Preventive Action already exists with the same description:')
+    const existingCapa = await tblPreventiveActions.findOne({
+      where: { DESCRIPTION: data.DESCRIPTION }
+    })
+
+    if (existingCapa) {
+      return {
+        message: 'There is another action that already has this description. Please change your description and try adding it again.',
+        messageType: 'error'
+      }
+    }
+
+    console.log('Generate max id:')
+
+    // Step 2: Get the max uniqueID and generate a new one
+    const maxUniqueIdResult = await tblPreventiveActions.findOne({
+      attributes: [[sequelize.fn('MAX', sequelize.col('uniqueID')), 'maxUniqueID']],
+      group: ['uniqueID'],
+      order: [['uniqueID', 'DESC']]
+    })
+
+    const newUniqueId = parseInt(maxUniqueIdResult?.dataValues?.maxUniqueID || 0) + 1
+
+    // Step 3: Prepare data for the new Preventive Action
+    data.DIAGDATE = formatDate(data.DIAGDATE)
+    data.IMPLEMENTDATE = formatDate(data.IMPLEMENTDATE)
+
+    const newCapaData = {
+      ...data,
+      PANO: newUniqueId,
+      uniqueID: newUniqueId
+    }
+
+    console.log('New Preventive Action:', newCapaData)
+
+    // Step 4: Insert new Preventive Action
+    const query = `
+      INSERT INTO tblPreventiveActions
+      (PANO, PRODLINE, DIAGDATE, ACTIONTYPE, DESCRIPTION, PROBLEMDESC, DIAGBY, PROBLEMDIAG, PART, VENDOR, WORKCENTERS, PREVENTPROB, ECO, Status, IMPLEMENTBY, IMPLEMENTDATE)
+      VALUES
+      (${newCapaData.PANO}, '${newCapaData.PRODLINE}', '${newCapaData.DIAGDATE}', '${newCapaData.ACTIONTYPE}', '${newCapaData.DESCRIPTION}', '${newCapaData.PROBLEMDESC}', '${newCapaData.DIAGBY}', '${newCapaData.PROBLEMDIAG}', '${newCapaData.PART}', '${newCapaData.VENDOR}', '${newCapaData.WORKCENTERS}', '${newCapaData.PREVENTPROB}', '${newCapaData.ECO}', '${newCapaData.Status}', '${newCapaData.IMPLEMENTBY}', '${newCapaData.IMPLEMENTDATE}');
+    `
+
+    const newCapa = await sequelize.query(query)
+
+    return {
+      message: 'Preventive Action created successfully',
+      messageType: 'success',
+      capa: newCapa
+    }
+  } catch (error) {
+    console.error('Error creating Preventive Action: ', error)
+    throw new Error('Failed to create Preventive Action')
+  }
+}
+
+export const updateCapa = async (data) => {
+  try {
+    // Step 1: Check if an investigation already exists with the same description
+    console.log('Check if an investigation already exists with the same description:')
+    const existingCapa = await tblPreventiveActions.findOne({
+      where: { DESCRIPTION: data.DESCRIPTION, uniqueID: { [Op.ne]: data.uniqueID } }
+    })
+
+    if (existingCapa) {
+      // throw new Error('There is another action that already has this description. Please change your description and try adding it again.')
+      return {
+        message: 'There is another action that already has this description. Please change your description and try adding it again.',
+        messageType: 'error'
+      }
+    }
+
+    // Step 2: Fetch the investigation by uniqueID
+    const uniqueID = data.uniqueID
+    const capa = await tblPreventiveActions.findByPk(uniqueID)
+
+    if (!capa) {
+      // throw new Error("Investigation not found");
+      return {
+        message: 'Capa not found',
+        messageType: 'error'
+      }
+    }
+
+    // Format the date fields
+    if (data.DIAGDATE) data.DIAGDATE = formatDate(data.DIAGDATE)
+    if (data.IMPLEMENTDATE) data.IMPLEMENTDATE = formatDate(data.IMPLEMENTDATE)
+
+    // Prepare raw SQL query for updating
+    const updateFields = []
+    const replacements = { uniqueID }
+
+    // Add each field from data that should be updated
+    Object.keys(data).forEach((key) => {
+      if (key !== 'uniqueID' && data[key] !== undefined && data[key] !== null) {
+        updateFields.push(`${key} = :${key}`)
+        replacements[key] = data[key]
+      }
+    })
+
+    // Generate the SQL query string
+    const sqlQuery = `
+      UPDATE tblPreventiveActions 
+      SET ${updateFields.join(', ')}
+      WHERE uniqueID = :uniqueID;
+    `
+
+    // Execute the raw SQL query
+    await sequelize.query(sqlQuery, {
+      replacements,
+      type: QueryTypes.UPDATE
+    })
+
+    return {
+      message: 'Preventive Action updated successfully',
+      messageType: 'success',
+      investigation: data
+    }
+  } catch (error) {
+    console.error('Error updating Preventive Action:', error)
+    throw new Error('Failed to update Preventive Action')
+  }
 }
 
 export const getCapaComplaints = async (params) => {
@@ -213,4 +356,47 @@ export const getWorkCenters = async () => {
   return workCenters.map((workCenter) => {
     return `#${workCenter.NUMBER} ${workCenter.NAME}`
   })
+}
+
+export const getCapaProductLines = async () => {
+  const distinctProductInfos = await tblBP.findAll({
+    attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('PRODUCTLINE')), 'PRODUCTLINE']],
+    where: {
+      [Op.and]: [{ PRODUCTLINE: { [Op.ne]: null } }, { PRODUCTLINE: { [Op.ne]: '' } }, { productflag: true }]
+    },
+    order: [['PRODUCTLINE', 'ASC']]
+  })
+
+  const productLineValues = distinctProductInfos.map(result => result.get('PRODUCTLINE'))
+
+  return productLineValues
+}
+
+export const getCapaEmployees = async () => {
+  try {
+    const distinctEmployeeNames = await tblEmployee.findAll({
+      attributes: ['fname', 'lname'],
+      where: {
+        Active: 1
+      },
+      group: ['fname', 'lname'], // Ensure unique combinations
+      order: [
+        ['lname', 'ASC'],
+        ['fname', 'ASC']
+      ],
+      raw: true
+    })
+
+    // Process the results and concatenate fname and lname
+    const employeeNames = distinctEmployeeNames.map((result) => {
+      const fname = result.fname || ''
+      const lname = result.lname || ''
+      return `${fname} ${lname}`.trim() // Concatenate and trim to handle any extra spaces
+    })
+
+    return employeeNames
+  } catch (error) {
+    console.error('Error fetching data from table:', error)
+    throw error
+  }
 }

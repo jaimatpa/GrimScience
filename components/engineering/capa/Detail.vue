@@ -150,7 +150,7 @@ const actionTypes = ref([
     { value: "Repair", label: "Repair" },
 
 ]);
-const selectedStatus = ref("open");
+// const selectedStatus = ref("open");
 const filterValues = ref({
     PANO: null,
     PRODLINE: null,
@@ -213,8 +213,8 @@ const fetchCapaList = async () => {
     });
 };
 
-const onInvestigationCreate = async () => {
-    await useApiFetch(`/api/engineering/investigations`, {
+const onCapaCreate = async () => {
+    await useApiFetch(`/api/engineering/capa`, {
         method: "POST",
         body: formData,
         onResponse({ response }) {
@@ -254,7 +254,7 @@ const onInvestigationCreate = async () => {
 };
 
 const fetchProductLines = async () => {
-    await useApiFetch(`/api/engineering/investigations/productlines`, {
+    await useApiFetch(`/api/engineering/capa/productlines`, {
         method: "GET",
         onResponse({ response }) {
             if (response.status === 200) {
@@ -265,7 +265,7 @@ const fetchProductLines = async () => {
 };
 
 const fetchEmployees = async () => {
-    await useApiFetch(`/api/engineering/investigations/employees`, {
+    await useApiFetch(`/api/engineering/capa/employees`, {
         method: "GET",
         onResponse({ response }) {
             if (response.status === 200) {
@@ -414,6 +414,13 @@ const onChangePart = () => {
 const validate = (state: any): FormError[] => {
     const errors = [];
 
+    if (!state.PRODLINE) {
+        errors.push({
+            path: "PRODLINE",
+            message: "Product Line is required",
+        });
+    }
+
     return errors;
 };
 
@@ -424,22 +431,22 @@ const onClear = () => {
         formData.Status = "Open";
     });
 
-    investigationGridMeta.value.investigations.forEach((investigation) => {
-        delete investigation.class;
+    capaGridMeta.value.capas.forEach((capa) => {
+        delete capa.class;
     });
 
     complaintGridMeta.value.complaints = [];
     complaintGridMeta.value.selectedComplaint = null;
-    capaGridMeta.value.capas = [];
-    capaGridMeta.value.selectedCapa = null;
+    investigationGridMeta.value.investigations = [];
+    investigationGridMeta.value.selectedInvestigation = null;
 };
 
 
 async function onSubmit(event: FormSubmitEvent<any>) {
     console.log("submitting");
-    if (investigationGridMeta.value.selectedInvestigation) {
+    if (capaGridMeta.value.selectedCapa) {
         console.log("attempting to update");
-        await useApiFetch(`/api/engineering/investigations`, {
+        await useApiFetch(`/api/engineering/capa`, {
             method: "PUT",
             body: formData,
             onResponse({ response }) {
@@ -475,7 +482,7 @@ async function onSubmit(event: FormSubmitEvent<any>) {
         });
     } else {
         console.log("attempting to create");
-        await onInvestigationCreate();
+        await onCapaCreate();
     }
 
     await fetchCapaList();
@@ -640,7 +647,7 @@ else propertiesInit();
                             </UFormGroup>
                         </div>
                         <div class="min-w-[150px]">
-                            <UFormGroup label="Product Line">
+                            <UFormGroup label="Product Line" name="PRODLINE">
                                 <USelect v-model="formData.PRODLINE" :options="productLines" />
                             </UFormGroup>
                         </div>
@@ -710,7 +717,7 @@ else propertiesInit();
                         </div>
                         <div class="flex-1 mt-6">
                             <UFormGroup label="">
-                                <UButton color="gray" variant="outline" label="Find Vendor" @click="onChangePart" />
+                                <UButton color="gray" variant="outline" label="Find Vendor" @click="()=>modalMeta.isVendorModalOpen = true" />
                             </UFormGroup>
                         </div>
                         <div class="mt-6 font-semibold">Implement to Correct/Prevent Problem</div>
@@ -740,7 +747,7 @@ else propertiesInit();
                         </div>
                         <div class="flex-1 mt-6">
                             <UFormGroup label="">
-                                <UButton color="gray" variant="outline" label="Find ECO" @click="onChangePart" />
+                                <UButton color="gray" variant="outline" label="Find ECO" @click="()=>modalMeta.isEcoModalOpen = true" />
                             </UFormGroup>
                         </div>
                     </div>
@@ -752,7 +759,7 @@ else propertiesInit();
                             <div class="flex items-center font-medium">Closed By</div>
                             <div class="flex items-center min-w-[200px]">
                                 <div class="w-full">
-                                    <USelect v-model="formData.IMPLEMENTBY" :options="employees" />
+                                    <UInputMenu v-model="formData.IMPLEMENTBY" :nullable="true" :options="employees" />
                                 </div>
                             </div>
                         </div>
@@ -895,7 +902,7 @@ conformity & effectiveness including confirmation that there is no adverse affec
 
     <UDashboardModal
         v-model="modalMeta.isPartsModalOpen"
-        title="Confirm Remove CAPA"
+        title="Select Part"
         :ui="{
             title: 'text-lg',
             header: {
@@ -906,5 +913,39 @@ conformity & effectiveness including confirmation that there is no adverse affec
             width: 'w-[1200px] sm:max-w-9xl',
         }">
         <PartsComponent @onPartSelect="handleSelectedPart" />
+    </UDashboardModal>
+
+    <!-- Vendor Modal -->
+
+    <UDashboardModal
+        v-model="modalMeta.isVendorModalOpen"
+        title="Select Vendor"
+        :ui="{
+            title: 'text-lg',
+            header: {
+                base: 'flex flex-row min-h-[0] items-center bg-white',
+                padding: 'pt-5 sm:px-9',
+            },
+            body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+            width: 'w-[1200px] sm:max-w-9xl',
+        }">
+        <!-- <PartsComponent @onPartSelect="handleSelectedPart" /> -->
+    </UDashboardModal>
+
+    <!-- ECO Modal -->
+
+    <UDashboardModal
+        v-model="modalMeta.isEcoModalOpen"
+        title="Select Change Order"
+        :ui="{
+            title: 'text-lg',
+            header: {
+                base: 'flex flex-row min-h-[0] items-center bg-white',
+                padding: 'pt-5 sm:px-9',
+            },
+            body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+            width: 'w-[1200px] sm:max-w-9xl',
+        }">
+        <!-- <PartsComponent @onPartSelect="handleSelectedPart" /> -->
     </UDashboardModal>
 </template>
