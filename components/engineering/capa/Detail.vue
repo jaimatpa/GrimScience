@@ -878,7 +878,7 @@ conformity & effectiveness including confirmation that there is no adverse affec
                             variant="outline"
                             :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
                             @click="onClear"
-                            :disabled="!permissionEnabled"
+                            :disabled="!permissionEnabled ? true : false"
                             truncate />
                     </div>
                 </div>
