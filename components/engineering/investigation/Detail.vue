@@ -50,6 +50,7 @@ const toast = useToast();
 const loadingOverlay = ref(false);
 const productLines = ref([]);
 const employees = ref([]);
+const permissionEnabled = ref(false);
 const formData = reactive({
     uniqueID: null,
     PRODLINE: null,
@@ -186,11 +187,30 @@ const editInit = async () => {
 };
 const propertiesInit = async () => {
     loadingOverlay.value = true;
+    await getPermission();
     await fetchInvestigationList();
     await fetchInvestigationProductLines();
     await fetchEmployees();
     loadingOverlay.value = false;
 };
+
+const getPermission = async () => {
+    await useApiFetch(`/api/engineering/investigations/permissions`, {
+        method: "GET",
+        onResponse({ response }) {
+            if (response.status === 200) {
+                const data = response._data.body;
+                if (data?.enabled === true) {
+                    permissionEnabled.value = true;
+                }
+                else {
+                    permissionEnabled.value = false;
+                }
+            }
+        },
+    });
+};
+
 const fetchInvestigationList = async () => {
     await useApiFetch(`/api/engineering/investigations`, {
         method: "GET",
@@ -808,7 +828,7 @@ else propertiesInit();
                             variant="outline"
                             type="submit"
                             :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
-                            :disabled="formData.uniqueID ? true : false"
+                            :disabled="formData.uniqueID || permissionEnabled == false ? true : false"
                             truncate />
                     </div>
                     <div class="min-w-[150px]">
@@ -818,7 +838,7 @@ else propertiesInit();
                             variant="outline"
                             type="submit"
                             :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
-                            :disabled="formData.uniqueID ? false : true"
+                            :disabled="formData.uniqueID && permissionEnabled == true ? false : true"
                             truncate />
                     </div>
                     <div class="min-w-[150px]">
@@ -828,6 +848,7 @@ else propertiesInit();
                             color="red"
                             variant="outline"
                             :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
+                            :disabled="!permissionEnabled ? true : false"
                             @click="onClear"
                             truncate />
                     </div>
