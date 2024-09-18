@@ -4,12 +4,13 @@ import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
 import type { UTableColumn } from "~/types";
 import { format } from "date-fns";
+// import capa from "~/server/api/engineering/capa";
 
 const emit = defineEmits(["close", "link"]);
 const props = defineProps({
     selectedInvestigation: {
         type: [Number, String, null],
-        required: true,
+        required: false,
     },
     isPage: {
         type: Boolean,
@@ -17,11 +18,34 @@ const props = defineProps({
     },
 });
 
-const handleSelectedCapa = (data) => {
-    // formData.PART = data;
-    modalMeta.value.isCapaModalOpen = false;
+const handleSelect = () => {
+    emit("link", investigationGridMeta.value.selectedInvestigation?.uniqueID);
 };
 
+const handleSelectedCapa = async (data) => {
+    // capaToAdd.value = data;
+    await addCapa(data);
+    await fetchCapas();
+};
+
+// watch(
+//     () => capaToAdd.value,
+//     () => {
+//         if (capaToAdd.value) {
+//             // formData.PART = capaToAdd.value.PART;
+//             // formData.DESCRIPTION = capaToAdd.value.DESCRIPTION;
+//             // formData.ACTIONTYPE = capaToAdd.value.ACTIONTYPE;
+//             // formData.DIAGDATE = capaToAdd.value.DIAGDATE;
+//             // formData.DIAGBY = capaToAdd.value.DIAGBY;
+//             // formData.IMPLEMENTDATE = capaToAdd.value.IMPLEMENTDATE;
+//             // formData.IMPLEMENTBY = capaToAdd.value.IMPLEMENTBY;
+//             // formData.Status = capaToAdd.value.Status;
+//             // formData.uniqueID = capaToAdd.value.uniqueID;
+//             // capaToAdd.value = null;
+//         }
+//     }
+// );
+const capaToAdd = ref(null);
 const toast = useToast();
 const loadingOverlay = ref(false);
 const productLines = ref([]);
@@ -145,6 +169,17 @@ const complaintsFilterValues = ref({
     Shipdate: null,
 });
 
+const statusGroup = [
+    {
+        label: "Open",
+        value: "Open",
+    },
+    {
+        label: "Closed",
+        value: "Closed",
+    },
+];
+
 const editInit = async () => {
     loadingOverlay.value = true;
     await propertiesInit();
@@ -176,25 +211,24 @@ const onInvestigationCreate = async () => {
         body: formData,
         onResponse({ response }) {
             if (response.status === 200) {
-                if(response._data.messageType === "success") {
-                        toast.add({
-                            title: "Success",
-                            description: response._data.message,
-                            icon: "i-heroicons-check-circle",
-                            color: "green",
-                        });
-                        onClear();
-                        fetchInvestigationList();
-                    }
-                    else if(response._data.messageType === "error") {
-                        toast.add({
-                            title: "Failed",
-                            description: response._data.message,
-                            icon: "i-heroicons-minus-circle",
-                            color: "red",
-                        });
-                    }
-                
+                if (response._data.messageType === "success") {
+                    toast.add({
+                        title: "Success",
+                        description: response._data.message,
+                        icon: "i-heroicons-check-circle",
+                        color: "green",
+                    });
+                    onClear();
+                    fetchInvestigationList();
+                } else if (response._data.messageType === "error") {
+                    toast.add({
+                        title: "Failed",
+                        description: response._data.message,
+                        icon: "i-heroicons-minus-circle",
+                        color: "red",
+                    });
+                }
+
                 // fetchInvestigationList();
             }
         },
@@ -298,6 +332,33 @@ const removeCapa = async () => {
     });
 };
 
+const addCapa = async (data) => {
+    capaToAdd.value = data;
+    if (!capaToAdd.value) {
+        toast.add({
+            title: "Error",
+            description: "Please select a CAPA to add.",
+            icon: "i-heroicons-x-circle",
+            color: "red",
+        });
+        return;
+    } else {
+        await useApiFetch(`/api/engineering/investigations/capas`, {
+            method: "POST",
+            params: {
+                investigationID: parseInt(investigationGridMeta.value.selectedInvestigation?.uniqueID),
+                uid: capaToAdd.value,
+            },
+            onResponse({ response }) {
+                if (response.status === 200) {
+                    modalMeta.value.isCapaModalOpen = false;
+                    capaToAdd.value = null;
+                }
+            },
+        });
+    }
+};
+
 const handleFilterChange = async (event, name) => {
     if (filterValues.value.hasOwnProperty(name)) {
         filterValues.value[name] = event;
@@ -372,9 +433,8 @@ const onClear = () => {
 };
 
 const previewReport = () => {
-  window.open(`/api/engineering/investigations/previewreport/${investigationGridMeta.value.selectedInvestigation?.uniqueID}`);
+    window.open(`/api/engineering/investigations/previewreport/${investigationGridMeta.value.selectedInvestigation?.uniqueID}`);
 };
-
 
 async function onSubmit(event: FormSubmitEvent<any>) {
     console.log("submitting");
@@ -385,7 +445,7 @@ async function onSubmit(event: FormSubmitEvent<any>) {
             body: formData,
             onResponse({ response }) {
                 if (response.status === 200) {
-                    if(response._data.messageType === "success") {
+                    if (response._data.messageType === "success") {
                         toast.add({
                             title: "Success",
                             description: response._data.message,
@@ -393,8 +453,7 @@ async function onSubmit(event: FormSubmitEvent<any>) {
                             color: "green",
                         });
                         fetchInvestigationList();
-                    }
-                    else if(response._data.messageType === "error") {
+                    } else if (response._data.messageType === "error") {
                         toast.add({
                             title: "Failed",
                             description: response._data.message,
@@ -438,7 +497,7 @@ else propertiesInit();
     <div class="vl-parent">
         <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533" loader="dots" />
     </div>
-    
+
     <UForm :validate="validate" :validate-on="['submit']" :state="formData" @submit="onSubmit">
         <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader w-full" title="Root Cause Investigation"> </UDashboardNavbar>
         <div class="flex flex-row">
@@ -517,7 +576,7 @@ else propertiesInit();
                         <UTable
                             :rows="complaintGridMeta.complaints"
                             :columns="complaintGridMeta.defaultColumns"
-                            class="w-full"
+                            class="w-[400px] overflow-auto"
                             :ui="{
                                 wrapper: 'overflow-auto h-60 border-2 border-gray-300 dark:border-gray-700',
                                 divide: 'divide-gray-200 dark:divide-gray-800',
@@ -669,7 +728,7 @@ else propertiesInit();
                         <UTable
                             :rows="capaGridMeta.capas"
                             :columns="capaGridMeta.defaultColumns"
-                            class="w-full"
+                            class="w-[400px] overflow-auto"
                             :ui="{
                                 wrapper: 'overflow-auto h-[370px] border-2 border-gray-300 dark:border-gray-700',
                                 divide: 'divide-gray-200 dark:divide-gray-800',
@@ -710,7 +769,12 @@ else propertiesInit();
                     </div>
                     <div class="flex flex-row space-x-2">
                         <div class="w-full">
-                            <UButton label="Add CAPA" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" :disabled="investigationGridMeta.selectedInvestigation ? false : true" @click="()=>modalMeta.isCapaModalOpen = true" truncate />
+                            <UButton
+                                label="Add CAPA"
+                                :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
+                                :disabled="investigationGridMeta.selectedInvestigation ? false : true"
+                                @click="() => (modalMeta.isCapaModalOpen = true)"
+                                truncate />
                         </div>
                         <div class="w-full">
                             <UButton
@@ -770,12 +834,13 @@ else propertiesInit();
                 </div>
             </div>
             <div class="basis-1/3 flex justify-end">
-                <div class="min-w-[150px]">
+                <div v-if="!props.isPage" class="min-w-[150px]">
                     <UButton
                         icon="i-heroicons-cursor-arrow-ripple"
                         label="Select"
                         variant="outline"
                         :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
+                        @click="handleSelect"
                         truncate />
                 </div>
             </div>
@@ -835,6 +900,6 @@ else propertiesInit();
             body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
             width: 'w-[1400px] overflow-y-auto sm:max-w-9xl',
         }">
-        <EngineeringCapaDetail :isPage="false" link="handleSelectedCapa" />
+        <EngineeringCapaDetail :isPage="false" @link="handleSelectedCapa" />
     </UDashboardModal>
 </template>
