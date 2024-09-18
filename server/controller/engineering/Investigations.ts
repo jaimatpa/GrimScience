@@ -1,6 +1,56 @@
 import { Sequelize, Op, QueryTypes } from 'sequelize'
-import { tblInvestigations, tblInvestigationComplaint, tblBP, tblEmployee } from '~/server/models'
+import { tblInvestigations, tblInvestigationComplaint, tblBP, tblEmployee, tblPermissions } from '~/server/models'
 import sequelize from '~/server/utils/databse'
+
+export const applyPermissions = async (employeeId) => {
+  console.log('Employee ID:', employeeId)
+
+  // Define the system and subsystem for permission checks
+  const system = 'Engineering'
+  const subsystem = 'Approvals'
+
+  // Fetch permissions for the given system and subsystem
+  const permissions = await tblPermissions.findOne({
+    where: {
+      system: system,
+      subsystem: subsystem
+    }
+  })
+
+  // console.log('Permissions:', permissions)
+
+  // If no permissions found, return restricted access
+  if (!permissions) {
+    return { enabled: false, message: 'You are not authorized to access this part of the system.' }
+  }
+
+  let accessLevel = 'Restricted' // Default access level
+  let readOnly = false
+  let message = ''
+
+  // Check for full access based on 'MenuItem' or 'FullAdminIDs'
+  if (permissions.MenuItem === 'Full' || permissions.FullAdminIDs.includes(employeeId)) {
+    accessLevel = 'Full'
+
+    console.log('Full Access:', accessLevel)
+  }
+  // Check for read-only access based on 'MenuItem' or 'ReadOnlyIDs'
+  else if (permissions.MenuItem === 'Read Only' || permissions.ReadOnlyIDs.includes(employeeId)) {
+    accessLevel = 'Read Only'
+    readOnly = true
+    message = 'READ-ONLY ACCESS'
+
+    console.log('Read-Only Access:', accessLevel)
+  }
+
+  // If access level is restricted, deny access
+  if (accessLevel === 'Restricted') {
+    return { enabled: false, message: 'You are not authorized to access this part of the system.' }
+  }
+
+  // Return the determined permissions
+  return { enabled: true, readOnly, message }
+}
 
 export const getInvestigations = async (params) => {
   const { uniqueID, PROBLEMDIAG, DIAGDATE, PRODLINE, DESCRIPTION, Status } = params
