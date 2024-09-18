@@ -418,3 +418,24 @@ export const removeInvestigationCAPA = async (params) => {
     throw error
   }
 }
+
+export const createInvestigationCAPA = async (params) => {
+  try {
+    const { investigationID, uid } = params
+
+    const sqlQuery = `
+      INSERT INTO tblPAInvestigation (investigationID, PreventiveActionID)
+      VALUES (:investigationID, :uid);
+    `
+
+    const result = await sequelize.query(sqlQuery, {
+      replacements: { investigationID: investigationID, uid: uid },
+      type: QueryTypes.INSERT
+    })
+
+    return result
+  } catch (error) {
+    console.error('Error creating preventive action entry: ', error)
+    throw error
+  }
+}
