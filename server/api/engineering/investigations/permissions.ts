@@ -1,4 +1,4 @@
-import { applyPermissions } from '~/server/controller/engineering/Investigation'
+import { applyPermissions } from '~/server/controller/engineering/Investigations'
 import jwt_decode from "jwt-decode";
 
 export default eventHandler(async (event) => {
