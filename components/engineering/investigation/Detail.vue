@@ -840,6 +840,7 @@ else propertiesInit();
                         label="Select"
                         variant="outline"
                         :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
+                        :disabled="formData.uniqueID ? false : true"
                         @click="handleSelect"
                         truncate />
                 </div>
