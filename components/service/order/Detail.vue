@@ -1324,25 +1324,29 @@
   <UDashboardModal
     v-model="modalMeta.isInventoryTransactionModalOpen"
     title="Inventory Transactions"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
+      :ui="{
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
+      }"
   >
     <MaterialsTransactionsInventoryTransactions />
   </UDashboardModal>
   <!-- New Invoice Modal -->
   <UDashboardModal
     v-model="modalMeta.isInvoiceModalOpen"
-    title="Invoivce"
-    :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl', 
-    }"
+    title="Invoice"
+      :ui="{
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
+      }"
   >
     <InvoiceDetail :selected-customer="props.selectedCustomer" :selected-complaint="complaintGridMeta.selectedComplaint?.uniqueID" @save="onNewInvoiceSave" @close="onNewInvoiceModalClose"/>
   </UDashboardModal>
