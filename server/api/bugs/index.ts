@@ -2,14 +2,14 @@ import { createBug, getAllBugs } from "~/server/controller/bugs/Bug";
 
 export default eventHandler(async (event) => {
   try {
-    const { ...filterParams } = getQuery(event);
+    const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;
 
 
     switch(method.toUpperCase()){
 
       case 'GET':
-        const list = await getAllBugs(filterParams); 
+        const list = await getAllBugs(page, pageSize, sortBy, sortOrder, filterParams); 
         return { body: list, message: 'Success!' };
 
       case 'POST':

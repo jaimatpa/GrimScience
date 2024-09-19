@@ -16,12 +16,18 @@ const applyFilters = (params) => {
   return whereClause;
 };
 
-export const getAllBugs = async (filterParams) => {
+export const getAllBugs = async (page, pageSize, sortBy, sortOrder, filterParams) => {
   const whereClause = applyFilters(filterParams);
+
+  const limit = parseInt(pageSize as string, 10) || 10;
+  const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
 
   const list = await tblFORMREPORTING.findAll({
     attributes: ['uniqueid', 'formName', 'complaintText', 'datea', 'employee', 'dvanceLevels', 'resolved', 'descr', 'cost', 'approved', 'resolveversion'],
     where: whereClause,
+    order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
+    offset,
+    limit
   });
   
   return list;
