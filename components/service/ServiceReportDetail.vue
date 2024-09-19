@@ -688,25 +688,25 @@ else
                 </div>
               </div>
               <div class="basis-1/2">
-                <div class="flex flex-col space-y-1 border-[1px] border-slate-200 p-1 mt-1">
-                  <div class="flex flex-row space-x-3">
+                <div class="flex flex-col space-y-1 border-[1px] border-slate-200 p-1 mt-1 sm-field">
+                  <div class="flex flex-row space-x-3 pb-1">
                     <div class="basis-1/2">
                       <div class="flex flex-row">
-                        <div class="w-[80px] font-medium flex items-center">
+                        <div class="w-7/12 font-medium flex items-center">
                           Travel Hrs
                         </div>
-                        <div class="flex-1">
-                          <UInput v-model="formData.TravelHours" type="number" />
+                        <div class="w-5/12">
+                          <UInput class="" v-model="formData.TravelHours" />
                         </div>
                       </div>
                     </div>
                     <div class="basis-1/2">
                       <div class="flex flex-row">
-                        <div class="w-[80px] font-medium flex items-center">
+                        <div class="w-7/12 font-medium flex items-center">
                           Miles
                         </div>
-                        <div class="flex-1">
-                          <UInput v-model="formData.Miles" type="number" />
+                        <div class="w-5/12">
+                          <UInput v-model="formData.Miles" />
                         </div>
                       </div>
                     </div>
@@ -714,21 +714,21 @@ else
                   <div class="flex flex-row space-x-3">
                     <div class="basis-1/2">
                       <div class="flex flex-row">
-                        <div class="w-[80px] font-medium flex items-center">
+                        <div class="w-7/12 font-medium flex items-center">
                           Onsite Hrs
                         </div>
-                        <div class="flex-1">
-                          <UInput v-model="formData.OnsiteHours" type="number" />
+                        <div class="w-5/12">
+                          <UInput v-model="formData.OnsiteHours" />
                         </div>
                       </div>
                     </div>
                     <div class="basis-1/2">
                       <div class="flex flex-row">
-                        <div class="w-[80px] font-medium flex items-center">
+                        <div class="w-7/12 font-medium flex items-center">
                           Per Diem
                         </div>
-                        <div class="flex-1">
-                          <UInput v-model="formData.PerDiem" type="number" />
+                        <div class="w-5/12">
+                          <UInput v-model="formData.PerDiem" />
                         </div>
                       </div>
                     </div>
