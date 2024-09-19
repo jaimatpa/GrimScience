@@ -1,108 +1,4 @@
-<template>
-  <div class="p-6 max-w-6xl mx-auto bg-white rounded-lg shadow-lg">
-    <h1 class="text-2xl font-bold mb-4">Bugs</h1>
-    
-    <div class="flex justify-between items-center mb-4">
-      <div class="flex space-x-4">
-        <UInput v-model="filters.id" placeholder="#" class="w-20" />
-        <UInput v-model="filters.date" placeholder="Date" class="w-32" />
-        <UInput v-model="filters.form" placeholder="Form" class="w-40" />
-        <UInput v-model="filters.by" placeholder="By" class="w-40" />
-        <UInput v-model="filters.description" placeholder="Description" class="w-60" />
-      </div>
-      <div class="flex items-center space-x-4">
-        <UCheckbox v-model="openBugsOnly" label="Open Bugs Only" />
-        <UButton icon="i-heroicons-printer" variant="soft" @click="printBugs">
-          Print
-        </UButton>
-      </div>
-    </div>
-    
-    <UTable :columns="columns" :rows="filteredBugs" @select="selectBug" :selected="selectedBugId" selectable>
-      <template #id-data="{ row }">
-        {{ row.id }}
-      </template>
-    </UTable>
-    
-    <div class="mt-6 p-4 border rounded-lg">
-      <h2 class="text-xl font-semibold mb-4">Bug Details</h2>
-      <div class="grid grid-cols-2 gap-x-4 gap-y-6">
-        <div>
-          <label for="bugId" class="block text-sm font-medium text-gray-700 mb-1">Bug ID</label>
-          <UInput id="bugId" v-model="selectedBug.id" />
-        </div>
-
-        <div>
-          <label for="dateReported" class="block text-sm font-medium text-gray-700 mb-1">Date Reported</label>
-          <UInput id="dateReported" v-model="selectedBug.date" type="date" />
-        </div>
-
-        <div>
-          <label for="formReported" class="block text-sm font-medium text-gray-700 mb-1">Form Reported</label>
-          <USelect id="formReported" v-model="selectedBug.form" :options="formOptions" />
-        </div>
-
-        <div>
-          <label for="reportedBy" class="block text-sm font-medium text-gray-700 mb-1">By</label>
-          <USelect id="reportedBy" v-model="selectedBug.by" :options="userOptions" />
-        </div>
-
-        <div class="col-span-2">
-          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <UInput id="description" v-model="selectedBug.description" />
-        </div>
-
-        <div class="col-span-2">
-          <label for="details" class="block text-sm font-medium text-gray-700 mb-1">Details of Bug</label>
-          <UTextarea id="details" v-model="selectedBug.details" rows="3" />
-        </div>
-
-        <div>
-          <label for="bugType" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-          <USelect id="bugType" v-model="selectedBug.type" :options="typeOptions" />
-        </div>
-
-        <div>
-          <label for="cost" class="block text-sm font-medium text-gray-700 mb-1">Cost</label>
-          <UInput id="cost" v-model="selectedBug.cost" type="number" />
-        </div>
-
-        <div>
-          <label for="authorizedBy" class="block text-sm font-medium text-gray-700 mb-1">Authorized By</label>
-          <USelect id="authorizedBy" v-model="selectedBug.authorizedBy" :options="userOptions" />
-        </div>
-
-        <div>
-          <label for="resolveVersion" class="block text-sm font-medium text-gray-700 mb-1">Resolve in Version</label>
-          <UInput id="resolveVersion" v-model="selectedBug.resolveVersion" />
-        </div>
-
-        <div class="col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <URadio v-model="selectedBug.status" :options="['Alive', 'Dead']" />
-        </div>
-      </div>
-
-      <div class="mt-6 flex justify-between">
-        <div class="space-x-2">
-          <UButton variant="outline" icon="i-heroicons-pencil" @click="designBug">Design</UButton>
-          <UButton variant="outline" icon="i-heroicons-printer" @click="printBugDetails">Print</UButton>
-        </div>
-
-        <div class="space-x-2">
-          <UButton icon="i-heroicons-plus" color="green" @click="addBug">Add</UButton>
-          <UButton icon="i-heroicons-pencil-square" @click="modifyBug">Modify</UButton>
-          <UButton icon="i-heroicons-x-mark" @click="clearBugDetails">Clear</UButton>
-          <UButton icon="i-heroicons-trash" color="red" @click="deleteBug">Delete</UButton>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</template>
-
-
-<script setup>
+<script lang="ts" setup>
 const bugLookup = ref('')
 const openBugsOnly = ref(false)
 const selectedBugId = ref(null)
@@ -217,3 +113,152 @@ const deleteBug = () => {
   // Implement delete bug functionality
 }
 </script>
+
+
+<template>
+  <UDashboardPage>
+    <UDashboardPanel grow>
+      <UDashboardNavbar class="bg-red-400" title="Bugs">
+      </UDashboardNavbar>
+
+      <div class="px-4 py-2 gmsTealTitlebar">
+        <h2>Filters</h2>
+      </div>
+
+      <UDashboardToolbar class="bg-gms-gray-100">
+        <template #left>
+          <div class="flex space-x-4">
+            <UInput v-model="filters.id" placeholder="#" class="w-20" />
+            <UInput v-model="filters.date" placeholder="Date" class="w-32" />
+            <UInput v-model="filters.form" placeholder="Form" class="w-40" />
+            <UInput v-model="filters.by" placeholder="By" class="w-40" />
+            <UInput v-model="filters.description" placeholder="Description" class="w-60" />
+          </div>
+        </template>
+        <template #right>
+          <div class="flex items-center space-x-4">
+            <UCheckbox v-model="openBugsOnly" label="Open Bugs Only" />
+            <UButton icon="i-heroicons-printer" variant="soft" @click="printBugs">
+              Print
+            </UButton>
+          </div>
+        </template>
+      </UDashboardToolbar>
+
+      <div class="px-4 py-2 gmsTealTitlebar">
+        <h2>Bug List</h2>
+      </div>
+
+      <UTable
+        :columns="columns"
+        :rows="filteredBugs"
+        @select="selectBug"
+        :selected="selectedBugId"
+        selectable
+        class="w-full"
+        :ui="{
+          divide: 'divide-gray-200 dark:divide-gray-800',
+          th: {
+            base: 'sticky top-0 z-10',
+            padding: 'pb-0',
+          },
+          td: {
+            padding: 'py-1',
+          },
+        }"
+      >
+        <template #id-data="{ row }">
+          {{ row.id }}
+        </template>
+      </UTable>
+
+      <div class="px-4 py-2 gmsTealTitlebar">
+        <h2>Bug Details</h2>
+      </div>
+
+      <div class="mt-6 p-4 border rounded-lg">
+        <div class="grid grid-cols-2 gap-x-4 gap-y-6">
+          <div>
+            <UFormGroup label="Bug ID" name="bugId">
+              <UInput id="bugId" v-model="selectedBug.id" />
+            </UFormGroup>
+          </div>
+
+          <div>
+            <UFormGroup label="Date Reported" name="dateReported">
+              <UInput id="dateReported" v-model="selectedBug.date" type="date" />
+            </UFormGroup>
+          </div>
+
+          <div>
+            <UFormGroup label="Form Reported" name="formReported">
+              <USelect id="formReported" v-model="selectedBug.form" :options="formOptions" />
+            </UFormGroup>
+          </div>
+
+          <div>
+            <UFormGroup label="By" name="reportedBy">
+              <USelect id="reportedBy" v-model="selectedBug.by" :options="userOptions" />
+            </UFormGroup>
+          </div>
+
+          <div class="col-span-2">
+            <UFormGroup label="Description" name="description">
+              <UInput id="description" v-model="selectedBug.description" />
+            </UFormGroup>
+          </div>
+
+          <div class="col-span-2">
+            <UFormGroup label="Details of Bug" name="details">
+              <UTextarea id="details" v-model="selectedBug.details" rows="3" />
+            </UFormGroup>
+          </div>
+
+          <div>
+            <UFormGroup label="Type" name="bugType">
+              <USelect id="bugType" v-model="selectedBug.type" :options="typeOptions" />
+            </UFormGroup>
+          </div>
+
+          <div>
+            <UFormGroup label="Cost" name="cost">
+              <UInput id="cost" v-model="selectedBug.cost" type="number" />
+            </UFormGroup>
+          </div>
+
+          <div>
+            <UFormGroup label="Authorized By" name="authorizedBy">
+              <USelect id="authorizedBy" v-model="selectedBug.authorizedBy" :options="userOptions" />
+            </UFormGroup>
+          </div>
+
+          <div>
+            <UFormGroup label="Resolve in Version" name="resolveVersion">
+              <UInput id="resolveVersion" v-model="selectedBug.resolveVersion" />
+            </UFormGroup>
+          </div>
+
+          <div class="col-span-2">
+            <UFormGroup label="Status" name="status">
+              <URadio v-model="selectedBug.status" :options="['Alive', 'Dead']" />
+            </UFormGroup>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-between">
+          <div class="space-x-2">
+            <UButton variant="outline" icon="i-heroicons-pencil" @click="designBug">Design</UButton>
+            <UButton variant="outline" icon="i-heroicons-printer" @click="printBugDetails">Print</UButton>
+          </div>
+
+          <div class="space-x-2">
+            <UButton icon="i-heroicons-plus" color="green" @click="addBug">Add</UButton>
+            <UButton icon="i-heroicons-pencil-square" @click="modifyBug">Modify</UButton>
+            <UButton icon="i-heroicons-x-mark" @click="clearBugDetails">Clear</UButton>
+            <UButton icon="i-heroicons-trash" color="red" @click="deleteBug">Delete</UButton>
+          </div>
+        </div>
+      </div>
+    </UDashboardPanel>
+  </UDashboardPage>
+</template>
