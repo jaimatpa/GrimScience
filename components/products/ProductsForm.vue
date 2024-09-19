@@ -84,16 +84,22 @@ const modalMeta = ref({
 
 
 const items = [{
+  slot: 'generalSpecs',
   label: 'General Specs',
 }, {
+  slot: 'readyRef',
   label: 'Ready Ref',
 }, {
+  slot: 'paraTherm',
   label: 'PARATherm',
 }, {
+  slot: 'cryoPress',
   label: 'CRYOPress',
 }, {
+  slot: 'cryoTherm',
   label: 'CRYOTherm',
 }, {
+  slot: 'duraLast',
   label: 'DURALast',
 }]
 
@@ -161,129 +167,399 @@ else
             </div>
 
             <div>
-              <div class="bg-black px-2 pt-2 mx-0">
-                <UTabs :items="items" :ui="{
+              <div class="border-t-[3px] border-black px-2 pt-2 mx-0">
+                <UTabs class="product-tabs" :items="items" :ui="{
                   list: {
-                    background: 'bg-gms-purple-400'
+                    background: 'bg-gms-purple-400',
+                    tab: {
+                      inactive: '!text-white'
+                    }
                   },
-                  tab: {
-                    inactive: '!text-white'
-                  }
-                }" />
-              </div>
 
-              <div class="p-3 flex flex-col space-y-2">
-                <div class="flex flex-row space-x-2">
-                  <div class="basis-1/3">
-                    <UFormGroup label="Product Line" name="productline">
-                      <UInputMenu />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/3">
-                    <UFormGroup label="Model" name="model">
-                      <UInput />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/3">
-                    <UFormGroup label="Description" name="description">
-                      <UInput />
-                    </UFormGroup>
+                }">
 
-                  </div>
-                </div>
-                <div class="flex flex-row justify-end">
-                  <div>
-                    <UCheckbox label="Variable Pricing" />
-                  </div>
-                </div>
-                <div class="flex flex-row space-x-2">
-                  <div class="basis-1/5">
-                    <UFormGroup label="Unit" name="unit">
-                      <UInputMenu />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/5">
-                    <UFormGroup label="Inventory Unit" name="inventoryunit">
-                      <UInputMenu />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/5">
-                    <UFormGroup label="Net Weight" name="netweight">
-                      <UInput />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/5">
-                    <UFormGroup label="Net Weight Full" name="netweightfull">
-                      <UInput />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/5">
-                    <UFormGroup label="Ship Weight" name="shipweight">
-                      <UInput />
-                    </UFormGroup>
-                  </div>
-                </div>
-                <div class="flex flex-row space-x-2">
-                  <div class="basis-1/5">
-                    <UFormGroup label="Length" name="length">
-                      <UInput />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/5">
-                    <UFormGroup label="Width" name="width">
-                      <UInput />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/5">
-                    <UFormGroup label="Height" name="height">
-                      <UInput />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/5">
-                    <UFormGroup label="Electrical" name="electrical">
-                      <UInputMenu />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/5">
-                    <UFormGroup label="Amps" name="amps">
-                      <UInput />
-                    </UFormGroup>
-                  </div>
-                </div>
-                <div class="flex flex-row space-x-2">
-                  <div class="basis-1/3">
-                    <UFormGroup label="Warranty Type" name="warrantytype">
-                      <UInputMenu />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/3">
-                    <UFormGroup label="Other Specification" name="otherspecification">
-                      <UInput />
-                    </UFormGroup>
-                  </div>
-                  <div class="basis-1/3">
-                    <UFormGroup label="No Label" name="noname">
-                      <UInputMenu />
-                    </UFormGroup>
-                  </div>
-                </div>
-                <div class="flex flex-row space-x-2">
-                  <div class="w-2/3">
-                    <UFormGroup label="Spec Sheet" name="specSheet">
-                      <div class="relative">
-                        <input type="file" id="file-upload" class="hidden" />
-                        <label for="file-upload"
-                          class="flex items-center justify-between bg-white border border-black p-1 rounded cursor-pointer">
-                          <span class="text-gray-500">Choose a file...</span>
-                          <button type="button" class="bg-gms-purple text-white px-4 py-1  rounded">
-                            ...
-                          </button>
-                        </label>
+                  <template #generalSpecs="{ item }">
+                    <div class="px-3 pb-3 flex flex-col space-y-2 bg-gms-gray-100">
+                      <div class="flex flex-row space-x-2">
+                        <div class="basis-1/3">
+                          <UFormGroup label="Product Line" name="productline">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/3">
+                          <UFormGroup label="Model" name="model">
+                            <UInput />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/3">
+                          <UFormGroup label="Description" name="description">
+                            <UInput />
+                          </UFormGroup>
+
+                        </div>
                       </div>
-                    </UFormGroup>
-                  </div>
-                </div>
+                      <div class="flex flex-row justify-end">
+                        <div>
+                          <UCheckbox label="Variable Pricing" />
+                        </div>
+                      </div>
+                      <div class="flex flex-row space-x-2">
+                        <div class="basis-1/5">
+                          <UFormGroup label="Unit" name="unit">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/5">
+                          <UFormGroup label="Inventory Unit" name="inventoryunit">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/5">
+                          <UFormGroup label="Net Weight" name="netweight">
+                            <UInput />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/5">
+                          <UFormGroup label="Net Weight Full" name="netweightfull">
+                            <UInput />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/5">
+                          <UFormGroup label="Ship Weight" name="shipweight">
+                            <UInput />
+                          </UFormGroup>
+                        </div>
+                      </div>
+                      <div class="flex flex-row space-x-2">
+                        <div class="basis-1/5">
+                          <UFormGroup label="Length" name="length">
+                            <UInput />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/5">
+                          <UFormGroup label="Width" name="width">
+                            <UInput />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/5">
+                          <UFormGroup label="Height" name="height">
+                            <UInput />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/5">
+                          <UFormGroup label="Electrical" name="electrical">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/5">
+                          <UFormGroup label="Amps" name="amps">
+                            <UInput />
+                          </UFormGroup>
+                        </div>
+                      </div>
+                      <div class="flex flex-row space-x-2">
+                        <div class="basis-1/3">
+                          <UFormGroup label="Warranty Type" name="warrantytype">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/3">
+                          <UFormGroup label="Other Specification" name="otherspecification">
+                            <UInput />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/3">
+                          <UFormGroup label="No Label" name="noname">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                      </div>
+                      <div class="flex flex-row space-x-2">
+                        <div class="w-2/3">
+                          <UFormGroup label="Spec Sheet" name="specSheet">
+                            <div class="relative">
+                              <input type="file" id="file-upload" class="hidden" />
+                              <label for="file-upload"
+                                class="flex items-center justify-between bg-white border border-black p-1 rounded cursor-pointer">
+                                <span class="text-gray-500">Choose a file...</span>
+                                <button type="button" class="bg-gms-purple text-white px-4 py-1  rounded">
+                                  ...
+                                </button>
+                              </label>
+                            </div>
+                          </UFormGroup>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+
+
+                  <template #readyRef="{ item }">
+                    
+                  </template>
+
+
+                  <template #paraTherm="{ item }">
+                    <div class="px-3 pb-3 flex flex-col space-y-2 bg-gms-gray-100">
+                      <div class="flex flex-row space-x-2">
+                        <div class="basis-1/4">
+                          <UFormGroup label="Wax Capacity">
+                            <UInput />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                          <UFormGroup label="Tank Depth">
+                            <UInput />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                        </div>
+                        <div class="basis-1/4">
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+
+
+                  <template #cryoPress="{ item }">
+
+                  </template>
+
+
+                  <template #cryoTherm="{ item }">
+                    <div class="px-3 pb-3 flex flex-col space-y-2 bg-gms-gray-100">
+                      <div class="flex flex-row space-x-2">
+                        <div class="basis-1/4">
+                          <UFormGroup label="Category">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                          <UFormGroup label="Walls">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                          <UFormGroup label="Sections">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                          <UFormGroup label="Switchable">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                      </div>
+
+                      <div class="flex flex-row space-x-2">
+                        <div class="basis-1/4">
+                          <UFormGroup label="Corian #">
+                            <div class="flex">
+                              <UInput />
+                              <UButton color="gms-purple" label="..." />
+                            </div>
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                          <UFormGroup label="Powder Coat #">
+                            <div class="flex">
+                              <UInput />
+                              <UButton color="gms-purple" label="..." />
+                            </div>
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                          <UFormGroup label="C-Unit #">
+                            <div class="flex">
+                              <UInput />
+                              <UButton color="gms-purple" label="..." />
+                            </div>
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                          <UFormGroup label="Control Panel #">
+                            <div class="flex">
+                              <UInput />
+                              <UButton color="gms-purple" label="..." />
+                            </div>
+                          </UFormGroup>
+                        </div>
+                      </div>
+
+                      <div class="flex flex-row space-x-2 pb-2">
+                        <div class="basis-1/4">
+                          <UFormGroup label="Heater #">
+                            <div class="flex">
+                              <UInput />
+                              <UButton color="gms-purple" label="..." />
+                            </div>
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+
+                        </div>
+                        <div class="basis-1/4">
+
+                        </div>
+                        <div class="basis-1/4">
+                        </div>
+                      </div>
+
+                      <div class="flex flex-row space-x-4">
+                        <div class="basis-1/2">
+                          <div class="w-full px-3 py-1 gmsPurpleTitlebar">
+                            Left Tank
+                          </div>
+                          <div class="bg-gms-gray-200 p-2 flex flex-col space-y-1">
+                            <div class="flex flex-row space-x-2">
+                              <div class="basis-1/2">
+                                <UFormGroup label="Tank Assembly #">
+                                  <div class="flex">
+                                    <UInput />
+                                    <UButton color="gms-purple" label="..." />
+                                  </div>
+                                </UFormGroup>
+                              </div>
+
+                              <div class="basis-1/2">
+                                <UFormGroup label="Gal.">
+                                  <UInput />
+                                </UFormGroup>
+                              </div>
+                            </div>
+
+                            <div class="flex flex-row space-x-2">
+                              <div class="basis-1/2">
+                                <UFormGroup label="Tank #">
+                                  <div class="flex">
+                                    <UInput />
+                                    <UButton color="gms-purple" label="..." />
+                                  </div>
+                                </UFormGroup>
+                              </div>
+
+                              <div class="basis-1/2">
+                                <UFormGroup label="Pump #">
+                                  <div class="flex">
+                                    <UInput />
+                                    <UButton color="gms-purple" label="..." />
+                                  </div>
+                                </UFormGroup>
+                              </div>
+                            </div>
+
+                            <div class="flex flex-row space-x-2">
+                              <div class="basis-1/2">
+                                <UFormGroup label="Frame #">
+                                  <div class="flex">
+                                    <UInput />
+                                    <UButton color="gms-purple" label="..." />
+                                  </div>
+                                </UFormGroup>
+                              </div>
+
+                              <div class="basis-1/2">
+                                <UFormGroup label="Jets">
+                                  <UInput />
+                                </UFormGroup>
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+
+                        <div class="basis-1/2">
+                          <div class="w-full px-3 py-1 gmsPurpleTitlebar">
+                            Right Tank
+                          </div>
+                          <div class="bg-gms-gray-200 p-2 flex flex-col space-y-1">
+                            <div class="flex flex-row space-x-2">
+                              <div class="basis-1/2">
+                                <UFormGroup label="Tank Assembly #">
+                                  <div class="flex">
+                                    <UInput />
+                                    <UButton color="gms-purple" label="..." />
+                                  </div>
+                                </UFormGroup>
+                              </div>
+
+                              <div class="basis-1/2">
+                                <UFormGroup label="Gal.">
+                                  <UInput />
+                                </UFormGroup>
+                              </div>
+                            </div>
+
+                            <div class="flex flex-row space-x-2">
+                              <div class="basis-1/2">
+                                <UFormGroup label="Tank #">
+                                  <div class="flex">
+                                    <UInput />
+                                    <UButton color="gms-purple" label="..." />
+                                  </div>
+                                </UFormGroup>
+                              </div>
+
+                              <div class="basis-1/2">
+                                <UFormGroup label="Pump #">
+                                  <div class="flex">
+                                    <UInput />
+                                    <UButton color="gms-purple" label="..." />
+                                  </div>
+                                </UFormGroup>
+                              </div>
+                            </div>
+
+                            <div class="flex flex-row space-x-2">
+                              <div class="basis-1/2">
+                                <UFormGroup label="Frame #">
+                                  <div class="flex">
+                                    <UInput />
+                                    <UButton color="gms-purple" label="..." />
+                                  </div>
+                                </UFormGroup>
+                              </div>
+
+                              <div class="basis-1/2">
+                                <UFormGroup label="Jets">
+                                  <UInput />
+                                </UFormGroup>
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </template>
+
+
+                  <template #duraLast="{ item }">
+                    <div class="px-3 pb-3 flex flex-col space-y-2 bg-gms-gray-100">
+                      <div class="flex flex-row space-x-2">
+                        <div class="basis-1/4">
+                          <UFormGroup label="Category">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                          <UFormGroup label="SubCategory">
+                            <UInputMenu />
+                          </UFormGroup>
+                        </div>
+                        <div class="basis-1/4">
+                        </div>
+                        <div class="basis-1/4">
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+
+                </UTabs>
               </div>
+
+
 
 
             </div>
@@ -390,7 +666,7 @@ else
             <div class="p-3 w-full">
               <div>
                 <UTable :rows="people" :ui="{
-                  wrapper: 'h-[275px] border-[1px] border-gray-400 dark:border-gray-700',
+                  wrapper: 'h-[342px] border-[1px] border-gray-400 dark:border-gray-700',
                   tr: {
                     active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
                   },
@@ -416,7 +692,7 @@ else
             <div class="p-3 w-full">
               <div>
                 <UTable :rows="people" :ui="{
-                  wrapper: 'h-[712px] border-[1px] border-gray-400 dark:border-gray-700',
+                  wrapper: 'h-[779px] border-[1px] border-gray-400 dark:border-gray-700',
                   tr: {
                     active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
                   },
@@ -437,15 +713,29 @@ else
 
         <div class="px-3 pt-3 flex flex-row justify-between">
           <div class="basis-7/12 flex flex-row space-x-2">
-<div class="basis-1/6"><UButton label="Add" color="green" variant="outline" icon="i-heroicons-plus" block /></div>
-<div class="basis-1/6"><UButton label="Modify" variant="outline" icon="i-heroicons-pencil-square" block /></div>
-<div class="basis-1/6"><UButton label="Revision" variant="outline" icon="i-heroicons-pencil-square" block /></div>
-<div class="basis-1/6"><UButton label="Inactive" color="red" variant="outline" icon="i-heroicons-minus-circle" block /></div>
-<div class="basis-1/6"><UButton label="Clear" color="red" variant="outline" icon="i-f7-rays" block /></div>
+            <div class="basis-1/6">
+              <UButton label="Add" color="green" variant="outline" icon="i-heroicons-plus" block />
+            </div>
+            <div class="basis-1/6">
+              <UButton label="Modify" variant="outline" icon="i-heroicons-pencil-square" block />
+            </div>
+            <div class="basis-1/6">
+              <UButton label="Revision" variant="outline" icon="i-heroicons-pencil-square" block />
+            </div>
+            <div class="basis-1/6">
+              <UButton label="Inactive" color="red" variant="outline" icon="i-heroicons-minus-circle" block />
+            </div>
+            <div class="basis-1/6">
+              <UButton label="Clear" color="red" variant="outline" icon="i-f7-rays" block />
+            </div>
 
           </div>
-          <div><UButton label="WEBSITE UPDATE" color="green" variant="outline" icon="i-heroicons-arrow-path" /></div>
-          <div><UButton label="Bulk Inactive" color="red" variant="outline" icon="i-heroicons-minus-circle" /></div>
+          <div>
+            <UButton label="WEBSITE UPDATE" color="green" variant="outline" icon="i-heroicons-arrow-path" />
+          </div>
+          <div>
+            <UButton label="Bulk Inactive" color="red" variant="outline" icon="i-heroicons-minus-circle" />
+          </div>
         </div>
       </div>
 
