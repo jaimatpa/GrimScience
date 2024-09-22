@@ -2,7 +2,7 @@ import { tblFORMREPORTING } from "~/server/models";
 import { Sequelize, Op } from "sequelize";
 
 const applyFilters = (params) => {
-  const filterParams = ['uniqueid', 'formName', 'datea', 'employee', 'resolved', 'descr'];
+  const filterParams = ['resolved', 'uniqueid', 'datea', 'formName',  'employee', 'complaintText', 'descr', 'dvanceLevels', 'cost', 'approved', 'resolveversion'];
   const whereClause = {};
 
   filterParams.forEach(param => {
@@ -73,5 +73,16 @@ export const getReportedForm = async () => {
    const reportedFormList = await tblFORMREPORTING.findAll({
     attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('formName')), 'formName']],
   });
-  return reportedFormList;
+
+  const distinctStates = reportedFormList.map((item: any) => item.formName);
+  return distinctStates
+}
+
+export const getNumberOfBugs = async (filterParams) => {
+  const whereClause = applyFilters(filterParams);
+  const numberOfBugs = await tblFORMREPORTING.count({
+    where: whereClause
+  });
+  return numberOfBugs;
+
 }

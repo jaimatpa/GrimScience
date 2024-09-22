@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
+import BugForm from "./BugForm.vue";
+
+// import BugForm from "./BugForm.vue";
 
 onMounted(() => {
   init();
@@ -17,6 +20,8 @@ const toast = useToast();
 
 const selectStatus = ref("Open");
 
+const lableClass = "max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap"
+
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
@@ -25,7 +30,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: "max-w-[200px]", 
+      class: lableClass, 
     },
     {
       key: "datea",
@@ -33,7 +38,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: "max-w-[200px]", 
+      class: lableClass, 
     },
     {
       key: "formName",
@@ -41,7 +46,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: "max-w-[200px]", 
+      class: lableClass, 
     },
     {
       key: "employee",
@@ -49,7 +54,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: "max-w-[200px]", 
+      class: lableClass, 
     },
     {
       key: "complaintText",
@@ -57,15 +62,15 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: "max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap", 
+      class: lableClass, 
     },
     {
-      key: "address",
+      key: "descr",
       label: "Details",
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: "max-w-[200px]", 
+      class: lableClass, 
     },
     {
       key: "dvanceLevels",
@@ -73,7 +78,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: "max-w-[200px]", 
+      class: lableClass, 
     },
     {
       key: "cost",
@@ -81,7 +86,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: "max-w-[200px]", 
+      class: lableClass, 
     },
     {
       key: "approved",
@@ -89,7 +94,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: "max-w-[200px]", 
+      class: lableClass, 
     },
     {
       key: "resolveversion",
@@ -112,9 +117,9 @@ const gridMeta = ref({
   ],
   page: 1,
   pageSize: 50,
-  numberOfEmployee: 0,
-  employess: [],
-  selectedEmpployee: null,
+  numberOfBug: 0,
+  bug: [],
+  selectedBug: null,
   sort: {
     column: "uniqueid",
     direction: "asc",
@@ -123,21 +128,23 @@ const gridMeta = ref({
 });
 
 const modalMeta = ref({
-  isEmployeeModalOpen: false,
-  modalTitle: "New Employee",
-  modalDescription: "Add a new Employee",
+  isBugModalOpen: false,
+  modalTitle: "New Bug",
+  modalDescription: "Add a new bug",
 });
 
 const filterValues = ref({
   resolved: "Open",
-  payrollno: null,
-  fname: null,
-  lname: null,
-  address: null,
-  city: null,
-  state: null,
-  zip: null,
-  homephone: null,
+  uniqueid: null,
+  datea: null,
+  formName: null,
+  employee: null,
+  complaintText: null,
+  descr: null,
+  dvanceLevels: null,
+  cost: null,
+  approved: null,
+  resolveversion: null,
 });
 
 const selectedColumns = ref(gridMeta.value.defaultColumns);
@@ -172,31 +179,31 @@ const init = async () => {
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
 
-  await useApiFetch("/api/employees/numbers", {
+  await useApiFetch("/api/bugs/numbers", {
     method: "GET",
     params: {
       ...filterValues.value,
     },
     onResponse({ response }) {
       if (response.status === 200) {
-        gridMeta.value.numberOfEmployee = response._data.body;
+        gridMeta.value.numberOfBug = response._data.body;
       }
     },
   });
 
-  if (gridMeta.value.numberOfEmployee === 0) {
-    gridMeta.value.employess = [];
-    gridMeta.value.numberOfEmployee = 0;
+  if (gridMeta.value.numberOfBug === 0) {
+    gridMeta.value.bug = [];
+    gridMeta.value.numberOfBug = 0;
     gridMeta.value.isLoading = false;
     return;
   }
 
   if (
     gridMeta.value.page * gridMeta.value.pageSize >
-    gridMeta.value.numberOfEmployee
+    gridMeta.value.numberOfBug
   ) {
     gridMeta.value.page =
-      Math.ceil(gridMeta.value.numberOfEmployee / gridMeta.value.pageSize) | 1;
+      Math.ceil(gridMeta.value.numberOfBug / gridMeta.value.pageSize) | 1;
   }
 
   await useApiFetch("/api/bugs", {
@@ -210,7 +217,7 @@ const fetchGridData = async () => {
     },
     onResponse({ response }) {
       if (response.status === 200) {
-        gridMeta.value.employess = response._data.body;
+        gridMeta.value.bug = response._data.body;
       }
       gridMeta.value.isLoading = false;
     },
@@ -232,33 +239,33 @@ const handlePageChange = async () => {
 };
 
 const onCreate = () => {
-  gridMeta.value.selectedEmpployee = null;
-  modalMeta.value.modalTitle = "New Employee";
-  modalMeta.value.modalDescription = "Add a new employee";
-  modalMeta.value.isEmployeeModalOpen = true;
+  gridMeta.value.selectedBug = null;
+  modalMeta.value.modalTitle = "New Bug";
+  modalMeta.value.modalDescription = "Add a new Bug";
+  modalMeta.value.isBugModalOpen = true;
 };
 
 const onEdit = (row) => {
-  gridMeta.value.selectedEmpployee = row;
-  modalMeta.value.modalTitle = "Edit";
-  modalMeta.value.modalDescription = "Edit Employee information";
-  modalMeta.value.isEmployeeModalOpen = true;
+  gridMeta.value.selectedBug = row;
+  modalMeta.value.modalTitle = "Edit Bug";
+  modalMeta.value.modalDescription = "Edit bug information";
+  modalMeta.value.isBugModalOpen = true;
 };
 
 const onSelect = async (row) => {
-  gridMeta.value.selectedEmpployee = row;
+  gridMeta.value.selectedBug = row;
 };
 
 const onDblClick = async () => {
-  if (gridMeta.value.selectedEmpployee) {
-    modalMeta.value.modalTitle = "Edit";
-    modalMeta.value.modalDescription = "Edit Employee information";
-    modalMeta.value.isEmployeeModalOpen = true;
+  if (gridMeta.value.selectedBug) {
+    modalMeta.value.modalTitle = "Edit Bug";
+    modalMeta.value.modalDescription = "Edit bug information";
+    modalMeta.value.isBugModalOpen = true;
   }
 };
 
 const onDelete = async (row: any) => {
-  await useApiFetch(`/api/employees/${row?.UniqueID}`, {
+  await useApiFetch(`/api/bugs/${row?.uniqueid}`, {
     method: "DELETE",
     onResponse({ response }) {
       if (response.status === 200) {
@@ -292,7 +299,7 @@ const handleSortingButton = async (btnName: string) => {
             break;
           default:
             column.sortDirection = "none";
-            gridMeta.value.sort.column = "UniqueID";
+            gridMeta.value.sort.column = "uniqueid";
             gridMeta.value.sort.direction = "asc";
             break;
         }
@@ -316,7 +323,7 @@ const handleFilterInputChange = async (event, name) => {
 };
 
 const handleModalClose = () => {
-  modalMeta.value.isEmployeeModalOpen = false;
+  modalMeta.value.isBugModalOpen = false;
 };
 
 const handleModalSave = async () => {
@@ -349,7 +356,7 @@ const handleModalSave = async () => {
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup label="Quantity" name="Quantity">
                 <div class="text-center text-bold">
-                  {{ gridMeta.numberOfEmployee }}
+                  {{ gridMeta.numberOfBug }}
                 </div>
               </UFormGroup>
             </div>
@@ -370,8 +377,10 @@ const handleModalSave = async () => {
         <h2>Bug Lookup</h2>
       </div>
 
+      
+
       <UTable
-        :rows="gridMeta.employess"
+        :rows="gridMeta.bug"
         :columns="columns"
         :loading="gridMeta.isLoading"
         class="w-full"
@@ -384,7 +393,6 @@ const handleModalSave = async () => {
           },
           td: {
             padding: 'py-1',
-            // width: 'max-w-[200px]',
           },
         }"
         :empty-state="{
@@ -457,7 +465,7 @@ const handleModalSave = async () => {
           <UPagination
             :max="7"
             :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfEmployee || 0"
+            :total="gridMeta.numberOfBug || 0"
             v-model="gridMeta.page"
             @update:model-value="handlePageChange()"
           />
@@ -466,9 +474,9 @@ const handleModalSave = async () => {
     </UDashboardPanel>
   </UDashboardPage>
   
-  <!-- New Employee Detail Modal -->
+  
   <UDashboardModal
-    v-model="modalMeta.isEmployeeModalOpen"
+    v-model="modalMeta.isBugModalOpen"
     :title="modalMeta.modalTitle"
     :description="modalMeta.modalDescription"
     :ui="{
@@ -478,13 +486,14 @@ const handleModalSave = async () => {
         padding: 'pt-5 sm:px-9',
       },
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1600px] sm:max-w-8xl',
+      width: 'w-[600px] sm:max-w-8xl',
     }"
   >
-    <EmployeeForm
+
+    <BugForm
       @close="handleModalClose"
       @save="handleModalSave"
-      :selected-employee="gridMeta.selectedEmpployee"
+      :selected-bug="gridMeta.selectedBug"
       :is-modal="true"
     />
   </UDashboardModal>
