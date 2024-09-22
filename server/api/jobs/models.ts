@@ -1,4 +1,4 @@
-import {   getModels } from '~/server/controller/jobs';
+import { getModels } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {

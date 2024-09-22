@@ -356,6 +356,12 @@ const onDelete = async (row: any) => {
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
+      <UDashboardNavbar class="gmsBlueHeader" title="Jobs"> </UDashboardNavbar>
+
+      <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Sort</h2>
+      </div>
+
       <UDashboardToolbar>
         <template #left>
           <template
@@ -388,13 +394,16 @@ const onDelete = async (row: any) => {
         <template #right>
           <UButton
             label="Add New Job"
-            color="gray"
+            variant="outline"
+            color="green"
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
         </template>
       </UDashboardToolbar>
-
+      <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Lookup</h2>
+      </div>
       <UTable
         :rows="gridMeta.organization"
         :columns="columns"

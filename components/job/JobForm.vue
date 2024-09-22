@@ -13,6 +13,10 @@ const props = defineProps({
   },
 });
 
+const user = useCookie<string>('user');
+const username = user.value.fname+" "+user.value.lname
+
+
 const toast = useToast();
 const router = useRouter();
 const jobFormInstance = getCurrentInstance();
@@ -22,7 +26,7 @@ const isLoading = ref(false);
 const categories = ref([]);
 const subCategories = ref([]);
 const closedByUsers = ref([]);
-const jobTypes = ref([]);
+const jobTypes = ref(["Product","Sub Assembly"]);
 const perTypes = ref([]);
 const productionUsers = ref([]);
 const getEmployeees = ref([]);
@@ -36,6 +40,7 @@ const prodScheduleHrs = ref("0");
 const subScheduleHrs = ref("0");
 const prodOperationIds = ref([]);
 const subOperationIds = ref([]);
+const multipleSerialSelect = ref([]);
 const prodHrs = ref(0);
 const subHrs = ref(0);
 const unitCost = ref();
@@ -46,7 +51,6 @@ const formData = reactive({
   JobType: null,
   JobDescription: null,
   WorkCenters: null,
-
   NUMBER: null,
   QUANTITY: null,
   DATEOPENED: null,
@@ -65,6 +69,7 @@ const formData = reactive({
   ByEmployee: null,
   PRODUCTLINE: null,
   MODEL: null,
+  instanceID: null,
 });
 const date = new Date();
 const editInit = async () => {
@@ -76,6 +81,7 @@ const editInit = async () => {
         JobExist.value = true;
 
         for (const key in response._data.body) {
+          console.log(response._data.body)
           if (response._data.body[key] !== undefined) {
             // formData[key] = response._data.body[key];
             if (key === "Cost") {
@@ -163,6 +169,7 @@ const editInit = async () => {
     params: { ...jobFilters.value },
     onResponse({ response }) {
       if (response.status === 200) {
+        console.log(response._data.body)
         const totalAmount = formData.Cost;
         const numericAmount = parseFloat(totalAmount.replace("$", ""));
 
@@ -241,17 +248,17 @@ const propertiesInit = async () => {
   loadingOverlay.value = true;
 
   // get job type list
-  await useApiFetch("/api/jobs/jobTypes", {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        jobTypes.value = response._data.body;
-      }
-    },
-    onResponseError() {
-      jobTypes.value = [];
-    },
-  });
+  // await useApiFetch("/api/jobs/jobTypes", {
+  //   method: "GET",
+  //   onResponse({ response }) {
+  //     if (response.status === 200) {
+  //       jobTypes.value = response._data.body;
+  //     }
+  //   },
+  //   onResponseError() {
+  //     jobTypes.value = [];
+  //   },
+  // });
 
   // get perType list
   await useApiFetch("/api/jobs/perType", {
@@ -284,6 +291,7 @@ const propertiesInit = async () => {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
+        console.log(response._data.body)
         getEmployeees.value = response._data.body;
       }
     },
@@ -356,6 +364,9 @@ const getSchedules = async () => {
 
 const validate = (state: any): FormError[] => {
   const errors = [];
+  if (!state.NUMBER) errors.push({ path: 'NUMBER', message: 'Please enter your job number.' })
+  if (!state.QUANTITY) errors.push({ path: 'QUANTITY', message: 'Please enter a your job quantity.' })
+  if (!state.JobType) errors.push({ path: 'JobType', message: 'Please enter an job type.' })
   return errors;
 };
 
@@ -677,12 +688,17 @@ const subEmployeeGridMeta = ref({
 const productsSerialGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
+      key: "select",
+      label: "Select",
+      kind: "actions",
+    },
+    {
       key: "Serial",
       label: "Serial",
     },
     {
       key: "dateEntered",
-      label: "Date Completed",
+      label: "Date Serialized",
     },
     {
       key: "cost",
@@ -697,12 +713,17 @@ const productsSerialGridMeta = ref({
 const productsSBSerialGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
+      key: "select",
+      label: "Select",
+      kind: "actions",
+    },
+    {
       key: "Serial",
       label: "Serial",
     },
     {
       key: "dateEntered",
-      label: "Date Completed",
+      label: "Date Serialized",
     },
     {
       key: "material_cost",
@@ -771,6 +792,59 @@ const onPartsClick = () => {
 const handleViewOperationClick = () => {
   window.open(`/api/jobs/exportoperation/${props.selectedJob}`);
 };
+
+const handleUpdateQty = async () => {
+  loadingOverlay.value = true
+  await useApiFetch(`/api/jobs/updateSerial/`, {
+    method: "PUT",
+    params: { jobId:props.selectedJob, jobQty: formData.QUANTITY, model: formData.MODEL },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: "Updated Qty.",
+          icon: "i-heroicons-check-circle",
+          color: "green",
+        });
+      }
+      emit('save')
+    },
+  });
+  loadingOverlay.value = false
+}
+
+const handlePullIntoSerial = async () => {
+  loadingOverlay.value = true
+  await useApiFetch(`/api/jobs/pullintoserial/`, {
+    method: "PUT",
+    params: { serialList: JSON.stringify(multipleSerialSelect.value), instanceId: formData.instanceID, employee: username, perType: formData.PerType, jobPart: formData.PART },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: "Job Saved.",
+          icon: "i-heroicons-check-circle",
+          color: "green",
+        });
+      }
+     
+    },
+  });
+  loadingOverlay.value = false
+}
+
+const onMultipleSerialSelect = (row) => {
+  productsSerialGridMeta.value.products.forEach(item => {
+    if(item.checked === undefined){
+      item.checked = false
+    }
+    if(item.UniqueID === row.UniqueID){
+      item.checked = item.checked ? false : true
+    }
+  })
+  multipleSerialSelect.value = productsSerialGridMeta.value.products
+}
+
 
 if (props.selectedJob !== null) editInit();
 else propertiesInit();
@@ -864,7 +938,7 @@ else propertiesInit();
                 <UInputMenu
                   v-model="formData.ByEmployee"
                   v-model:query="formData.ByEmployee"
-                  :options="productionUsers"
+                  :options="getEmployeees"
                 />
               </UFormGroup>
             </div>
@@ -900,7 +974,7 @@ else propertiesInit();
                 <UInputMenu
                   v-model="formData.ProductionBy"
                   v-model:query="formData.ProductionBy"
-                  :options="productionUsers"
+                  :options="getEmployeees"
                 />
               </UFormGroup>
             </div>
@@ -943,7 +1017,7 @@ else propertiesInit();
                 <UInputMenu
                   v-model="formData.ClosedBy"
                   v-model:query="formData.ClosedBy"
-                  :options="closedByUsers"
+                  :options="getEmployeees"
                 />
               </UFormGroup>
             </div>
@@ -1126,7 +1200,7 @@ else propertiesInit();
             <div class="">
               <UFormGroup label="" name="Title">
                 <UButton
-                  label="Re-Open"
+                  label="Update Qty."
                   icon="i-f7-arrow-clockwise"
                   variant="outline"
                   color="green"
@@ -1135,6 +1209,7 @@ else propertiesInit();
                     base: 'w-fit',
                     truncate: 'flex justify-center w-full',
                   }"
+                  @click = "handleUpdateQty"
                 />
               </UFormGroup>
             </div>
@@ -1161,9 +1236,16 @@ else propertiesInit();
                     },
                   }"
                 >
-                  <template #empty-state>
-                    <div></div>
-                  </template>
+                <template  #select-data="{ row }">
+                  <UTooltip text="Select" >
+                    <UCheckbox
+                      @change="onMultipleSerialSelect(row)"
+                    />
+                  </UTooltip>
+                </template>
+                <!-- <template #empty-state>
+                  <div></div>
+                </template> -->
                 </UTable>
               </div>
               <div class="w-1/2">
@@ -1193,6 +1275,7 @@ else propertiesInit();
                     base: 'w-fit',
                     truncate: 'flex justify-center w-full',
                   }"
+                  @click="handlePullIntoSerial"
                   truncate
                 />
               </div>

@@ -13,6 +13,6 @@ export default eventHandler(async (event) => {
         return { error: 'Method Not Allowed' };
     }
   } catch (error) {
-    throw new Error(`Error fetching data from table: ${error.message}`);
+    throw new Error(`Error: ${error.message}`);
   }
 });
