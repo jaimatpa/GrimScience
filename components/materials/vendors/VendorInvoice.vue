@@ -1,9 +1,7 @@
-<!-- VendorInvoiceModal.vue -->
 <template>
     <UCard>
 
         <div class="grid grid-cols-2 gap-4">
-            <!-- Vendor Invoice Record -->
             <UCard>
                 <template #header>
                     <h4 class="font-bold mb-2">Details</h4>
@@ -52,7 +50,6 @@
                     </template>
                 </UCard>
             </div>
-            <!-- Payable -->
             <div class="col-span-2">
                 <UCard>
 
@@ -145,7 +142,6 @@
         <div class="mt-4 flex justify-between">
 
             <div>
-                <!-- <UButton @click="viewPO" color="blue" class="mr-2">View PO</UButton> -->
                 <UButton @click="save" color="gms-blue" class="mr-2">Save</UButton>
                 <UButton @click="deleteInvoice" variant="outline" color="red">Delete</UButton>
             </div>
