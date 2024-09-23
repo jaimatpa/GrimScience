@@ -98,13 +98,13 @@ const propertiesInit = async () => {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        formList.value = response._data.body;
+        formList.value = response._data.body.filter((item: any) => item !== null);
       }
     },
     onResponseError() {
       formList.value = [
-        "AL", "AK", "AZ", "AR",
-      ];
+        "Form 1", "Form 2", "Form 3",
+      ].slice(0, 20);
     },
   });
 
@@ -112,29 +112,60 @@ const propertiesInit = async () => {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        employeeList.value = response._data.body;
+        employeeList.value = response._data.body.filter((item: any) => item !== null);
       }
     },
     onResponseError() {
       employeeList.value = [
         "AL", "AK", "AZ", "AR",
-      ];
+      ].slice(0, 20);
     },
   });
 
   loadingOverlay.value = false;
 };
 
+
 const validate = (state: any): FormError[] => {
-  const errors = [];
-  if (!state.formName) errors.push({ path: "formName", message: "Form name is required." });
-  if (!state.employee) errors.push({ path: "employee", message: "Employee is required." });
-  if (!state.complaintText) errors.push({ path: "complaintText", message: "Description is required." });
-  if (!state.cost || isNaN(state.cost)) errors.push({ path: "cost", message: "Valid cost is required." });
+  const errors: FormError[] = [];
+
+  if (!state.resolved || !['OPEN', 'CLOSED'].includes(state.resolved)) {
+    errors.push({ path: 'resolved', message: 'Status must be either "Open" or "Closed".' });
+  }
+  if (!state.formName) {
+    errors.push({ path: 'formName', message: 'Form Name is required.' });
+  }
+  if (!state.complaintText || state.complaintText.trim() === '') {
+    errors.push({ path: 'complaintText', message: 'Description is required.' });
+  }
+  if (!state.descr || state.descr.trim() === '') {
+    errors.push({ path: 'descr', message: 'Bug details are required.' });
+  }
+
   return errors;
 };
 
 const onSubmit = async (event: FormSubmitEvent<any>) => {
+  const errors = validate(formData);
+
+  if (errors.length > 0) {
+    errors.forEach((error) => {
+      toast.add({
+        title: "Validation Error",
+        description: error.message,
+        icon: "i-heroicons-exclamation-triangle",
+        color: "red",
+      });
+    });
+    return;
+  }
+
+  if (!props.selectedBug) {
+    formData.datea = new Date();
+  }
+
+  loadingOverlay.value = true;
+
   const apiUrl = props.selectedBug 
     ? `/api/bugs/${props.selectedBug.uniqueid}` 
     : "/api/bugs";
@@ -155,6 +186,8 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       }
     },
   });
+
+  loadingOverlay.value = false; 
 
   emit("save");
 };
@@ -229,8 +262,6 @@ else propertiesInit();
                 </UPopover>
               </UFormGroup>
             </div>
-
-            {{ console.log('USTATES:', formList) }}
 
             <div class="flex justify-between space-x-2">
               <UFormGroup label="Form Name" name="formName" class="w-full">
