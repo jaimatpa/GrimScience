@@ -1,4 +1,4 @@
-import { tblJobDetail, tblJobs } from "~/server/models";
+import { tblJobDetail, tblJobs, tblSettings } from "~/server/models";
 import { Sequelize, Op } from "sequelize";
 import  sequelize  from '../../utils/databse';  
 import { QueryTypes } from 'sequelize';
@@ -118,7 +118,7 @@ export const getAllJobDetail = async (sortBy, sortOrder, filterParams) => {
   const whereClause = applyCusFilters(filterParams);
 
   const list = await tblJobDetail.findAll({
-    attributes: ['UniqueID', 'JobID', 'PartsList', 'Serial', 'ShipDate', 'SingleMaterialCost', 'dateEntered', 'ScheduledDate', 'SingleLaborCost'],
+    attributes: ['UniqueID', 'JobID', 'PartsList', 'Serial', 'ShipDate', 'SingleMaterialCost', 'dateEntered', 'ScheduledDate', 'SingleLaborCost', 'CostPerUnit'],
     where: whereClause,
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
   });
@@ -187,11 +187,7 @@ export const updateJobSerial = async (jobId, jobQuantity, model) => {
       replacements: { serialNumber },
       type: QueryTypes.SELECT
     });
-
-    
-
-    const dateEntered = dateResult.dateEntered ? formatDate(dateResult.dateEntered) : "";
-    console.log(dateEntered)
+    const dateEntered = dateResult.dateEntered ? formatDate(dateResult.dateEntered) : null;
     // Insert new record into tblJobDetail
     await sequelize.query(`
       INSERT INTO tblJobDetail (JobID, dateEntered, serial)
@@ -212,15 +208,15 @@ export const updateJobSerial = async (jobId, jobQuantity, model) => {
   return serialList;
 };
 // latestUnitCost, customer, model,
-export const processSerials = async (serialItems, instanceId, employee, perType, jobPart, ignoreDuplicateCheck = false) => {
-  
+export const processSerials = async (serialItems, instanceId, employee, perType, jobPart, jobId, model, ignoreDuplicateCheck = false) => {
+  console.log(instanceId,employee)
   // Filter out empty items
   serialItems =JSON.parse(serialItems)
   serialItems = serialItems.filter(item => item.Serial.trim() !== "" || item.dateEntered.trim() !== "");
-  console.log(serialItems)
+
   // Check for duplicate serials
   for (const item of serialItems) {
-    if (item.checked && item.dateEntered !== null) {
+    if (item.checked && (item.dateEntered !== null)) {
       if (!ignoreDuplicateCheck) {
         throw new Error("You cannot put a serial into inventory twice. Please doublecheck your checked items and try again.");
       }
@@ -230,24 +226,25 @@ export const processSerials = async (serialItems, instanceId, employee, perType,
   // Process checked items
   const currentDate = new Date();
   for (const item of serialItems) {
-    if (item.checked && (item.dateEntered === "" || ignoreDuplicateCheck)) {
+    if (item.checked && (item.dateEntered === "" || ignoreDuplicateCheck || item.dateEntered === null)) {
       item.dateEntered = formatDate(currentDate) 
       
       // Update serial records (Assuming AddtoSerialRecords is a function handling serial updates)
       await addToSerialRecords(item.Serial, item.UniqueID, instanceId, employee, item.JobID, perType, jobPart);
-
+      // console.log(item)
       // Fetch and update tblJobDetail
       const jobDetail = await sequelize.query(`
         SELECT * FROM tblJobDetail WHERE uniqueID = :uniqueID
       `, {
-        replacements: { uniqueID: item.tag },
+        replacements: { uniqueID: item.UniqueID },
         type: QueryTypes.SELECT
       });
 
       if (jobDetail.length > 0) {
         const record = jobDetail[0];
         record.dateEntered = item.dateEntered;
-        record.CostPerUnit = parseFloat(latestUnitCost) || 0; // Parse and handle cost
+        const latestUnitCost = await calculateLatestUnitCost(jobId);
+        record.CostPerUnit = latestUnitCost || 0; // Parse and handle cost
 
         // Update the record in the database
         await sequelize.query(`
@@ -255,7 +252,7 @@ export const processSerials = async (serialItems, instanceId, employee, perType,
           SET dateEntered = :dateEntered, CostPerUnit = :costPerUnit
           WHERE uniqueID = :uniqueID
         `, {
-          replacements: { dateEntered: record.dateEntered, costPerUnit: record.CostPerUnit, uniqueID: item.tag },
+          replacements: { dateEntered: record.dateEntered, costPerUnit: record.CostPerUnit, uniqueID: item.UniqueID },
           type: QueryTypes.UPDATE
         });
       }
@@ -263,22 +260,22 @@ export const processSerials = async (serialItems, instanceId, employee, perType,
   }
 
   // Update percentage and reload serial items (assuming these are other functions)
-  // await updatePercentage();
-  // await loadSerialItems();
+  await updatePercentage(jobId);
+  await loadSerialItems(jobId);
 
   // Create directories if system company is PDX
   // const glob_System_CompanyEnum = 'PDX'; // This should be set based on your system logic
   // if (glob_System_CompanyEnum === 'PDX') {
-  //   const directoryPath = path.join("P:/DHR/", customer, "Serials", `[${serialItems[0].serial}] [${model}]`);
+  //   const directoryPath = path.join("E:/GMS Web/grimm-management-system-web/server/DHR/", employee, "Serials", `[${serialItems[0].Serial}] [${model}]`);
   //   if (!fs.existsSync(directoryPath)) {
   //     fs.mkdirSync(directoryPath, { recursive: true });
   //   }
   // }
 
   // Final save and confirmation message (assumed to be logging)
-  // await saveData(); // Assuming Save() is a function that commits changes
-  // console.log("Serials have been added and the inventory has been updated.");
-  return serialItems
+  await saveJob(jobId); // Assuming Save() is a function that commits changes
+  console.log("Serials have been added and the inventory has been updated.");
+  return {serialItems, message: "Serials have been added and the inventory has been updated."}
 };
 
 // Function to add a serial record to the inventory
@@ -311,7 +308,7 @@ const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, j
     if (!bpId) throw new Error('BP ID not found');
 
     // Step 4: Insert the record into tblInventory
-    const today = new Date().toISOString().split('T')[0]; // Format as short date (YYYY-MM-DD)
+    const today = formatDateForSQLServer(new Date())
     
     // Fetch the max instanceID from tblInventory and increment it
     const instanceResult = await sequelize.query(`
@@ -323,20 +320,20 @@ const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, j
     const newInstanceID = instanceResult[0]?.nextInstanceId || 1;
 
     await sequelize.query(`
-      INSERT INTO tblInventory (Status, OrderID, instanceID, Serial, BPID, dateEntered)
-      VALUES ('Inventory', 0, :newInstanceID, :serialNo, :bpId, :dateEntered)
+      INSERT INTO tblInventory (Status, OrderID, instanceID, Serial, BPID, Today)
+      VALUES ('Inventory', 0, :newInstanceID, :serialNo, :bpId, :today)
     `, {
       replacements: {
         newInstanceID,
         serialNo,
         bpId,
-        dateEntered: today
+        today: today
       },
       type: QueryTypes.INSERT
     });
 
     // Step 5: Handle inventory transactions
-    const transId = await verifyInventoryTransaction("",formatDateForSQLServer(new Date()) ,employee, {jobID:jobId, jobDetailID:jobDetailId});
+    const transId = await verifyInventoryTransaction("", today, employee, {jobID:jobId, jobDetailID:jobDetailId});
     await clearInventoryTransactionDetails(transId);
 
     // Step 6: Remove plan from inventory if type is "Serial/Unit"
@@ -349,11 +346,12 @@ const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, j
     await addInventoryTransactionDetail(transId, recJOaPart, 1);
 
     // Step 8: Save the data (assuming this is a function in your code)
-    await saveRecord();
+    await saveJob(jobId);
 
     console.log('Record successfully added to inventory');
   } catch (error) {
     console.error('Error adding serial record:', error.message);
+    throw new Error('Error adding serial record: '+error.message)
   }
 }
 
@@ -375,7 +373,7 @@ const verifyInventoryTransaction = async (manual = '', date, createdBy, options 
     let whereClause = '';
 
     // Build dynamic WHERE clause based on optional parameters
-    if (transactionalID > 0) whereClause += ` AND tblInventoryTransactions.UniqueID = ${transactionalID} `;
+    if (transactionalID > 0) whereClause += ` AND tblInventoryTransactions.uniqueid = ${transactionalID} `;
     if (jobID > 0) whereClause += ` AND tblInventoryTransactions.JobID = ${jobID} `;
     if (jobOperationID > 0) whereClause += ` AND tblInventoryTransactions.OperationID = ${jobOperationID} `;
     if (serviceReportID > 0) whereClause += ` AND tblInventoryTransactions.ServiceReportID = ${serviceReportID} `;
@@ -391,7 +389,7 @@ const verifyInventoryTransaction = async (manual = '', date, createdBy, options 
     });
 
     if (existingTransaction.length > 0) {
-      transID = existingTransaction[0].UniqueID;
+      transID = existingTransaction[0].uniqueid;
     }
 
     let strType = 'Transaction';
@@ -401,11 +399,12 @@ const verifyInventoryTransaction = async (manual = '', date, createdBy, options 
     if (serviceReportID > 0) strType = 'Service Report';
     if (vendorInvoiceID > 0) strType = 'Vendor Invoice';
     if (orderID > 0) strType = 'Sales Invoice';
-
+    console.log(transID)
     // If transaction does not exist, insert a new record
     if (transID === 0) {
+      console.log("insert")
       await sequelize.query(`
-        INSERT INTO tblInventoryTransactions (Justification, Dated, By, ServiceReportID, JobID, OperationID, VendorInvoiceID, InvoiceID, JobDetailID, Manual, PONumber)
+        INSERT INTO tblInventoryTransactions (Justification, Dated, [By], ServiceReportID, JobID, OperationID, VendorInvoiceID, InvoiceID, JobDetailID, Manual, PONumber)
         VALUES ('System Generated - ${strType}', :date, :createdBy, :serviceReportID, :jobID, :jobOperationID, :vendorInvoiceID, :orderID, :jobDetailID, :manual, :poNumber)
       `, {
         replacements: {
@@ -431,17 +430,18 @@ const verifyInventoryTransaction = async (manual = '', date, createdBy, options 
       });
 
       if (newTransaction.length > 0) {
-        transID = newTransaction[0].UniqueID;
+        transID = newTransaction[0].uniqueID;
       }
     } else {
+      console.log("update")
       // Update the existing transaction
       await sequelize.query(`
         UPDATE tblInventoryTransactions
-        SET Justification = 'System Generated - ${strType}', Dated = :date, By = :createdBy, 
+        SET Justification = 'System Generated - ${strType}', Dated = :date, [By] = :createdBy, 
             ServiceReportID = :serviceReportID, JobID = :jobID, OperationID = :jobOperationID, 
             VendorInvoiceID = :vendorInvoiceID, InvoiceID = :orderID, JobDetailID = :jobDetailID, 
             Manual = :manual, PONumber = :poNumber
-        WHERE UniqueID = :transID
+        WHERE uniqueid = :transID
       `, {
         replacements: {
           transID,
@@ -462,12 +462,13 @@ const verifyInventoryTransaction = async (manual = '', date, createdBy, options 
 
     return transID;
   } catch (error) {
+    console.log("Error verifying inventory transaction:",error)
     throw new Error('Error verifying inventory transaction:', error.message);
   }
 }
 
-
 const clearInventoryTransactionDetails = async (transactionalID) => {
+  console.log('tran',transactionalID)
   try {
     // Fetch all transaction details for the given InventoryTransactionID
     const transactionDetails = await sequelize.query(`
@@ -496,6 +497,7 @@ const clearInventoryTransactionDetails = async (transactionalID) => {
     // Return a success value
     return 1;
   } catch (error) {
+    console.log("Error clearing inventory transaction details:",error)
     throw new Error('Error clearing inventory transaction details:', error.message);
   }
 }
@@ -521,14 +523,14 @@ const updateOnhandByInstanceId = async (instanceID) => {
       return;
     }
 
-    const strModel = modelResult[0].model;
+    const strModel = modelResult[0].MODEL;
 
     // Get the latest manual transaction details
     const manualTransactionResult = await sequelize.query(`
-      SELECT onhand, tblInventoryTransactions.uniqueID as UID, dated
+      SELECT OnHand, tblInventoryTransactions.uniqueid as UID, Dated
       FROM tblInventoryTransactionDetails
       INNER JOIN tblInventoryTransactions
-      ON tblInventoryTransactions.uniqueID = tblInventoryTransactionDetails.InventoryTransactionID
+      ON tblInventoryTransactions.uniqueid = tblInventoryTransactionDetails.InventoryTransactionID
       WHERE instanceID = :instanceID AND Manual = 'Yes'
       ORDER BY dated DESC LIMIT 1
     `, {
@@ -538,18 +540,18 @@ const updateOnhandByInstanceId = async (instanceID) => {
 
     // If a manual transaction is found, update the onhand and the date
     if (manualTransactionResult.length > 0) {
-      onhand = parseFloat(manualTransactionResult[0].onhand) || 0;
+      onhand = parseFloat(manualTransactionResult[0].OnHand) || 0;
       uid = parseInt(manualTransactionResult[0].UID, 10) || 0;
-      ddate = manualTransactionResult[0].dated || ddateDefault;
+      ddate = manualTransactionResult[0].Dated || ddateDefault;
     }
 
     // Fetch newer transactions after the manual transaction date and update the onhand quantity
     const transactionsResult = await sequelize.query(`
-      SELECT qtyChange
+      SELECT QtyChange
       FROM tblInventoryTransactionDetails
       INNER JOIN tblInventoryTransactions
-      ON tblInventoryTransactions.uniqueID = tblInventoryTransactionDetails.InventoryTransactionID
-      WHERE instanceID = :instanceID AND tblInventoryTransactions.dated > :ddate
+      ON tblInventoryTransactions.uniqueid = tblInventoryTransactionDetails.InventoryTransactionID
+      WHERE instanceID = :instanceID AND tblInventoryTransactions.Dated > :ddate
       ORDER BY dated ASC
     `, {
       replacements: { instanceID, ddate },
@@ -558,18 +560,19 @@ const updateOnhandByInstanceId = async (instanceID) => {
 
     // Iterate through the results and accumulate the onhand quantity
     for (const transaction of transactionsResult) {
-      onhand += parseFloat(transaction.qtyChange) || 0;
+      onhand += parseFloat(transaction.QtyChange) || 0;
     }
 
     // Update the onhand quantity for the model in tblBP
     await sequelize.query(`
-      UPDATE tblBP SET onhand = :onhand WHERE model = :model
+      UPDATE tblBP SET OnHand = :onhand WHERE model = :model
     `, {
       replacements: { onhand, model: strModel },
       type: QueryTypes.UPDATE
     });
 
   } catch (error) {
+    console.log("Error updating on-hand inventory:",error)
     throw new Error('Error updating on-hand inventory:', error.message);
   }
 }
@@ -585,7 +588,7 @@ const updateOnhandByModel = async (strModel) => {
     const rs = await sequelize.query(`
       SELECT instanceID 
       FROM tblBP 
-      WHERE model = :strModel
+      WHERE MODEL = :strModel
     `, {
       replacements: { strModel },
       type: QueryTypes.SELECT
@@ -596,14 +599,14 @@ const updateOnhandByModel = async (strModel) => {
       return;
     }
 
-    const instID = rs[0].instanceid;
+    const instID = rs[0].instanceID;
 
     // Query to get the most recent manual onhand inventory transaction
     const rs2 = await sequelize.query(`
-      SELECT TOP 1 onhand, tblInventoryTransactions.uniqueID AS UID, dated 
+      SELECT TOP 1 OnHand, tblInventoryTransactions.uniqueid AS UID, Dated 
       FROM tblInventoryTransactionDetails 
       INNER JOIN tblInventoryTransactions 
-      ON tblInventoryTransactions.uniqueID = tblInventoryTransactionDetails.InventoryTransactionID 
+      ON tblInventoryTransactions.uniqueid = tblInventoryTransactionDetails.InventoryTransactionID 
       WHERE instanceID = :instID 
       AND Manual = 'Yes' 
       ORDER BY dated DESC
@@ -614,19 +617,21 @@ const updateOnhandByModel = async (strModel) => {
 
     // If we have a record, update onhand, UID, and ddate
     if (rs2.length > 0) {
-      onhand = parseFloat(rs2[0].onhand);
+      onhand = parseFloat(rs2[0].OnHand);
       uid = rs2[0].UID;
-      ddate = rs2[0].dated;  // Update date to the most recent "manual" transaction date
+      const ddate = formatDateForSQLServer(new Date(rs2[0].Dated)); // This will be in UTC format
+      console.log(ddate)
+      // ddate = rs2[0].Dated;  // Update date to the most recent "manual" transaction date
     }
 
     // Query to get the quantity changes after the most recent manual transaction date
     const rs3 = await sequelize.query(`
-      SELECT qtyChange 
+      SELECT QtyChange 
       FROM tblInventoryTransactionDetails 
       INNER JOIN tblInventoryTransactions 
-      ON tblInventoryTransactions.uniqueID = tblInventoryTransactionDetails.InventoryTransactionID 
+      ON tblInventoryTransactions.uniqueid = tblInventoryTransactionDetails.InventoryTransactionID 
       WHERE instanceID = :instID 
-      AND tblInventoryTransactions.dated > :ddate 
+      AND tblInventoryTransactions.Dated > :ddate 
       ORDER BY dated ASC
     `, {
       replacements: { instID, ddate },
@@ -635,13 +640,13 @@ const updateOnhandByModel = async (strModel) => {
 
     // Loop through the records and update the onhand quantity
     for (const row of rs3) {
-      onhand += parseFloat(row.qtyChange);
+      onhand += parseFloat(row.QtyChange);
     }
 
     // Update the onhand quantity in tblBP for the given model
     await sequelize.query(`
       UPDATE tblBP 
-      SET onhand = :onhand 
+      SET OnHand = :onhand 
       WHERE model = :strModel
     `, {
       replacements: { onhand, strModel },
@@ -649,6 +654,7 @@ const updateOnhandByModel = async (strModel) => {
     });
 
   } catch (error) {
+    console.log("Error in updateOnhand:",error)
     throw new Error('Error in updateOnhand:', error.message);
     
   }
@@ -674,7 +680,7 @@ const removePlanFromInventory = async (qty, lngTransID, lngJob, strModel = '') =
       }
 
       // Remove inventory by adding inventory transaction detail with negative quantity
-      const model = rs[0].Model; // Assuming "Model" is the correct field
+      const model = rs[0].model; // Assuming "Model" is the correct field
       const partQty = parseFloat(rs[0].qty) || 0;
       const adjustedQty = 0 - (qty * partQty);
 
@@ -682,7 +688,7 @@ const removePlanFromInventory = async (qty, lngTransID, lngJob, strModel = '') =
     } else {
       // Fetch instanceID from tblBP where model equals strModel
       rs = await sequelize.query(`
-        SELECT instanceID FROM tblBP WHERE model = :strModel
+        SELECT instanceID FROM tblBP WHERE MODEL = :strModel
       `, {
         replacements: { strModel },
         type: QueryTypes.SELECT
@@ -709,6 +715,7 @@ const removePlanFromInventory = async (qty, lngTransID, lngJob, strModel = '') =
     //   await IT_REMOVEPLANFROMINVENTORY(partQty, lngTransID, lngJob, model);
     // }
   } catch (error) {
+    console.log("Error in updateOnhand:",error)
     throw new Error('Error in IT_REMOVEPLANFROMINVENTORY:', error.message);
   }
 }
@@ -717,7 +724,7 @@ const addInventoryTransactionDetail = async (lngTransactionalID, strModel, lngQt
   try {
     // Fetch the instance ID from tblbp using the strModel
     let dtt = await sequelize.query(`
-      SELECT instanceid FROM tblbp WHERE model = :strModel ORDER BY uniqueID DESC
+      SELECT instanceID FROM tblbp WHERE MODEL = :strModel ORDER BY uniqueID DESC
     `, {
       replacements: { strModel },
       type: QueryTypes.SELECT
@@ -727,7 +734,7 @@ const addInventoryTransactionDetail = async (lngTransactionalID, strModel, lngQt
       return 0;  // Return 0 if no records found
     }
 
-    const instanceID = dtt[0].instanceid;
+    const instanceID = dtt[0].instanceID;
 
     // Fetch additional info from tblbp
     dtt = await sequelize.query(`
@@ -761,7 +768,7 @@ const addInventoryTransactionDetail = async (lngTransactionalID, strModel, lngQt
       // Insert a new record into tblInventoryTransactionDetails
       await sequelize.query(`
         INSERT INTO tblInventoryTransactionDetails 
-        (InventoryTransactionID, InstanceID, BPID, QtyChange, Onhand) 
+        (InventoryTransactionID, InstanceID, BPID, QtyChange, OnHand) 
         VALUES (:lngTransactionalID, :instanceID, :BPID, :lngQtyChange, :lngOnHandCount)
       `, {
         replacements: {
@@ -776,13 +783,16 @@ const addInventoryTransactionDetail = async (lngTransactionalID, strModel, lngQt
     } else if (parseInt(transDetail.SubassemblyInventoried) === 0) {
       // Handle subassembly inventory logic
       let dt2 = await sequelize.query(`
-        SELECT tblbp.instanceid, SUM(tblbpparts.qty) * 1, tblbp.uniqueid AS uid 
+
+        SELECT tblbp.instanceid, 
+        SUM(tblBPParts.qty) * 1 AS total_qty, 
+        tblbp.uniqueid AS uid 
         FROM tblbp 
         INNER JOIN tblBPParts ON tblbp.uniqueid = tblBPParts.partid 
         INNER JOIN tblsteps ON tblsteps.uniqueid = tblBPParts.stepid 
         INNER JOIN tblplan ON tblplan.uniqueid = tblsteps.planid 
-        WHERE tblPlan.instanceid IN (:instanceID) 
-        GROUP BY tblbp.instanceID
+        WHERE tblPlan.instanceid IN (2592) 
+        GROUP BY tblbp.instanceid, tblbp.uniqueid;
       `, {
         replacements: { instanceID },
         type: QueryTypes.SELECT
@@ -792,7 +802,7 @@ const addInventoryTransactionDetail = async (lngTransactionalID, strModel, lngQt
       for (const row of dt2) {
         await sequelize.query(`
           INSERT INTO tblInventoryTransactionDetails 
-          (InventoryTransactionID, InstanceID, BPID, QtyChange, Onhand) 
+          (InventoryTransactionID, InstanceID, BPID, QtyChange, OnHand) 
           VALUES (:lngTransactionalID, :rowInstanceID, :rowBPID, :qtyChange, 0)
         `, {
           replacements: {
@@ -806,59 +816,228 @@ const addInventoryTransactionDetail = async (lngTransactionalID, strModel, lngQt
       }
     }
 
-    // Optional ListView logic
-    if (lvw !== null) {
-      // Clear existing list view items
-      lvw.Items = [];
-
-      // Query to fetch additional details to display in the list view
-      let dt2 = await sequelize.query(`
-        SELECT tblbp.instanceid, SUM(tblbpparts.qty) * :qty 
-        FROM tblbp 
-        INNER JOIN tblBPParts ON tblbp.uniqueid = tblBPParts.partid 
-        INNER JOIN tblsteps ON tblsteps.uniqueid = tblBPParts.stepid 
-        INNER JOIN tblplan ON tblplan.uniqueid = tblsteps.planid 
-        WHERE tblPlan.instanceid IN (:instanceID) 
-        GROUP BY tblbp.instanceID
-      `, {
-        replacements: { qty: lngQtyChange || 1, instanceID },
-        type: QueryTypes.SELECT
-      });
-
-      // Populate list view
-      for (const row of dt2) {
-        let dt = await sequelize.query(`
-          SELECT model, description, inventoryunit, ordercost, multiple, inventorycost, instanceID, code, productflag, SubassemblyInventoried 
-          FROM tblbp 
-          WHERE uniqueid IN (SELECT MAX(uniqueid) FROM tblbp WHERE instanceid = :instanceID)
-        `, {
-          replacements: { instanceID: row.instanceid },
-          type: QueryTypes.SELECT
-        });
-
-        const lvwItem = {
-          model: dt[0].model,
-          description: dt[0].description,
-          qty: row['SUM(tblbpparts.qty) * 1'],
-          inventoryUnit: dt[0].inventoryunit,
-          orderCost: `$${parseFloat(dt[0].ordercost).toFixed(2)}`,
-          totalCost: `$${(parseFloat(dt[0].inventorycost) * row['SUM(tblbpparts.qty) * 1']).toFixed(2)}`
-        };
-
-        lvw.Items.push(lvwItem);
-      }
-    }
-
     // Update on-hand count for the model
     await updateOnhandByModel(transDetail.model);
 
     return lngTransactionalID;
 
   } catch (error) {
+    console.log("Error in IT_AddInventoryTransactionDetail:",error)
     throw new Error('Error in IT_AddInventoryTransactionDetail:', error.message);
   }
 }
 
+const updatePercentage = async (lngJob) => {
+  try {
+    let x = 0;
+
+    // Step 1: Fetch job data from tbljobs
+    const dt = await sequelize.query(
+      `SELECT * FROM tbljobs WHERE UniqueID = :lngJob`,
+      {
+        replacements: { lngJob },
+        type: QueryTypes.SELECT
+      }
+    );
+
+    if (dt.JobType === 0) {
+      throw new Error('No job found with the given UniqueID.');
+    }
+
+    const dr = dt[0];
+
+    // Step 2: Check if job type is "Sub Assembly"
+    if (dr.JobType === 'Sub Assembly') {
+      // Step 3: Fetch job details ordered by shipdate
+      const dt2 = await sequelize.query(
+        `SELECT * FROM tblJobDetail WHERE JobID = :lngJob ORDER BY shipdate`,
+        {
+          replacements: { lngJob },
+          type: QueryTypes.SELECT
+        }
+      );
+
+      // Step 4: Sum up the quantity for each job detail
+      for (const row of dt2) {
+        x += parseFloat(row.Quantity) || 0;
+      }
+    } else {
+      // Step 5: Fetch job details ordered by Serial
+      const dt2 = await sequelize.query(
+        `SELECT * FROM tblJobDetail WHERE JobID = :lngJob ORDER BY Serial`,
+        {
+          replacements: { lngJob },
+          type: QueryTypes.SELECT
+        }
+      );
+
+      // Step 6: Increment count if dateEntered is not null or empty
+      for (const row of dt2) {
+        if (row.dateEntered && row.dateEntered.trim() !== '') {
+          x += 1;
+        }
+      }
+    }
+
+    // Step 7: Calculate the percentage complete
+    const percentageComplete = (x / parseFloat(dr.Quantity)) || 0;
+
+    // Step 8: Update the percentage in the tbljobs table
+    await sequelize.query(
+      `UPDATE tbljobs SET PercentageComplete = :percentageComplete WHERE UniqueID = :lngJob`,
+      {
+        replacements: {
+          percentageComplete,
+          lngJob
+        },
+        type: QueryTypes.UPDATE
+      }
+    );
+
+  } catch (error) {
+    console.log("Error in updatePercentage:",error)
+    throw new Error('Error in updatePercentage:', error.message);
+  }
+};
+
+const loadSerialItems = async (lngJob) => {
+  try {
+    // Clear the previous list of serial items (assuming this is done on the frontend)
+    const lvwSerialItems = []; // This would represent a cleared list in a UI framework
+
+    // Step 1: Fetch serial data from tblJobDetail for the given JobID
+    const dtSerial = await sequelize.query(
+      `SELECT * FROM tblJobDetail WHERE JobID = :lngJob ORDER BY Serial`,
+      {
+        replacements: { lngJob },
+        type: QueryTypes.SELECT
+      }
+    );
+
+    // Step 2: Iterate through the serial data and prepare list items
+    const items = dtSerial.map(row => {
+      const itemCost = parseFloat(row.CostPerUnit) || 0;
+      
+      return {
+        serial: row.Serial,
+        uniqueId: row.UniqueID,
+        dateEntered: row.dateEntered || '',
+        itemCost: itemCost.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+        scheduledDate: row.ScheduledDate || ''
+      };
+    });
+
+    // Step 3: Add the prepared items to the list view (this depends on how you're rendering the UI)
+    lvwSerialItems.push(...items);
+
+    // Step 4: Calculate and display the job cost
+    const jobCost = await calculateJobCost(lngJob); // Assuming this function exists
+    const formattedJobCost = jobCost.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+
+    // Set the job cost to a UI element or variable (e.g., recJOnCost)
+    console.log('Total Job Cost:', formattedJobCost);
+
+    return {
+      serialItems: lvwSerialItems,
+      totalJobCost: formattedJobCost
+    };
+  } catch (error) {
+    console.error('Error loading serial items:', error.message);
+    throw new Error('Error loading serial items:', error.message);
+  }
+};
+
+const calculateJobCost = async (lngJob) => {
+  try {
+    // Step 1: Fetch job details from tblJobDetail for the given JobID
+    const dt = await sequelize.query(
+      `SELECT * FROM tblJobDetail WHERE JobID = :lngJob`,
+      {
+        replacements: { lngJob },
+        type: QueryTypes.SELECT
+      }
+    );
+
+    // Step 2: Calculate the total cost
+    let totalCost = 0;
+    for (const row of dt) {
+      const rowCost = parseFloat(row.CostPerUnit) || 0;
+      totalCost += rowCost;
+    }
+
+    return totalCost;
+  } catch (error) {
+    console.error('Error calculating job cost:', error.message);
+    throw new Error('Error calculating job cost:', error.message);
+  }
+};
+
+const calculateLatestUnitCost = async (lngJob) => {
+  let cost = 0.00;
+  let laborCost = 0.00;
+
+  try {
+    // Fetch Job Operations
+    const jobOperations = await sequelize.query(
+      `SELECT * FROM tblJobOperations WHERE JobID = :lngJob`,
+      { replacements: { lngJob }, type: QueryTypes.SELECT }
+    );
+
+    if (jobOperations.length === 0) {
+      return 0.00;
+    }
+
+    for (const jobOperation of jobOperations) {
+      // Fetch parts related to the job operation
+      const jobParts = await sequelize.query(
+        `SELECT * FROM vwJobParts WHERE JobOperationID = :jobOperationID`,
+        { replacements: { jobOperationID: jobOperation.uniqueID }, type: QueryTypes.SELECT }
+      );
+
+      for (const part of jobParts) {
+        // Get the latest inventory cost of the part
+        const inventoryData = await sequelize.query(
+          `SELECT tblbp.model, tblbp.description, tblbp.inventoryunit, tblbp.ordercost, tblbp.multiple, tblbp.inventorycost, tblbp.instanceID
+           FROM tblbp 
+           WHERE uniqueid IN (SELECT MAX(uniqueid) FROM tblbp WHERE model = :model)`,
+          { replacements: { model: part.model }, type: QueryTypes.SELECT }
+        );
+
+        let inventoryCost = parseFloat(inventoryData[0].inventorycost) || 0.00;
+        cost += (part.qty * inventoryCost);
+      }
+      const settings = await tblSettings.findOne();
+      // Calculate labor cost for the job operation
+      let laborHours =  jobOperation.Hours == "" ?  0 : parseFloat(jobOperation.Hours);
+      laborCost += laborHours * settings.dataValues.laborrate;
+    }
+    // Calculate total cost and round it
+    cost = Math.round(cost * 1 * 100) / 100; // Multiplied by 1 to maintain the same logic as in VB
+    return cost;
+  } catch (error) {
+    console.error("Error calculating latest unit cost:", error);
+    throw new Error("Error calculating latest unit cost:", error)
+  }
+}
+
+const saveJob = async (lngJob) => {
+  try {
+    // Update additional fields if needed
+    const recJOnCost = await calculateJobCost(lngJob)
+    let cost = recJOnCost || 0.00;
+    await sequelize.query(
+      `UPDATE tblJobs SET PercentageComplete = 0, Cost = :cost WHERE UniqueID = :lngJob`,
+      { replacements: { cost, lngJob }, type: QueryTypes.UPDATE }
+    );
+    
+    //Update percentage complete and display success message
+    await updatePercentage(lngJob);
+
+  } catch (error) {
+    console.log("Save Job",error.message)
+    throw new Error(error.message);
+  }
+};
 
 export const getJobCategories = async () => {
   const result = await tblJobs.findAll({

@@ -13,6 +13,7 @@
   })
 
   const token = useCookie<string>('token');
+  const user = useCookie<string>('user');
 
   const users = ref([])
   const loadingOverlay = ref(false);
@@ -47,6 +48,7 @@
       body: event.data,
       async onResponse({ response }) {
         if(response.status === 200) {
+          user.value = JSON.stringify(response._data.body);
           token.value = response._data.token;
           await navigateTo("/")
         }
@@ -56,6 +58,7 @@
 
   init();
 </script>
+
 
 <template>
   <div>

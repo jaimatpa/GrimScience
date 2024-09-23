@@ -14,6 +14,7 @@ const props = defineProps({
 });
 
 const user = useCookie<string>('user');
+console.log(user)
 const username = user.value.fname+" "+user.value.lname
 
 
@@ -69,7 +70,7 @@ const formData = reactive({
   ByEmployee: null,
   PRODUCTLINE: null,
   MODEL: null,
-  instanceID: null,
+  InstanceID: null,
 });
 const date = new Date();
 const editInit = async () => {
@@ -169,41 +170,11 @@ const editInit = async () => {
     params: { ...jobFilters.value },
     onResponse({ response }) {
       if (response.status === 200) {
-        console.log(response._data.body)
-        const totalAmount = formData.Cost;
-        const numericAmount = parseFloat(totalAmount.replace("$", ""));
-
-        // Filter objects that have a dateEntered value
-        const validEntries = response._data.body.filter(
-          (item) => item.dateEntered
-        );
-
-        // Calculate the cost per valid entry
-        const costPerEntry = numericAmount / validEntries.length;
-
-        unitCost.value = `$${costPerEntry.toFixed(2)}`;
-
-        // Map over the data to create the new structure
-        const transformedData = response._data.body.map((item) => {
-          if (item.dateEntered) {
-            return {
-              ...item,
-              cost: `$${costPerEntry.toFixed(2)}`, // Keep 2 decimal places
-              SingleMaterialCost: null,
-            };
-          } else {
-            return {
-              ...item,
-              cost: "$0.00",
-              SingleMaterialCost: null,
-            };
-          }
-        });
 
         if (formData.JobType === "Product") {
-          productsSerialGridMeta.value.products = transformedData;
+          productsSerialGridMeta.value.products = response._data.body;
         } else {
-          productsSBSerialGridMeta.value.products = transformedData;
+          productsSBSerialGridMeta.value.products = response._data.body;
         }
       }
     },
@@ -213,9 +184,32 @@ const editInit = async () => {
     },
   });
 
+  await getSerial()
+
   await propertiesInit();
   loadingOverlay.value = false;
 };
+
+const getSerial = async () => {
+  await useApiFetch(`/api/jobs/details`, {
+    method: "GET",
+    params: { ...jobFilters.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+
+        if (formData.JobType === "Product") {
+          productsSerialGridMeta.value.products = response._data.body;
+        } else {
+          productsSBSerialGridMeta.value.products = response._data.body;
+        }
+      }
+    },
+    onResponseError({}) {
+      productsSerialGridMeta.value.products = [];
+      productsSBSerialGridMeta.value.products = [];
+    },
+  });
+}
 
 const fetchJobOperation = async () => {
   // get job operation
@@ -701,7 +695,7 @@ const productsSerialGridMeta = ref({
       label: "Date Serialized",
     },
     {
-      key: "cost",
+      key: "CostPerUnit",
       label: "Material Cost",
     },
   ],
@@ -815,21 +809,22 @@ const handleUpdateQty = async () => {
 
 const handlePullIntoSerial = async () => {
   loadingOverlay.value = true
+  console.log(multipleSerialSelect.value)
   await useApiFetch(`/api/jobs/pullintoserial/`, {
     method: "PUT",
-    params: { serialList: JSON.stringify(multipleSerialSelect.value), instanceId: formData.instanceID, employee: username, perType: formData.PerType, jobPart: formData.PART },
+    params: { serialList: JSON.stringify(multipleSerialSelect.value), instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, model: formData.MODEL },
     onResponse({ response }) {
       if (response.status === 200) {
         toast.add({
           title: "Success",
-          description: "Job Saved.",
+          description: response._data.message,
           icon: "i-heroicons-check-circle",
           color: "green",
         });
       }
-     
     },
   });
+  await getSerial()
   loadingOverlay.value = false
 }
 
