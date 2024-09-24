@@ -2,7 +2,6 @@
 import type { UTableColumn } from "~/types";
 import BugForm from "./BugForm.vue";
 
-// import BugForm from "./BugForm.vue";
 
 onMounted(() => {
   init();
