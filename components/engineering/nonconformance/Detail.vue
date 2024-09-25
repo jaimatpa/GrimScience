@@ -30,6 +30,19 @@ const tagEntryFormData = ref({
   serviceReportNum: 0,
   jobNum: 0,
   investigationNum: 0
+});
+const createTagEntriesFormData = ref({
+  UniqueID: null,
+  NonConformanceID: null,
+  DateTime:null,
+  Quantity: null,
+  ReceivedQty:null,
+  ByEmployee: null,,
+  AssignedtoEmployee: null,
+  Location: null,
+  Status: null,
+  Justification: null,
+  DISPOSITION: null,
 })
 const isPartModal = ref(false)
 const nonConformanceGridMeta = ref({
@@ -143,14 +156,12 @@ const propertiesInit = async () => {
     method: 'GET',
     onResponse({ response }) {
       if (response.status === 200) {
-        // nonConformanceGridMeta.value.nonConformances = response._data.body
-        console.log(response._data.body);
         const filters = response._data.body;
 
         const employees = filters.employees;
         tagEntriesGridMeta.value.defaultColumns.find(column => column.key === 'ByEmployee').filterOptions = employees.map(emp => ({
-          label: emp,  // The employee name to display
-          value: emp   // The employee value to filter by
+          label: emp,
+          value: emp
         }));
       }
     }
@@ -181,7 +192,21 @@ const fetchNonConformanceTags = async (uid) => {
       }
     }
   })
-
+//   {
+//     UniqueID: null,
+//       NonConformanceID: null,
+//         DateTime: null,
+//           Quantity: null,
+//             ReceivedQty: null,
+//               ByEmployee: null,,
+//                 AssignedtoEmployee: null,
+//                   Location: null,
+//                     Status: null,
+//                       Justification: null,
+//                         DISPOSITION: null,
+// }
+  createTagEntriesFormData.value.NonConformanceID = uid;
+  createTagEntriesFormData.value.DateTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
   loadingOverlay.value = false;
 };
 const fetchNonConformanceDetails = async (uid) => {
@@ -224,6 +249,59 @@ const handleSaveNonConformance = async () => {
     }
   })
 };
+
+const handleSaveNonConformanceTags = async () => {
+  await useApiFetch(`/api/engineering/nonconformances/tag`, {
+    method: 'POST',
+    body: tagEntryFormData.value,
+    onResponse({ response }) {
+      console.log(response)
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: 'i-heroicons-check-circle',
+          color: 'green'
+        })
+      }
+      else {
+        toast.add({
+          title: "Failed",
+          description: response._data.message,
+          icon: 'i-heroicons-check-circle',
+          color: 'red'
+        })
+      }
+
+    }
+  })
+};
+const deleteNonConformanceTag = async () => {
+  await useApiFetch(`/api/engineering/nonconformances/tag?id=${tagEntriesGridMeta.value.selectedTagEntry.UniqueID}`, {
+    method: 'DELETE',
+    onResponse({ response }) {
+      console.log(response)
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: 'i-heroicons-check-circle',
+          color: 'green'
+        })
+        fetchNonConformanceTags(nonConformanceGridMeta.value.selectedNonConformance.uniqueID)
+      }
+      else {
+        toast.add({
+          title: "Failed",
+          description: response._data.message,
+          icon: 'i-heroicons-check-circle',
+          color: 'red'
+        })
+      }
+
+    }
+  })
+};
 const handleFilterChange = async (event, name) => {
   if (filterValues.value.hasOwnProperty(name)) {
     filterValues.value[name] = event;
@@ -245,6 +323,16 @@ const onNonConformanceSelect = async (row) => {
   tagEntryFormData.value.serviceReportNum = row.COMPLAINTNUMBER
   await fetchNonConformanceTags(row.uniqueID);
   await fetchNonConformanceDetails(row.uniqueID);
+}
+const onNonConformanceSelectTag = async (row) => {
+  tagEntriesGridMeta.value.selectedTagEntry = { ...row, class: "" }
+  tagEntriesGridMeta.value.tagEntries.forEach((tag) => {
+    if (tag.UniqueID === row.UniqueID) {
+      tag.class = 'bg-gray-200'
+    } else {
+      delete tag.class
+    }
+  });
 }
 const handleSerialFind = () => {
   isSerialModal.value = true
@@ -423,7 +511,8 @@ else
               base: 'h-[31px]',
               padding: 'py-0'
             }
-          }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }">
+          }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+          @select="(row) => onNonConformanceSelectTag(row)">
           <template v-for="column in tagEntriesGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
             <template v-if="!column.filterOptions">
               <div class="px-1 py-1">
@@ -480,6 +569,7 @@ else
           <div class="flex flex-row space-x-3">
             <div class="basis-1/2 w-full">
               <UButton icon="i-heroicons-minus-circle" label="Delete" variant="outline" color="red"
+                @click="deleteNonConformanceTag"
                 :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
             </div>
             <div class="basis-1/2 w-full">
@@ -504,7 +594,7 @@ else
   <UDashboardModal title="Select serial" :ui="{
     width: 'w-[1440px] sm:max-w-9xl',
   }" v-model="isSerialModal">
-    <MaterialsSerialsSerialList @select="v => { console.log(v); formData.SERIAL = v.MODEL; isSerialModal = false }" />
+    <MaterialsSerialsSerialList @select="v => { formData.SERIAL = v.MODEL; isSerialModal = false }" />
   </UDashboardModal>
   <UDashboardModal :ui="{
     width: 'w-[1440px] sm:max-w-9xl',

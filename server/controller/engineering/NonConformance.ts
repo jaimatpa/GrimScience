@@ -1,6 +1,5 @@
 import { format } from "date-fns";
 import { Sequelize, Op } from "sequelize";
-import employeeSchedule from "~/server/api/jobs/employeeSchedule";
 import { tblNonConformance, tblServiceReport, tblComplaints, tblNonConformanceTags } from "~/server/models";
 import sequelize from "~/server/utils/databse";
 
@@ -101,11 +100,6 @@ export const addNonConformances = async (data) => {
 };
 
 
-
-export const deleteNonConformances = async (id) => {
-
-}
-
 export const getNonConformanceTags = async (data) => {
   try {
     const tags = await tblNonConformanceTags.findAll({
@@ -145,3 +139,31 @@ export const getNonConformancesFilters = async () => {
     throw error;
   }
 };
+
+export const addNonConformancesTags = async (data) => {
+  try {
+    if (data.uniqueID) {
+      const updatedRecord = await tblNonConformanceTags.update(data, {
+        where: { uniqueID: data.uniqueID }
+      });
+
+      if (updatedRecord[0] === 0) {
+        return { success: false, message: 'Record not found for update' };
+      }
+
+      return { success: true, message: 'Record updated successfully', data: updatedRecord };
+    } else {
+      const { uniqueID, ...dataWithoutID } = data;
+
+      const newRecord = await tblNonConformanceTags.create(dataWithoutID);
+      return { success: true, message: 'Record created successfully', data: newRecord };
+    }
+  } catch (error) {
+    console.error('Error in addNonConformances:', error);
+    return { success: false, message: 'An error occurred', error };
+  }
+};
+
+export const deleteNonConformancesTag = (id) => {
+  return sequelize.query(`Delete from tblNonConformanceTags Where UniqueID =${id}`)
+}
