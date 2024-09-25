@@ -1365,10 +1365,10 @@
     v-model="modalMeta.isInvestigationModalOpen"
     title="Root Cause Investigation"
     :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl'
+      title: 'text-lg text-white',
+      header: { base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader' }, 
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl', 
     }"
   >
     <EngineeringInvestigationDetail :selected-investigation="investigationGridMeta.selectedInvestigation?.investigationID??null" @close="onInvestigationModalClose" @link="onInvestigationAdd"/>
