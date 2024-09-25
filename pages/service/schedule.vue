@@ -1,14 +1,9 @@
 <script lang="ts" setup>
-import { format } from "date-fns";
-// import "~/components/service/ScheduleView.vue";
-import {
-    BryntumSchedulerProjectModel,
-    BryntumScheduler
-} from '@bryntum/scheduler-vue-3';
-import "@bryntum/scheduler/scheduler.stockholm.css";
+import { format, addDays, getISOWeeksInYear, getISOWeek } from "date-fns";
+import { BryntumGantt } from "@bryntum/gantt-vue-3";
+import "@bryntum/gantt/gantt.stockholm.css";
 
 import type { UTableColumn } from "~/types";
-
 
 useSeoMeta({
   title: "Grimm Scentific Schedule",
@@ -25,20 +20,22 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 const route = useRoute();
 const toast = useToast();
 const exportIsLoading = ref(false);
-const schedulerView = ref(false)
+const schedulerView = ref(false);
+const getCurrentYearName = ref()
+const curentWeeks = ref([]);
 
 const headerCheckboxes = ref({
   field: {
     label: "Field",
-    isChecked: false,
+    isChecked: true,
   },
   open: {
     label: "Open",
-    isChecked: false,
+    isChecked: true,
   },
   nonWarranty: {
     label: "Non-warranty",
-    isChecked: false,
+    isChecked: true,
   },
   customer: {
     label: "Customer",
@@ -50,7 +47,7 @@ const headerCheckboxes = ref({
   },
   warranty: {
     label: "Warranty",
-    isChecked: false,
+    isChecked: true,
   },
   factory: {
     label: "Factory",
@@ -199,6 +196,9 @@ const gridMeta = ref({
   numberOfOSchedule: 0,
   schedules: [],
   selectedServiceId: null,
+  selectedCompaintNumber: null,
+  selectedSerialNumber: null,
+  selectedCustomerId: null,
   sort: {
     column: "uniqueID",
     direction: "asc",
@@ -206,6 +206,40 @@ const gridMeta = ref({
   isLoading: false,
 });
 
+// function getISOWeekNumber(date) {
+//     const target = new Date(date.valueOf());
+//     const dayNr = (date.getDay() + 6) % 7;
+//     target.setDate(target.getDate() - dayNr + 3);
+//     const firstThursday = target.valueOf();
+//     target.setMonth(0, 1);
+//     if (target.getDay() !== 4) {
+//         target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+//     }
+//     return {
+//         year: target.getFullYear(),
+//         week: Math.ceil((firstThursday - target) / 86400000 / 7 + 1)
+//     };
+// }
+
+// const currentDate = new Date();
+// const currentWeekInfo = getISOWeekNumber(currentDate);
+
+// function getLastTwoDigitsOfCurrentYear() {
+//     const currentYear = new Date().getFullYear(); // Get current year
+//     return currentYear % 100; // Last two digits of the current year
+// }
+
+// // Function to format week and last two digits of the year
+// function formatWeekYear(data) {
+//     const week = data.week;  // Week number
+//     const shortYear = getLastTwoDigitsOfCurrentYear();  // Get last two digits of the current year
+
+//     // Format as "week-shortYear"
+//     return `${shortYear}-${week}`;
+// }
+
+// // Get formatted value
+// const formattedValue = formatWeekYear(currentWeekInfo);
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 
 const columns = computed(() =>
@@ -260,8 +294,8 @@ const filterValues = ref({
   "SO Type": null,
   "Failure Comment": null,
   "SR#": null,
-  Status: null,
-  Type: null,
+  Status: "Open",
+  Type: ["Field"],
   "Service Tech": null,
   "SR Date": null,
   Week: null,
@@ -269,16 +303,73 @@ const filterValues = ref({
   REPAIRSMADE: null,
   WarrentyService: null,
 });
+const ganttMeta = ref({
+  tasks: [],
+  startDate: new Date(),
+  endDate: new Date(),
+});
+
+const setCurrentWeekOfYear = () => {
+  const currentDate = new Date();
+  const currentYear = new Date().getFullYear();
+  getCurrentYearName.value =currentDate.getFullYear().toString().slice(-2);
+  const currentWeek = getISOWeek(currentDate);
+  const lastTwoDigits = currentYear.toString().slice(-2);
+  filterValues.value.Week = `${lastTwoDigits}-${currentWeek}`;//
+  
+};
+
+const getCurrentYearWeeks = () => {
+  const currentYear = new Date().getFullYear();
+
+  // // Function to get the number of weeks in a given year
+  // function getWeeksInYear(year: number): number {
+  //   // Start date of the year
+  //   const startDate = new Date(year, 0, 1);
+  //   // End date of the year
+  //   const endDate = new Date(year + 1, 0, 1);
+
+  //   // Calculate the number of milliseconds in a week
+  //   const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
+
+  //   // Calculate the difference in milliseconds
+  //   const differenceInMillis = endDate.getTime() - startDate.getTime();
+
+  //   // Calculate the number of weeks and round up
+  //   const weeks = Math.ceil(differenceInMillis / millisecondsPerWeek);
+
+  //   return weeks;
+  // }
+
+  // const weeksInYear = getWeeksInYear(currentYear);
+  // const weeksArray = [];
+  // const lastTwoDigits = currentYear.toString().slice(-2);
+
+  // Get the number of ISO weeks in the current year
+  const weeksInYear = getISOWeeksInYear(new Date(currentYear, 0, 1));
+
+  const lastTwoDigits = currentYear.toString().slice(-2);
+
+  for (let week = 1; week <= weeksInYear; week++) {
+    curentWeeks.value.push(`${lastTwoDigits}-${week}`);
+  }
+};
 
 const init = async () => {
+  setCurrentWeekOfYear();
   fetchGridData();
+  getCurrentYearWeeks();
+  
   for (const key in headerFilters.value) {
     const apiURL = `/api/service/schedule/${key}`;
     await useApiFetch(apiURL, {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          headerFilters.value[key].options = [null, ...response._data.body];
+          if (key === "weeks") {
+            headerFilters.value[key].options = [null, ...curentWeeks.value];
+          } else
+            headerFilters.value[key].options = [null, ...response._data.body];
         }
       },
     });
@@ -308,13 +399,11 @@ watch(
     headerCheckboxes.value.nonWarranty.isChecked,
   ],
   ([newOpenValue, newClosedValue]) => {
-    if (newOpenValue && !newClosedValue) {
-      filterValues.value.WarrentyService = "1";
-    } else if (!newOpenValue && newClosedValue) {
-      filterValues.value.WarrentyService = "0";
-    } else {
-      filterValues.value.WarrentyService = null;
-    }
+    const typeArray = [];
+    if (newOpenValue) typeArray.push("Warranty");
+    if (newClosedValue) typeArray.push(" Non-warranty");
+
+    filterValues.value["SO Type"] = typeArray.length > 0 ? typeArray : null;
   }
 );
 
@@ -335,10 +424,24 @@ watch(
   }
 );
 
+// Watch for Toggle Button
+watch(
+  () => [schedulerView.value],
+  ([newValue]) => {
+    if (newValue) {
+      fetchScheduleData();
+    } else {
+      fetchGridData();
+    }
+  }
+);
+
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
 
-  // handle number of organization and pagination
+  
+  filterValues.value.Week = filterValues.value.Week ?  filterValues.value.Week : getCurrentYearName.value;
+   // handle number of organization and pagination
   await useApiFetch("/api/service/schedule/numbers", {
     method: "GET",
     params: {
@@ -378,6 +481,117 @@ const fetchGridData = async () => {
         gridMeta.value.schedules = response._data.body;
       }
       gridMeta.value.isLoading = false;
+    },
+  });
+};
+
+const fetchScheduleData = async () => {
+  await useApiFetch("/api/service/schedule/allschedules", {
+    method: "GET",
+    params: {
+      // "SO Type": filterValues.value["SO Type"],
+      // Type: filterValues.value["Type"],
+      // "Service Tech": filterValues.value["Service Tech"],
+      // Week: filterValues.value["Week"],
+      // Status: filterValues.value["Status"],
+      // WarrentyService: filterValues.value["WarrentyService"],
+      ...filterValues.value,
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        let schedules = response._data.body;
+        console.log("check schedules", schedules)
+        let employees = [];
+        schedules.forEach((schedule) => {
+          if (!employees.includes(schedule["Service Tech"])) {
+            employees.push(schedule["Service Tech"]);
+          }
+        });
+        ganttMeta.value.startDate = new Date();
+        ganttMeta.value.endDate = new Date();
+        ganttMeta.value.tasks = employees.map((employee, index) => {
+          let schedulesForEmployee = schedules.filter(
+            (schedule) => schedule["Service Tech"] === employee
+          );
+          let serviceOrders = [];
+          let serviceOrderList = [];
+          let comapanyName = "";
+          schedulesForEmployee.forEach((schedule) => {
+            if (!serviceOrderList.includes(schedule["SO#"])) {
+              serviceOrderList.push(schedule["SO#"]);
+            }
+            comapanyName = schedule["Company"];
+          });
+
+          serviceOrders = serviceOrderList.map((serviceOrder) => {
+            let serviceReports = [];
+            serviceReports = schedulesForEmployee
+              .filter(
+                (schedule) =>
+                  schedule["Service Tech"] === employee &&
+                  schedule["SO#"] === serviceOrder
+              )
+              .map((schedule) => {
+                if (
+                  new Date(ganttMeta.value.startDate) >
+                  new Date(schedule["SR Date"])
+                )
+                  ganttMeta.value.startDate = new Date(schedule["SR Date"]);
+                if (
+                  new Date(ganttMeta.value.endDate) <
+                  new Date(schedule["SR Date"])
+                )
+                  ganttMeta.value.endDate = addDays(
+                    new Date(schedule["SR Date"]),
+                    1
+                  );
+
+                  const serialNum = schedule["SN#"];
+                  const custNum = schedule["Cust #"];
+                return {
+                  name: schedule["SR#"],
+                  startDate: schedule["SR Date"],
+                  duration: 1,
+                  "SrNo": serialNum, 
+                  "CustId": custNum, 
+                  manuallyScheduled: true,
+                };
+              });
+            return {
+              name: `${serviceOrder} ${comapanyName}`,
+              children: serviceReports,
+            };
+          });
+          return {
+            name: employee,
+            expanded: !index ? true : false,
+            children: serviceOrders,
+            eventColor: "#BB8ABC",
+          };
+        });
+      }
+    },
+  });
+};
+
+const getCustomerByUniqueID = async (uniqueID) => {
+  if(!uniqueID){
+    return true;
+  }
+  await useApiFetch(`/api/customers/${uniqueID}`, {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        gridMeta.value.selectedCustomerId = response._data.body.uniqueid;
+        if (
+          gridMeta.value.selectedServiceId &&
+          gridMeta.value.selectedCustomerId
+        ) {
+          modalMeta.value.modalTitle = "Service Report";
+          modalMeta.value.modalDescription = "Service Report";
+          modalMeta.value.isSoOrderModalOpen = true;
+        }
+      }
     },
   });
 };
@@ -429,6 +643,7 @@ const handlePageChange = async () => {
 
 const modalMeta = ref({
   isReportModalOpen: false,
+  isSoOrderModalOpen: false,
   modalTitle: "Service Report",
   modalDescription: "Service Report",
 });
@@ -437,11 +652,12 @@ const onReportView = (row) => {
   gridMeta.value.selectedServiceId = row?.uniqueID;
   modalMeta.value.modalTitle = "Service Report";
   modalMeta.value.modalDescription = "Service Report";
-  modalMeta.value.isReportModalOpen = true;
+  modalMeta.value.isSoOrderModalOpen = true;
 };
 
 const handleModalClose = () => {
-  modalMeta.value.isReportModalOpen = false;
+  modalMeta.value.isSoOrderModalOpen = false;
+  gridMeta.value.selectedCustomerId = null;
 };
 
 const handleModalSave = async () => {
@@ -450,29 +666,41 @@ const handleModalSave = async () => {
 };
 
 const onSelect = async (row) => {
+  // gridMeta.value.selectedCustomerId = null;
+  await getCustomerByUniqueID(row["Cust #"]);
   gridMeta.value.selectedServiceId = row?.uniqueID;
+  gridMeta.value.selectedCompaintNumber = row["SO#"];
+  // gridMeta.value.selectedCustomerId = row['Cust #'];
+  gridMeta.value.selectedSerialNumber = row["SN#"];
 };
 
-const onDblClick = async () => {
-  if (gridMeta.value.selectedServiceId) {
-    modalMeta.value.modalTitle = "Service Report";
-    modalMeta.value.modalDescription = "Service Report";
-    modalMeta.value.isReportModalOpen = true;
-  }
-};
+const onDblClick = async () => {};
 
 const onServiceReportSave = async () => {
-  modalMeta.value.isReportModalOpen = false;
-  fetchGridData();
+  modalMeta.value.isSoOrderModalOpen = false;
+  if (schedulerView.value) {
+    
+    fetchScheduleData();
+  } else {
+    fetchGridData();
+  }
 };
 
 const handleFilterChange = () => {
   gridMeta.value.page = 1;
-  fetchGridData();
+  if (schedulerView.value) {
+    fetchScheduleData();
+  } else {
+    fetchGridData();
+  }
 };
 
 const handleCheckboxChange = () => {
-  fetchGridData();
+  if (schedulerView.value) {
+    fetchScheduleData();
+  } else {
+    fetchGridData();
+  }
 };
 
 const excelExport = async () => {
@@ -491,54 +719,89 @@ const excelExport = async () => {
   location.href = `/api/service/schedule/exportlist?${paramsString}`;
   exportIsLoading.value = false;
 };
+//old func
+const onScheduletaskDblClick = async (event) => {
+  const str = event.taskRecord?.originalData?.name;
+  const number = str.match(/\d+/)[0]; // \d+ matches one or more digits
+  let param = '';
+  let setParam = '';
+  let serviceReportID = 0;
+  if (Array.isArray(event.taskRecord?.originalData?.children)) {
+    if (event.taskRecord?.originalData?.eventColor){
+       param = 'emp#'
+       setParam = number
+       console.log(event.taskRecord?.originalData?.name)
+    }else{
+       param = 'so#'
+       console.log(event.taskRecord?.originalData?.name)
+       setParam = number
 
+       gridMeta.value.selectedServiceId = setParam;
 
-  // Scheduler
-  const scheduler = ref(null);
-  const project = ref(null);
-
-  const useSchedulerConfig = () => {
-      return {
-          columns   : [{ text : 'Name', field : 'name',  width : 160 }],
-          startDate : new Date(2022, 0, 1),
-          endDate   : new Date(2022, 0, 10)
-      };
-  };
-  const useProjectConfig = () => {
-      return {
-      };
-  };
-
-  const schedulerConfig = reactive(useSchedulerConfig());
-  const projectConfig = reactive(useProjectConfig());
-
-  const resources = ref(null);
-  const events = ref(null);
-  const scColumns = ref(null);
-  const assignments = ref(null);
-  const dependencies = ref(null);
-
-  scColumns.value  = [{ text : 'Name', field : 'name',  width : 160 }];
-
-  resources.value = [
-      { id : 1, name : 'Dylan Downs' },
-      { id : 2, name : 'Chandler Lang' }
-  ];
-
-  events.value = [
-      { resourceId : 1, startDate : '2022-01-01', endDate : '2022-01-10' },
-      { resourceId : 2, startDate : '2022-01-02', endDate : '2022-01-09' }
-  ];
+       await getCustomerByUniqueID(event.taskRecord?.originalData?.children[0]?.CustId);
+       gridMeta.value.selectedServiceId = setParam;
+       gridMeta.value.selectedCompaintNumber = setParam;
+       gridMeta.value.selectedSerialNumber =event.taskRecord?.originalData?.children[0]?.SrNo;
+       modalMeta.value.modalTitle = "So Service Report";
+       modalMeta.value.modalDescription = "so Service Report";
+       modalMeta.value.isSoOrderModalOpen = true;
+    }
+    } else {
+         param = 'sr#'
+         console.log(event.taskRecord?.originalData?.name)
+         setParam = number
+         await useApiFetch(`/api/service/servicereports/`, {
+            method: "GET",
+            params: {
+              CANO: number ?? "",
+            },
+            onResponse({ response }) {
+              if (response.status === 200) {
+                serviceReportID = response._data.body[0]?.uniqueID ?? 0;
+              }
+            },
+          });
+         gridMeta.value.selectedServiceId = serviceReportID;
+         modalMeta.value.modalTitle = " Sr Service Report";
+         modalMeta.value.modalDescription = "sr Service Report";
+         modalMeta.value.isReportModalOpen = true;
+    }
+      
   
-  assignments.value = [
-      { event : 1, resource : 1 },
-      { event : 2, resource : 2 }
-  ];
-
-  dependencies.value = [
-      { fromEvent : 1, toEvent : 2 }
-  ];
-
+  // if (!event.taskRecord.originalData.children) {
+  //   await useApiFetch(`/api/service/servicereports/`, {
+  //     method: "GET",
+  //     params: {
+  //       CANO: event.taskRecord.originalData?.name ?? "",
+  //     },
+  //     onResponse({ response }) {
+  //       if (response.status === 200) {
+  //         serviceReportID = response._data.body[0]?.uniqueID ?? 0;
+  //       }
+  //     },
+  //   });
+  //   gridMeta.value.selectedServiceId = serviceReportID;
+  //   modalMeta.value.modalTitle = "Service Report";
+  //   modalMeta.value.modalDescription = "Service Report";
+  //   //modalMeta.value.isSoOrderModalOpen = true;
+  // } else {
+  //   await useApiFetch(`/api/service/servicereports/`, {
+  //     method: "GET",
+  //     params: {
+  //       CANO: event.taskRecord.originalData?.children[0]?.name ?? "",
+  //     },
+  //     onResponse({ response }) {
+  //       if (response.status === 200) {
+  //         serviceReportID = response._data.body[0]?.uniqueID ?? 0;
+  //       }
+  //     },
+  //   });
+  //   gridMeta.value.selectedServiceId = serviceReportID;
+  //   modalMeta.value.modalTitle = "Service Report";
+  //   modalMeta.value.modalDescription = "Service Report";
+  //   //modalMeta.value.isSoOrderModalOpen = true;
+  // }
+};
 </script>
 
 <template>
@@ -549,38 +812,40 @@ const excelExport = async () => {
       <div class="px-4 py-2 gmsPurpleTitlebar">
         <h2>Service Report List</h2>
       </div>
-      <UDashboardToolbar>
-        <template #left>
-          <template
-            v-for="[key, value] in Object.entries(headerFilters)"
-            :key="key"
-          >
-            <template v-if="value.options.length > 1">
-              <div class="basis-1/7 max-w-[200px]">
-                <UFormGroup :label="value.label" :name="key">
-                  <USelect
-                    v-model="filterValues[`${value.filter}`]"
-                    :options="value.options"
-                    @change="handleFilterChange()"
-                  />
-                </UFormGroup>
-              </div>
-            </template>
-          </template>
+      <UDashboardToolbar class="bg-gms-gray-100">
+        <div class="flex flex-col w-full">
+          <div class="flex justify-between items-center w-full">
+            <div class="flex space-x-2">
+              <template
+                v-for="[key, value] in Object.entries(headerFilters)"
+                :key="key"
+              >
+                <template v-if="value.options.length > 1">
+                  <div class="basis-1/7 max-w-[200px]">
+                    <UFormGroup :label="value.label" :name="key">
+                      <USelect
+                        v-model="filterValues[`${value.filter}`]"
+                        :options="value.options"
+                        @change="handleFilterChange()"
+                      />
+                    </UFormGroup>
+                  </div>
+                </template>
+              </template>
 
-          <div class="grid grid-cols-3 ml-10">
-            <template v-for="checkbox in headerCheckboxes">
-              <div class="basis-1/5">
-                <UCheckbox
-                  v-model="checkbox.isChecked"
-                  :label="checkbox.label"
-                  @change="handleCheckboxChange"
-                />
+              <div class="grid grid-cols-3 ml-10">
+                <template v-for="checkbox in headerCheckboxes">
+                  <div class="basis-1/5">
+                    <UCheckbox
+                      v-model="checkbox.isChecked"
+                      :label="checkbox.label"
+                      @change="handleCheckboxChange"
+                    />
+                  </div>
+                </template>
               </div>
-            </template>
-          </div>
 
-          <!-- <div class="flex flex-row space-x-3">
+              <!-- <div class="flex flex-row space-x-3">
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup label="Quantity" name="Quantity">
                 <div class="text-center text-bold">
@@ -589,31 +854,59 @@ const excelExport = async () => {
               </UFormGroup>
             </div>
           </div> -->
-        </template>
-        <template #right>
-            <div class="h-5">
+            </div>
+            <div class="flex item space-x-2 items-center">
+              <!-- <template #right> -->
+              <div class="h-5">
                 List
                 <UToggle color="primary" xsize="2xl" v-model="schedulerView" />
                 Scheduler
               </div>
-          <UButton
-            :loading="exportIsLoading"
-            label="Export to Excel"
-            color="gray"
-            :disabled="exportIsLoading"
-            @click="excelExport"
-          >
-            <template #trailing>
-              <UIcon
-                name="i-heroicons-document-text"
-                class="text-green-500 w-5 h-5"
-              />
-            </template>
-          </UButton>
-        </template>
+              <UButton
+                :loading="exportIsLoading"
+                label="Export to Excel"
+                color="green"
+                variant="outline"
+                class="h-fit"
+                :disabled="exportIsLoading"
+                @click="excelExport"
+              >
+                <template #trailing>
+                  <UIcon
+                    name="i-heroicons-document-text"
+                    class="text-green-500 w-5 h-5"
+                  />
+                </template>
+              </UButton>
+              <!-- </template> -->
+            </div>
+          </div>
+
+          <div class="flex gap-x-10 mt-4">
+            <div class="inline-flex space-x-2">
+              <span>Total Travel Cost:</span>
+              <span>0</span>
+            </div>
+
+            <div class="inline-flex space-x-2">
+              <span>Total Onsite Cost:</span>
+              <span>0</span>
+            </div>
+
+            <div class="inline-flex space-x-2">
+              <span>Total Parts Cost:</span>
+              <span>0</span>
+            </div>
+
+            <div class="inline-flex space-x-2">
+              <span>Total Cost:</span>
+              <span>0</span>
+            </div>
+          </div>
+        </div>
       </UDashboardToolbar>
 
-      <div v-if="!schedulerView">
+      <template v-if="!schedulerView">
         <UTable
           :rows="gridMeta.schedules"
           :columns="columns"
@@ -623,8 +916,7 @@ const excelExport = async () => {
             divide: 'divide-gray-200 dark:divide-gray-800',
             th: {
               base: 'sticky top-0 z-10',
-              color: 'bg-white dark:text-gray dark:bg-[#111827]',
-              padding: 'p-0',
+              padding: 'pb-0',
             },
             td: {
               padding: 'py-1',
@@ -639,7 +931,7 @@ const excelExport = async () => {
         >
           <template v-for="column in columns" v-slot:[`${column.key}-header`]>
             <template v-if="column.kind !== 'actions'">
-              <div class="px-4 py-3.5">
+              <div class="">
                 <CommonSortAndInputFilter
                   @handle-sorting-button="handleSortingButton"
                   @handle-input-change="handleFilterInputChange"
@@ -659,7 +951,7 @@ const excelExport = async () => {
               </div>
             </template>
             <template v-else class="bg-slate-400">
-              <div class="flex justify-center text-center w-[53px]">
+              <div class="flex w-[53px]">
                 {{ column.label }}
               </div>
             </template>
@@ -670,7 +962,7 @@ const excelExport = async () => {
             v-slot:[`cell-${column.key}`]="{ row }"
           >
             <template v-if="column.kind !== 'actions'">
-              <div class="px-4 py-3.5">
+              <div class="">
                 <CommonSortAndInputFilter
                   @handle-sorting-button="handleSortingButton"
                   @handle-input-change="handleFilterInputChange"
@@ -706,7 +998,7 @@ const excelExport = async () => {
             </UTooltip>
           </template>
         </UTable>
-        <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+        <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
           <div class="flex flex-row justify-end mr-20 mt-1">
             <UPagination
               :max="7"
@@ -716,17 +1008,24 @@ const excelExport = async () => {
               @update:model-value="handlePageChange()"
             />
           </div>
-        </div>
-      </div>
-      <div v-else style="height: 100%">
-        <bryntum-scheduler ref="scheduler"
-          :columns="scColumns"
-          :resources="resources"
-          :events="events"
-          :assignments="assignments"
-          :dependencies="dependencies"
-            />
-      </div>
+        </div> -->
+      </template>
+      <template v-else style="height: 100%">
+        <bryntum-gantt
+          ref="gantt"
+          :tasks="ganttMeta.tasks"
+          :startDate="ganttMeta.startDate"
+          :endDate="ganttMeta.endDate"
+          :height="100"
+          :parentAreaFeature="true"
+          :scrollButtonsFeature="true"
+          :taskEditFeature="false"
+          :taskDragFeature="false"
+          :taskCopyPasteFeature="false"
+          :taskMenuFeature="false"
+          @taskDblClick="onScheduletaskDblClick"
+        />
+      </template>
     </UDashboardPanel>
   </UDashboardPage>
 
@@ -744,5 +1043,27 @@ const excelExport = async () => {
       :selected-service-report="gridMeta.selectedServiceId"
       @save="onServiceReportSave"
     />
+
+  </UDashboardModal>
+
+  <UDashboardModal
+    v-model="modalMeta.isSoOrderModalOpen"
+    title="Service Report"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-9xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+
+    <ServiceOrderDetail
+      @close="handleModalClose"
+      @save="onServiceReportSave"
+      :selected-serial="gridMeta.selectedSerialNumber"
+      :selected-customer="gridMeta.selectedCustomerId"
+      :selected-complaint="gridMeta.selectedCompaintNumber"
+      :selected-order="gridMeta.selectedServiceId"
+      :form-action ="null"
+    />
   </UDashboardModal>
 </template>
+<style></style>

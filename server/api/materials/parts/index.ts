@@ -5,7 +5,7 @@ export default eventHandler(async (event) => {
     const method = event._method;
     const { ...filterParams } = getQuery(event);
 
-    switch(method.toUpperCase()){
+    switch (method.toUpperCase()) {
       case 'GET':
         const list = await getParts(filterParams);
         return { body: list, message: '' }

@@ -117,7 +117,7 @@ export const getVendorSuppliedParts = async (searchTerm: string, page: number = 
     throw error;
   }
 };
-export const getInventoryTransactionsByModel = async (model: string) => {
+export const getInventoryTransactionsByModelV = async (model: string) => {
   try {
     const query = `
           SELECT tblInventoryTransactions.*, 
@@ -147,7 +147,7 @@ export const getInventoryTransactionsByModel = async (model: string) => {
 };
 
 
-export const getPODetailsByInstanceId = async (instanceId) => {
+export const getPODetailsByInstanceIdV = async (instanceId) => {
   try {
     // Execute raw SQL query
     const results = await sequelize.query(
@@ -258,7 +258,7 @@ export const getPOPartsDetails = async (model) => {
     throw error;
   }
 };
-export const getPOPartsDetailsByUniqueId = async (UniqueID) => {
+export const getPOPartsDetailsByUniqueIdV = async (UniqueID) => {
   console.log(UniqueID)
   try {
     const query = `
@@ -282,7 +282,7 @@ export const getPOPartsDetailsByUniqueId = async (UniqueID) => {
     throw error;
   }
 };
-export async function savePODetailByUniqueId(data) {
+export async function savePODetailByUniqueIdV(data) {
   // Validate data
   const requiredFields = [
     'ORDERED', 'RECEIVED', 'DESCRIPTION', 'STOCKNUMBER',
@@ -401,7 +401,7 @@ export async function updatePOEntry(id, poData) {
     throw error; // Rethrow the error if you want to handle it elsewhere
   }
 }
-export async function deletePODetailByStockNumber(stockNumber) {
+export async function deletePODetailByStockNumberV(stockNumber) {
   console.log(stockNumber);
   try {
     // Raw SQL query to delete data from tblPODetail by STOCKNUMBER

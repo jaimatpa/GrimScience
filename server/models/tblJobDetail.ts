@@ -48,7 +48,8 @@ const tblJobDetail = sequelize.define('tblJobDetail', {
       type: DataTypes.DECIMAL,
    },
 }, {
-   timestamps: false
+   timestamps: false,
+   tableName: "tblJobDetail"
 });
 
 export default tblJobDetail;

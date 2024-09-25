@@ -151,8 +151,8 @@
         <CreateAssets />
     </UDashboardModal>
 </template>
-
 <script setup>
+
 import { ref } from 'vue';
 import CreateAssets from './CreateAssets.vue';
 const showCreateAssetModal = ref(false);

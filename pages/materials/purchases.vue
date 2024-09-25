@@ -1,194 +1,361 @@
 <script lang="ts" setup>
-import PurchaseDetails from '~/components/materials/vendors/PurchaseDetails.vue';
+import CreatePurchaseModal from "~/components/purchase/CreatePurchaseModal.vue";
+import ViewPurchaseModal from "~/components/purchase/ViewPurchaseModal/ViewPurchaseModal.vue";
+import type { UTableColumn } from "~/types";
 
 useSeoMeta({
-  title: 'Grimm-Materials purchases'
-})
-const loadingOverlay = ref(false)
+  title: `Grimm-Materials purchases`,
+});
 
-const formState = ref({
-  searchItems: 150,
-  showOpen: true
-})
-const selectedRow = ref({});
+const route = useRoute();
+const toast = useToast();
 
-const columns = ref([
-  {
-    key: 'PONUMBER',
-    label: 'PO Number',
-    sortable: false,
-    filterable: false,
+const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
+const descIcon = "i-heroicons-bars-arrow-down-20-solid";
+const noneIcon = "i-heroicons-arrows-up-down-20-solid";
+
+const createPurchaseModalMeta = ref({
+  isModalOpen: false,
+  modalTitle: "New Invoice",
+  modalDescription: "Add a new invoice to your database",
+});
+
+const viewPurchaseModalMeta = ref({
+  isModalOpen: false,
+  modalTitle: "View Purchase",
+  modalDescription: "Add a new invoice to your database",
+});
+
+const gridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "UniqueId",
+      label: "PO#",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+      kind: "actions",
+    },
+    {
+      key: "date",
+      label: "Date",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+      kind: "actions",
+    },
+    {
+      key: "vendor",
+      label: "Vendor",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+      kind: "actions",
+    },
+    {
+      key: "phone",
+      label: "Phone",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+      kind: "actions",
+    },
+    {
+      key: "total",
+      label: "Total",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+      kind: "actions",
+    },
+    {
+      key: "open",
+      label: "Open",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+      kind: "actions",
+    },
+  ],
+  page: 1,
+  pageSize: 50,
+  numberOfPurchases: 0,
+  purchases: [],
+  selectedPurchaseId: null,
+  sort: {
+    column: "UniqueID",
+    direction: "asc",
   },
-  {
-    key: 'DATE',
-    label: 'Date',
-    sortable: false,
-    filterable: false,
-  },
-  {
-    key: 'NAME',
-    label: 'Vendor',
-    sortable: false,
-    filterable: false,
-  },
-  {
-    key: 'TOTAL',
-    label: 'Total',
-    sortable: false,
-    filterable: false,
-  },
-  {
-    key: 'details',
-    label: 'Details',
-    kind: 'actions',
-    class: 'text-center'
-  },
-]);
-const onPODetails = (row) => {
-  selectedRow.value = row;
-  showPODetailsModal.value = true;
+  isLoading: false,
+});
+
+const filterValues = ref({
+  UniqueId: null,
+  date: null,
+  vendor: null,
+  phone: null,
+  total: null,
+  open: null,
+});
+
+const selectedColumns = ref(gridMeta.value.defaultColumns);
+const columns = computed(() =>
+  gridMeta.value.defaultColumns.filter((column) =>
+    selectedColumns.value.includes(column)
+  )
+);
+Object.entries(route.query).forEach(([key, value]) => {
+  switch (key.toLowerCase()) {
+    case "page":
+      gridMeta.value.page = Number(value);
+      break;
+    case "pagesize":
+      gridMeta.value.pageSize = Number(value);
+      break;
+    case "sortby":
+      gridMeta.value.sort.column = value as unknown as string;
+      break;
+    case "sortorder":
+      gridMeta.value.sort.direction = value as unknown as string;
+      break;
+  }
+});
+
+// fetch purchse list
+const fetchPurchasesData = async () => {
+  gridMeta.value.isLoading = true;
+  await useApiFetch("/api/materials/purchase/", {
+    method: "GET",
+    params: {
+      page: gridMeta.value.page,
+      pageSize: gridMeta.value.pageSize,
+      sortBy: gridMeta.value.sort.column,
+      sortOrder: gridMeta.value.sort.direction,
+      ...filterValues.value,
+    },
+    onResponse: ({ response }) => {
+      console.log(response?._data?.body, "====> purchases list");
+      gridMeta.value.purchases = response?._data?.body;
+      gridMeta.value.isLoading = false;
+    },
+  });
 };
 
-const modalUIConfig = {
-  title: 'text-lg',
-  header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
-  body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-  width: 'w-[1800px] sm:max-w-9xl',
+// open the modal for create purchase
+const triggerCreatePurchaseModal = () => {
+  createPurchaseModalMeta.value.isModalOpen = true;
 };
 
-const tableUIConfig = {
-  divide: 'divide-gray-200 dark:divide-gray-800',
-  th: {
-    base: 'sticky top-0 z-10',
-    color: 'bg-white dark:text-gray dark:bg-[#111827]',
-    padding: 'p-2',
-  },
-  td: {
-    padding: 'p-2',
+// open view purchase moal
+const triggerViewPurchaseModal = () => {
+  if (gridMeta.value.selectedPurchaseId) {
+    viewPurchaseModalMeta.value.isModalOpen = true;
+  } else {
+    toast.add({
+      title: "info",
+      description: "Slect a purchase first",
+    });
   }
 };
-const rows = ref([
-  { po: '13082', date: '8/30/2024', vendor: 'ACCO', phone: '(800) 222-6462', total: 71.52, open: true },
-  { po: '13081', date: '8/30/2024', vendor: 'Blue Monster Products', phone: '(800) 321-3598', total: 45.72, open: false },
-  // ... add more rows as needed
-])
 
-const dateRange = ref({
-  from: '2024-09-08',
-  to: '2024-09-15'
-})
+const handleSortingButton = async (btnName: string) => {
+  gridMeta.value.page = 1;
+  for (const column of columns.value) {
+    if (column.sortable) {
+      if (column.key === btnName) {
+        switch (column.sortDirection) {
+          case "none":
+            column.sortDirection = "asc";
+            gridMeta.value.sort.column = btnName;
+            gridMeta.value.sort.direction = "asc";
+            break;
+          case "asc":
+            column.sortDirection = "desc";
+            gridMeta.value.sort.column = btnName;
+            gridMeta.value.sort.direction = "desc";
+            break;
+          default:
+            column.sortDirection = "none";
+            gridMeta.value.sort.column = "UniqueID";
+            gridMeta.value.sort.direction = "asc";
+            break;
+        }
+      } else {
+        column.sortDirection = "none";
+      }
+    }
+  }
+};
 
-const filters = ref({
-  search: '',
-  vendor: null,
-  status: null
-})
+const handleFilterInputChange = async (event: any, name: string) => {
+  gridMeta.value.page = 1;
+  if (filterValues.value.hasOwnProperty(name)) {
+    filterValues.value[name] = event;
+  } else {
+    console.error(`Filter does not have property: ${name}`);
+  }
+  fetchPurchasesData();
+};
 
-const vendorOptions = computed(() => {
-  return [...new Set(rows.value.map(row => row.vendor))].map(vendor => ({ label: vendor, value: vendor }))
-})
+fetchPurchasesData();
 
-const statusOptions = [
-  { label: 'Open', value: true },
-  { label: 'Closed', value: false }
-]
+const onSelect = (row: any) => {
+  console.log(row);
+  gridMeta.value.selectedPurchaseId = row.UniqueId;
+  console.log(gridMeta.value.selectedPurchaseId);
+};
 
-const filteredRows = computed(() => {
-  return rows.value.filter(row => {
-    const searchMatch = Object.values(row).some(value =>
-      String(value).toLowerCase().includes(filters.value.search.toLowerCase())
-    )
-    const vendorMatch = !filters.value.vendor || row.vendor === filters.value.vendor
-    const statusMatch = filters.value.status === null || row.open === filters.value.status
-    return searchMatch && vendorMatch && statusMatch
-  })
-})
+const onDblClick = () => console.log(gridMeta.value, "======> selected Data");
 
-const totalPurchases = computed(() => {
-  return filteredRows.value.reduce((sum, row) => sum + row.total, 0)
-})
+// delete selected purchase
+const deletePurchase = async () => {
+  if (gridMeta.value.selectedPurchaseId) {
+    gridMeta.value.isLoading = true;
+    await useApiFetch("/api/materials/purchase/", {
+      method: "DELETE",
+      params: {
+        UniqueId: gridMeta.value.selectedPurchaseId,
+      },
+      onResponse: ({ response }) => {
+        console.log(response._data?.body);
+        console.log(response);
+        if (response._data?.status == 201) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+          });
+          fetchPurchasesData();
+          gridMeta.value.isLoading = false;
+        }
+      },
+    });
+  } else
+    toast.add({
+      title: "info",
+      description: "Cliek on a purchase tou want to delete.",
+    });
+};
 
-const totalOpenOrders = computed(() => {
-  return filteredRows.value.filter(row => row.open).reduce((sum, row) => sum + row.total, 0)
-})
+const handlePageChange = () => { };
 
-function viewPurchaseOrder(row) {
-  // Implement view functionality
-  console.log('Viewing purchase order:', row)
-}
-
-function deletePurchaseOrder(row) {
-  console.log('Deleting purchase order:', row)
-}
-
-function lookupDateRange() {
-  console.log('Looking up date range:', dateRange.value)
-}
+fetchPurchasesData();
 </script>
+
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar class="gmsBlueHeader" title="Vendors" />
+      <UDashboardNavbar title="Purchases" class="gmsBlueHeader" />
+      <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Purchase Lookup</h2>
+      </div>
 
-      <UCard>
-        <template #header>
-          <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-              <UFormGroup label="Number of Search Items to Return" labelClass="mr-2">
-                <UInput v-model="formState.searchItems" type="number" class="w-24" />
-              </UFormGroup>
-              <UCheckbox v-model="formState.showOpen" label="Show Open" />
+      <UTable :rows="gridMeta.purchases" :columns="columns" :loading="gridMeta.isLoading"
+        class="w-full min-h-[60%] overflow-y-auto" :ui="{
+          divide: 'divide-gray-200 dark:divide-gray-800',
+          th: {
+            base: 'sticky top-0 z-10',
+            padding: 'pb-0',
+          },
+          td: {
+            padding: `py-1`,
+          },
+        }" :empty-state="{
+          icon: 'i-heroicons-circle-stack-20-solid',
+          label: 'No items.',
+        }" @select="onSelect" @dblclick="onDblClick">
+        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+          <template v-if="column.kind === 'actions'">
+            <div class="">
+              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
+                    ? noneIcon
+                    : column?.sortDirection === 'asc'
+                      ? ascIcon
+                      : descIcon
+                  " :filterable="column.filterable" :filter-key="column.key" />
             </div>
-            <div class="flex justify-between items-center">
-              <UFormGroup label="Date Range" labelClass="mr-2">
-                <div class="flex space-x-2">
-                  <UInput v-model="dateRange.from" type="date" />
-                  <span class="self-center">to</span>
-                  <UInput v-model="dateRange.to" type="date" />
-                  <UButton icon="i-heroicons-magnifying-glass" color="primary" @click="lookupDateRange"></UButton>
-                </div>
-              </UFormGroup>
-            </div>
-          </div>
-        </template>
-
-        <div class="mb-4 flex space-x-4">
-          <UInput v-model="filters.search" icon="i-heroicons-magnifying-glass" placeholder="Search..."
-            class="flex-grow" />
-          <USelect v-model="filters.vendor" :options="vendorOptions" placeholder="Select Vendor" />
-          <USelect v-model="filters.status" :options="statusOptions" placeholder="Select Status" />
-        </div>
-
-        <UTable :rows="rows" :columns="columns" :loading="loadingOverlay" class="w-full" :ui="tableUIConfig"
-          :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }">
-          <template #actions-data="{ row }">
-            <UTooltip text="Parts Supplied Details" class="flex justify-center">
-              <UButton color="gray" variant="ghost" icon="i-heroicons-eye" @click="onPODetails(row)" />
-            </UTooltip>
-            <UTooltip text="Delete Purchase Order">
-              <UButton color="red" variant="ghost" icon="i-heroicons-trash" @click="deletePurchaseOrder(row)" />
-            </UTooltip>
           </template>
-        </UTable>
-        <template #footer>
-
-          <div class="mt-4 grid grid-cols-2 gap-4">
-            <UCard>
-              <template #header>Total Purchases on Search</template>
-              <p class="text-2xl font-bold">${{ totalPurchases.toFixed(2) }}</p>
-            </UCard>
-            <UCard>
-              <template #header>Total Amount of Open Orders</template>
-              <p class="text-2xl font-bold">${{ totalOpenOrders.toFixed(2) }}</p>
-            </UCard>
-          </div>
+          <template v-else class="bg-slate-400">
+            <div class="flex justify-center text-center w-[53px]">
+              {{ column.label }}
+            </div>
+          </template>
         </template>
-      </UCard>
+      </UTable>
+      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+        <div class="flex flex-row justify-end mx-10 mt-1 gap-5">
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+              <UButton color="gms-gray" variant="outline">
+                Select Purchase Order
+              </UButton>
+              <UButton @click="triggerCreatePurchaseModal" color="gms-gray" variant="outline">
+                Create Purchase Order
+              </UButton>
+            </div>
+            <div class="flex items-center gap-3">
+              <UButton @click="triggerViewPurchaseModal" color="primary" variant="outline">
+                View Purchase Order
+              </UButton>
+              <UButton @click="deletePurchase" color="red" variant="outline">
+                Delete Purchase Order
+              </UButton>
+            </div>
+          </div>
+          <!-- <UPagination
+            :max="7"
+            :page-count="gridMeta.pageSize"
+            :total="gridMeta.numberOfPurchases | 0"
+            v-model="gridMeta.page"
+            @update:model-value="handlePageChange()"
+          /> -->
+        </div>
+      </div>
+      <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Date Range Lookup</h2>
+      </div>
+      <div class="px-5 py-2 bg-gms-gray-100">
+        <div class="flex items-center gap-10">
+          <div class="flex items-center gap-2">
+            <label for="form">Form</label>
+            <input type="date" class="border border-solid border-gray-600 rounded-lg px-2" />
+          </div>
+          <div class="flex items-center gap-2">
+            <label for="to">To</label>
+            <input type="date" class="border border-solid border-gray-600 rounded-lg px-2" />
+          </div>
+          <UButton color="primary" variant="solid">
+            Lookup
+          </UButton>
+        </div>
+      </div>
     </UDashboardPanel>
   </UDashboardPage>
 
-  <UDashboardModal v-model="showPODetailsModal" title="PO Details" :ui="modalUIConfig">
-    <PurchaseDetails :is-creating="false" :modal-data="selectedRow"></PurchaseDetails>
+  <UDashboardModal v-model="createPurchaseModalMeta.isModalOpen" title="Create Purchase" :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[60%] sm:max-w-9xl',
+  }">
+    <CreatePurchaseModal :modalMeta="createPurchaseModalMeta" />
   </UDashboardModal>
-
+  <UDashboardModal v-model="viewPurchaseModalMeta.isModalOpen" title="View Purchase" class="h-[50vh] overflow-y-auto"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[90%] sm:max-w-9xl',
+      height: 'h-[500px]',
+    }">
+    <ViewPurchaseModal :modalMeta="viewPurchaseModalMeta" :purchaseId="gridMeta.selectedPurchaseId" />
+  </UDashboardModal>
 </template>
+<style scoped></style>

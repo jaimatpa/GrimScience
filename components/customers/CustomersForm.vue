@@ -13,7 +13,7 @@ const props = defineProps({
     type: [Boolean]
   }
 })
-
+const action = ref('add')
 const toast = useToast()
 const router = useRouter()
 const customersFormInstance = getCurrentInstance();
@@ -205,6 +205,28 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   emit('save')
 }
 
+  const modalMeta = ref({
+      isCustomerModalOpen: false,
+      isOrderDetailModalOpen: false,
+      isQuoteDetailModalOpen: false,
+      isServiceOrderDetailModalOpen: false,
+      isSiteVisitModalOpen: false,
+      modalTitle: "New Customer",
+  })
+
+  const onOrderDetail = () => {
+      modalMeta.value.isOrderDetailModalOpen = true
+  }
+  const onQuoteDetail = () => {
+    modalMeta.value.isQuoteDetailModalOpen = true
+  }
+    const onServiceOrderDetail = () => {
+    modalMeta.value.isServiceOrderDetailModalOpen = true
+  }
+    const onSiteVisitDetail = () => {
+    modalMeta.value.isSiteVisitModalOpen = true
+  }
+
 if(props.selectedCustomer !== null) 
   editInit()
 else 
@@ -239,23 +261,21 @@ else
       <div class="flex flex-row space-x-3">
         <div class="basis-1/5">
           <UFormGroup
-            label="Frist"
+            label="First"
             name="fname"
           >
             <UInput
               v-model="formData.fname"
-              placeholder="John"
             />
           </UFormGroup>
         </div>
         <div class="basis-1/5">
           <UFormGroup
-            label="Middle"
+            label="MI"
             name="md"
           >
             <UInput
               v-model="formData.mi"
-              placeholder="John"
             />
           </UFormGroup>
         </div>
@@ -266,7 +286,6 @@ else
           >
             <UInput
               v-model="formData.lname"
-              placeholder="Doe"
             />
           </UFormGroup>
         </div>
@@ -277,7 +296,6 @@ else
           >
             <UInput
               v-model="formData.title"
-              placeholder="Full-Stack Developer"
             />
           </UFormGroup>
         </div>
@@ -288,7 +306,6 @@ else
           >
             <UInput
               v-model="formData.position"
-              placeholder="CTO"
             />
           </UFormGroup>
         </div>
@@ -314,7 +331,6 @@ else
           >
             <UInput
               v-model="formData.number"
-              placeholder=""
             />
           </UFormGroup>
         </div>
@@ -332,7 +348,7 @@ else
         </div>
         <div class="basis-1/5">
           <UFormGroup
-            label="Categories"
+            label="Category"
             name="categories"
           >
             <UInputMenu
@@ -357,38 +373,36 @@ else
       </div>
   
       <div class="flex flex-row">
-        <div class="basis-1/2 text-center">
+        <div class="basis-1/2 text-center underline font-semibold font-lg">
           Shipping Information
         </div>
-        <div class="basis-1/2 text-center">
+        <div class="basis-1/2 text-center underline font-semibold font-lg">
           Billing Information
         </div>
       </div>
   
       <div class="flex flex-row space-x-5">
-        <div class="basis-1/2">
+        <div class="basis-1/2 border-r border-black pr-5">
           <!-- Shipping Information -->
           <div class="flex flex-col space-y-2">
             <div class="flex flex-row space-x-3">
               <div class="basis-1/2">
                 <UFormGroup
-                  label="Company1"
+                  label="Company 1"
                   name="company1"
                 >
                   <UInput
                     v-model="formData.company1"
-                    placeholder="Company1"
                   />
                 </UFormGroup>
               </div>
               <div class="basis-1/2">
                 <UFormGroup
-                  label="Company2"
+                  label="Company 2"
                   name="company2"
                 >
                   <UInput
                     v-model="formData.company2"
-                    placeholder="Company2"
                   />
                 </UFormGroup>
               </div>
@@ -401,7 +415,6 @@ else
                 >
                   <UInput
                     v-model="formData.country"
-                    placeholder="Country"
                   />
                 </UFormGroup>
               </div>
@@ -414,7 +427,6 @@ else
                 >
                   <UInput
                     v-model="formData.address"
-                    placeholder="Address"
                   />
                 </UFormGroup>
               </div>
@@ -427,7 +439,6 @@ else
                 >
                   <UInput
                     v-model="formData.city"
-                    placeholder="Dallas"
                   />
                 </UFormGroup>
               </div>
@@ -449,7 +460,6 @@ else
                 >
                   <UInput
                     v-model="formData.zip"
-                    placeholder="65254"
                   />
                 </UFormGroup>
               </div>
@@ -462,7 +472,6 @@ else
                 >
                   <UInput
                     v-model="formData.fax"
-                    placeholder="Fax"
                   />
                 </UFormGroup>
               </div>
@@ -473,7 +482,6 @@ else
                 >
                   <UInput
                     v-model="formData.homephone"
-                    placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
               </div>
@@ -487,7 +495,6 @@ else
                   <UInput
                     v-model="formData.email"
                     type="email"
-                    placeholder="email"
                   />
                 </UFormGroup>
               </div>
@@ -498,7 +505,6 @@ else
                 >
                   <UInput
                     v-model="formData.workphone"
-                    placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
               </div>
@@ -509,7 +515,6 @@ else
                 >
                   <UInput
                     v-model="formData.Extension"
-                    placeholder="1"
                   />
                 </UFormGroup>
               </div>
@@ -522,7 +527,6 @@ else
                 >
                   <UInput
                     v-model="formData.website"
-                    placeholder="website"
                   />
                 </UFormGroup>
               </div>
@@ -533,7 +537,6 @@ else
                 >
                   <UInput
                     v-model="formData.cellphone"
-                    placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
               </div>
@@ -548,7 +551,6 @@ else
                     v-model="formData.notes"
                     :rows="3"
                     type="text"
-                    placeholder=""
                   />
                 </UFormGroup>
               </div>
@@ -559,6 +561,18 @@ else
           <!-- Billing Information -->
           <div class="flex flex-col space-y-2">
             <div class="flex flex-row space-x-3">
+              <div class="w-full">
+                <UFormGroup
+                  label="Attn"
+                  name="attn"
+                >
+                  <UInput
+                    v-model="formData.attn"
+                  />
+                </UFormGroup>
+              </div>
+            </div>
+            <div class="flex flex-row space-x-3">
               <div class="basis-1/2">
                 <UFormGroup
                   label="Company1"
@@ -566,7 +580,6 @@ else
                 >
                   <UInput
                     v-model="formData.billcompany1"
-                    placeholder="Bill Company1"
                   />
                 </UFormGroup>
               </div>
@@ -577,7 +590,6 @@ else
                 >
                   <UInput
                     v-model="formData.billcompany2"
-                    placeholder="Bill Company2"
                   />
                 </UFormGroup>
               </div>
@@ -590,7 +602,6 @@ else
                 >
                   <UInput
                     v-model="formData.billcountry"
-                    placeholder="Bill Country"
                   />
                 </UFormGroup>
               </div>
@@ -603,7 +614,6 @@ else
                 >
                   <UInput
                     v-model="formData.billaddress"
-                    placeholder="Bill Address"
                   />
                 </UFormGroup>
               </div>
@@ -616,7 +626,6 @@ else
                 >
                   <UInput
                     v-model="formData.billcity"
-                    placeholder="Dallas"
                   />
                 </UFormGroup>
               </div>
@@ -638,7 +647,6 @@ else
                 >
                   <UInput
                     v-model="formData.billzip"
-                    placeholder="65254"
                   />
                 </UFormGroup>
               </div>
@@ -651,7 +659,6 @@ else
                 >
                   <UInput
                     v-model="formData.billfax"
-                    placeholder="Fax"
                   />
                 </UFormGroup>
               </div>
@@ -662,7 +669,6 @@ else
                 >
                   <UInput
                     v-model="formData.billphone"
-                    placeholder="(564)-324-2342"
                   />
                 </UFormGroup>
               </div>
@@ -675,20 +681,6 @@ else
                 >
                   <UInput
                     v-model="formData.ExtensionBill"
-                    placeholder=""
-                  />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup
-                  label="Attn"
-                  name="attn"
-                >
-                  <UInput
-                    v-model="formData.attn"
-                    placeholder="Attn"
                   />
                 </UFormGroup>
               </div>
@@ -697,16 +689,112 @@ else
         </div>
       </div>
   
-      <div class="flex justify-end gap-3">
+      <div class="flex justify-start gap-3">
+        <UButton 
+          color="primary" 
+          variant="outline"
+          type="submit"
+          :icon="selectedCustomer !== null ? 'i-heroicons-pencil-square': 'i-heroicons-plus'"
+          :label="selectedCustomer !== null ? 'Modify Customer' : 'Add Customer'"
+        />
         <UButton color="red" variant="outline"
           :label="!isModal ? 'Go back': 'Cancel'"
           @click="handleClose"
         />
-        <UButton color="cyan" variant="outline"
-          type="submit"
-          label="Save"
-        />
       </div>
     </UForm>
+    <template v-if="selectedCustomer !== null">
+      <div class="flex gap-x-4">
+        <div>
+          <div class="px-4 py-2 gmsPurpleTitlebar mt-4">
+            <h2>Serial Record</h2>
+          </div>
+          <div class="w-[180px] mt-4">
+            <UButton label="View Serial Record" color="primary" variant="outline" icon="i-heroicons-eye" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}"/>
+          </div>
+        </div>
+        <div class="flex flex-col w-full">
+          <div class="px-4 py-2 gmsPurpleTitlebar mt-4">
+            <h2>Create New</h2>
+          </div>
+          <div class="flex space-x-6 mt-4">
+            <div class="w-[120px]">
+              <UButton label="Label" color="green" variant="outline" icon="i-heroicons-tag" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}"/>
+            </div>
+            <div class="w-[120px]">
+              <UButton label="Order" color="green" variant="outline" icon="i-heroicons-shopping-cart" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" @click="onOrderDetail()"/>
+            </div>
+            <div class="w-[120px]">
+              <UButton label="Quote" color="green" variant="outline" icon="i-heroicons-currency-dollar" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" @click="onQuoteDetail()"/>
+            </div>
+            <div class="w-[140px]">
+              <UButton label="Service Order" color="green" variant="outline" icon="i-heroicons-chat-bubble-left-ellipsis" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" @click="onServiceOrderDetail()"/>
+            </div>
+            <div class="w-[120px]">
+              <UButton label="Site Visit" color="green" variant="outline" icon="i-heroicons-clipboard-document-list" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" @click="onSiteVisitDetail()"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Order Modal -->
+    <UDashboardModal
+      v-model="modalMeta.isOrderDetailModalOpen"
+      title="Invoice"
+      :ui="{
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
+      }"
+    >
+      <InvoiceDetail :selected-customer="selectedCustomer" @close="modalMeta.isOrderDetailModalOpen = false"/>
+    </UDashboardModal>      
+<!-- Quote Modal -->
+<UDashboardModal
+      v-model="modalMeta.isQuoteDetailModalOpen"
+      title="Quote"
+      :ui="{
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
+      }"
+    >
+      <CustomersQuoteDetail :selected-customer="selectedCustomer"/>
+    </UDashboardModal>
+    <!-- Service Order Modal -->
+    <UDashboardModal
+      v-model="modalMeta.isServiceOrderDetailModalOpen"
+      title="Service Order"
+      :ui="{
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
+      }"
+    >
+      <ServiceOrderDetail :selected-customer="selectedCustomer" :form-action ="action" :selected-complaint="null" :selected-order="null" :selected-serial="null" />
+    </UDashboardModal>
+    <!-- Site Visit Modal -->
+    <UDashboardModal
+      v-model="modalMeta.isSiteVisitModalOpen"
+      title="Site Visit"
+      :ui="{
+        title: 'text-lg',
+        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1800px] sm:max-w-9xl'
+      }"
+    >
+      <CustomersSiteVisitDetail :selected-customer="selectedCustomer"/>
+    </UDashboardModal>
   </template>
 </template>

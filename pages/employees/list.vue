@@ -90,7 +90,7 @@ const gridMeta = ref({
   pageSize: 50,
   numberOfEmployee: 0,
   employess: [],
-  selectedEmpployeeId: null,
+  selectedEmpployee: null,
   sort: {
     column: "UniqueID",
     direction: "asc",
@@ -202,24 +202,24 @@ const handlePageChange = async () => {
 };
 
 const onCreate = () => {
-  gridMeta.value.selectedEmpployeeId = null;
+  gridMeta.value.selectedEmpployee = null;
   modalMeta.value.modalTitle = "New Employee";
   modalMeta.value.modalDescription = "Add a new employee";
   modalMeta.value.isEmployeeModalOpen = true;
 };
 
 const onEdit = (row) => {
-  gridMeta.value.selectedEmpployeeId = row?.UniqueID;
+  gridMeta.value.selectedEmpployee = row;
   modalMeta.value.modalTitle = "Edit";
   modalMeta.value.modalDescription = "Edit Employee information";
   modalMeta.value.isEmployeeModalOpen = true;
 };
 
 const onSelect = async (row) => {
-  gridMeta.value.selectedEmpployeeId = row?.UniqueID;
+  gridMeta.value.selectedEmpployee = row;
 };
 const onDblClick = async () => {
-  if (gridMeta.value.selectedEmpployeeId) {
+  if (gridMeta.value.selectedEmpployee) {
     modalMeta.value.modalTitle = "Edit";
     modalMeta.value.modalDescription = "Edit Employee information";
     modalMeta.value.isEmployeeModalOpen = true;
@@ -304,15 +304,11 @@ const handleModalSave = async () => {
         <h2>Sorting</h2>
       </div>
 
-      <UDashboardToolbar class="gmsTealToolbar">
+      <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
           <UFormGroup label="Employee Status" name="state">
-            <USelect
-              v-model="selectStatus"
-              :options="['Active', 'Inactive']"
-              @change="handleSelectChange"
-              searchable="false"
-            />
+            <USelect v-model="selectStatus" :options="['Active', 'Inactive']" @change="handleSelectChange"
+              searchable="false" />
           </UFormGroup>
           <div class="flex flex-row space-x-3 ml-5">
             <div class="basis-1/7 max-w-[200px]">
@@ -325,110 +321,59 @@ const handleModalSave = async () => {
           </div>
         </template>
         <template #right>
-          <UButton
-            variant="outline"
-            label="New Employee"
-            class="bg-gmsTealHeader"
-            trailing-icon="i-heroicons-plus"
-            @click="onCreate()"
-          />
+          <UButton variant="outline" label="New Employee" color="green" trailing-icon="i-heroicons-plus"
+            @click="onCreate()" />
         </template>
       </UDashboardToolbar>
-
-      <!-- New Employee Detail Modal -->
-      <UDashboardModal
-        v-model="modalMeta.isEmployeeModalOpen"
-        :title="modalMeta.modalTitle"
-        :description="modalMeta.modalDescription"
-        :ui="{
-          width: 'w-[1600px] sm:max-w-8xl',
-          body: { padding: 'py-0 sm:pt-0' },
-        }"
-      >
-        <EmployeeForm
-          @close="handleModalClose"
-          @save="handleModalSave"
-          :selected-employee="gridMeta.selectedEmpployeeId"
-          :is-modal="true"
-        />
-      </UDashboardModal>
 
       <div class="px-4 py-2 gmsTealTitlebar">
         <h2>Lookup</h2>
       </div>
 
-      <UTable
-        :rows="gridMeta.employess"
-        :columns="columns"
-        :loading="gridMeta.isLoading"
-        class="w-full"
-        :ui="{
-          divide: 'divide-gray-200 dark:divide-gray-800',
-          th: {
-            base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
-            padding: 'p-0',
-          },
-          td: {
-            padding: 'py-1',
-          },
-        }"
-        :empty-state="{
+      <UTable :rows="gridMeta.employess" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
+        divide: 'divide-gray-200 dark:divide-gray-800',
+        th: {
+          base: 'sticky top-0 z-10',
+          padding: 'pb-0',
+        },
+        td: {
+          padding: 'py-1',
+        },
+      }" :empty-state="{
           icon: 'i-heroicons-circle-stack-20-solid',
           label: 'No items.',
-        }"
-        @select="onSelect"
-        @dblclick="onDblClick"
-      >
+        }" @select="onSelect" @dblclick="onDblClick">
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
-            <div class="px-4 py-3.5">
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
+            <div class="">
+              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
                     ? noneIcon
                     : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
-              />
+                      ? ascIcon
+                      : descIcon
+                  " :filterable="column.filterable" :filter-key="column.key" />
             </div>
           </template>
           <template v-else class="bg-slate-400">
-            <div class="flex justify-center text-center w-[53px]">
+            <div class="flex w-[53px]">
               {{ column.label }}
             </div>
           </template>
         </template>
         <template #edit-data="{ row }">
-          <UTooltip text="Edit" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-pencil-square"
-              @click="onEdit(row)"
-            />
+          <UTooltip text="Edit" class="flex">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
           </UTooltip>
         </template>
         <template #delete-data="{ row }">
-          <UTooltip text="Delete" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-trash"
-              @click="onDelete(row)"
-            />
+          <UTooltip text="Delete" class="flex">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
           </UTooltip>
         </template>
       </UTable>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
           <UPagination
             :max="7"
@@ -438,29 +383,19 @@ const handleModalSave = async () => {
             @update:model-value="handlePageChange()"
           />
         </div>
-      </div>
+      </div> -->
     </UDashboardPanel>
   </UDashboardPage>
   <!-- New Employee Detail Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isEmployeeModalOpen"
-    :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1600px] sm:max-w-8xl',
-    }"
-  >
-    <EmployeeForm
-      @close="handleModalClose"
-      @save="handleModalSave"
-      :selected-employee="gridMeta.selectedEmpployeeId"
-      :is-modal="true"
-    />
+  <UDashboardModal v-model="modalMeta.isEmployeeModalOpen" :title="modalMeta.modalTitle" :ui="{
+    title: 'text-lg text-white',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center bg-gms-teal mt-0 gms-modalHeader',
+    },
+    body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+    width: 'w-[1250px] sm:max-w-9xl',
+  }">
+    <EmployeeForm @close="handleModalClose" @save="handleModalSave" :selected-employee="gridMeta.selectedEmpployee"
+      :is-modal="true" />
   </UDashboardModal>
 </template>

@@ -488,6 +488,7 @@
   }
   const onClear = () => {
     inventoryGridMeta.value.selectedInventory = null;
+    inventoryDetailGridMeta.value.details = []
     formData.transactionID = null
     formData.By = null
     formData.Dated = null
@@ -529,7 +530,7 @@
     <div class="flex flex-col">
       <div class="flex justify-between bg-slate-400 px-3 py-1">
         <div class="flex items-center">
-          Inventroy transactions
+          Inventory transactions
         </div>
         <div class="flex flex-row space-x-5">
           <div class="flex flex-row space-x-3">
