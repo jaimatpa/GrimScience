@@ -74,13 +74,32 @@ export const getNonConformances = async (params) => {
 
 
 export const addNonConformances = async (data) => {
+  try {
+    // Check if uniqueID exists for an update operation
+    if (data.uniqueID) {
+      // Update operation
+      const updatedRecord = await tblNonConformance.update(data, {
+        where: { uniqueID: data.uniqueID }
+      });
 
-}
+      if (updatedRecord[0] === 0) {
+        return { success: false, message: 'Record not found for update' };
+      }
 
+      return { success: true, message: 'Record updated successfully', data: updatedRecord };
+    } else {
+      // Create operation (remove uniqueID field before creating)
+      const { uniqueID, ...dataWithoutID } = data;
 
-export const updateNonConformances = async (id, data) => {
+      const newRecord = await tblNonConformance.create(dataWithoutID);
+      return { success: true, message: 'Record created successfully', data: newRecord };
+    }
+  } catch (error) {
+    console.error('Error in addNonConformances:', error);
+    return { success: false, message: 'An error occurred', error };
+  }
+};
 
-}
 
 
 export const deleteNonConformances = async (id) => {

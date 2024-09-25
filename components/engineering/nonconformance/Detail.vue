@@ -31,6 +31,7 @@ const tagEntryFormData = ref({
   jobNum: 0,
   investigationNum: 0
 })
+const isPartModal = ref(false)
 const nonConformanceGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
@@ -130,7 +131,7 @@ const checkStatusGroup = ref([
   { value: "Open", label: "Open" },
   { value: "Closed", label: "Closed" },
 ]);
-
+const isSerialModal = ref(false)
 const editInit = async () => {
   loadingOverlay.value = true
   await propertiesInit()
@@ -196,6 +197,33 @@ const fetchNonConformanceDetails = async (uid) => {
     }
   })
 };
+
+const handleSaveNonConformance = async () => {
+  await useApiFetch(`/api/engineering/nonconformances/`, {
+    method: 'POST',
+    body: formData.value,
+    onResponse({ response }) {
+      console.log(response)
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: 'i-heroicons-check-circle',
+          color: 'green'
+        })
+      }
+      else {
+        toast.add({
+          title: "Failed",
+          description: response._data.message,
+          icon: 'i-heroicons-check-circle',
+          color: 'red'
+        })
+      }
+
+    }
+  })
+};
 const handleFilterChange = async (event, name) => {
   if (filterValues.value.hasOwnProperty(name)) {
     filterValues.value[name] = event;
@@ -205,6 +233,7 @@ const handleFilterChange = async (event, name) => {
   await fetchNonConformances()
 }
 const onNonConformanceSelect = async (row) => {
+  console.log(row)
   nonConformanceGridMeta.value.selectedNonConformance = { ...row, class: "" }
   nonConformanceGridMeta.value.nonConformances.forEach((nonConformance) => {
     if (nonConformance.uniqueID === row.uniqueID) {
@@ -212,9 +241,13 @@ const onNonConformanceSelect = async (row) => {
     } else {
       delete nonConformance.class
     }
-  })
+  });
+  tagEntryFormData.value.serviceReportNum = row.COMPLAINTNUMBER
   await fetchNonConformanceTags(row.uniqueID);
   await fetchNonConformanceDetails(row.uniqueID);
+}
+const handleSerialFind = () => {
+  isSerialModal.value = true
 }
 const onNonConformanceDblclick = () => {
   emit('link', nonConformanceGridMeta.value.selectedNonConformance?.uniqueID)
@@ -224,6 +257,24 @@ const validate = (state: any): FormError[] => {
   const errors = []
 
   return errors
+}
+const handleClear = () => {
+  tagEntryFormData.value = {
+    poNum: 0,
+    on: 0,
+    serviceReportNum: 0,
+    jobNum: 0,
+    investigationNum: 0
+  };
+  for (const key in formData) {
+    if (formData.hasOwnProperty(key)) {
+      formData[key] = null;
+    }
+  }
+  tagEntriesGridMeta.value.tagEntries = []
+  tagEntriesGridMeta.value.selectedTagEntry = []
+  nonConformanceGridMeta.value.selectedNonConformance = null
+
 }
 async function onSubmit(event: FormSubmitEvent<any>) {
   emit('close')
@@ -306,17 +357,19 @@ else
     <div class="flex flex-col space-y-3 px-4 py-2">
       <div class="flex flex-row space-x-9">
         <UFormGroup label="NonConformance#">
-          <UInput v-model="formData.uniqueID" />
+          <UInput v-model="formData.uniqueID" disabled />
         </UFormGroup>
         <div class="flex flex-row space-x-3">
           <UFormGroup label="Serial/Part#">
             <UInput v-model="formData.SERIAL" />
           </UFormGroup>
           <div class="flex items-end min-w-[100px]">
-            <UButton label="Find" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+            <UButton label="Find" @click="handleSerialFind"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
           </div>
           <div class="flex items-end min-w-[100px]">
-            <UButton label="Find Part" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+            <UButton label="Find Part" @click="isPartModal = true"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
           </div>
         </div>
         <div class="flex-1">
@@ -343,7 +396,8 @@ else
           </div>
           <div>
             <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline"
-              :ui="{ base: 'min-w-[200px]', truncate: 'flex justify-center w-full' }" truncate />
+              @click="handleSaveNonConformance" :ui="{ base: 'min-w-[200px]', truncate: 'flex justify-center w-full' }"
+              truncate />
           </div>
         </div>
       </div>
@@ -429,7 +483,7 @@ else
                 :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
             </div>
             <div class="basis-1/2 w-full">
-              <UButton icon="i-f7-rays" label="Clear" variant="outline" color="red"
+              <UButton icon="i-f7-rays" label="Clear" @click="handleClear" variant="outline" color="red"
                 :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
             </div>
           </div>
@@ -447,4 +501,18 @@ else
       </div>
     </div>
   </UForm>
+  <UDashboardModal title="Select serial" :ui="{
+    width: 'w-[1440px] sm:max-w-9xl',
+  }" v-model="isSerialModal">
+    <MaterialsSerialsSerialList @select="v => { console.log(v); formData.SERIAL = v.MODEL; isSerialModal = false }" />
+  </UDashboardModal>
+  <UDashboardModal :ui="{
+    width: 'w-[1440px] sm:max-w-9xl',
+  }" title="Select Part" v-model="isPartModal">
+    <UDashboardModal :ui="{
+      width: 'w-[1440px] sm:max-w-9xl',
+    }" title="Select Part" v-model="isPartModal">
+      <MaterialsPartsPartList :is-page="false" @close="isPartModal = false" @select="desc => formData.PARTS = desc" />
+    </UDashboardModal>
+  </UDashboardModal>
 </template>
