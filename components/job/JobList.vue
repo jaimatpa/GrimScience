@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type jobCat from "~/server/api/jobs/jobCat";
 import type { UTableColumn } from "~/types";
 
 useSeoMeta({

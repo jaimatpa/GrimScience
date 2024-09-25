@@ -72,7 +72,7 @@ const formData = reactive({
   MODEL: null,
   InstanceID: null,
 });
-const date = new Date();
+let date = new Date();
 const editInit = async () => {
   loadingOverlay.value = true;
   await useApiFetch(`/api/jobs/${props.selectedJob}`, {
@@ -184,11 +184,41 @@ const editInit = async () => {
     },
   });
 
+  await useApiFetch(`/api/jobs/linkjob`, {
+    method: "GET",
+    params: { jobId: props.selectedJob },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        linkedJobGridMeta.value.jobs = response._data.body;
+      }
+    },
+    onResponseError({}) {
+      linkedJobGridMeta.value.jobs = null;
+    },
+  });
+
+  await getLinkedJobs()
   await getSerial()
+  await calculateLatestUnitCost()
 
   await propertiesInit();
   loadingOverlay.value = false;
 };
+
+const getLinkedJobs = async () => {
+  await useApiFetch(`/api/jobs/linkjob`, {
+    method: "GET",
+    params: { jobId: props.selectedJob },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        linkedJobGridMeta.value.jobs = response._data.body;
+      }
+    },
+    onResponseError({}) {
+      linkedJobGridMeta.value.jobs = null;
+    },
+  });
+}
 
 const getSerial = async () => {
   await useApiFetch(`/api/jobs/details`, {
@@ -207,6 +237,20 @@ const getSerial = async () => {
     onResponseError({}) {
       productsSerialGridMeta.value.products = [];
       productsSBSerialGridMeta.value.products = [];
+    },
+  });
+}
+
+const calculateLatestUnitCost = async () => {
+  await useApiFetch(`/api/jobs/calculateLatestUnitCost/${props.selectedJob}`, {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        unitCost.value = response._data.body
+      }
+    },
+    onResponseError({}) {
+      unitCost.value = null
     },
   });
 }
@@ -746,12 +790,17 @@ const tabitems = computed(() => [
   },
 ]);
 
-const subAsssemblyColumns = ref([
-  {
-    key: "serial",
-    label: "Linked Job#",
-  },
-]);
+const linkedJobGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "NUMBER",
+      label: "Linked Job#",
+    },
+  ],
+  jobs: [],
+  selectedJob: null,
+  isLoading: false,
+});
 
 const modalMeta = ref({
   isPartsModalOpen: false,
@@ -759,6 +808,7 @@ const modalMeta = ref({
   modalDescription: "View Parts Listing",
   isOperationModalOpen: false,
   isReworkPartsModalOpen: false,
+  isJobListModalOpen: false
 });
 
 const onDblClick = () => {
@@ -809,10 +859,9 @@ const handleUpdateQty = async () => {
 
 const handlePullIntoSerial = async () => {
   loadingOverlay.value = true
-  console.log(multipleSerialSelect.value)
   await useApiFetch(`/api/jobs/pullintoserial/`, {
     method: "PUT",
-    params: { serialList: JSON.stringify(multipleSerialSelect.value), instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, model: formData.MODEL },
+    params: { serialList: JSON.stringify(multipleSerialSelect.value), instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, model: formData.MODEL, date:date },
     onResponse({ response }) {
       if (response.status === 200) {
         toast.add({
@@ -825,6 +874,28 @@ const handlePullIntoSerial = async () => {
     },
   });
   await getSerial()
+  await calculateLatestUnitCost()
+  loadingOverlay.value = false
+}
+
+const handleFixSerialIssue = async () => {
+  loadingOverlay.value = true
+  await useApiFetch(`/api/jobs/fixSerialIssue/`, {
+    method: "PUT",
+    params: { serialList: JSON.stringify(multipleSerialSelect.value), instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, date:date },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: "i-heroicons-check-circle",
+          color: "green",
+        });
+      }
+    },
+  });
+  await getSerial()
+  await calculateLatestUnitCost()
   loadingOverlay.value = false
 }
 
@@ -840,6 +911,61 @@ const onMultipleSerialSelect = (row) => {
   multipleSerialSelect.value = productsSerialGridMeta.value.products
 }
 
+const handleJobListModalOpen = () => {
+  modalMeta.value.isJobListModalOpen = true
+}
+
+const handleJobSelect = async (data) => {
+  loadingOverlay.value = true
+  await useApiFetch(`/api/jobs/linkjob/`, {
+    method: "POST",
+    body: { job1: props.selectedJob, job2: data.UniqueID },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        linkedJobGridMeta.value.jobs = [...linkedJobGridMeta.value.jobs, data]
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: "i-heroicons-check-circle",
+          color: "green",
+        });
+      }
+    },
+  });
+  loadingOverlay.value = false
+  modalMeta.value.isJobListModalOpen = false
+}
+
+const handleDeleteLinkedJob = async () =>{
+  if(linkedJobGridMeta.value.selectedJob == null){
+    toast.add({
+      title: "Select",
+      description: "Please select a job",
+      icon: "i-heroicons-trash-solid",
+      color: "red",
+    });
+  }else{
+    loadingOverlay.value = true
+    await useApiFetch(`/api/jobs/linkjob/`, {
+      method: "DELETE",
+      body: { jobID: props.selectedJob, linkedJobId: linkedJobGridMeta.value.selectedJob.UniqueID },
+    });
+    await getLinkedJobs()
+    loadingOverlay.value = false
+    modalMeta.value.isJobListModalOpen = false
+  }
+}
+
+const onSelectLinkedJob = (row) => {
+  linkedJobGridMeta.value.selectedJob = row
+  linkedJobGridMeta.value.jobs.forEach((jobs) => {
+    if (jobs.UniqueID === row.UniqueID) {
+      jobs.class = "bg-gray-200";
+    } else {
+      delete jobs.class;
+    }
+  });
+}
 
 if (props.selectedJob !== null) editInit();
 else propertiesInit();
@@ -884,7 +1010,9 @@ else propertiesInit();
             </div>
             <div class="basis-1/5">
               <UFormGroup label="Unit Material Cost" name="Unit Material Cost">
-                <UInput />
+                <UInput 
+                  v-model="unitCost"
+                />
               </UFormGroup>
             </div>
             <div class="basis-1/5">
@@ -1234,6 +1362,7 @@ else propertiesInit();
                 <template  #select-data="{ row }">
                   <UTooltip text="Select" >
                     <UCheckbox
+                     :model-value="row.checked"
                       @change="onMultipleSerialSelect(row)"
                     />
                   </UTooltip>
@@ -1305,6 +1434,7 @@ else propertiesInit();
                     base: 'w-fit',
                     truncate: 'flex justify-center w-full',
                   }"
+                  @click="handleFixSerialIssue"
                   truncate
                 />
               </div>
@@ -1442,15 +1572,25 @@ else propertiesInit();
         <template #jobs="{ item }">
           <div class="w-1/2 mt-5">
             <UTable
-              :columns="subAsssemblyColumns"
+              :columns="linkedJobGridMeta.defaultColumns"
+              :rows="linkedJobGridMeta.jobs"
               :ui="{
                 wrapper: 'h-96 border-2 border-gray-300 dark:border-gray-700',
+                divide: 'divide-gray-200 dark:divide-gray-800',
                 th: {
                   base: 'sticky top-0 z-10',
                   color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'p-1',
+                  padding: 'p-0',
+                },
+                td: {
+                  padding: 'py-1',
                 },
               }"
+              :empty-state="{
+                icon: 'i-heroicons-circle-stack-20-solid',
+                label: 'No items.',
+              }"
+              @select="onSelectLinkedJob"
             >
               <template #empty-state>
                 <div></div>
@@ -1468,6 +1608,7 @@ else propertiesInit();
                   base: 'w-full',
                   truncate: 'flex justify-center w-full',
                 }"
+                @click="handleJobListModalOpen"
                 truncate
               />
             </div>
@@ -1476,11 +1617,12 @@ else propertiesInit();
                 icon="i-heroicons-minus-circle-20-solid"
                 variant="outline"
                 color="red"
-                label="Remove Part"
+                label="Remove"
                 :ui="{
                   base: 'w-full',
                   truncate: 'flex justify-center w-full',
                 }"
+                @click="handleDeleteLinkedJob"
                 truncate
               />
             </div>
@@ -1812,6 +1954,17 @@ else propertiesInit();
       </UTabs>
     </div>
   </UForm>
+
+  <!-- Job List Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isJobListModalOpen"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <JobListModal @close="handleJobSelect" />
+  </UDashboardModal>
 
   <!-- Parts List Modal -->
   <UDashboardModal

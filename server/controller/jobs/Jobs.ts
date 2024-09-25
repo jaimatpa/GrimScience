@@ -43,7 +43,9 @@ const applyCusFilters = (params) => {
 };
 
 const formatDateForSQLServer = (date) => {
+  console.log("formate", date)
   const year = date.getFullYear();
+  console.log('year',year)
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const hours = String(date.getHours()).padStart(2, '0');
@@ -207,11 +209,57 @@ export const updateJobSerial = async (jobId, jobQuantity, model) => {
 
   return serialList;
 };
-// latestUnitCost, customer, model,
-export const processSerials = async (serialItems, instanceId, employee, perType, jobPart, jobId, model, ignoreDuplicateCheck = false) => {
-  console.log(instanceId,employee)
+
+export const fixSerialIssue = async (serialItems, instanceId, employee, perType, jobPart, jobId, date, ignoreDuplicateCheck = true) => {
+
+  // Filter out checked items
+  serialItems = JSON.parse(serialItems)
+  const checkedItems = serialItems.filter(item => item.checked);
+  console.log(checkedItems)
+  // Process each checked item
+  for (const item of checkedItems) {
+    if (item.dateEntered === "" || ignoreDuplicateCheck) {
+      // Update the `dateEntered` field with the selected date
+      item.dateEntered = formatDate(new Date(date)) ; // Format as short date (YYYY-MM-DD)
+
+      // Update serial records (Assuming `addToSerialRecords` is a function handling serial updates)
+      await addToSerialRecords(item.Serial, item.UniqueID, instanceId, employee, item.JobID, perType, jobPart, date);
+
+      // Fetch and update `tblJobDetail` for the specific serial (by `uniqueID`)
+      const jobDetail = await sequelize.query(`
+        SELECT * FROM tblJobDetail WHERE uniqueID = :uniqueID
+      `, {
+        replacements: { uniqueID: item.UniqueID },
+        type: QueryTypes.SELECT
+      });
+
+      if (jobDetail.length > 0) {
+        const record = jobDetail[0];
+        // Update the `dateEntered` field with the selected date
+        record.dateEntered = item.dateEntered;
+
+        // Update the record in the database
+        await sequelize.query(`
+          UPDATE tblJobDetail 
+          SET dateEntered = :dateEntered
+          WHERE uniqueID = :uniqueID
+        `, {
+          replacements: { dateEntered: record.dateEntered, uniqueID: item.UniqueID },
+          type: QueryTypes.UPDATE
+        });
+      }
+    }
+  }
+
+  // Call update percentage function
+  await updatePercentage(jobId);
+
+  return {serialItems, message: "Serials have been added and the inventory has been updated."}
+};
+
+export const pullIntoSerial = async (serialItems, instanceId, employee, perType, jobPart, jobId, model, date, ignoreDuplicateCheck = false) => {
   // Filter out empty items
-  serialItems =JSON.parse(serialItems)
+  serialItems = JSON.parse(serialItems)
   serialItems = serialItems.filter(item => item.Serial.trim() !== "" || item.dateEntered.trim() !== "");
 
   // Check for duplicate serials
@@ -224,13 +272,11 @@ export const processSerials = async (serialItems, instanceId, employee, perType,
   }
 
   // Process checked items
-  const currentDate = new Date();
   for (const item of serialItems) {
     if (item.checked && (item.dateEntered === "" || ignoreDuplicateCheck || item.dateEntered === null)) {
-      item.dateEntered = formatDate(currentDate) 
-      
+      item.dateEntered = formatDate(new Date(date)) 
       // Update serial records (Assuming AddtoSerialRecords is a function handling serial updates)
-      await addToSerialRecords(item.Serial, item.UniqueID, instanceId, employee, item.JobID, perType, jobPart);
+      await addToSerialRecords(item.Serial, item.UniqueID, instanceId, employee, item.JobID, perType, jobPart, date);
       // console.log(item)
       // Fetch and update tblJobDetail
       const jobDetail = await sequelize.query(`
@@ -278,8 +324,7 @@ export const processSerials = async (serialItems, instanceId, employee, perType,
   return {serialItems, message: "Serials have been added and the inventory has been updated."}
 };
 
-// Function to add a serial record to the inventory
-const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, jobId, recJoaPerType, recJOaPart) => {
+const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, jobId, recJoaPerType, recJOaPart, date) => {
   try {
     // Step 1: Set quantity
     const quantity = 1;
@@ -308,8 +353,8 @@ const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, j
     if (!bpId) throw new Error('BP ID not found');
 
     // Step 4: Insert the record into tblInventory
-    const today = formatDateForSQLServer(new Date())
-    
+    const today = formatDateForSQLServer(new Date(date))
+    console.log(today)
     // Fetch the max instanceID from tblInventory and increment it
     const instanceResult = await sequelize.query(`
       SELECT MAX(instanceID) + 1 AS nextInstanceId FROM tblInventory
@@ -542,7 +587,7 @@ const updateOnhandByInstanceId = async (instanceID) => {
     if (manualTransactionResult.length > 0) {
       onhand = parseFloat(manualTransactionResult[0].OnHand) || 0;
       uid = parseInt(manualTransactionResult[0].UID, 10) || 0;
-      ddate = manualTransactionResult[0].Dated || ddateDefault;
+      ddate = manualTransactionResult[0].Dated ? formatDateForSQLServer(new Date(manualTransactionResult[0].Dated)) : ddateDefault;// This will be in UTC format
     }
 
     // Fetch newer transactions after the manual transaction date and update the onhand quantity
@@ -619,9 +664,7 @@ const updateOnhandByModel = async (strModel) => {
     if (rs2.length > 0) {
       onhand = parseFloat(rs2[0].OnHand);
       uid = rs2[0].UID;
-      const ddate = formatDateForSQLServer(new Date(rs2[0].Dated)); // This will be in UTC format
-      console.log(ddate)
-      // ddate = rs2[0].Dated;  // Update date to the most recent "manual" transaction date
+      ddate = rs2[0].Dated ? formatDateForSQLServer(new Date(rs2[0].Dated)) : ddate; // This will be in UTC format
     }
 
     // Query to get the quantity changes after the most recent manual transaction date
@@ -972,7 +1015,7 @@ const calculateJobCost = async (lngJob) => {
   }
 };
 
-const calculateLatestUnitCost = async (lngJob) => {
+export const calculateLatestUnitCost = async (lngJob) => {
   let cost = 0.00;
   let laborCost = 0.00;
 
@@ -1038,6 +1081,93 @@ const saveJob = async (lngJob) => {
     throw new Error(error.message);
   }
 };
+
+export const createLinkJob = async (job1, job2) => {
+  try {
+    // Insert the new linked job into the database
+    await sequelize.query(`
+      INSERT INTO tblLinkedJobs (Job1, Job2) VALUES (:Job1, :Job2)
+    `, {
+      replacements: {
+        Job1: job1,
+        Job2: parseInt(job2, 10)
+      },
+      type: QueryTypes.INSERT
+    });
+
+  } catch (error) {
+    throw new Error('Error in linkedJob:', error.message);
+  }
+}
+
+export const getLinkJobs = async (lngJob) => {
+  try {
+    // Query to fetch job1, job2, and their corresponding numbers from tblJobs
+    const linkedJobs = await sequelize.query(`
+      SELECT 
+        job1,
+        (SELECT number FROM tblJobs WHERE uniqueID = job1) AS job1Number,
+        job2,
+        (SELECT number FROM tblJobs WHERE uniqueID = job2) AS job2Number
+      FROM tblLinkedJobs
+      WHERE Job1 = :lngJob OR Job2 = :lngJob
+    `, {
+      replacements: { lngJob },
+      type: QueryTypes.SELECT
+    });
+    console.log(linkedJobs)
+    // Process each row from the result
+    const linkedProducts = [];
+    const linkedSubs = [];
+
+    linkedJobs.forEach(row => {
+      if (row.job1 == lngJob) {
+        if (row.job2Number && row.job2Number.trim() !== '') {
+          // Add to linkedProducts and linkedSubs
+          linkedProducts.push({ parentJob: row.job2, UniqueID: row.job2, NUMBER: row.job2Number });
+          linkedSubs.push({ parentJob: row.job2, UniqueID: row.job2, NUMBER: row.job2Number });
+        }
+      } else {
+        if (row.job1Number && row.job1Number.trim() !== '') {
+          // Add to linkedProducts and linkedSubs
+          linkedProducts.push({ parentJob: row.job1, UniqueID: row.job1, NUMBER: row.job1Number });
+          linkedSubs.push({ parentJob: row.job1, UniqueID: row.job1, NUMBER: row.job1Number });
+        }
+      }
+    });
+    // Return the results (or handle them as needed in your application)
+    return linkedProducts;
+
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+export const deleteLinkedJob = async (jobId, linkedJobId) => {
+  if (!linkedJobId) return; // Exit if no selected item
+
+  try {
+    // Delete from tblLinkedJobs where Job1 is lngJob and Job2 is the selected item
+    await sequelize.query(`
+      DELETE FROM tblLinkedJobs WHERE Job1 = :lngJob AND Job2 = :selectedItemTag
+    `, {
+      replacements: { lngJob: jobId, selectedItemTag: linkedJobId },
+      type: QueryTypes.DELETE
+    });
+
+    // Delete from tblLinkedJobs where Job2 is lngJob and Job1 is the selected item
+    await sequelize.query(`
+      DELETE FROM tblLinkedJobs WHERE Job2 = :lngJob AND Job1 = :selectedItemTag
+    `, {
+      replacements: { lngJob: jobId, selectedItemTag: linkedJobId },
+      type: QueryTypes.DELETE
+    });
+
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
 
 export const getJobCategories = async () => {
   const result = await tblJobs.findAll({

@@ -1,13 +1,14 @@
-import { pullIntoSerial } from '~/server/controller/jobs';
+import { fixSerialIssue } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
-    const {  serialList, instanceId, employee, perType, jobPart, jobId, model, date } = getQuery(event);
+    const {  serialList, instanceId, employee, perType, jobPart, jobId, date } = getQuery(event);
 
     const method = event._method;
+    console.log(date)
     switch(method.toUpperCase()){
       case 'PUT':
-        const {serialItems, message} = await pullIntoSerial(serialList, instanceId, employee, perType, jobPart, jobId, model, date.slice(1, -1))
+        const {serialItems, message} = await fixSerialIssue(serialList, instanceId, employee, perType, jobPart, jobId, date.slice(1, -1))
         return { body: serialItems, message }
       default:
         setResponseStatus(event, 405);
