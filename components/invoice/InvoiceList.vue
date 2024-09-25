@@ -77,15 +77,16 @@
         sortable: true,
         sortDirection: 'none',
         filterable: true
-      }, {
-        key: 'edit',
-        label: 'Edit',
-        kind: 'actions'
-      }, {
-        key: 'delete',
-        label: 'Delete',
-        kind: 'actions'
-      }
+      }, 
+      // {
+      //   key: 'edit',
+      //   label: 'Edit',
+      //   kind: 'actions'
+      // }, {
+      //   key: 'delete',
+      //   label: 'Delete',
+      //   kind: 'actions'
+      // }
     ],
     page: 1,
     pageSize: 50,
@@ -211,27 +212,27 @@
     gridMeta.value.selectedOrderId = null
     modalMeta.value.isOrderDetailModalOpen = true
   }
-  const onEdit = (row) => {
-    gridMeta.value.selectedCustomerId = row?.customerid
-    gridMeta.value.selectedOrderId = row?.UniqueID
-    modalMeta.value.isOrderDetailModalOpen = true
-  }
-  const onDelete = async (row: any) => {
-    await useApiFetch(`/api/invoices/${row?.UniqueID}`, {
-      method: 'DELETE', 
-      onResponse({ response }) {
-        if (response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: 'i-heroicons-trash-solid',
-            color: 'green'
-          })
-          fetchGridData()
-        }
-      }
-    })
-  }
+  // const onEdit = (row) => {
+  //   gridMeta.value.selectedCustomerId = row?.customerid
+  //   gridMeta.value.selectedOrderId = row?.UniqueID
+  //   modalMeta.value.isOrderDetailModalOpen = true
+  // }
+  // const onDelete = async (row: any) => {
+  //   await useApiFetch(`/api/invoices/${row?.UniqueID}`, {
+  //     method: 'DELETE', 
+  //     onResponse({ response }) {
+  //       if (response.status === 200) {
+  //         toast.add({
+  //           title: "Success",
+  //           description: response._data.message,
+  //           icon: 'i-heroicons-trash-solid',
+  //           color: 'green'
+  //         })
+  //         fetchGridData()
+  //       }
+  //     }
+  //   })
+  // }
   const handleModalClose = () => {
     modalMeta.value.isOrderDetailModalOpen = false
   }
@@ -340,7 +341,7 @@
       </div>
       <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
-          <div class="flex flex-row space-x-3 items-center">
+          <div class="flex flex-row space-x-3 items-end">
             <div class="basis-1/5 min-w-[150px]">
               <UFormGroup
                 label="From"
@@ -451,7 +452,7 @@
             {{ row.UniqueID }}
           </div>
         </template>
-        <template #edit-data="{row}">
+        <!-- <template #edit-data="{row}">
           <UTooltip text="Detail" class="flex justify-center">
             <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)"/>
           </UTooltip>
@@ -460,7 +461,7 @@
           <UTooltip text="Delete" class="flex justify-center">
             <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)"/>
           </UTooltip>
-        </template>
+        </template> -->
       </UTable>
       <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1" >

@@ -1349,13 +1349,12 @@
   <!-- Link Invoice Modal -->
   <UDashboardModal
     v-model="modalMeta.isInvoiceListModalOpen"
-    title="Invoice List"
+    title="Sales"
     :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1 overflow-y-auto', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl', 
-      height: 'h-[900px] sm:h-[900px]',
+      title: 'text-lg text-white',
+      header: { base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader' }, 
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[900px] sm:max-w-9xl'
     }"
   >
     <InvoiceList :selected-customer="props.selectedCustomer" @close="onInvoiceLinkModalClose" @link="onInvoiceLink"/>
