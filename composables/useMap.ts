@@ -101,8 +101,9 @@ export const useMap = () => {
     setPins();
   };
 
+
   const setPins = () => {
-    clearMarkers(); 
+    clearMarkers();
     if (!pins.value || !map.value) return;
     pins.value.forEach((pin) => {
       if (filters[pin.type]?.checked) {
@@ -134,26 +135,28 @@ export const useMap = () => {
           infoWindow.open(map.value, marker);
         });
 
-        markers.value.push(marker); 
+        markers.value.push(marker);
       }
     });
   };
 
   const clearMarkers = () => {
+    console.log(markers)
     markers.value.forEach((marker) => marker.setMap(null));
-    markers.value = []; 
+    markers.value = [];
   };
 
   const openDetails = (type: string, id: number) => {
     console.log(`Opening details for ${type} with ID ${id}`);
   };
 
-  watch(filters, setPins, { deep: true });
-
-  watchEffect(() => {
-    setPins(); 
-  });
-
+  watch(
+    filters,
+    () => {
+      setPins(); 
+    },
+    { deep: true }
+  );  
   watch(pinsError, (error) => {
     if (error) {
       console.error("Error fetching pins:", error);

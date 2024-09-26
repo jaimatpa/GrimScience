@@ -30,7 +30,6 @@ async function getLatLongMap(zipCodes) {
   }, {});
 }
 
-
 function processPinData(data, latLongMap, type) {
   return data.map((row) => {
     const trimmedZipCode = row.Zip.trim().substring(0, 5);
@@ -152,10 +151,19 @@ async function getPins() {
   const latLongMap = await getLatLongMap(uniqueZipCodes);
 
   queries.forEach(({ type }, index) => {
+
     pins.push(...processPinData(results[index], latLongMap, type));
   });
 
-  return pins;
+  const filteredPins = pins.filter((pin) => {
+    return (
+      pin.position !== null &&
+      pin.zip !== null &&
+      pin.serialNo !== null
+    );
+  });
+  return filteredPins;
+
 }
 
 async function getFeatures() {

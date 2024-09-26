@@ -16,7 +16,7 @@
             :name="key"
             class="cursor-pointer"
           />
-          <label :for="key" :style="{ color: filter.labelColor }">
+          <label :for="key" :style="{ color: filter.labelColor }" class="cursor-pointer">
             <i><strong>CRYO</strong>Therm</i> {{ filter.label }}
           </label>
         </div>
