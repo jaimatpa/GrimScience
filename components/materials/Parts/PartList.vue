@@ -31,7 +31,7 @@
     <div class="px-4 py-2 gmsBlueTitlebar">
         <h2>Lookup</h2>
     </div>
-    <UTable :rows="gridMeta.customers" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
+    <UTable :rows="gridMeta.parts" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
         divide: 'divide-gray-200 dark:divide-gray-800',
         th: {
             base: 'sticky top-0 z-10',
@@ -78,6 +78,10 @@
             </UTooltip>
         </template>
     </UTable>
+    <div class="flex flex-row justify-end mr-20 mt-1">
+        <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfParts | 0"
+            v-model="gridMeta.page" @update:model-value="handlePageChange()" />
+    </div>
     <div v-if="!props.isPage">
         <div class="mt-3 w-[120px]">
             <UButton icon="i-heroicons-cursor-arrow-ripple" variant="outline" color="green" label="Select" :ui="{
@@ -184,12 +188,12 @@ const gridMeta = ref({
     ],
     page: 1,
     pageSize: 50,
-    numberOfCustomers: 0,
-    customers: [],
+    numberOfParts: 0,
+    parts: [],
     selectedCustomerId: null,
     selectedPartInstanceId: null,
     selectedPartModdel: null,
-    partDescription: "",
+    description: "",
     sort: {
         column: "UniqueID",
         direction: "asc",
@@ -259,25 +263,27 @@ const fetchGridData = async () => {
         method: "GET",
         params: {
             ...filterValues.value,
+            page: gridMeta.value.page,
+            pageSize: gridMeta.value.pageSize,
         },
         onResponse({ response }) {
             if (response.status === 200) {
-                gridMeta.value.numberOfCustomers = response._data.body;
+                gridMeta.value.numberOfParts = response._data.body;
             }
         },
     });
-    if (gridMeta.value.numberOfCustomers === 0) {
-        gridMeta.value.customers = [];
-        gridMeta.value.numberOfCustomers = 0;
+    if (gridMeta.value.numberOfParts === 0) {
+        gridMeta.value.parts = [];
+        gridMeta.value.numberOfParts = 0;
         gridMeta.value.isLoading = false;
         return;
     }
     if (
         gridMeta.value.page * gridMeta.value.pageSize >
-        gridMeta.value.numberOfCustomers
+        gridMeta.value.numberOfParts
     ) {
         gridMeta.value.page =
-            Math.ceil(gridMeta.value.numberOfCustomers / gridMeta.value.pageSize) | 1;
+            Math.ceil(gridMeta.value.numberOfParts / gridMeta.value.pageSize) | 1;
     }
 
     console.log('filter value is', filterValues);
@@ -292,8 +298,8 @@ const fetchGridData = async () => {
         },
         onResponse({ response }) {
             if (response.status === 200) {
-                gridMeta.value.customers = response._data.body;
-                console.log("parts are:", gridMeta.value.customers);
+                gridMeta.value.parts = response._data.body;
+                console.log("parts are:", gridMeta.value.parts);
             }
             gridMeta.value.isLoading = false;
         },
@@ -316,7 +322,7 @@ const onEdit = (row) => {
 
 
 const onDelete = async (row: any) => {
-    await useApiFetch(`/api/customers/${row?.UniqueID}`, {
+    await useApiFetch(`/api/parts/${row?.UniqueID}`, {
         method: "DELETE",
         onResponse({ response }) {
             if (response.status === 200) {

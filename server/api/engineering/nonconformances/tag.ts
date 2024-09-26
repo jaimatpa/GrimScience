@@ -14,7 +14,7 @@ export default eventHandler(async (event) => {
                 const nonconformances = await getNonConformanceTags(params)
                 return { body: nonconformances, message: '' }
             case 'POST':
-                const { ...body } = readBody(event);
+                const body = await readBody(event);
                 const createdNonconformances = await addNonConformancesTags(body)
                 return { body: createdNonconformances, message: '' }
             case 'DELETE':

@@ -130,30 +130,38 @@ export const getNonConformancesFilters = async () => {
     const employees = await sequelize.query(
       "SELECT CONCAT('#', payrollno, ' ', fname, ' ', lname) AS employee FROM tblEmployee WHERE Active = 1 ORDER BY payrollnumber",
     );
-
+    const location = await sequelize.query("select  name from tblWorkCenters  order by number",);
     return {
-      employees: employees[0].map(item => item.employee)
+      employees: employees[0].map(item => item.employee),
+      location: location[0].map(item => item.name),
     };
   } catch (error) {
     console.error('Error fetching non-conformance filters:', error);
     throw error;
   }
 };
-
 export const addNonConformancesTags = async (data) => {
   try {
+    // Format the DateTime
+    const formattedTag = {
+      ...data,
+      DateTime: format(data.DateTime, 'yyyy-mm-dd HH:mm:ss.SSS')
+    };
+    console.log(formattedTag)
     if (data.uniqueID) {
-      const updatedRecord = await tblNonConformanceTags.update(data, {
+      // Update existing record
+      const [updatedCount] = await tblNonConformanceTags.update(formattedTag, {
         where: { uniqueID: data.uniqueID }
       });
 
-      if (updatedRecord[0] === 0) {
+      if (updatedCount === 0) {
         return { success: false, message: 'Record not found for update' };
       }
 
-      return { success: true, message: 'Record updated successfully', data: updatedRecord };
+      return { success: true, message: 'Record updated successfully', data: formattedTag };
     } else {
-      const { uniqueID, ...dataWithoutID } = data;
+      // Create new record
+      const { uniqueID, ...dataWithoutID } = formattedTag; // Use formattedTag here
 
       const newRecord = await tblNonConformanceTags.create(dataWithoutID);
       return { success: true, message: 'Record created successfully', data: newRecord };

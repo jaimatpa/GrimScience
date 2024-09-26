@@ -34,11 +34,11 @@ const tagEntryFormData = ref({
 const createTagEntriesFormData = ref({
   UniqueID: null,
   NonConformanceID: null,
-  DateTime:null,
+  DateTime: null,
   Quantity: null,
-  ReceivedQty:null,
-  ByEmployee: null,,
-  AssignedtoEmployee: null,
+  ReceivedQty: null,
+  ByEmployee: null,
+  AssignedtoEmploye: null,
   Location: null,
   Status: null,
   Justification: null,
@@ -111,7 +111,17 @@ const tagEntriesGridMeta = ref({
       key: 'Status',
       label: 'Status',
       filterable: true,
-      filterOptions: []
+      filterOptions: [
+        "",
+        "Quarantined",
+        "Rework",
+        "Scrap",
+        "Rejected",
+        "Inspected",
+        "Return to Stock",
+        "Repairable",
+        "Inspected/Use As Is"
+      ]
     }, {
       key: 'AssignedtoEmploye',
       label: 'Assigned To',
@@ -121,7 +131,12 @@ const tagEntriesGridMeta = ref({
       key: 'Location',
       label: 'Location',
       filterable: true,
-      filterOptions: []
+      filterOptions: [
+        "",
+        "#35 Service",
+        "#62 Electronics",
+        "#Materials"
+      ]
     }
   ],
   tagEntries: [],
@@ -163,6 +178,10 @@ const propertiesInit = async () => {
           label: emp,
           value: emp
         }));
+        tagEntriesGridMeta.value.defaultColumns.find(column => column.key === 'AssignedtoEmploye').filterOptions = employees.map(emp => ({
+          label: emp,
+          value: emp
+        }));
       }
     }
   })
@@ -188,23 +207,29 @@ const fetchNonConformanceTags = async (uid) => {
     method: 'GET',
     onResponse({ response }) {
       if (response.status === 200) {
-        tagEntriesGridMeta.value.tagEntries = response._data.body
+        tagEntriesGridMeta.value.tagEntries = response._data.body;
+        Object.keys(createTagEntriesFormData.value).forEach(k => {
+          if (k in response._data.body) {
+            createTagEntriesFormData.value[k] = response._data.body[k];
+          }
+        });
+
       }
     }
   })
-//   {
-//     UniqueID: null,
-//       NonConformanceID: null,
-//         DateTime: null,
-//           Quantity: null,
-//             ReceivedQty: null,
-//               ByEmployee: null,,
-//                 AssignedtoEmployee: null,
-//                   Location: null,
-//                     Status: null,
-//                       Justification: null,
-//                         DISPOSITION: null,
-// }
+  //   {
+  //     UniqueID: null,
+  //       NonConformanceID: null,
+  //         DateTime: null,
+  //           Quantity: null,
+  //             ReceivedQty: null,
+  //               ByEmployee: null,,
+  //                 AssignedtoEmployee: null,
+  //                   Location: null,
+  //                     Status: null,
+  //                       Justification: null,
+  //                         DISPOSITION: null,
+  // }
   createTagEntriesFormData.value.NonConformanceID = uid;
   createTagEntriesFormData.value.DateTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
   loadingOverlay.value = false;
@@ -226,7 +251,7 @@ const fetchNonConformanceDetails = async (uid) => {
 const handleSaveNonConformance = async () => {
   await useApiFetch(`/api/engineering/nonconformances/`, {
     method: 'POST',
-    body: formData.value,
+    body: formData,
     onResponse({ response }) {
       console.log(response)
       if (response.status === 200) {
@@ -253,7 +278,7 @@ const handleSaveNonConformance = async () => {
 const handleSaveNonConformanceTags = async () => {
   await useApiFetch(`/api/engineering/nonconformances/tag`, {
     method: 'POST',
-    body: tagEntryFormData.value,
+    body: createTagEntriesFormData.value,
     onResponse({ response }) {
       console.log(response)
       if (response.status === 200) {
@@ -309,6 +334,14 @@ const handleFilterChange = async (event, name) => {
     console.error(`Filter does not have property: ${name}`);
   }
   await fetchNonConformances()
+}
+
+const handleTagEntriesFormData = async (event, name) => {
+  if (createTagEntriesFormData.value.hasOwnProperty(name)) {
+    createTagEntriesFormData.value[name] = event;
+  } else {
+    console.error(`Filter does not have property: ${name}`);
+  }
 }
 const onNonConformanceSelect = async (row) => {
   console.log(row)
@@ -564,6 +597,7 @@ else
         <div class="flex flex-col space-y-2">
           <div class="w-full">
             <UButton icon="i-heroicons-plus" label="Receive/Add" variant="outline" color="green"
+              @click="handleSaveNonConformanceTags"
               :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
           </div>
           <div class="flex flex-row space-x-3">
