@@ -103,6 +103,7 @@ export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filter
     let complaintDate = new Date(item.COMPLAINTDATE).toISOString().split('T')
     complaintDate = complaintDate[0].split('-')
     let formattedDate = `${complaintDate[1]}/${complaintDate[2]}/${complaintDate[0]}`
+    
     return {
       uniqueID: item.uniqueID,
       COMPLAINTNUMBER: item.COMPLAINTNUMBER,

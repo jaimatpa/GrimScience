@@ -168,6 +168,7 @@ const tblECO = sequelize.define('tblECO', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName: 'tblECO', 
    timestamps: false
 });
 
