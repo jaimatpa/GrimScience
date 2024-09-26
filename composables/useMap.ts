@@ -101,7 +101,6 @@ export const useMap = () => {
     setPins();
   };
 
-
   const setPins = () => {
     clearMarkers();
     if (!pins.value || !map.value) return;
@@ -115,6 +114,7 @@ export const useMap = () => {
           map: map.value,
           icon: icons[pin.type],
         });
+        console.log("pi----------", pin);
 
         const infoWindow = new google.maps.InfoWindow({
           content: `
@@ -124,7 +124,23 @@ export const useMap = () => {
               }</h3>
               ${
                 pin.serialNo
-                  ? `<p class="text-xl font-medium">Serial #: <button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="window.openDetails('${pin.type}', ${pin.id})">${pin.serialNo}</button></p>`
+                  ? `<p class="text-xl font-medium">Serial #: <button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="window.openDetails(${pin}, ${pin.type}, ${pin.id})">${pin.serialNo}</button></p>`
+                  : ""
+              }
+              ${
+                pin.model
+                  ? `<p class="text-xl font-medium">Model #: <button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="window.openDetails(${pin}, ${pin.type}, ${pin.id})">${pin.model}</button></p>`
+                  : ""
+              }
+              ${
+                !pin.model && !pin.serialNo && pin.city && pin.state
+                  ? `<button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="window.openDetails(${pin}, ${pin.type}, ${pin.id} )">${pin.city}, ${pin.state}</button>`
+                  : ""
+              }
+
+              ${
+                !pin.model && !pin.serialNo && !pin.city && !pin.state
+                  ? `<button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="window.openDetails(${pin}, ${pin.type}, ${pin.id} )">${pin.id}</button>`
                   : ""
               }
             </div>
@@ -141,22 +157,21 @@ export const useMap = () => {
   };
 
   const clearMarkers = () => {
-    console.log(markers)
     markers.value.forEach((marker) => marker.setMap(null));
     markers.value = [];
   };
 
-  const openDetails = (type: string, id: number) => {
-    console.log(`Opening details for ${type} with ID ${id}`);
+  const openDetails = (pin: object, type: string, id: number) => {
+    console.log(`pin:==${pin} Type:----- ${type} ID:----- ${id}`);
   };
 
   watch(
     filters,
     () => {
-      setPins(); 
+      setPins();
     },
     { deep: true }
-  );  
+  );
   watch(pinsError, (error) => {
     if (error) {
       console.error("Error fetching pins:", error);
