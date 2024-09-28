@@ -1,4 +1,4 @@
-import { getNumberOfApprovals } from '~/server/controller/engineering/Approvals';
+import { getNumberOfChangeOrder } from '~/server/controller/engineering/ChangOrder.js';
 
 export default eventHandler(async (event) => {
   try {
@@ -7,7 +7,7 @@ export default eventHandler(async (event) => {
     
     switch(method.toUpperCase()){
       case 'GET':
-        const numberOfApprovals = await getNumberOfApprovals(filterParams);
+        const numberOfApprovals = await getNumberOfChangeOrder(filterParams);
         return { body: numberOfApprovals, message: "" };
       default:
         setResponseStatus(event, 405);

@@ -108,7 +108,7 @@ const tblECO = sequelize.define('tblECO', {
       type: DataTypes.STRING,
    },
    COMMENTS: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING,
    },
    MANCOMMENTS: {
       type: DataTypes.STRING,
