@@ -4,7 +4,7 @@ export default eventHandler(async (event) => {
   try {
     const method = event._method;
 
-    switch(method.toUpperCase()){
+    switch (method.toUpperCase()) {
       case 'GET':
         break
       case 'POST':

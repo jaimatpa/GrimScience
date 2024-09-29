@@ -11,14 +11,11 @@ const props = defineProps({
     type: [String, Number, null],
     required: true,
   },
-  isModal: {
-    type: [Boolean],
-  },
 });
 
 const toast = useToast();
 const router = useRouter();
-const organizationFormInstance = getCurrentInstance();
+const jobFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false);
 const JobExist = ref(true);
 const isLoading = ref(false);
@@ -37,8 +34,11 @@ const prodDesOperations = ref([]);
 const subDesOperations = ref([]);
 const prodScheduleHrs = ref("0");
 const subScheduleHrs = ref("0");
+const prodOperationIds = ref([]);
+const subOperationIds = ref([]);
 const prodHrs = ref(0);
 const subHrs = ref(0);
+const unitCost = ref();
 const formData = reactive({
   ReportsTo: null,
   Title: null,
@@ -66,7 +66,7 @@ const formData = reactive({
   PRODUCTLINE: null,
   MODEL: null,
 });
-
+const date = new Date();
 const editInit = async () => {
   loadingOverlay.value = true;
   await useApiFetch(`/api/jobs/${props.selectedJob}`, {
@@ -77,12 +77,17 @@ const editInit = async () => {
 
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
-            formData[key] = response._data.body[key];
+            // formData[key] = response._data.body[key];
+            if (key === "Cost") {
+              formData[key] = `$${response._data.body[key]}`;
+            } else {
+              formData[key] = response._data.body[key];
+            }
           }
         }
       }
     },
-    onResponseError({}) {
+    onResponseError({ }) {
       JobExist.value = false;
     },
   });
@@ -151,6 +156,61 @@ const editInit = async () => {
     },
   });
 
+  await fetchJobOperation();
+
+  await useApiFetch(`/api/jobs/details`, {
+    method: "GET",
+    params: { ...jobFilters.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        const totalAmount = formData.Cost;
+        const numericAmount = parseFloat(totalAmount.replace("$", ""));
+
+        // Filter objects that have a dateEntered value
+        const validEntries = response._data.body.filter(
+          (item) => item.dateEntered
+        );
+
+        // Calculate the cost per valid entry
+        const costPerEntry = numericAmount / validEntries.length;
+
+        unitCost.value = `$${costPerEntry.toFixed(2)}`;
+
+        // Map over the data to create the new structure
+        const transformedData = response._data.body.map((item) => {
+          if (item.dateEntered) {
+            return {
+              ...item,
+              cost: `$${costPerEntry.toFixed(2)}`, // Keep 2 decimal places
+              SingleMaterialCost: null,
+            };
+          } else {
+            return {
+              ...item,
+              cost: "$0.00",
+              SingleMaterialCost: null,
+            };
+          }
+        });
+
+        if (formData.JobType === "Product") {
+          productsSerialGridMeta.value.products = transformedData;
+        } else {
+          productsSBSerialGridMeta.value.products = transformedData;
+        }
+      }
+    },
+    onResponseError({ }) {
+      productsSerialGridMeta.value.products = [];
+      productsSBSerialGridMeta.value.products = [];
+    },
+  });
+
+  await propertiesInit();
+  loadingOverlay.value = false;
+};
+
+const fetchJobOperation = async () => {
   // get job operation
   await useApiFetch("/api/jobs/operations", {
     method: "GET",
@@ -175,9 +235,6 @@ const editInit = async () => {
       subOperationGridMeta.value.subOperations = [];
     },
   });
-
-  await propertiesInit();
-  loadingOverlay.value = false;
 };
 
 const propertiesInit = async () => {
@@ -301,20 +358,21 @@ const validate = (state: any): FormError[] => {
   const errors = [];
   return errors;
 };
-const handleClose = async () => {
-  if (organizationFormInstance?.vnode?.props.onClose) {
-    emit("close");
-  } else {
-    router.go(-1);
-  }
-};
+
 const onSubmit = async (event: FormSubmitEvent<any>) => {
+  const totalAmount = event.data.Cost;
+  const numericAmount = parseFloat(totalAmount.replace("$", ""));
+  const data = {
+    ...event.data,
+    Cost: numericAmount,
+  };
+
   if (props.selectedJob === null) {
     // Create New Job
     isLoading.value = true;
     await useApiFetch("/api/jobs", {
       method: "POST",
-      body: event.data,
+      body: data,
       onResponse({ response }) {
         if (response.status === 200) {
           isLoading.value = false;
@@ -329,9 +387,10 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     });
   } else {
     // Update Job
+    isLoading.value = true;
     await useApiFetch(`/api/jobs/${props.selectedJob}`, {
       method: "PUT",
-      body: event.data,
+      body: data,
       onResponse({ response }) {
         if (response.status === 200) {
           toast.add({
@@ -343,8 +402,44 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       },
     });
+
+    // await deleteOperations();
   }
   emit("save");
+};
+
+const deleteOperations = async () => {
+  const operationIds =
+    formData.JobType === "Product"
+      ? prodOperationIds.value
+      : subOperationIds.value;
+
+  if (operationIds?.length > 0) {
+    for (let i = 0; i < operationIds.length; i++) {
+      const operationId = operationIds[i];
+      await useApiFetch(`/api/jobs/operations/${operationId}`, {
+        method: "DELETE",
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: "i-heroicons-check-circle",
+              color: "green",
+            });
+          }
+        },
+      });
+    }
+  }
+};
+
+const handleClearCick = () => {
+  Object.keys(formData).forEach((key) => {
+    if (key !== "JobType") {
+      formData[key] = null;
+    }
+  });
 };
 
 const handleProdOperationSelect = (row) => {
@@ -385,13 +480,84 @@ const operationFilterValues = ref({
 
 const emploeeFilterValues = ref({
   JobID: props.selectedJob,
-  OperationID: 8226,
+  OperationID: null,
 });
+
+const jobFilters = ref({
+  JobID: [props.selectedJob],
+});
+
+const handleDeleteOperation = async () => {
+  if (
+    subOperationGridMeta.value.selectedSubOperation === null &&
+    prodOperationGridMeta.value.selectedOperation === null
+  ) {
+    toast.add({
+      title: "Failed",
+      description: "Please Select rouge Operation",
+      icon: "i-heroicons-check-circle",
+      color: "green",
+    });
+  }
+
+  if (subOperationGridMeta.value.selectedSubOperation !== null) {
+    if (subEmployeeGridMeta.value.subEmployees.length > 0) {
+      toast.add({
+        title: "Failed",
+        description:
+          "A rouge job operation cannot be deleted while it has a time enteries. Move time enteries and try delete operation again.",
+        icon: "i-heroicons-check-circle",
+        color: "red",
+      });
+    } else {
+      const id = subOperationGridMeta.value.selectedSubOperation.UniqueID;
+
+      const data = subOperationGridMeta.value.subOperations.filter(
+        (item) => item.UniqueID !== id
+      );
+      subOperationGridMeta.value.subOperations = data;
+    }
+  }
+
+  if (prodOperationGridMeta.value.selectedOperation !== null) {
+    if (prodEmployeeGridMeta.value.employees.length > 0) {
+      toast.add({
+        title: "Failed",
+        description:
+          "A rouge job operation cannot be deleted while it has a time enteries. Move time enteries and try delete operation again.",
+        icon: "i-heroicons-check-circle",
+        color: "red",
+      });
+    } else {
+      const id = prodOperationGridMeta.value.selectedOperation.UniqueID;
+      const data = prodOperationGridMeta.value.operations.filter(
+        (item) => item.UniqueID !== id
+      );
+
+      prodOperationGridMeta.value.operations = data;
+      console.log("data", data);
+    }
+  }
+};
+
+const handleDeleteAll = () => {
+  const uniqueIDs = prodOperationGridMeta.value.operations.map(
+    (item) => item.UniqueID
+  );
+
+  const uniqueIDs2 = subOperationGridMeta.value.subOperations.map(
+    (item) => item.UniqueID
+  );
+  prodOperationIds.value = uniqueIDs;
+  subOperationIds.value = uniqueIDs2;
+  prodOperationGridMeta.value.operations = [];
+  subOperationGridMeta.value.subOperations = [];
+};
 
 const prodOperationGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "#",
+      key: "Number",
       label: "#",
     },
     {
@@ -431,7 +597,7 @@ const prodOperationGridMeta = ref({
 const subOperationGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "#",
+      key: "Number",
       label: "#",
     },
     {
@@ -508,6 +674,46 @@ const subEmployeeGridMeta = ref({
   isLoading: false,
 });
 
+const productsSerialGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "Serial",
+      label: "Serial",
+    },
+    {
+      key: "dateEntered",
+      label: "Date Completed",
+    },
+    {
+      key: "cost",
+      label: "Material Cost",
+    },
+  ],
+  products: [],
+  selectedProduct: null,
+  isLoading: false,
+});
+
+const productsSBSerialGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "Serial",
+      label: "Serial",
+    },
+    {
+      key: "dateEntered",
+      label: "Date Completed",
+    },
+    {
+      key: "material_cost",
+      label: "Material Cost",
+    },
+  ],
+  products: [],
+  selectedProduct: null,
+  isLoading: false,
+});
+
 // Use a computed property for tabitems
 const tabitems = computed(() => [
   {
@@ -525,90 +731,6 @@ const tabitems = computed(() => [
   },
 ]);
 
-const productColumns = ref([
-  {
-    key: "serial",
-    label: "Serial",
-  },
-  {
-    key: "date_serialized",
-    label: "Date Serialized",
-  },
-  {
-    key: "material_cost",
-    label: "Material Cost",
-  },
-]);
-
-const asssemblyColumns = ref([
-  {
-    key: "serial",
-    label: "#",
-  },
-  {
-    key: "date_completed",
-    label: "Date Completed",
-  },
-  {
-    key: "material_cost",
-    label: "Material Cost",
-  },
-]);
-
-const operationsColumns = ref([
-  {
-    key: "serial",
-    label: "#",
-  },
-  {
-    key: "week",
-    label: "Week",
-  },
-  {
-    key: "operation",
-    label: "Operation",
-  },
-  {
-    key: "work_center",
-    label: "Work Center",
-  },
-  {
-    key: "hrs",
-    label: "Hrs",
-  },
-  {
-    key: "rework_hours",
-    label: "Rework Hours",
-  },
-  {
-    key: "rework_hours",
-    label: "Rework Hours",
-  },
-  {
-    key: "verified",
-    label: "Verified",
-  },
-  {
-    key: "scheduled",
-    label: "Scheduled",
-  },
-]);
-
-const employeeSchColumns = ref([
-  {
-    key: "date",
-    label: "Date",
-  },
-  {
-    key: "employees",
-    label: "Employees",
-  },
-  {
-    key: "hrs",
-    label: "Hrs.",
-  },
-]);
-
 const subAsssemblyColumns = ref([
   {
     key: "serial",
@@ -620,7 +742,22 @@ const modalMeta = ref({
   isPartsModalOpen: false,
   modalTitle: "Parts Listing",
   modalDescription: "View Parts Listing",
+  isOperationModalOpen: false,
+  isReworkPartsModalOpen: false,
 });
+
+const onDblClick = () => {
+  modalMeta.value.isOperationModalOpen = true;
+  modalMeta.value.modalTitle = "Manufacturing Secquence";
+  modalMeta.value.modalDescription = `Manufacturing Secquence ${formData.MODEL ? formData.MODEL : formData.PART
+    }`;
+};
+
+const handleRWClick = () => {
+  modalMeta.value.isReworkPartsModalOpen = true;
+  modalMeta.value.modalTitle = "Parts Used";
+  modalMeta.value.modalDescription = "";
+};
 
 const handleModalClose = () => {
   modalMeta.value.isPartsModalOpen = false;
@@ -630,251 +767,157 @@ const onPartsClick = () => {
   modalMeta.value.isPartsModalOpen = true;
 };
 
+const handleViewOperationClick = () => {
+  window.open(`/api/jobs/exportoperation/${props.selectedJob}`);
+};
+
 if (props.selectedJob !== null) editInit();
 else propertiesInit();
 </script>
 
 <template>
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
-  <template v-if="!props.isModal && !JobExist">
-    <CommonNotFound
-      :name="'Organization not found'"
-      :message="'The organization you are looking for does not exist'"
-      :to="'/employees/organization'"
-    />
-  </template>
-  <template v-else>
-    <UForm
-      :validate="validate"
-      :validate-on="['submit']"
-      :state="formData"
-      class="space-y-4"
-      @submit="onSubmit"
-    >
-      <div class="flex flex-col space-y-4">
-        <div class="flex flex-row space-x-3">
-          <div class="basis-1/5">
-            <UFormGroup label="Job #" name="ReportsTo">
-              <UInput v-model="formData.NUMBER" placeholder="" />
-            </UFormGroup>
-          </div>
-          <div class="basis-1/5">
-            <UFormGroup label="Job Qty" name="Job Qty">
-              <UInput
-                v-model="formData.QUANTITY"
-                type="number"
-                placeholder=""
-              />
-            </UFormGroup>
-          </div>
-          <div class="basis-1/5">
-            <UFormGroup label="Job Type" name="Job Type">
-              <USelect v-model="formData.JobType" :options="jobTypes" />
-            </UFormGroup>
-          </div>
-          <div class="basis-1/5">
-            <UFormGroup label="Unit Material Cost" name="Unit Material Cost">
-              <UInput v-model="formData.Cost" type="number" placeholder="" />
-            </UFormGroup>
-          </div>
-          <div class="basis-1/5">
-            <UFormGroup
-              label="Relieve Inventory Per"
-              name="Relieve Inventory Per"
-            >
-              <UInputMenu
-                v-model="formData.PerType"
-                v-model:query="formData.PerType"
-                :options="perTypes"
-              />
-            </UFormGroup>
-          </div>
-        </div>
 
-        <div class="flex flex-row space-x-3">
-          <div class="basis-1/5">
-            <UFormGroup label="Date Opened" name="Date Opened">
-              <UPopover :popper="{ placement: 'bottom-start' }">
-                <UButton
-                  icon="i-heroicons-calendar-days-20-solid"
-                  :label="
-                    formData.DATEOPENED &&
+  <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
+    <div class="flex space-x-4">
+      <div>
+        <div class="flex flex-col space-y-4">
+          <div class="flex flex-row space-x-3">
+            <div class="basis-1/5">
+              <UFormGroup label="Job #" name="Job #">
+                <UInput v-model="formData.NUMBER" />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/5">
+              <UFormGroup label="Job Qty" name="Job Qty">
+                <UInput v-model="formData.QUANTITY" type="number" />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/5">
+              <UFormGroup label="Job Type" name="Job Type">
+                <USelect v-model="formData.JobType" :options="jobTypes" />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/5">
+              <UFormGroup label="Unit Material Cost" name="Unit Material Cost">
+                <UInput />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/5">
+              <UFormGroup label="Relieve Inventory Per" name="Relieve Inventory Per">
+                <UInputMenu v-model="formData.PerType" v-model:query="formData.PerType" :options="perTypes" />
+              </UFormGroup>
+            </div>
+          </div>
+
+          <div class="flex flex-row space-x-3">
+            <div class="basis-1/5">
+              <UFormGroup label="Date Opened" name="Date Opened">
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.DATEOPENED &&
                     format(formData.DATEOPENED, 'MM/dd/yyyy')
-                  "
-                  variant="outline"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
-                <template #panel="{ close }">
-                  <CommonDatePicker
-                    v-model="formData.DATEOPENED"
-                    is-required
-                    @close="close"
-                  />
-                </template>
-              </UPopover>
-            </UFormGroup>
-          </div>
-          <div class="basis-1/5">
-            <UFormGroup label="By" name="By">
-              <UInputMenu
-                v-model="formData.ByEmployee"
-                v-model:query="formData.ByEmployee"
-                :options="productionUsers"
-              />
-            </UFormGroup>
-          </div>
-          <div class="basis-1/5">
-            <UFormGroup label="Ready To Produce" name="Ready To Produce">
-              <UPopover :popper="{ placement: 'bottom-start' }">
-                <UButton
-                  icon="i-heroicons-calendar-days-20-solid"
-                  :label="
-                    formData.ProductionDate &&
+                    " variant="outline" :ui="{
+                      base: 'w-full',
+                      truncate: 'flex justify-center w-full',
+                    }" truncate />
+                  <template #panel="{ close }">
+                    <CommonDatePicker v-model="formData.DATEOPENED" is-required @close="close" />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+            </div>
+            <div class="basis-1/5">
+              <UFormGroup label="By" name="By">
+                <UInputMenu v-model="formData.ByEmployee" v-model:query="formData.ByEmployee"
+                  :options="productionUsers" />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/5">
+              <UFormGroup label="Ready To Produce" name="Ready To Produce">
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.ProductionDate &&
                     format(formData.ProductionDate, 'MM/dd/yyyy')
-                  "
-                  variant="outline"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
-                <template #panel="{ close }">
-                  <CommonDatePicker
-                    v-model="formData.ProductionDate"
-                    is-required
-                    @close="close"
-                  />
-                </template>
-              </UPopover>
-            </UFormGroup>
+                    " variant="outline" :ui="{
+                      base: 'w-full',
+                      truncate: 'flex justify-center w-full',
+                    }" truncate />
+                  <template #panel="{ close }">
+                    <CommonDatePicker v-model="formData.ProductionDate" is-required @close="close" />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+            </div>
+
+            <div class="basis-1/5">
+              <UFormGroup label="By" name="By">
+                <UInputMenu v-model="formData.ProductionBy" v-model:query="formData.ProductionBy"
+                  :options="productionUsers" />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/5">
+              <UFormGroup label="Job Material Cost" name="Job Material Cost">
+                <UInput v-model="formData.Cost" />
+              </UFormGroup>
+            </div>
           </div>
 
-          <div class="basis-1/5">
-            <UFormGroup label="By" name="By">
-              <UInputMenu
-                v-model="formData.ProductionBy"
-                v-model:query="formData.ProductionBy"
-                :options="productionUsers"
-              />
-            </UFormGroup>
-          </div>
-          <div class="basis-1/5">
-            <UFormGroup label="Job Material Cost" name="Job Material Cost">
-              <UInput v-model="formData.Cost" />
-            </UFormGroup>
-          </div>
-        </div>
-
-        <div class="flex flex-row space-x-3">
-          <div class="basis-1/5">
-            <UFormGroup label="Job Closed" name="Job Closed">
-              <UPopover :popper="{ placement: 'bottom-start' }">
-                <UButton
-                  icon="i-heroicons-calendar-days-20-solid"
-                  :label="
-                    formData.JOBCLOSED &&
+          <div class="flex flex-row space-x-3">
+            <div class="basis-1/5">
+              <UFormGroup label="Job Closed" name="Job Closed">
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.JOBCLOSED &&
                     format(formData.JOBCLOSED, 'MM/dd/yyyy')
-                  "
-                  variant="outline"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
-                <template #panel="{ close }">
-                  <CommonDatePicker
-                    v-model="formData.JOBCLOSED"
-                    is-required
-                    @close="close"
-                  />
-                </template>
-              </UPopover>
-            </UFormGroup>
-          </div>
-          <div class="basis-1/5">
-            <UFormGroup label="By" name="By">
-              <UInputMenu
-                v-model="formData.ClosedBy"
-                v-model:query="formData.ClosedBy"
-                :options="closedByUsers"
-              />
-            </UFormGroup>
-          </div>
+                    " variant="outline" :ui="{
+                      base: 'w-full',
+                      truncate: 'flex justify-center w-full',
+                    }" truncate />
+                  <template #panel="{ close }">
+                    <CommonDatePicker v-model="formData.JOBCLOSED" is-required @close="close" />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+            </div>
+            <div class="basis-1/5">
+              <UFormGroup label="By" name="By">
+                <UInputMenu v-model="formData.ClosedBy" v-model:query="formData.ClosedBy" :options="closedByUsers" />
+              </UFormGroup>
+            </div>
 
-          <div class="basis-1/5">
-            <UFormGroup label="" name="Title">
-              <UButton
-                label="Re-Open"
-                icon="i-f7-arrow-clockwise"
-                variant="outline"
-                color="green"
-                class="mt-6"
-                :ui="{
+            <div class="basis-1/5">
+              <UFormGroup label="" name="Title">
+                <UButton label="Re-Open" icon="i-f7-arrow-clockwise" variant="outline" color="green" class="mt-6" :ui="{
                   base: 'w-full',
                   truncate: 'flex justify-center w-full',
-                }"
-              />
-            </UFormGroup>
-          </div>
+                }" />
+              </UFormGroup>
+            </div>
 
-          <div class="basis-1/5">
-            <UFormGroup label="Category" name="Category">
-              <UInputMenu
-                v-model="formData.jobcat"
-                v-model:query="formData.jobcat"
-                :options="jobCat"
-              />
-            </UFormGroup>
-          </div>
-          <div class="basis-1/5">
-            <UFormGroup label="Sub Category" name="Sub Category">
-              <UInputMenu
-                v-model="formData.jobsubcat"
-                v-model:query="formData.jobsubcat"
-                :options="jobsubcat"
-              />
-            </UFormGroup>
+            <div class="basis-1/5">
+              <UFormGroup label="Category" name="Category">
+                <UInputMenu v-model="formData.jobcat" v-model:query="formData.jobcat" :options="jobCat" />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/5">
+              <UFormGroup label="Sub Category" name="Sub Category">
+                <UInputMenu v-model="formData.jobsubcat" v-model:query="formData.jobsubcat" :options="jobsubcat" />
+              </UFormGroup>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="flex flex-row space-x-4 justify-start mt-2">
-        <div class="">
-          <UButton
-            icon="i-heroicons-document-text"
-            type="submit"
-            variant="outline"
-            color="green"
-            label="Save"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-            truncate
-          />
-        </div>
-        <div class="">
-          <UButton
-            icon="i-f7-rays"
-            variant="outline"
-            color="red"
-            :label="'Clear'"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-            truncate
-          />
-        </div>
-        <!-- <div>
+        <div class="flex flex-row space-x-4 justify-start mt-5">
+          <div class="">
+            <UButton icon="i-heroicons-document-text" type="submit" variant="outline" color="green" label="Save"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+          </div>
+          <div class="">
+            <UButton icon="i-f7-rays" variant="outline" color="red" :label="'Clear'"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" @click="handleClearCick" truncate />
+          </div>
+          <!-- <div>
           <UButton
             icon="i-heroicons-eye"
             label="View Position Details"
@@ -886,239 +929,176 @@ else propertiesInit();
             truncate
           />
         </div> -->
-        <div class="">
-          <UButton
-            icon="i-f7-arrow-clockwise"
-            variant="outline"
-            color="green"
-            label="Refresh Job Costs"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-            truncate
-          />
+          <div class="">
+            <UButton icon="i-f7-arrow-clockwise" variant="outline" color="green" label="Refresh Job Costs"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+          </div>
         </div>
       </div>
-      <div class="flex flex-row space-x-4 justify-start mt-2">
+      <div class="flex flex-col gap-4 justify-start mt-2">
         <div class="">
-          <UButton
-            icon="i-heroicons-magnifying-glass"
-            variant="outline"
-            color="green"
-            label="View Parts List"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-            truncate
-            @click="onPartsClick()"
-          />
+          <UButton icon="i-heroicons-magnifying-glass" variant="outline" color="green" label="View Parts List"
+            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate @click="onPartsClick()" />
         </div>
         <div class="">
-          <UButton
-            icon="i-heroicons-magnifying-glass"
-            variant="outline"
-            color="green"
-            label="View Operations"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-            truncate
-          />
+          <UButton icon="i-heroicons-magnifying-glass" variant="outline" color="green" label="View Operations"
+            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" @click="handleViewOperationClick"
+            truncate />
         </div>
         <div class="">
-          <UButton
-            icon="i-heroicons-magnifying-glass"
-            variant="outline"
-            color="green"
-            label="View Subassemblies"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-            truncate
-          />
+          <UButton icon="i-heroicons-magnifying-glass" variant="outline" color="green" label="View Subassemblies"
+            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
         </div>
         <div>
-          <UButton
-            icon="i-heroicons-printer"
-            label="Print Folder Label"
-            variant="outline"
-            color="purple"
-            :ui="{
-              base: 'min-w-[200px] w-full',
-              truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
+          <UButton icon="i-heroicons-printer" label="Print Folder Label" variant="outline" color="purple" :ui="{
+            base: 'min-w-[200px] w-full',
+            truncate: 'flex justify-center w-full',
+          }" truncate />
         </div>
         <div>
-          <UButton
-            icon="i-heroicons-printer"
-            label="Print Documents"
-            variant="outline"
-            color="purple"
-            :ui="{
-              base: 'min-w-[200px] w-full',
-              truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
+          <UButton icon="i-heroicons-printer" label="Print Documents" variant="outline" color="purple" :ui="{
+            base: 'min-w-[200px] w-full',
+            truncate: 'flex justify-center w-full',
+          }" truncate />
         </div>
       </div>
-      <!-- Edit Tabs -->
-      <div v-if="props.selectedJob !== null">
-        <UTabs :items="tabitems" class="">
-          <template #product="{ item }">
-            <template v-if="formData.JobType === 'Product'">
-              <div class="flex flex-col space-y-3">
-                <div class="w-1/4">
-                  <UFormGroup label="Product Line" name="Product Line">
-                    <UInputMenu
-                      v-model="formData.PRODUCTLINE"
-                      v-model:query="formData.PRODUCTLINE"
-                      :options="productLines"
-                    />
-                  </UFormGroup>
-                </div>
-                <div class="w-1/4">
-                  <UFormGroup label="Model" name="Model">
-                    <UInputMenu
-                      v-model="formData.MODEL"
-                      v-model:query="formData.MODEL"
-                      :options="models"
-                    />
-                  </UFormGroup>
-                </div>
-                <div class="w-1/4">
-                  <UFormGroup label="Beginning SN#" name="Beginning SN#">
-                    <UInput placeholder="" />
-                  </UFormGroup>
-                </div>
-              </div>
-              <div class="">
-                <UFormGroup label="" name="Title">
-                  <UButton
-                    label="Re-Open"
-                    icon="i-f7-arrow-clockwise"
-                    variant="outline"
-                    color="green"
-                    class="mt-6"
-                    :ui="{
-                      base: 'w-fit',
-                      truncate: 'flex justify-center w-full',
-                    }"
-                  />
+    </div>
+    <!-- Edit Tabs -->
+    <div v-if="props.selectedJob !== null">
+      <UTabs :items="tabitems" class="">
+        <template #product="{ item }">
+          <template v-if="formData.JobType === 'Product'">
+            <div class="flex flex-col space-y-3">
+              <div class="w-1/4">
+                <UFormGroup label="Product Line" name="Product Line">
+                  <UInputMenu v-model="formData.PRODUCTLINE" v-model:query="formData.PRODUCTLINE"
+                    :options="productLines" />
                 </UFormGroup>
               </div>
-              <div class="w-full flex">
-                <div class="w-1/2 mt-5">
-                  <UTable
-                    :columns="productColumns"
-                    :ui="{
-                      wrapper:
-                        'h-40 border-2 border-gray-300 dark:border-gray-700',
-                      th: {
-                        base: 'sticky top-0 z-10',
-                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                        padding: 'p-1',
-                      },
-                    }"
-                  >
-                    <template #empty-state>
-                      <div></div>
-                    </template>
-                  </UTable>
-                </div>
-                <div class="w-1/2">
-                  <div class="mt-5 ml-4">
-                    <UButton
-                      icon="i-heroicons-magnifying-glass"
-                      variant="outline"
-                      color="green"
-                      label="View Selected DHR"
-                      :ui="{
-                        base: 'w-fit',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                    />
-                  </div>
-                </div>
+              <div class="w-1/4">
+                <UFormGroup label="Model" name="Model">
+                  <UInputMenu v-model="formData.MODEL" v-model:query="formData.MODEL" :options="models" />
+                </UFormGroup>
               </div>
-              <div class="flex space-x-3">
-                <div class="mt-5">
-                  <UButton
-                    icon="i-heroicons-plus"
-                    variant="outline"
-                    color="green"
-                    label="Pull into Serial Record"
-                    :ui="{
-                      base: 'w-fit',
-                      truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
-                </div>
-                <div class="basis-1/6 mt-5">
-                  <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton
-                      icon="i-heroicons-calendar-days-20-solid"
-                      :label="
-                        formData.DATEOPENED &&
-                        format(formData.DATEOPENED, 'MM/dd/yyyy')
-                      "
-                      variant="outline"
-                      :ui="{
-                        base: 'w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                    />
-                    <template #panel="{ close }">
-                      <CommonDatePicker
-                        v-model="formData.DATEOPENED"
-                        is-required
-                        @close="close"
-                      />
-                    </template>
-                  </UPopover>
-                </div>
-                <div class="mt-5">
-                  <UButton
-                    icon="i-heroicons-plus"
-                    variant="outline"
-                    color="green"
-                    label="Fix Serial Issues"
+              <div class="w-1/4">
+                <UFormGroup label="Beginning SN#" name="Beginning SN#">
+                  <UInput />
+                </UFormGroup>
+              </div>
+            </div>
+            <div class="">
+              <UFormGroup label="" name="Title">
+                <UButton label="Re-Open" icon="i-f7-arrow-clockwise" variant="outline" color="green" class="mt-6" :ui="{
+                  base: 'w-fit',
+                  truncate: 'flex justify-center w-full',
+                }" />
+              </UFormGroup>
+            </div>
+            <div class="w-full flex">
+              <div class="w-1/2 mt-5">
+                <UTable v-if="formData.JobType === 'Product'" :columns="productsSerialGridMeta.defaultColumns"
+                  :rows="productsSerialGridMeta.products" :ui="{
+                    wrapper:
+                      'h-52 border-2 border-gray-300 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                    },
+                    th: {
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                      padding: 'px-2 py-0',
+                    },
+                    td: {
+                      base: 'h-[31px]',
+                      padding: 'px-2 py-0',
+                    },
+                  }">
+                  <template #empty-state>
+                    <div></div>
+                  </template>
+                </UTable>
+              </div>
+              <div class="w-1/2">
+                <div class="mt-5 ml-4">
+                  <UButton icon="i-heroicons-magnifying-glass" variant="outline" color="green" label="View Selected DHR"
                     :ui="{
                       base: 'w-fit',
                       truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
+                    }" truncate />
                 </div>
               </div>
-            </template>
-            <template v-if="formData.JobType === 'Sub Assembly'">
-              <div class="flex flex-col space-y-3">
-                <div class="w-1/4">
-                  <UFormGroup label="Category" name="Category">
-                    <UInputMenu
-                      v-model="formData.Catagory"
-                      v-model:query="formData.Catagory"
-                      :options="categories"
-                    />
-                  </UFormGroup>
-                </div>
-                <div class="w-1/4">
-                  <UFormGroup label="Sub Category" name="Sub Category">
-                    <UInputMenu
-                      v-model="formData.SubCatagory"
-                      v-model:query="formData.SubCatagory"
-                      :options="subCategories"
-                    />
-                  </UFormGroup>
-                </div>
-                <div class="w-1/4">
-                  <UFormGroup label="Part" name="Part">
-                    <UInput v-model="formData.PART" placeholder="" />
-                  </UFormGroup>
-                </div>
+            </div>
+            <div class="flex space-x-3">
+              <div class="mt-5">
+                <UButton icon="i-heroicons-plus" variant="outline" color="green" label="Pull into Serial Record" :ui="{
+                  base: 'w-fit',
+                  truncate: 'flex justify-center w-full',
+                }" truncate />
               </div>
+              <div class="basis-1/6 mt-5">
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="date && format(date, 'MM/dd/yyyy')"
+                    variant="outline" :ui="{
+                      base: 'w-full',
+                      truncate: 'flex justify-center w-full',
+                    }" truncate />
+                  <template #panel="{ close }">
+                    <CommonDatePicker v-model="date" is-required @close="close" />
+                  </template>
+                </UPopover>
+              </div>
+              <div class="mt-5">
+                <UButton icon="i-heroicons-plus" variant="outline" color="green" label="Fix Serial Issues" :ui="{
+                  base: 'w-fit',
+                  truncate: 'flex justify-center w-full',
+                }" truncate />
+              </div>
+            </div>
+          </template>
+          <template v-if="formData.JobType === 'Sub Assembly'">
+            <div class="flex flex-col space-y-3">
+              <div class="w-1/4">
+                <UFormGroup label="Category" name="Category">
+                  <UInputMenu v-model="formData.Catagory" v-model:query="formData.Catagory" :options="categories" />
+                </UFormGroup>
+              </div>
+              <div class="w-1/4">
+                <UFormGroup label="Sub Category" name="Sub Category">
+                  <UInputMenu v-model="formData.SubCatagory" v-model:query="formData.SubCatagory"
+                    :options="subCategories" />
+                </UFormGroup>
+              </div>
+              <div class="w-1/4">
+                <UFormGroup label="Part" name="Part">
+                  <UInput v-model="formData.PART" />
+                </UFormGroup>
+              </div>
+            </div>
 
-              <div class="w-full flex">
-                <div class="w-1/2 mt-5">
-                  <UTable
+            <div class="w-full flex">
+              <div class="w-1/2 mt-5">
+                <UTable :columns="productsSBSerialGridMeta.defaultColumns" :rows="productsSBSerialGridMeta.products"
+                  :ui="{
+                    wrapper:
+                      'h-52 border-2 border-gray-300 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                    },
+                    th: {
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                      padding: 'px-2 py-0',
+                    },
+                    td: {
+                      base: 'h-[31px]',
+                      padding: 'px-2 py-0',
+                    },
+                  }">
+                  <template #empty-state>
+                    <div></div>
+                  </template>
+                </UTable>
+                <!-- <UTable
                     :columns="asssemblyColumns"
                     :ui="{
                       wrapper:
@@ -1133,450 +1113,321 @@ else propertiesInit();
                     <template #empty-state>
                       <div></div>
                     </template>
-                  </UTable>
-                </div>
-              </div>
-              <div class="mt-5">
-                <UButton
-                  icon="i-heroicons-plus"
-                  variant="outline"
-                  color="green"
-                  label="Pull into Serial Record"
-                  :ui="{
-                    base: 'w-fit',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
-              </div>
-              <div class="flex space-x-3 mt-4">
-                <div class="basis-1/6">
-                  <UFormGroup label="Qty" name="Qty">
-                    <UInput type="number" placeholder="" />
-                  </UFormGroup>
-                </div>
-
-                <div class="basis-1/6 mt-5">
-                  <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton
-                      icon="i-heroicons-calendar-days-20-solid"
-                      :label="
-                        formData.DATEOPENED &&
-                        format(formData.DATEOPENED, 'MM/dd/yyyy')
-                      "
-                      variant="outline"
-                      :ui="{
-                        base: 'w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                    />
-                    <template #panel="{ close }">
-                      <CommonDatePicker
-                        v-model="formData.DATEOPENED"
-                        is-required
-                        @close="close"
-                      />
-                    </template>
-                  </UPopover>
-                </div>
-                <div class="mt-5">
-                  <UButton
-                    icon="i-heroicons-arrow-path"
-                    variant="outline"
-                    color="purple"
-                    label="Convert Inventory"
-                    :ui="{
-                      base: 'w-fit',
-                      truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
-                </div>
-              </div>
-            </template>
-          </template>
-
-          <template #jobs="{ item }">
-            <div class="w-1/2 mt-5">
-              <UTable
-                :columns="subAsssemblyColumns"
-                :ui="{
-                  wrapper: 'h-96 border-2 border-gray-300 dark:border-gray-700',
-                  th: {
-                    base: 'sticky top-0 z-10',
-                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'p-1',
-                  },
-                }"
-              >
-                <template #empty-state>
-                  <div></div>
-                </template>
-              </UTable>
-            </div>
-            <div class="flex justify-between items-center mt-5 w-1/2">
-              <div class="w-fit">
-                <UButton
-                  icon="i-heroicons-plus-circle-20-solid"
-                  variant="outline"
-                  color="green"
-                  label="Add"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
-              </div>
-              <div class="w-fit">
-                <UButton
-                  icon="i-heroicons-minus-circle-20-solid"
-                  variant="outline"
-                  color="red"
-                  label="Remove Part"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
+                  </UTable> -->
               </div>
             </div>
-          </template>
-
-          <template #operations="{ item }">
-            <div class="flex space-x-2 mt-4">
-              <div class="basis-1/4">
-                <UButton
-                  icon="i-heroicons-pencil-square"
-                  variant="outline"
-                  color="green"
-                  label="Refresh Operations"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
-              </div>
-              <div class="basis-1/4">
-                <UButton
-                  icon="i-heroicons-pencil-square"
-                  variant="outline"
-                  color="green"
-                  label="Edit Operations"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
-              </div>
-              <div class="basis-1/4">
-                <UButton
-                  icon="i-heroicons-minus-circle-20-solid"
-                  variant="outline"
-                  color="red"
-                  label="Delete Rouge Operations"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
-              </div>
-              <div class="basis-1/4">
-                <UButton
-                  icon="i-heroicons-minus-circle-20-solid"
-                  variant="outline"
-                  color="red"
-                  label="Delete All Rouge Operations"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                />
-              </div>
+            <div class="mt-5">
+              <UButton icon="i-heroicons-plus" variant="outline" color="green" label="Pull into Serial Record" :ui="{
+                base: 'w-fit',
+                truncate: 'flex justify-center w-full',
+              }" truncate />
             </div>
-
-            <div class="w-full mt-5">
-              <UTable
-                v-if="formData.JobType === 'Product'"
-                :columns="prodOperationGridMeta.defaultColumns"
-                :rows="prodOperationGridMeta.operations"
-                :ui="{
-                  wrapper: 'h-52 border-2 border-gray-300 dark:border-gray-700',
-                  tr: {
-                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                  },
-                  th: {
-                    base: 'sticky top-0 z-10',
-                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'px-2 py-0',
-                  },
-                  td: {
-                    base: 'h-[31px]',
-                    padding: 'px-2 py-0',
-                  },
-                }"
-                @select="handleProdOperationSelect"
-              >
-                <template #empty-state>
-                  <div></div>
-                </template>
-              </UTable>
-
-              <UTable
-                v-else
-                :columns="subOperationGridMeta.defaultColumns"
-                :rows="subOperationGridMeta.subOperations"
-                :ui="{
-                  wrapper: 'h-52 border-2 border-gray-300 dark:border-gray-700',
-                  tr: {
-                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                  },
-                  th: {
-                    base: 'sticky top-0 z-10',
-                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'px-2 py-0',
-                  },
-                  td: {
-                    base: 'h-[31px]',
-                    padding: 'px-2 py-0',
-                  },
-                }"
-                @select="handleSubOperationSelect"
-              >
-                <template #empty-state>
-                  <div></div>
-                </template>
-              </UTable>
-            </div>
-
-            <div class="flex mt-2 space-x-5">
-              <div
-                class="w-full flex flex-col border-[1px] border-slate-200 mt-2"
-              >
-                <div class="flex w-full space-x-5">
-                  <div class="basis-2/5 p-2">
-                    <span class="text-sm">
-                      Employee Hours For Selected Operations</span
-                    >
-                    <UTable
-                      v-if="formData.JobType === 'Product'"
-                      :columns="prodEmployeeGridMeta.defaultColumns"
-                      :rows="prodEmployeeGridMeta.employees"
-                      :ui="{
-                        wrapper:
-                          'h-52  border-2 border-gray-300 dark:border-gray-700',
-                        tr: {
-                          active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                        },
-                        th: {
-                          base: 'sticky top-0 z-10',
-                          color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                          padding: 'px-2 py-0',
-                        },
-                        td: {
-                          base: 'h-[31px]',
-                          padding: 'px-2 py-0',
-                        },
-                      }"
-                    >
-                      <template #empty-state>
-                        <div></div>
-                      </template>
-                    </UTable>
-
-                    <UTable
-                      v-else
-                      :columns="subEmployeeGridMeta.defaultColumns"
-                      :rows="subEmployeeGridMeta.subEmployees"
-                      :ui="{
-                        wrapper:
-                          'h-52  border-2 border-gray-300 dark:border-gray-700',
-                        tr: {
-                          active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                        },
-                        th: {
-                          base: 'sticky top-0 z-10',
-                          color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                          padding: 'px-2 py-0',
-                        },
-                        td: {
-                          base: 'h-[31px]',
-                          padding: 'px-2 py-0',
-                        },
-                      }"
-                    >
-                      <template #empty-state>
-                        <div></div>
-                      </template>
-                    </UTable>
-                    <div class="w-full flex">
-                      <span class="text-sm text-right w-full">
-                        Total Hrs:
-                        {{
-                          formData.JobType === "Product"
-                            ? prodScheduleHrs
-                            : subScheduleHrs
-                        }}</span
-                      >
-                    </div>
-                  </div>
-
-                  <div
-                    class="basis-2/5 flex flex-col items-center justify-center"
-                  >
-                    <div class="flex items-center">
-                      <div class="flex flex-col items-center">
-                        <div>
-                          <span>Rework</span>
-                          <div class="">
-                            <UButton
-                              icon="i-heroicons-pencil-square"
-                              variant="outline"
-                              color="green"
-                              label="Rework Parts"
-                              :ui="{
-                                base: 'w-fit',
-                                truncate: 'flex justify-center w-full',
-                              }"
-                              truncate
-                            />
-                          </div>
-                        </div>
-                        <div class="w-28">
-                          <UFormGroup label="Hours" name="Hours">
-                            <UInput
-                              v-if="formData.JobType === 'Product'"
-                              v-model="prodHrs"
-                              placeholder=""
-                            />
-                            <UInput v-else v-model="subHrs" placeholder="" />
-                          </UFormGroup>
-                        </div>
-                      </div>
-                      <div class="flex-col flex pl-3">
-                        <span>Rework Cost</span>
-                        <span v-if="formData.JobType === 'Product'"
-                          >$ {{ (prodHrs * 36).toFixed(2) }}
-                        </span>
-                        <span v-else>$ {{ (subHrs * 36).toFixed(2) }} </span>
-                      </div>
-                    </div>
-
-                    <div class="mt-5">
-                      <UButton
-                        icon="i-heroicons-plus"
-                        variant="outline"
-                        color="green"
-                        label="Verify & Close Operation"
-                        :ui="{
-                          base: 'w-full',
-                          truncate: 'flex justify-center w-full',
-                        }"
-                        truncate
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div class="border-[1px] border-slate-200 p-2 m-2">
-                  <span class="text-sm"> Manage Time Entries</span>
-
-                  <div class="flex w-full space-x-3">
-                    <div class="w-fit mt-6">
-                      <UButton
-                        icon="i-heroicons-pencil-square"
-                        variant="outline"
-                        color="green"
-                        label="Move Selected Enteries to Operation"
-                        :ui="{
-                          base: 'w-fit',
-                          truncate: 'flex justify-center w-full',
-                        }"
-                        truncate
-                      />
-                    </div>
-
-                    <div class="basis-1/2">
-                      <UFormGroup
-                        label="Destination Operation"
-                        name="Destination Operation"
-                      >
-                        <USelect
-                          v-if="formData.JobType === 'Product'"
-                          :options="prodDesOperations"
-                        />
-                        <USelect v-else :options="subDesOperations" />
-                      </UFormGroup>
-                    </div>
-                  </div>
-                </div>
+            <div class="flex space-x-3 mt-4">
+              <div class="basis-1/6">
+                <UFormGroup label="Qty" name="Qty">
+                  <UInput type="number" />
+                </UFormGroup>
               </div>
 
-              <div
-                v-if="formData.JobType === 'Product'"
-                class="flex flex-col items-center justify-center"
-              >
-                <div class="w-28">
-                  <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton
-                      icon="i-heroicons-calendar-days-20-solid"
-                      :label="
-                        formData.DATEOPENED &&
-                        format(formData.DATEOPENED, 'MM/dd/yyyy')
-                      "
-                      variant="outline"
-                      :ui="{
-                        base: 'w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                    />
-                    <template #panel="{ close }">
-                      <CommonDatePicker
-                        v-model="formData.DATEOPENED"
-                        is-required
-                        @close="close"
-                      />
-                    </template>
-                  </UPopover>
-                </div>
-
-                <div class="mt-5">
-                  <UButton
-                    icon="i-heroicons-pencil-square"
-                    variant="outline"
-                    color="green"
-                    label="reSchedule Operation"
-                    :ui="{
+              <div class="basis-1/6 mt-5">
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="date && format(date, 'MM/dd/yyyy')"
+                    variant="outline" :ui="{
                       base: 'w-full',
                       truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
-                </div>
+                    }" truncate />
+                  <template #panel="{ close }">
+                    <CommonDatePicker v-model="date" is-required @close="close" />
+                  </template>
+                </UPopover>
+              </div>
+              <div class="mt-5">
+                <UButton icon="i-heroicons-arrow-path" variant="outline" color="purple" label="Convert Inventory" :ui="{
+                  base: 'w-fit',
+                  truncate: 'flex justify-center w-full',
+                }" truncate />
               </div>
             </div>
           </template>
-        </UTabs>
-      </div>
-    </UForm>
-  </template>
+        </template>
+
+        <template #jobs="{ item }">
+          <div class="w-1/2 mt-5">
+            <UTable :columns="subAsssemblyColumns" :ui="{
+              wrapper: 'h-96 border-2 border-gray-300 dark:border-gray-700',
+              th: {
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                padding: 'p-1',
+              },
+            }">
+              <template #empty-state>
+                <div></div>
+              </template>
+            </UTable>
+          </div>
+          <div class="flex justify-between items-center mt-5 w-1/2">
+            <div class="w-fit">
+              <UButton icon="i-heroicons-plus-circle-20-solid" variant="outline" color="green" label="Add" :ui="{
+                base: 'w-full',
+                truncate: 'flex justify-center w-full',
+              }" truncate />
+            </div>
+            <div class="w-fit">
+              <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red" label="Remove Part" :ui="{
+                base: 'w-full',
+                truncate: 'flex justify-center w-full',
+              }" truncate />
+            </div>
+          </div>
+        </template>
+
+        <template #operations="{ item }">
+          <div class="flex space-x-2 justify-between mt-4">
+            <div class="basis-1/4">
+              <UButton icon="i-heroicons-pencil-square" variant="outline" color="green" label="Refresh Operations" :ui="{
+                base: 'w-full',
+                truncate: 'flex justify-center w-full',
+              }" @click="fetchJobOperation()" truncate />
+            </div>
+            <div v-if="formData.JobType === 'Product'" class="basis-1/4">
+              <UButton icon="i-heroicons-pencil-square" variant="outline" color="green" label="Edit Operations" :ui="{
+                base: 'w-full',
+                truncate: 'flex justify-center w-full',
+              }" truncate />
+            </div>
+            <div class="basis-1/4">
+              <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red"
+                label="Delete Rouge Operations" :ui="{
+                  base: 'w-full',
+                  truncate: 'flex justify-center w-full',
+                }" @click="handleDeleteOperation" truncate />
+            </div>
+            <div class="basis-1/4">
+              <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red"
+                label="Delete All Rouge Operations" :ui="{
+                  base: 'w-full',
+                  truncate: 'flex justify-center w-full',
+                }" @click="handleDeleteAll" truncate />
+            </div>
+          </div>
+
+          <div class="w-full mt-5">
+            <UTable v-if="formData.JobType === 'Product'" :columns="prodOperationGridMeta.defaultColumns"
+              :rows="prodOperationGridMeta.operations" :ui="{
+                wrapper: 'h-52 border-2 border-gray-300 dark:border-gray-700',
+                tr: {
+                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                },
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'px-2 py-0',
+                },
+                td: {
+                  base: 'h-[31px]',
+                  padding: 'px-2 py-0',
+                },
+              }" @select="handleProdOperationSelect" @dblclick="onDblClick">
+              <template #empty-state>
+                <div></div>
+              </template>
+            </UTable>
+
+            <UTable v-else :columns="subOperationGridMeta.defaultColumns" :rows="subOperationGridMeta.subOperations"
+              :ui="{
+                wrapper: 'h-52 border-2 border-gray-300 dark:border-gray-700',
+                tr: {
+                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                },
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'px-2 py-0',
+                },
+                td: {
+                  base: 'h-[31px]',
+                  padding: 'px-2 py-0',
+                },
+              }" @select="handleSubOperationSelect" @dblclick="onDblClick">
+              <template #empty-state>
+                <div></div>
+              </template>
+            </UTable>
+          </div>
+
+          <div class="flex mt-2 space-x-5">
+            <div class="w-full flex flex-col border-[1px] border-slate-200 mt-2">
+              <div class="flex w-full space-x-5">
+                <div class="basis-2/5 p-2">
+                  <span class="text-sm">
+                    Employee Hours For Selected Operations</span>
+                  <UTable v-if="formData.JobType === 'Product'" :columns="prodEmployeeGridMeta.defaultColumns"
+                    :rows="prodEmployeeGridMeta.employees" :ui="{
+                      wrapper:
+                        'h-52  border-2 border-gray-300 dark:border-gray-700',
+                      tr: {
+                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                      },
+                      th: {
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                        padding: 'px-2 py-0',
+                      },
+                      td: {
+                        base: 'h-[31px]',
+                        padding: 'px-2 py-0',
+                      },
+                    }">
+                    <template #empty-state>
+                      <div></div>
+                    </template>
+                  </UTable>
+
+                  <UTable v-else :columns="subEmployeeGridMeta.defaultColumns" :rows="subEmployeeGridMeta.subEmployees"
+                    :ui="{
+                      wrapper:
+                        'h-52  border-2 border-gray-300 dark:border-gray-700',
+                      tr: {
+                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                      },
+                      th: {
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                        padding: 'px-2 py-0',
+                      },
+                      td: {
+                        base: 'h-[31px]',
+                        padding: 'px-2 py-0',
+                      },
+                    }">
+                    <template #empty-state>
+                      <div></div>
+                    </template>
+                  </UTable>
+                  <div class="w-full flex">
+                    <span class="text-sm text-right w-full">
+                      Total Hrs:
+                      {{
+                        formData.JobType === "Product"
+                          ? prodScheduleHrs
+                          : subScheduleHrs
+                      }}</span>
+                  </div>
+                </div>
+
+                <div class="basis-2/5 flex flex-col items-center justify-center">
+                  <div class="flex items-center">
+                    <div class="flex flex-col items-center">
+                      <div>
+                        <span>Rework</span>
+                        <div class="">
+                          <UButton icon="i-heroicons-pencil-square" variant="outline" color="green" label="Rework Parts"
+                            :ui="{
+                              base: 'w-fit',
+                              truncate: 'flex justify-center w-full',
+                            }" truncate @click="handleRWClick" />
+                        </div>
+                      </div>
+                      <div class="w-28">
+                        <UFormGroup label="Hours" name="Hours">
+                          <UInput v-if="formData.JobType === 'Product'" v-model="prodHrs" />
+                          <UInput v-else v-model="subHrs" />
+                        </UFormGroup>
+                      </div>
+                    </div>
+                    <div class="flex-col flex pl-3">
+                      <span>Rework Cost</span>
+                      <span v-if="formData.JobType === 'Product'">$ {{ (prodHrs * 36).toFixed(2) }}
+                      </span>
+                      <span v-else>$ {{ (subHrs * 36).toFixed(2) }} </span>
+                    </div>
+                  </div>
+
+                  <div class="mt-5">
+                    <UButton icon="i-heroicons-plus" variant="outline" color="green" label="Verify & Close Operation"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }" truncate />
+                  </div>
+                </div>
+              </div>
+              <div class="border-[1px] border-slate-200 p-2 m-2">
+                <span class="text-sm"> Manage Time Entries</span>
+
+                <div class="flex w-full space-x-3">
+                  <div class="w-fit mt-6">
+                    <UButton icon="i-heroicons-pencil-square" variant="outline" color="green"
+                      label="Move Selected Enteries to Operation" :ui="{
+                        base: 'w-fit',
+                        truncate: 'flex justify-center w-full',
+                      }" truncate />
+                  </div>
+
+                  <div class="basis-1/2">
+                    <UFormGroup label="Destination Operation" name="Destination Operation">
+                      <USelect v-if="formData.JobType === 'Product'" :options="prodDesOperations" />
+                      <USelect v-else :options="subDesOperations" />
+                    </UFormGroup>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="formData.JobType === 'Product'" class="flex flex-col items-center justify-center">
+              <div class="w-28">
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.DATEOPENED &&
+                    format(formData.DATEOPENED, 'MM/dd/yyyy')
+                    " variant="outline" :ui="{
+                      base: 'w-full',
+                      truncate: 'flex justify-center w-full',
+                    }" truncate />
+                  <template #panel="{ close }">
+                    <CommonDatePicker v-model="formData.DATEOPENED" is-required @close="close" />
+                  </template>
+                </UPopover>
+              </div>
+
+              <div class="mt-5">
+                <UButton icon="i-heroicons-pencil-square" variant="outline" color="green" label="reSchedule Operation"
+                  :ui="{
+                    base: 'w-full',
+                    truncate: 'flex justify-center w-full',
+                  }" truncate />
+              </div>
+            </div>
+          </div>
+        </template>
+      </UTabs>
+    </div>
+  </UForm>
 
   <!-- Parts List Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isPartsModalOpen"
-    :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
-    :ui="{
+  <UDashboardModal v-model="modalMeta.isPartsModalOpen" :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription" :ui="{
       width: 'w-[1000px] sm:max-w-7xl',
       body: { padding: 'py-0 sm:pt-0' },
-    }"
-  >
-    <JobPartsList @close="handleModalClose" :is-modal="true" />
+    }">
+    <JobPartsList :selected-job="selectedJob" @close="handleModalClose" />
+  </UDashboardModal>
+
+  <!-- Manufacturing Sequnce Modal -->
+  <UDashboardModal v-model="modalMeta.isOperationModalOpen" :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription" :ui="{
+      width: 'w-[1800px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }">
+    <JobManufacturingSequenceForm :selected-job="selectedJob" />
+  </UDashboardModal>
+
+  <!-- Rework Parts Modal -->
+  <UDashboardModal v-model="modalMeta.isReworkPartsModalOpen" :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription" :ui="{
+      width: 'w-[1800px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }">
+    <JobReworkParts :selected-job="selectedJob" />
   </UDashboardModal>
 </template>

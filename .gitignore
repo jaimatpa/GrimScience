@@ -2,5 +2,8 @@ node_modules
 .nuxt
 .env
 .output
-*package-lock.json
-**yarn.lock
+package-lock.json
+yarn.lockpnpm-lock.yaml
+yarn.lock
+*.pdf
+dist

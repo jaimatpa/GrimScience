@@ -25,7 +25,7 @@ const formData = reactive({
     Title: null,
     Employee: null,
     JobDescription: null,
-    WorkCenters:  null
+    WorkCenters: null
 })
 
 const editInit = async () => {
@@ -105,6 +105,14 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     emit('save')
 }
 
+const modalMeta = ref({
+    modalTitle: "View Position",
+    modalDescription: "",
+    isPositionModalOpen: false,
+});
+
+
+
 if (props.selectedOrganization !== null)
     editInit()
 </script>
@@ -115,66 +123,160 @@ if (props.selectedOrganization !== null)
             loader="dots" />
     </div>
     <template v-if="!props.isModal && !organizaationExist">
-        <CommonNotFound :name="'Organization not found'" :message="'The organization you are looking for does not exist'"
-            :to="'/employees/organization'" />
+        <CommonNotFound :name="'Organization not found'"
+            :message="'The organization you are looking for does not exist'" :to="'/employees/organization'" />
     </template>
     <template v-else>
 
         <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
-            <div class="">
-                <div class="flex flex-col space-y-4">
-                    <div class="flex flex-row space-x-3">
-                        <div class="basis-2/6">
-                            <UFormGroup label="Reports To" name="ReportsTo">
-                                <UInput v-model="formData.ReportsTo" placeholder="" />
-                            </UFormGroup>
-                        </div>
-                        <div class="basis-2/6">
-                            <UFormGroup label="Title" name="Title">
-                                <UInput v-model="formData.Title" placeholder="" />
-                            </UFormGroup>
-                        </div>
-                        <div class="basis-2/6">
-                            <UFormGroup label="Employee" name="Employee">
-                                <UInput v-model="formData.Employee" placeholder="" />
-                            </UFormGroup>
+            <div class="px-4 pt-4 flex flex-col space-y-2">
+                <div class="mb-3">
+                    <UTable :rows="orders" class="w-full" :ui="{
+                        wrapper: 'h-[250px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+                        divide: 'divide-gray-200 dark:divide-gray-800',
+                        tr: {
+                            active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                        },
+                        th: {
+                            base: 'sticky top-0 z-10',
+                            color: 'bg-white',
+                            padding: 'py-0'
+                        },
+                        td: {
+                            base: 'h-[22px]',
+                            padding: 'py-0'
+                        }
+                    }" />
+                </div>
+                <div class="flex flex-col space-y-2">
+                    <div class="w-1/2">
+                        <div class="flex flex-row space-x-2">
+                            <div class="basis-2/6">
+                                <UFormGroup label="Reports To" name="ReportsTo">
+                                    <UInput v-model="formData.ReportsTo" placeholder="" />
+                                </UFormGroup>
+                            </div>
+                            <div class="basis-2/6">
+                                <UFormGroup label="Title" name="Title">
+                                    <UInput v-model="formData.Title" placeholder="" />
+                                </UFormGroup>
+                            </div>
+                            <div class="basis-2/6">
+                                <UFormGroup label="Employee" name="Employee">
+                                    <UInput v-model="formData.Employee" placeholder="" />
+                                </UFormGroup>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="flex flex-row space-x-5">
-                        <div class="basis-1/2">
-                            <UFormGroup label="Job Description" name="JobDescription">
-                                <UTextarea v-model="formData.JobDescription" :rows="4" type="text" placeholder="" />
-                            </UFormGroup>
+                    <div class="flex flex-row space-x-2">
+                        <div class="basis-1/3">
+                            <div class="w-full">
+                                <UFormGroup label="Job Description" name="JobDescription">
+                                    <UTextarea v-model="formData.JobDescription" :rows="16" type="text"
+                                        placeholder="" />
+                                </UFormGroup>
+                            </div>
                         </div>
-                        <div class="basis-1/2">
-                            <UFormGroup label="Work Centers" name="WorkCenters">
+
+                        <div class="basis-2/3 flex flex-col space-y-2">
+                            <!-- <UFormGroup label="Work Centers" name="WorkCenters">
                                 <UTextarea v-model="formData.WorkCenters" :rows="4" type="text" placeholder="" />
-                            </UFormGroup>
+                            </UFormGroup> -->
+                            <div class="">
+                                <UFormGroup label="Work Center Responsibilities">
+                                    <UTable :rows="orders" class="w-full" :ui="{
+                                        wrapper: 'h-[292px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+                                        divide: 'divide-gray-200 dark:divide-gray-800',
+                                        tr: {
+                                            active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                                        },
+                                        th: {
+                                            base: 'sticky top-0 z-10',
+                                            color: 'bg-white',
+                                            padding: 'py-0'
+                                        },
+                                        td: {
+                                            base: 'h-[22px]',
+                                            padding: 'py-0'
+                                        }
+                                    }" />
+                                </UFormGroup>
+                            </div>
+                            <div class="flex flex-row space-x-2">
+                                <div class="basis-1/2">
+
+                                    <UButton :disabled="selectedOrganization === null && true" icon="i-heroicons-eye"
+                                        label="View Position Details" variant="outline"
+                                        @click="modalMeta.isPositionModalOpen = true" block />
+
+
+                                </div>
+                                <div class="basis-1/2 flex justify-end space-x-2">
+                                    <div class="basis-1/3">
+                                        <UButton label="Add" color="primary" block />
+                                    </div>
+                                    <div class="basis-1/3">
+                                        <UButton label="Remove" color="primary" block />
+                                    </div>
+
+                                </div>
+                            </div>
+
                         </div>
                     </div>
-                </div>
-            </div>
+                    <div class="">
+                        <div class="basis-2/3 flex flex-row space-x-2">
+                            <div class="basis-1/6">
+                                <UButton label="Add Position" color="green" variant="outline" icon="i-heroicons-plus"
+                                    :disabled="isLoading" block />
+                            </div>
+                            <div class="basis-1/6">
+                                <UButton label="Modify Position" variant="outline" icon="i-heroicons-pencil-square"
+                                    :disabled="isLoading" block />
+                            </div>
+                            <div class="basis-1/6">
+                                <UButton label="Remove Position" color="red" variant="outline"
+                                    icon="i-heroicons-minus-circle" block />
+                            </div>
+                            <div class="basis-1/6">
+                                <UButton label="Clear" color="red" variant="outline" icon="i-f7-rays" block />
+                            </div>
+                        </div>
 
 
-            <div class="flex flex-row space-x-4 justify-end mt-2">
-                <div class="w-[120px]">
-                    <UButton variant="outline" color="red" :label="!isModal ? 'Go back' : 'Cancel'"
-                        :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" @click="handleClose" truncate />
+
+                        <!-- 
+                        <div class="w-[120px]">
+                            <UButton variant="outline" color="red" :label="!isModal ? 'Go back' : 'Cancel'"
+                                :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" @click="handleClose"
+                                truncate />
+                        </div> -->
+                        <!-- 
+                        <div v-if="selectedOrganization === null" class="w-[180px]">
+                            <UButton icon="i-heroicons-plus-20-solid" type="submit" variant="outline" color="green"
+                                :disabled="isLoading" label="Add Employee"
+                                :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+                        </div>
+                        <div v-else class="w-[180px]">
+                            <UButton icon="i-heroicons-pencil-square" type="submit" variant="outline" color="blue"
+                                label="Modify Employee" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
+                                :disabled="isLoading" truncate />
+                        </div> -->
+                    </div>
                 </div>
-                <div>
-                    <UButton icon="i-heroicons-eye" label="View Position Details" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
-                </div>
-                <div v-if="props.selectedOrganization === null" class="w-[180px]">
-                    <UButton icon="i-heroicons-plus-20-solid" type="submit" variant="outline" color="green"
-                    :disabled="isLoading" label="Add Employee" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
-                </div>
-                <div v-else class="w-[180px]">
-                    <UButton icon="i-heroicons-pencil-square" type="submit" variant="outline" color="blue"
-                        label="Modify Employee" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-                        :disabled="isLoading" truncate />
-                </div>
+
             </div>
+
         </UForm>
     </template>
+
+    <!-- New Positon  Modal -->
+    <UDashboardModal v-model="modalMeta.isPositionModalOpen" :title="modalMeta.modalTitle"
+        :description="modalMeta.modalDescription" :ui="{
+            width: 'w-[1600px] sm:max-w-8xl',
+            body: { padding: 'py-0 sm:pt-0' },
+        }">
+        <EmployeeViewPositionForm @close="{ }" @save="{ }" :selected-organization="selectedOrganization"
+            :is-modal="true" />
+    </UDashboardModal>
 </template>

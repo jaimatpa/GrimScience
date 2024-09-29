@@ -1,3 +1,5 @@
+
+
 <script setup lang="ts">
   import type { FormError, FormSubmitEvent } from '#ui/types'
   import Loading from 'vue-loading-overlay'
@@ -192,20 +194,10 @@
 
 <template>
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
-  <UForm
-    :validate="validate"
-    :validate-on="['submit']"
-    :state="formData"
-    @submit="onSubmit"
-  >
+  <UForm :validate="validate" :validate-on="['submit']" :state="formData" @submit="onSubmit">
     <div class="flex flex-col">
       <div class="flex justify-between px-4 py-2 gmsBlueTitlebar">
         <h2 class="flex items-center">Lookup</h2>
@@ -215,69 +207,50 @@
               <UCheckbox v-model="filterValues.OpenClosed" label="Open" class="" />
             </div>
             <div class="min-w-[150px]">
-              <UButton icon="i-heroicons-eye" label="Summary" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton icon="i-heroicons-eye" label="Summary" variant="outline"
+                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
             </div>
           </div>
         </div>
       </div>
       <div class="px-4 py-2">
-        <UTable
-          :rows="nonConformanceGridMeta.nonConformances"
-          :columns="nonConformanceGridMeta.defaultColumns"
-          :loading="nonConformanceGridMeta.isLoading"
-          class="w-full"
-          :ui="{
+        <UTable :rows="nonConformanceGridMeta.nonConformances" :columns="nonConformanceGridMeta.defaultColumns"
+          :loading="nonConformanceGridMeta.isLoading" class="w-full" :ui="{
             wrapper: 'overflow-auto h-60 border-2 border-gray-300 dark:border-gray-700',
             divide: 'divide-gray-200 dark:divide-gray-800',
             tr: {
               active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
             },
-            th: { 
+            th: {
               base: 'sticky top-0 z-10',
               color: 'bg-white dark:text-gray dark:bg-[#111827]',
               padding: 'p-0'
-            }, 
+            },
             td: {
               base: 'h-[31px]',
               padding: 'py-0'
             }
-          }"
-          :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-          @select="onNonConformanceSelect"
-          @dblclick="onNonConformanceDblclick"
-        >
+          }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+          @select="onNonConformanceSelect" @dblclick="onNonConformanceDblclick">
           <template v-for="column in nonConformanceGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
             <template v-if="!column.filterOptions">
               <template v-if="column.key === 'SERVICEREPORT' || 'TAGASSIGNEDTO'">
                 <div class="px-1 py-1  min-w-[150px]">
-                  <CommonSortAndInputFilter 
-                    @handle-input-change="handleFilterChange"
-                    :label="column.label"
-                    :filterable="column.filterable"
-                    :filter-key="column.key"
-                  />
+                  <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
+                    :filterable="column.filterable" :filter-key="column.key" />
                 </div>
               </template>
               <template v-else>
                 <div class="px-1 py-1">
-                  <CommonSortAndInputFilter 
-                    @handle-input-change="handleFilterChange"
-                    :label="column.label"
-                    :filterable="column.filterable"
-                    :filter-key="column.key"
-                  />
+                  <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
+                    :filterable="column.filterable" :filter-key="column.key" />
                 </div>
               </template>
             </template>
             <template v-else>
               <div class="px-1 py-1">
-                <CommonSortAndSelectFilter 
-                  @handle-select-change="handleFilterChange"
-                  :label="column.label"
-                  :filterable="column.filterable"
-                  :filter-key="column.key"
-                  :filter-options="column.filterOptions"
-                />
+                <CommonSortAndSelectFilter @handle-select-change="handleFilterChange" :label="column.label"
+                  :filterable="column.filterable" :filter-key="column.key" :filter-options="column.filterOptions" />
               </div>
             </template>
           </template>
@@ -290,54 +263,44 @@
     <div class="flex flex-col space-y-3 px-4 py-2">
       <div class="flex flex-row space-x-9">
         <UFormGroup label="NonConformance#">
-          <UInput v-model="formData.uniqueID"/>
+          <UInput v-model="formData.uniqueID" />
         </UFormGroup>
         <div class="flex flex-row space-x-3">
           <UFormGroup label="Serial/Part#">
-            <UInput v-model="formData.SERIAL"/>
+            <UInput v-model="formData.SERIAL" />
           </UFormGroup>
           <div class="flex items-end min-w-[100px]">
-            <UButton label="Find" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+            <UButton label="Find" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
           </div>
           <div class="flex items-end min-w-[100px]">
-            <UButton label="Find Part" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate/>
+            <UButton label="Find Part" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
           </div>
         </div>
         <div class="flex-1">
           <UFormGroup label="Description">
-            <UInput v-model="formData.PARTS"/>
+            <UInput v-model="formData.PARTS" />
           </UFormGroup>
         </div>
       </div>
       <div class="flex justify-between space-x-3">
         <div class="w-full">
           <UFormGroup label="Disposition Determination(Per Tag)">
-            <UTextarea 
-              v-model:model-value="formData.DISPOSITION"
-              :rows="3"
-            />
+            <UTextarea v-model:model-value="formData.DISPOSITION" :rows="3" />
           </UFormGroup>
         </div>
         <div class="w-full">
           <UFormGroup label="Justification(Per Tag)">
-            <UTextarea 
-              v-model:model-value="formData.Justification"
-              :rows="3"
-            />
+            <UTextarea v-model:model-value="formData.Justification" :rows="3" />
           </UFormGroup>
         </div>
         <div class="flex flex-col justify-between">
           <div class="flex gap-5">
-            <URadio
-              v-for="status of checkStatusGroup"
-              :key="status.value"
-              v-model="formData.OpenClosed"
-              v-bind="status"
-              class="pb-3"
-            />
+            <URadio v-for="status of checkStatusGroup" :key="status.value" v-model="formData.OpenClosed" v-bind="status"
+              class="pb-3" />
           </div>
           <div>
-            <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline" :ui="{base: 'min-w-[200px]', truncate: 'flex justify-center w-full'}" truncate/>
+            <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline"
+              :ui="{ base: 'min-w-[200px]', truncate: 'flex justify-center w-full' }" truncate />
           </div>
         </div>
       </div>
@@ -347,49 +310,34 @@
     </div>
     <div class="flex flex-row space-x-3 px-4 py-2">
       <div class="basis-3/4">
-        <UTable
-          :rows="tagEntriesGridMeta.tagEntries"
-          :columns="tagEntriesGridMeta.defaultColumns"
-          :loading="tagEntriesGridMeta.isLoading"
-          class="w-full"
-          :ui="{
+        <UTable :rows="tagEntriesGridMeta.tagEntries" :columns="tagEntriesGridMeta.defaultColumns"
+          :loading="tagEntriesGridMeta.isLoading" class="w-full" :ui="{
             wrapper: 'overflow-auto h-[300px] border-2 border-gray-300 dark:border-gray-700',
             divide: 'divide-gray-200 dark:divide-gray-800',
             tr: {
               active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
             },
-            th: { 
+            th: {
               base: 'sticky top-0 z-10',
               color: 'bg-white dark:text-gray dark:bg-[#111827]',
               padding: 'p-0'
-            }, 
+            },
             td: {
               base: 'h-[31px]',
               padding: 'py-0'
             }
-          }"
-          :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-        >
+          }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }">
           <template v-for="column in tagEntriesGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
             <template v-if="!column.filterOptions">
               <div class="px-1 py-1">
-                <CommonSortAndInputFilter 
-                  @handle-input-change="handleFilterChange"
-                  :label="column.label"
-                  :filterable="column.filterable"
-                  :filter-key="column.key"
-                />
+                <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
+                  :filterable="column.filterable" :filter-key="column.key" />
               </div>
             </template>
             <template v-else>
               <div class="px-1 py-1">
-                <CommonSortAndSelectFilter 
-                  @handle-select-change="handleFilterChange"
-                  :label="column.label"
-                  :filterable="column.filterable"
-                  :filter-key="column.key"
-                  :filter-options="column.filterOptions"
-                />
+                <CommonSortAndSelectFilter @handle-select-change="handleFilterChange" :label="column.label"
+                  :filterable="column.filterable" :filter-key="column.key" :filter-options="column.filterOptions" />
               </div>
             </template>
           </template>
@@ -397,54 +345,59 @@
       </div>
       <div class="basis-1/4 flex flex-col space-y-2">
         <div class="flex flex-row space-x-2">
-           <div class="basis-3/4 w-full">
-              <UFormGroup label="PO#">
-                <UInput v-model="tagEntryFormData.poNum"/>
-              </UFormGroup>
-           </div>
-           <div class="basis-1/4 w-full">
-              <UFormGroup label="PO#">
-                <UInput v-model="tagEntryFormData.on"/>
-              </UFormGroup>
-           </div>
+          <div class="basis-3/4 w-full">
+            <UFormGroup label="PO#">
+              <UInput v-model="tagEntryFormData.poNum" />
+            </UFormGroup>
+          </div>
+          <div class="basis-1/4 w-full">
+            <UFormGroup label="PO#">
+              <UInput v-model="tagEntryFormData.on" />
+            </UFormGroup>
+          </div>
         </div>
         <div class="flex flex-row space-x-2">
           <div class="basis-1/2 w-full">
-              <UFormGroup label="SO#/SR#">
-                <UInput v-model="tagEntryFormData.serviceReportNum"/>
-              </UFormGroup>
-           </div>
-           <div class="basis-1/2 w-full">
-              <UFormGroup label="PJob#">
-                <UInput v-model="tagEntryFormData.jobNum"/>
-              </UFormGroup>
-           </div>
+            <UFormGroup label="SO#/SR#">
+              <UInput v-model="tagEntryFormData.serviceReportNum" />
+            </UFormGroup>
+          </div>
+          <div class="basis-1/2 w-full">
+            <UFormGroup label="PJob#">
+              <UInput v-model="tagEntryFormData.jobNum" />
+            </UFormGroup>
+          </div>
         </div>
         <div class="flex justify-end">
           <div class="basis-1/2">
             <UFormGroup label="Investigation">
-              <UInput v-model="tagEntryFormData.investigationNum"/>
+              <UInput v-model="tagEntryFormData.investigationNum" />
             </UFormGroup>
           </div>
         </div>
         <div class="flex flex-col space-y-2">
           <div class="w-full">
-            <UButton icon="i-heroicons-plus" label="Receive/Add" variant="outline" color="green":ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+            <UButton icon="i-heroicons-plus" label="Receive/Add" variant="outline" color="green"
+              :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
           </div>
           <div class="flex flex-row space-x-3">
             <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-minus-circle" label="Delete" variant="outline" color="red" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton icon="i-heroicons-minus-circle" label="Delete" variant="outline" color="red"
+                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
             </div>
             <div class="basis-1/2 w-full">
-              <UButton icon="i-f7-rays" label="Clear" variant="outline" color="red" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton icon="i-f7-rays" label="Clear" variant="outline" color="red"
+                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
             </div>
           </div>
           <div class="flex flex-row space-x-3">
             <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-plus" label="View Non-Conformance" variant="outline" color="green" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton icon="i-heroicons-plus" label="View Non-Conformance" variant="outline" color="green"
+                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
             </div>
             <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-plus" label="Print Label" variant="outline" color="green" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>
+              <UButton icon="i-heroicons-plus" label="Print Label" variant="outline" color="green"
+                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
             </div>
           </div>
         </div>

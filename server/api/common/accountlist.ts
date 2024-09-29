@@ -1,4 +1,5 @@
-import { getAccountList, getSubCategoryList } from "~/server/controller/common/Vendor";
+import { getAccountList } from "~/server/controller/common/Vendors";
+
 
 export default eventHandler(async (event) => {
     try {

@@ -17,16 +17,16 @@ useHead({
   }
 })
 
-const title = 'Grimm Scientific'
-const description = 'Nuxt UI Pro is a collection of premium Vue components built on top of Nuxt UI to create beautiful & responsive Nuxt applications in minutes.'
+const title = 'Grimm Scientific Management (GSM)'
+const description = 'Grimm Scientific Management (GSM) allows for the overall management of the day to day operations.'
 
 useSeoMeta({
   title,
   description,
   ogTitle: title,
   ogDescription: description,
-  ogImage: 'https://dashboard-template.nuxt.dev/social-card.png',
-  twitterImage: 'https://dashboard-template.nuxt.dev/social-card.png',
+  ogImage: '/social-card.png',
+  twitterImage: '/social-card.png',
   twitterCard: 'summary_large_image'
 })
 </script>

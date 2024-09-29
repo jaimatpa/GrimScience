@@ -12,7 +12,7 @@ export const getUserInfo = async (UniqueID: number | string) => {
     } else {
       return null;
     }
-  } catch(err) {
+  } catch (err) {
     return err.message;
   }
 };

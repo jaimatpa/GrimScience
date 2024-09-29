@@ -4,16 +4,16 @@ import { tblInvestigations, tblInvestigationComplaint } from "~/server/models";
 export const getInvestigations = async (params) => {
   const { uniqueID, PROBLEMDIAG, DIAGDATE, PRODLINE, DESCRIPTION, Status } = params
   let whereClause = {}
-  if(uniqueID) whereClause['uniqueID'] = {[Op.like]: `%${uniqueID}%`};
-  if(PROBLEMDIAG) whereClause['PROBLEMDIAG'] = {[Op.like]: `%${PROBLEMDIAG}%`};
-  if(DIAGDATE) whereClause[Op.and] = [
+  if (uniqueID) whereClause['uniqueID'] = { [Op.like]: `%${uniqueID}%` };
+  if (PROBLEMDIAG) whereClause['PROBLEMDIAG'] = { [Op.like]: `%${PROBLEMDIAG}%` };
+  if (DIAGDATE) whereClause[Op.and] = [
     Sequelize.where(Sequelize.fn('FORMAT', Sequelize.col('DIAGDATE'), 'MM/dd/yyyy'), {
       [Op.like]: Sequelize.literal(`'%${DIAGDATE}%'`)
     })
   ]
-  if(PRODLINE) whereClause['PRODLINE'] = {[Op.like]: `%${PRODLINE}%`};
-  if(DESCRIPTION) whereClause['DESCRIPTION'] = {[Op.like]: `%${DESCRIPTION}%`};
-  if(Status === 'true') whereClause['Status'] = 'Open'
+  if (PRODLINE) whereClause['PRODLINE'] = { [Op.like]: `%${PRODLINE}%` };
+  if (DESCRIPTION) whereClause['DESCRIPTION'] = { [Op.like]: `%${DESCRIPTION}%` };
+  if (Status === 'true') whereClause['Status'] = 'Open'
 
   const list = await tblInvestigations.findAll({
     attributes: [
@@ -38,7 +38,7 @@ export const getInvestigationDetail = async (id: number | string) => {
 export const getInvestigationsOfComplaint = async (params) => {
   const { ComplaintID } = params
   let whereClause = {}
-  if(ComplaintID) whereClause['ComplaintID'] = ComplaintID
+  if (ComplaintID) whereClause['ComplaintID'] = ComplaintID
 
   tblInvestigationComplaint.hasMany(tblInvestigations, { foreignKey: 'uniqueID', sourceKey: 'investigationID' })
   const list = await tblInvestigationComplaint.findAll({
@@ -67,12 +67,12 @@ export const getInvestigationsOfComplaint = async (params) => {
   })
   const formattedList = list.map((item: any) => {
     return {
-      uniqueid: item.uniqueid,                            
-      investigationID: item.investigationID,                            
-      DIAGDATE: item.DIAGDATE,                            
-      PROBLEMDIAG: item.PROBLEMDIAG,                           
-      DESCRIPTION: item.DESCRIPTION,       
-      ACTIONTYPE: item.ACTIONTYPE                    
+      uniqueid: item.uniqueid,
+      investigationID: item.investigationID,
+      DIAGDATE: item.DIAGDATE,
+      PROBLEMDIAG: item.PROBLEMDIAG,
+      DESCRIPTION: item.DESCRIPTION,
+      ACTIONTYPE: item.ACTIONTYPE
     }
   })
   return formattedList;
@@ -88,6 +88,6 @@ export const createInvestigationComplaint = async (data) => {
 }
 
 export const deleteInvestigationComplaint = async (id) => {
-  const deletedInvestigationComplaint = await tblInvestigationComplaint.destroy({where: { uniqueid: id }})
+  const deletedInvestigationComplaint = await tblInvestigationComplaint.destroy({ where: { uniqueid: id } })
   return deletedInvestigationComplaint
 }

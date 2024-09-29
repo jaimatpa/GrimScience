@@ -13,14 +13,13 @@
   const descIcon = "i-heroicons-bars-arrow-down-20-solid"
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
-  const totalBuilt = ref(24570);
-  const totalOrders = ref(233);
-  const percent = ref(1)
+  const totalBuilt = ref(0);
+  const totalOrders = ref(0);
 
   const headerFilters = ref({
     productLines: {
       label: 'Product Line',
-      filter: 'productLine',
+      filter: 'PRODUCTDESC',
       api: '/api/materials/productlines',
       options: []
     }
@@ -33,12 +32,12 @@
     }, 
     cryotherm: {
       label: 'CRYOTherm Checkup',
-      filterKey: 'kind',
+      filterKey: 'CRYOThermCheckup',
       isChecked: false
     }, 
     nonMedical: {
       label: 'Non-Medical Device',
-      filterKey: 'medicalKind',
+      filterKey: 'NonMedicalDevice',
       isChecked: false
     }, 
     complaints: {
@@ -103,6 +102,8 @@
     orders: [],
     selectedOrderId: null,
     selectedCustomerId: null,
+    selectedCompaintNumber: null,
+    selectedSerialNumber: null,
     sort: {
       column: 'COMPLAINTNUMBER', 
       direction: 'desc'
@@ -113,18 +114,43 @@
     isServiceOrderModalOpen: false,
   })
   const filterValues = ref({
-    productLine: null,
+    PRODUCTDESC: null,
     COMPLAINTNUMBER: null,
     SERIALNO: null,
     COMPLAINTDATE: null,
     FAILINVEST: null,
     company1: null,
     OPENCASE: true,
-    kind: false, 
-    medicalKind: false,
-    ValidComplaint: false, 
-    INJURYREPORTNO: false
+    CRYOThermCheckup: null, 
+    NonMedicalDevice: null,
+    ValidComplaint: null, 
+    INJURYREPORTNO: null
   })
+  const watchCheckbox = (property, filterKey) => {
+    watch(
+      () => headerCheckboxes.value[property].isChecked,
+      (newCheckedValue) => {
+        filterValues.value[filterKey] = newCheckedValue ? "1" : "0";
+      }
+    );
+  }
+
+  // Watch for each checkbox
+  watchCheckbox('injury', 'INJURYREPORTNO');
+  watchCheckbox('open', 'OPENCASE');
+  watchCheckbox('cryotherm', 'CRYOThermCheckup');
+  watchCheckbox('nonMedical', 'NonMedicalDevice');
+  watchCheckbox('complaints', 'ValidComplaint');
+
+  watch(() => filterValues.value.PRODUCTDESC, () => fetchBuiltCount())
+
+  const percent = computed(() => {
+    if (totalOrders.value === 0) {
+      return 0;
+    }
+    return Math.round((totalBuilt.value / totalOrders.value) * 100);
+  });
+
   const selectedColumns = ref(gridMeta.value.defaultColumns)
   const exportIsLoading = ref(false)
 
@@ -133,6 +159,7 @@
   const init = async () => {
     gridMeta.value.isLoading = true
     fetchGridData()
+    fetchBuiltCount()
     for(const key in headerFilters.value) {
       const apiURL = headerFilters.value[key]?.api?? `/api/service/orders/${key}`;
       await useApiFetch(apiURL, {
@@ -158,11 +185,12 @@
         }
       }
     })
-    if(gridMeta.value.numberOfServiceOrders === 0){
-      gridMeta.value.orders = []
-      gridMeta.value.numberOfServiceOrders = 0
-      gridMeta.value.isLoading = false
-      return;
+    if (
+      gridMeta.value.page * gridMeta.value.pageSize >
+      gridMeta.value.numberOfServiceOrders
+    ) {
+      gridMeta.value.page =
+        Math.ceil(gridMeta.value.numberOfServiceOrders / gridMeta.value.pageSize) | 1;
     }
     await useApiFetch('/api/service/orders/', {
       method: 'GET',
@@ -181,19 +209,32 @@
       }
     });
   }
+  const fetchBuiltCount = async () => {
+    await useApiFetch('/api/service/orders/builtCount', {
+      method: 'GET',
+      params: {
+        PRODUCTLINE: `${filterValues.value.PRODUCTDESC}`
+      }, 
+      onResponse({ response }) {
+        if(response.status === 200) {
+          totalBuilt.value = response._data.body
+        }
+      }
+    })
+  }
   const handleModalClose = () => {
     modalMeta.value.isServiceOrderModalOpen = false
   }
   const handleModalSave = async () => {
     handleModalClose()
-    init()
+    fetchGridData()
   }
   const handlePageChange = async () => {
-    init()
+    fetchGridData()
   }
   const handleFilterChange = () => {
     gridMeta.value.page = 1
-    init()
+    fetchGridData()
   }
   const handleSortingButton = async (btnName: string) => {
     gridMeta.value.page = 1
@@ -255,11 +296,13 @@
     window.open(`/api/service/orders/exportcomplaints`)
   }
   const onSelect = async (row) => {
-    gridMeta.value.selectedOrderId = row?.UniqueID;
+    gridMeta.value.selectedOrderId = row?.uniqueID;
     gridMeta.value.selectedCustomerId = row?.customerID;
+    gridMeta.value.selectedCompaintNumber = row?.COMPLAINTNUMBER;
+    gridMeta.value.selectedSerialNumber = row?.SERIALNO;
   }
   const onDblClick = async () =>{
-    if(gridMeta.value.selectedCustomerId){
+    if(gridMeta.value.selectedCustomerId && gridMeta.value.selectedCompaintNumber){
       modalMeta.value.isServiceOrderModalOpen = true
     }
   }
@@ -276,7 +319,7 @@
         <h2>Sort</h2>
       </div>
 
-      <UDashboardToolbar>
+      <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
           <div class="flex flex-row space-x-3">
             <div class="basis-1/5 max-w-[300px] min-w-[150px] mr-4">
@@ -285,7 +328,7 @@
                 name="productLine"
               >
                 <USelect
-                  v-model="filterValues.productLine"
+                  v-model="filterValues.PRODUCTDESC"
                   :options="headerFilters.productLines.options"
                   @change="handleFilterChange()"
                 />
@@ -307,7 +350,7 @@
                 name="totalOrders"
               >
                 <div class="text-bold">
-                  {{ totalOrders }}
+                  {{ gridMeta.numberOfServiceOrders }}
                 </div>
               </UFormGroup>
             </div>
@@ -337,7 +380,7 @@
       <div class="px-4 py-2 gmsPurpleTitlebar">
         <h2>Order Lookup</h2>
       </div>
-      <div class="flex flex-row px-10 mt-4">
+      <div class="flex flex-row px-4 pt-4 bg-gms-gray-100">
         <template v-for="checkbox in headerCheckboxes">
           <div class="basis-1/5">
             <UCheckbox
@@ -357,10 +400,10 @@
           divide: 'divide-gray-200 dark:divide-gray-800', 
           th: { 
             base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
+            padding: 'pb-0',
           }, 
           td: {
-            padding: 'py-2'
+            padding: 'py-1'
           }
         }"
         :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
@@ -369,7 +412,7 @@
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.key === 'failure'">
-            <div class="min-w-[200px]">
+            <div class="">
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton" 
                 @handle-input-change="handleFilterInputChange"
@@ -383,6 +426,7 @@
             </div>
           </template>
           <template v-else>
+            <div class="">
             <CommonSortAndInputFilter
               @handle-sorting-button="handleSortingButton" 
               @handle-input-change="handleFilterInputChange"
@@ -393,14 +437,15 @@
               :filterable="column.filterable"
               :filter-key="column.key"
             />
+          </div>
           </template>
         </template>
       </UTable>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1" >
-          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfServiceOrders | 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
+          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfServiceOrders || 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
         </div>
-      </div>
+      </div> -->
     </UDashboardPanel>
   </UDashboardPage>
         
@@ -408,12 +453,17 @@
     v-model="modalMeta.isServiceOrderModalOpen"
     title="Service Order"
     :ui="{
-      title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl'
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
     }"
+    
   >
-    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
+    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :form-action ="null" :selected-serial="gridMeta.selectedSerialNumber" :selected-customer="gridMeta.selectedCustomerId" :selected-complaint="gridMeta.selectedCompaintNumber" :selected-order="gridMeta.selectedOrderId"  />
   </UDashboardModal>
+
+  
 </template>

@@ -5,7 +5,7 @@ export default eventHandler(async (event) => {
     const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;
 
-    switch(method.toUpperCase()){
+    switch (method.toUpperCase()) {
       case 'GET':
         const list = await getServiceOrders(page, pageSize, sortBy, sortOrder, filterParams);
         return { body: list, message: '' }
