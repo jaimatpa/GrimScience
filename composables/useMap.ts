@@ -114,7 +114,6 @@ export const useMap = () => {
           map: map.value,
           icon: icons[pin.type],
         });
-        console.log("pi----------", pin);
 
         const infoWindow = new google.maps.InfoWindow({
           content: `
@@ -124,23 +123,17 @@ export const useMap = () => {
               }</h3>
               ${
                 pin.serialNo
-                  ? `<p class="text-xl font-medium">Serial #: <button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="window.openDetails(${pin}, ${pin.type}, ${pin.id})">${pin.serialNo}</button></p>`
+                  ? `<p class="text-xl font-medium">Serial #: <button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="openDetails(${pin?.type}, ${pin?.id})">${pin.serialNo}</button></p>`
                   : ""
               }
               ${
                 pin.model
-                  ? `<p class="text-xl font-medium">Model #: <button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="window.openDetails(${pin}, ${pin.type}, ${pin.id})">${pin.model}</button></p>`
+                  ? `<p class="text-xl font-medium">Model #: <button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="openDetails(${pin?.type}, ${pin?.id})">${pin.model}</button></p>`
                   : ""
               }
               ${
                 !pin.model && !pin.serialNo && pin.city && pin.state
-                  ? `<button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="window.openDetails(${pin}, ${pin.type}, ${pin.id} )">${pin.city}, ${pin.state}</button>`
-                  : ""
-              }
-
-              ${
-                !pin.model && !pin.serialNo && !pin.city && !pin.state
-                  ? `<button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="window.openDetails(${pin}, ${pin.type}, ${pin.id} )">${pin.id}</button>`
+                  ? `<button class="bg-black px-3 py-1 text-white font-medium text-xl" onclick="openDetails(${pin?.type}, ${pin?.id} )">${pin.city}, ${pin.state}</button>`
                   : ""
               }
             </div>
@@ -161,8 +154,56 @@ export const useMap = () => {
     markers.value = [];
   };
 
-  const openDetails = (pin: object, type: string, id: number) => {
-    console.log(`pin:==${pin} Type:----- ${type} ID:----- ${id}`);
+  const modalMeta = ref({
+    isServiceOrderModalOpen: false,
+    isOrderDetailModalOpen: false,
+  });
+
+  const gridMeta = ref({
+    selectedCustomerId: null,
+    selectedOrderId: null,
+  });
+
+  const handleModalClose = () => {
+    gridMeta.value.selectedCustomerId = "";
+    modalMeta.value.isServiceOrderModalOpen = false;
+    modalMeta.value.isOrderDetailModalOpen = false;
+  };
+
+
+  const getInfo = async (tblName: string, id: number) => {
+    await useApiFetch(`/api/mapLocation/${tblName}/${id}`, {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          if (tblName === "tblComplaints") {
+            gridMeta.value.selectedCustomerId = response._data.body.CustomerID;
+            modalMeta.value.isServiceOrderModalOpen = true;
+          }
+
+          if (tblName === "tblOrder") {
+            gridMeta.value.selectedCustomerId = response._data.body.customerID;
+            gridMeta.value.selectedOrderId = response._data.body.orderid;
+            modalMeta.value.isOrderDetailModalOpen = true;
+          }
+        }
+      },
+    });
+  };
+
+  const openDetails = (type: string, id: number) => {
+    if ((id && type?.name === "checkups") || type?.name === "serviceReports") {
+      getInfo("tblComplaints", id);
+    }
+    if (
+      (id && type?.name === "pendingInstalls") ||
+      type?.name === "shippedOrders"
+    ) {
+      getInfo("tblOrder", id);
+    } else {
+      console.log("Type---", type.name);
+      console.log("ID-----", id);
+    }
   };
 
   watch(
@@ -186,5 +227,8 @@ export const useMap = () => {
     refreshPins,
     initMap,
     openDetails,
+    modalMeta,
+    gridMeta,
+    handleModalClose,
   };
 };

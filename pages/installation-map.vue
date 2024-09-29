@@ -16,7 +16,11 @@
             :name="key"
             class="cursor-pointer"
           />
-          <label :for="key" :style="{ color: filter.labelColor }" class="cursor-pointer">
+          <label
+            :for="key"
+            :style="{ color: filter.labelColor }"
+            class="cursor-pointer"
+          >
             <i><strong>CRYO</strong>Therm</i> {{ filter.label }}
           </label>
         </div>
@@ -24,26 +28,59 @@
     </div>
   </div>
 
-  <!-- <UDashboardModal
+  <UDashboardModal
     v-model="modalMeta.isServiceOrderModalOpen"
     title="Service Order"
     :ui="{
       title: 'text-lg',
-      header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl'
+      width: 'w-[1800px] sm:max-w-9xl',
     }"
   >
-    <ServiceOrderDetail @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"/>
-  </UDashboardModal> -->
+    <ServiceOrderDetail
+      @close="handleModalClose"
+      @save="handleModalClose"
+      :selected-customer="gridMeta.selectedCustomerId"
+    />
+  </UDashboardModal>
 
+  <UDashboardModal
+    v-model="modalMeta.isOrderDetailModalOpen"
+    title="Order"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl',
+    }"
+  >
+    <InvoiceDetail
+      :selected-customer="gridMeta.selectedCustomerId"
+      :selected-order="gridMeta.selectedOrderId"
+      @close="handleModalClose"
+    />
+  </UDashboardModal>
 </template>
 
-
-
 <script setup lang="ts">
+import InvoiceDetail from "~/components/invoice/InvoiceDetail.vue";
 import { useMap } from "../composables/useMap";
-const { mapRef, filters, pins, pinsError, refreshPins, initMap, openDetails } = useMap();
+const {
+  mapRef,
+  filters,
+  initMap,
+  openDetails,
+  modalMeta,
+  gridMeta,
+  handleModalClose,
+} = useMap();
 
 onMounted(() => {
   const script = document.createElement("script");

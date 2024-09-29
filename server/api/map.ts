@@ -43,7 +43,7 @@ function processPinData(data, latLongMap, type) {
       address: row.address,
       zip: trimmedZipCode,
       model: row.model,
-      serialNo: row.SerialNo,
+      serialNo: row.SerialNo || row.Serial,
       city: row.city,
       state: row.state,
     };
@@ -63,6 +63,19 @@ async function getPins() {
     WHERE (quotenumber = 0 OR quotenumber IS NULL) AND shipdate = '' AND PRODUCTLINE = :filterProduct
     ORDER BY Zip`,
       type: "pendingInstalls",
+    },
+    {
+      query: `
+      SELECT tblCustomers.Zip, tblComplaints.uniqueID, tblCustomers.company1, tblCustomers.fullname, tblCustomers.address, tblComplaints.SerialNo
+      FROM tblComplaints
+      JOIN tblCustomers ON tblCustomers.uniqueid = tblComplaints.customerid
+      WHERE (SELECT count(tblServiceReport.uniqueID)
+             FROM tblServiceReport
+             WHERE tblServiceReport.ComplaintID = tblComplaints.uniqueID AND tblServiceReport.REPAIRDESC = 0) > 0
+      AND (opencase = 0) AND (CHARINDEX(:filterProduct2, ProductDesc) > 0 OR CHARINDEX('Console', ProductDesc) > 0)
+      AND ValidComplaintReason LIKE '%Checkup%'
+      ORDER BY Zip`,
+      type: "checkups",
     },
     {
       query: `
@@ -120,19 +133,6 @@ async function getPins() {
        (SELECT instanceID FROM tblBP bp2 WHERE bp2.UniqueID = tblOrderDetail.bpid) ORDER BY uniqueID DESC) = :filterProduct
       ORDER BY Zip`,
       type: "shippedOrders",
-    },
-    {
-      query: `
-      SELECT tblCustomers.Zip, tblComplaints.uniqueID, tblCustomers.company1, tblCustomers.fullname, tblCustomers.address, tblComplaints.SerialNo
-      FROM tblComplaints
-      JOIN tblCustomers ON tblCustomers.uniqueid = tblComplaints.customerid
-      WHERE (SELECT count(tblServiceReport.uniqueID)
-             FROM tblServiceReport
-             WHERE tblServiceReport.ComplaintID = tblComplaints.uniqueID AND tblServiceReport.REPAIRDESC = 0) > 0
-      AND (opencase = 0) AND (CHARINDEX(:filterProduct2, ProductDesc) > 0 OR CHARINDEX('Console', ProductDesc) > 0)
-      AND ValidComplaintReason LIKE '%Checkup%'
-      ORDER BY Zip`,
-      type: "checkups",
     },
   ];
 
