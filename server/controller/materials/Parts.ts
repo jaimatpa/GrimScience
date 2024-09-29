@@ -101,7 +101,9 @@ export const getProductInfos = async (params) => {
       'PARTTYPE',
       'SUBCATEGORY',
       'PRIMARYPRICE1',
-      'DESCRIPTION'
+      'DESCRIPTION',
+      'InventoryCost',
+      'InventoryUnit'
     ],
     where: whereClause,
     limit: 50,
@@ -135,7 +137,9 @@ export const getParts = async (filterParams) => {
       'DESCRIPTION',
       'OnHand',
       'PRIMARYPRICE1',
-      'UNIT'
+      'UNIT',
+      'InventoryCost',
+      'InventoryUnit'
     ],
     where: {
       partflag: 1,

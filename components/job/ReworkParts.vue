@@ -17,11 +17,16 @@ const props = defineProps({
   }
 });
 
+console.log(props.selectedJob, props.operationId)
+
 const toast = useToast();
 const router = useRouter();
 const reworkFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false);
 const isLoading = ref(false);
+const isQuantityModalOpen = ref(false);
+const partQuantity = ref(1);
+const totalCost = ref(0)
 const category = ref([])
 const subCategory = ref([])
 const formData = reactive({
@@ -61,24 +66,81 @@ const editInit = async () => {
   loadingOverlay.value = false;
 };
 
+const productFilterValues = ref({
+  PARTTYPE: null,
+  SUBCATEGORY: null,
+  MODEL: null,
+  DESCRIPTION: null,
+});
+
 const propertiesInit = async () => {
   loadingOverlay.value = true;
 
-  // get subJobCat users
-  //   await useApiFetch("/api/jobs/jobsubcat", {
-  //     method: "GET",
-  //     onResponse({ response }) {
-  //       if (response.status === 200) {
-  //         jobsubcat.value = response._data.body;
-  //       }
-  //     },
-  //     onResponseError() {
-  //       jobsubcat.value = [];
-  //     },
-  //   });
+  await useApiFetch(`/api/jobs/reworkparts/selectedPartinfo`, {
+    method: "GET",
+    params: { jobId: props.selectedJob ,jobOperationId: props.operationId },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        selectedPartsGridMeta.value.selectedParts = response._data.body
+      }
+    },
+    onResponseError() {
+      selectedPartsGridMeta.value.selectedParts = []
+    },
+  });
+
+  await fetchParts();
 
   loadingOverlay.value = false;
 };
+
+const fetchParts = async () => {
+  await useApiFetch(`/api/materials/parts`, {
+    method: "GET",
+    params: { ...productFilterValues.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        reworkPartsGridMeta.value.parts = response._data.body;
+      }
+    },
+  });
+
+  await useApiFetch(`/api/materials/categories`, {
+    method: "GET",
+    params: { partflag: 1 },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        reworkPartsGridMeta.value.defaultColumns.forEach((column: any) => {
+          if (column.key === "PARTTYPE")
+            column.filterOptions = [null, ...response._data.body];
+        });
+      }
+    },
+  });
+  await useApiFetch(`/api/materials/subcategories`, {
+    method: "GET",
+    params: { category: productFilterValues.value.PARTTYPE, partflag: 1 },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        reworkPartsGridMeta.value.defaultColumns.forEach((column: any) => {
+          if (column.key === "SUBCATEGORY")
+            column.filterOptions = [null, ...response._data.body];
+        });
+      }
+    },
+  });
+};
+
+
+const handleProductFilterInputChange = async (event, name) => {
+  if (productFilterValues.value.hasOwnProperty(name)) {
+    productFilterValues.value[name] = event;
+  } else {
+    console.error(`Filter does not have property: ${name}`);
+  }
+  fetchParts();
+};
+
 
 const validate = (state: any): FormError[] => {
   const errors = [];
@@ -141,46 +203,123 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
 const reworkPartsGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "Category",
+      key: "PARTTYPE",
       label: "Category",
+      filterable: true,
+      filterOptions: [],
     },
     {
-      key: "sub",
-      label: "Sub",
+      key: "SUBCATEGORY",
+      label: "Sub Category",
+      filterable: true,
+      filterOptions: [],
     },
     {
-      key: "Part",
-      label: "Part#",
+      key: "MODEL",
+      label: "Parts#",
+      filterable: true,
     },
     {
-      key: "Description",
+      key: "DESCRIPTION",
       label: "Description",
-    },
-    {
-      key: "Qty",
-      label: "Qty.",
-    },
-    {
-      key: "Cost",
-      label: "Cost",
-    },
-    {
-      key: "Unit",
-      label: "Unit",
-    },
-    {
-      key: "Amount",
-      label: "Amount.",
+      filterable: true,
     },
 
   ],
+  sort: {
+    column: "UniqueID",
+    direction: "asc",
+  },
   parts: [],
   selectedPart: null,
   isLoading: false,
 });
 
-if (props.selectedJob !== null) editInit();
-else propertiesInit();
+
+const selectedPartsGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "qty",
+      label: "Qty",
+    },
+    {
+      key: "MODEL",
+      label: "Parts#",
+    },
+    {
+      key: "DESCRIPTION",
+      label: "Description",
+    },
+    {
+      key: "InventoryCost",
+      label: "Cost",
+    },
+    {
+      key: "InventoryUnit",
+      label: "Unit",
+    },
+    {
+      key: "Amount",
+      label: "Amount",
+    },
+    {
+      key: "nonConfermance",
+      label: "NonConfermance",
+    },
+
+  ],
+  sort: {
+    column: "UniqueID",
+    direction: "asc",
+  },
+  selectedParts: [],
+  selectedPart: null,
+  isLoading: false,
+});
+
+const onPartSelect = async (row) => {
+  reworkPartsGridMeta.value.selectedPart = row
+};
+
+const onPartDblClick = async () => {
+  isQuantityModalOpen.value = true;
+};
+
+const handleQuantityClick = async () => {
+  if(partQuantity.value > 0) {
+    selectedPartsGridMeta.value.selectedParts = [...selectedPartsGridMeta.value.selectedParts,{...reworkPartsGridMeta.value.selectedPart, Amount: (reworkPartsGridMeta.value.selectedPart.InventoryCost *  partQuantity.value).toFixed(2), qty: partQuantity.value }]
+    console.log(selectedPartsGridMeta.value.selectedParts)
+    isQuantityModalOpen.value = false
+    partQuantity.value = 1
+  }else {
+    toast.add({
+      title: "Failed",
+      description: "Qunantiy should be more than zero",
+      icon: "i-heroicons-minus-circle",
+      color: "red",
+    });
+  }
+
+};
+
+const closeQuantityModal = () => {
+  isQuantityModalOpen.value = false
+  partQuantity.value = 1
+}
+
+ // Optionally, if you want to watch changes explicitly
+ watch(
+      () => selectedPartsGridMeta.value.selectedParts,
+      () => {
+        console.log(selectedPartsGridMeta.value.selectedParts)
+        totalCost.value = 0
+        selectedPartsGridMeta.value.selectedParts.forEach(part => {
+          totalCost.value = totalCost.value + parseFloat(part.Amount)
+        })
+      },
+      { deep: true }
+    );
+propertiesInit();
 </script>
 
 <template>
@@ -203,35 +342,7 @@ else propertiesInit();
     <div class="flex flex-col space-x-4">
       <div class="gmsPurpleTitlebar py-3 mb-2 pl-2">Parts Used</div>
       <div class="w-full flex items-center mb-4 gap-x-4">
-        <div class="flex flex-row items-center px-0 space-x-4 w-1/2">
-          <div class="">
-            <UFormGroup label="" name="category">
-              <UInputMenu
-                v-model="formData.category"
-               :options="category" 
-               />
-            </UFormGroup>
-          </div>
-          <div class="">
-            <UFormGroup label="" name="subcategory">
-              <UInputMenu
-               v-model="formData.subcategory"
-               :options="subCategory" 
-              />
-            </UFormGroup>
-          </div>
-          <div class="">
-            <UFormGroup label="" name="Job Type">
-              <UInput />
-            </UFormGroup>
-          </div>
-          <div class="">
-            <UFormGroup label="" name="Unit Material Cost">
-              <UInput />
-            </UFormGroup>
-          </div>
-        </div>
-        <div class="flex items-end justify-start w-1/2">
+        <div class="flex items-end justify-end w-1/2">
           <div class="w-[120px]">
             <UButton
               label="Remove Part"
@@ -253,7 +364,7 @@ else propertiesInit();
             :rows="reworkPartsGridMeta.parts"
             :ui="{
               wrapper:
-                'h-[168px] border-2 border-gray-300 dark:border-gray-700',
+                'h-[300px] border-2 border-gray-300 dark:border-gray-700',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
               },
@@ -267,10 +378,61 @@ else propertiesInit();
                 padding: 'px-2 py-0',
               },
             }"
+            @select="onPartSelect"
+            @dblclick="onPartDblClick"
+
           >
-            <template #empty-state>
-              <div></div>
+          <template
+              v-for="column in reworkPartsGridMeta.defaultColumns"
+              v-slot:[`${column.key}-header`]
+            >
+              <template v-if="!column.filterOptions">
+                <div class="px-1 py-1">
+                  <CommonSortAndInputFilter
+                    @handle-input-change="handleProductFilterInputChange"
+                    :label="column.label"
+                    :sortable="column.sortable"
+                    :sort-key="column.key"
+                    :sort-icon="
+                      column?.sortDirection === 'none'
+                        ? noneIcon
+                        : column?.sortDirection === 'asc'
+                        ? ascIcon
+                        : descIcon
+                    "
+                    :filterable="column.filterable"
+                    :filter-key="column.key"
+                  />
+                </div>
+              </template>
+              <template v-else>
+                <div class="px-1 py-1 min-w-[120px]">
+                  <CommonSortAndSelectFilter
+                    @handle-select-change="handleProductFilterInputChange"
+                    :label="column.label"
+                    :sortable="column.sortable"
+                    :sort-key="column.key"
+                    :sort-icon="
+                      column?.sortDirection === 'none'
+                        ? noneIcon
+                        : column?.sortDirection === 'asc'
+                        ? ascIcon
+                        : descIcon
+                    "
+                    :value="productFilterValues[column.key]"
+                    :filterable="column.filterable"
+                    :filter-key="column.key"
+                    :filter-options="column.filterOptions"
+                  />
+                </div>
+              </template>
             </template>
+            <template #UniqueID-data="{ row }">
+              <div class="w-[50px]">
+                {{ row.UniqueID }}
+              </div>
+            </template>
+
           </UTable>
 
           <div class="flex">
@@ -281,11 +443,11 @@ else propertiesInit();
         </div>
         <div class="w-1/2">
           <UTable
-            :columns="reworkPartsGridMeta.defaultColumns"
-            :rows="reworkPartsGridMeta.operations"
+            :columns="selectedPartsGridMeta.defaultColumns"
+            :rows="selectedPartsGridMeta.selectedParts"
             :ui="{
               wrapper:
-                'h-[168px] border-2 border-gray-300 dark:border-gray-700',
+                'h-[300px] border-2 border-gray-300 dark:border-gray-700',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
               },
@@ -306,7 +468,7 @@ else propertiesInit();
           </UTable>
 
           <div class="flex items-end">
-            <span class="text-sm text-right w-full"> Total Cost: 0</span>
+            <span class="text-sm text-right w-full"> Total Cost: {{ totalCost }}</span>
           </div>
         </div>
       </div>
@@ -326,4 +488,42 @@ else propertiesInit();
       </div>
     </div>
   </UForm>
+  <UDashboardModal
+      v-model="isQuantityModalOpen"
+      :ui="{
+        header: {
+          base: 'flex flex-row min-h-[0] items-center',
+          padding: 'p-0 pt-1',
+        },
+        body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
+        width: 'w-[600px]',
+      }"
+    >
+      <div>
+        <div class="flex flex-row space-x-5">
+          <div class="flex items-center">How Many Items Would You Like To Place on this Job?</div>
+          <div class="flex-1 mr-4">
+            <UInput type="number" v-model="partQuantity" ></UInput>
+          </div>
+        </div>
+        <div class="flex flex-row-reverse mt-2">
+          <div class="min-w-[60px]">
+            <UButton
+              label="OK"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
+              @click="handleQuantityClick"
+              truncate
+            />
+          </div>
+          <div class="min-w-[60px] mr-3">
+            <UButton
+              label="Cancel"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
+              truncate
+              @click="closeQuantityModal"
+            />
+          </div>
+        </div>
+      </div>
+    </UDashboardModal>
 </template>
