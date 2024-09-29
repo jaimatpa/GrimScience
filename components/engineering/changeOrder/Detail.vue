@@ -56,7 +56,7 @@ const gridMeta = ref({
       filterable: true,
     },
     {
-      key: "COMPLAINTDATE",
+      key: "ORIGINATORDATE",
       label: "Origin Date",
       sortable: true,
       sortDirection: "none",

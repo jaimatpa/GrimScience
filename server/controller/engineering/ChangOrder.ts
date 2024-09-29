@@ -143,27 +143,115 @@ export const getJobOperationsById = async (params) => {
 
 
 
-export const insertChangeOrderData = async (data) => {
-  const generateInsertQuery = (tableName, data) => {
-    const columns = Object.keys(data).join(", ");
-    const values = Object.values(data)
-      .map(value => typeof value === 'string' ? `'${value}'` : value)
-      .join(", ");
+// export const insertChangeOrderData = async (data) => {
+//   debugger
+//   const generateInsertQuery = (tableName, data) => {
+//     const columns = Object.keys(data).join(", ");
+//     const values = Object.values(data)
+//       .map(value => typeof value === 'string' ? `'${value}'` : value)
+//       .join(", ");
 
-    return `INSERT INTO ${tableName} (${columns}) VALUES (${values});`;
+//     return `INSERT INTO ${tableName} (${columns}) VALUES (${values});`;
+//   };
+
+//   const query = generateInsertQuery('tblECO', data);
+
+//   try {
+//     const [newCustomer] = await sequelize.query(query, { type: QueryTypes.INSERT });
+//     console.log(newCustomer);
+//     return newCustomer;
+//   } catch (error) {
+//     console.error('Error inserting data:', error);
+//     throw error;
+//   }
+// };
+
+
+
+export const updateChangeOrderData3 = async (data) => {
+ 
+
+    const formatToSQLDateTime = (date) => {
+    if (!(date instanceof Date) || isNaN(date)) {
+      // If it's not a valid date, try to parse it
+      date = new Date(date);
+    }
+    
+    if (isNaN(date)) {
+      throw new Error("Invalid date object");
+    }
+  
+    const pad = (num) => String(num).padStart(2, '0');
+    
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+    const milliseconds = pad(date.getMilliseconds(), 3);
+    
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
   };
 
-  const query = generateInsertQuery('tblECO', data);
+  const allData = {
+    uniqueID: data.uniqueID,
+    REASONFORCHANGE: data.REASONFORCHANGE,
+    PRODUCT: data.PRODUCT,
+    SOLUTION: data.SOLUTION, // Add SOLUTION
+    DESCRIPTION: data.DESCRIPTION,
+    DetailReason: data.DetailReason,
+    FromModel: data.FromModel,
+    ToModel: data.ToModel,
+    PARTS: data.PARTS,
+    ISSUE: data.ISSUE,
+    VandVNotRequired: data.VandVNotRequired,
+    ORIGINATOR: data.ORIGINATOR,
+    ORIGINATORDATE: data.ORIGINATORDATE, // Ensure this is a Date object
+    ENGINEERING: data.ENGINEERING,
+    ENGAPPROVER: data.ENGAPPROVER,
+    ENGDATEAPPROVED: (data.ENGDATEAPPROVED), // Ensure this is a Date object
+    ENGAPPROVAL: data.ENGAPPROVAL,
+    ENGCOMMENTS: data.ENGCOMMENTS,
+    MARKETING: data.MARKETING,
+    MARAPPROVER: data.MARAPPROVER,
+    MARDATEAPPROVED: (data.MARDATEAPPROVED), // Ensure this is a Date object
+    MARAPPROVAL: data.MARAPPROVAL,
+    MARCOMMENTS: data.MARCOMMENTS,
+    MANUFACTURING: data.MANUFACTURING,
+    MANAPPROVER: data.MANAPPROVER,
+    MANDATEAPPROVED:  (data.MANDATEAPPROVED), // Ensure this is a Date object
+    MANAPPROVAL: data.MANAPPROVAL,
+    MANCOMMENTS: data.MANCOMMENTS,
+    SIGNATURE: data.SIGNATURE,
+    DISTRIBUTIONDATE: data.DISTRIBUTIONDATE, // Ensure this is a Date object
+    APPROVAL: data.APPROVAL,
+    COMMENTS: data.COMMENTS,
+  };
+
+  debugger;
 
   try {
-    const [newCustomer] = await sequelize.query(query, { type: QueryTypes.INSERT });
-    console.log(newCustomer);
-    return newCustomer;
+    // Create a new record using the tblECO model
+    const newRecord = await tblECO.create(allData);
+    console.log('New record created:', newRecord);
+    return newRecord;
   } catch (error) {
     console.error('Error inserting data:', error);
-    throw error;
+    throw error; // Re-throw the error for further handling
   }
 };
+
+
+
+
+
+
+
+
+
+
+
 
 
 export const updateChangeOrderData = async (body) => {

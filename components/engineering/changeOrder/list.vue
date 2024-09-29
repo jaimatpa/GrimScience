@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
 
-
-
 const onPrevieOrderBtnClick = () => {
   
   if (uniqueIDP.value) {
@@ -50,9 +48,6 @@ const onPrevieOrderBtnClick = () => {
 
 
 
-
-
-
 onMounted(() => {
   init();
   fetchSignature();
@@ -60,10 +55,6 @@ onMounted(() => {
   fetchReasonForChangeData();
 });
 
-const formData = ref({
-  originator: "",
-  dateOrder: "",
-});
 
 const emit = defineEmits([]);
 const props = defineProps({
@@ -107,6 +98,9 @@ const clearFields = () => {
     VandVNotRequired: "",
     MANUFACTURING: "",
     ENGINEERING: "",
+    ProductsDetails:"",
+    PartsDetails:"",
+   
   };
 
   Description.value = "";
@@ -134,7 +128,10 @@ const clearFields = () => {
   manufacturingBoolean.value = "";
   manufacturingComments.value = "";
   engineeringComments.value = "";
-  engineeringCheck.value = false;
+  manufacturingDate.value = "";
+  engineeringDate.value = "";
+  productsDetails.value ="";
+  partsDetails.value =""
 };
 
 const selectedRowData = ref({
@@ -166,73 +163,11 @@ const selectedRowData = ref({
   PRODUCTS: "",
   VandVNotRequired: "",
   MANUFACTURING: "",
+  MARKETING:"",
+  ENGINEERING:"",
+  ProductsDetails:"",
+  PartsDetails:"",
 });
-
-// const handleRowSelected = (row) => {
-//   console.log(row);
-// debugger
-//   selectedRowData.value = {
-//     uniqueID: row.uniqueID,
-//     DESCRIPTION: row.DESCRIPTION,
-//     REASONFORCHANGE: row.REASONFORCHANGE,
-//     DetailReason: row.DetailReason,
-//     ISSUE: row.ISSUE,
-//     SOLUTION: row.SOLUTION,
-//     PRODUCT: row.PRODUCT,
-//     FromModel: row.FromModel,
-//     ToModel: row.ToModel,
-//     PARTS: row.PARTS,
-
-//     ENGAPPROVER: row.ENGAPPROVER,
-//     MARAPPROVER: row.MARAPPROVER,
-//     ORIGINATOR: row.ORIGINATOR,
-//     MANAPPROVER: row.MANAPPROVER,
-//     ENGAPPROVAL: row.ENGAPPROVAL,
-//     MARAPPROVAL: row.MARAPPROVAL,
-//     MANAPPROVAL: row.MANAPPROVAL,
-//     ENGDATEAPPROVED: row.ENGDATEAPPROVED,
-//     MARDATEAPPROVED: row.MARDATEAPPROVED,
-//     MANDATEAPPROVED: row.MANDATEAPPROVED,
-//     ORIGINATORDATE: row.ORIGINATORDATE,
-//     MANCOMMENTS: row.MANCOMMENTS,
-//     MARCOMMENTS: row.MARCOMMENTS,
-//     ENGCOMMENTS: row.ENGCOMMENTS,
-//     COMMENTS: row.COMMENTS,
-//     PRODUCTS: row.PRODUCTS,
-//     VandVNotRequired:row.VandVNotRequired,
-
-//   };
-
-//   Description.value = row.DESCRIPTION;
-//   IssueDetails.value = row.ISSUE;
-//   solutionOrder.value = row.SOLUTION;
-//   uniqueIdNumber.value = row.uniqueID;
-//   DetailsReasonChange.value = row.DetailReason;
-//   solutionOrder.value = row.SOLUTION;
-//   uniqueIdNumber.value = row.uniqueID || "";
-//   DetailsReasonChange.value = row.DetailReason || "";
-//   fromModel.value = row.FromModel || "";
-//   toModel.value = row.ToModel || "";
-//   PartsAffect.value = row.PARTS || "";
-//   productLineOption.value = row.PRODUCT || "";
-//   changeReasonData.value = row.REASONFORCHANGE || "";
-//   engineeringBoolean.value = row.ENGAPPROVAL;
-//   marketingData.value =row.MARAPPROVER;
-//   marketingBoolean.value =row.MARAPPROVAL
-//   marketingComments.value =row.MARCOMMENTS
-//   manufacturingCheck.value =row.MANUFACTURING
-//   manufacturingData.value = row.MANAPPROVER
-
-//   engineeringCheck.value =row.ENGINEERING;
-//   engineeringData.value =row.ENGAPPROVER;
-//   originatorData.value = row.ORIGINATOR ;
-//   signature.value = row.SIGNATURE;
-//   CompleteBoolean.value =row.APPROVAL;
-//   commentsComplete.value = row.COMMENTS;
-//   manufacturingBoolean.value = row.MANAPPROVAL;
-//   manufacturingComments.value = row.MANCOMMENTS
-
-// };
 
 const handleRowSelected = (row) => {
   uniqueIDP.value = row.uniqueID;
@@ -266,41 +201,51 @@ const handleRowSelected = (row) => {
     ENGCOMMENTS: row.ENGCOMMENTS,
     COMMENTS: row.COMMENTS,
     PRODUCTS: row.PRODUCTS,
+    MARKETING: row.MARKETING,
     VandVNotRequired: row.VandVNotRequired,
+    ENGINEERING: row.ENGINEERING,
+    MANUFACTURING:row.MANUFACTURING,
+    ProductsDetails:row.ProductsDetails,
+    PartsDetails:row.PartsDetails,
+  
+    
   };
 
-  Description.value = row.DESCRIPTION || "";
-  IssueDetails.value = row.ISSUE || "";
-  solutionOrder.value = row.SOLUTION || "";
-  uniqueIdNumber.value = row.uniqueID || "";
-  DetailsReasonChange.value = row.DetailReason || "";
-  fromModel.value = row.FromModel || "";
-  toModel.value = row.ToModel || "";
-  PartsAffect.value = row.PARTS || "";
-  productLineOption.value = row.PRODUCT || "";
-  changeReasonData.value = row.REASONFORCHANGE || "";
-  engineeringBoolean.value = row.ENGAPPROVAL || "";
-  marketingData.value = row.MARAPPROVER || "";
-  marketingBoolean.value = row.MARAPPROVAL || "";
-  marketingComments.value = row.MARCOMMENTS || "";
-  manufacturingCheck.value = row.MANUFACTURING || "";
-  manufacturingData.value = row.MANAPPROVER || "";
-  engineeringCheck.value = row.ENGINEERING || "";
-  engineeringData.value = row.ENGAPPROVER || "";
-  originatorData.value = row.ORIGINATOR || "";
-  signature.value = row.SIGNATURE || "";
-  CompleteBoolean.value = row.APPROVAL || "";
-  commentsComplete.value = row.COMMENTS || "";
-  manufacturingBoolean.value = row.MANAPPROVAL || "";
-  manufacturingComments.value = row.MANCOMMENTS || "";
-  engineeringComments.value = row.ENGCOMMENTS || "";
+  Description.value = row.DESCRIPTION ;
+  IssueDetails.value = row.ISSUE ;
+  solutionOrder.value = row.SOLUTION ;
+  uniqueIdNumber.value = row.uniqueID ;
+  DetailsReasonChange.value = row.DetailReason ;
+  fromModel.value = row.FromModel ;
+  toModel.value = row.ToModel ;
+  PartsAffect.value = row.PARTS ;
+  productLineOption.value = row.PRODUCT ;
+  changeReasonData.value = row.REASONFORCHANGE ;
+  engineeringBoolean.value = row.ENGAPPROVAL ;
+  marketingData.value = row.MARAPPROVER ;
+  marketingBoolean.value = row.MARAPPROVAL ;
+  marketingComments.value = row.MARCOMMENTS ;
+  manufacturingCheck.value = row.MANUFACTURING  ||"";
+  manufacturingData.value = row.MANAPPROVER ;
+  engineeringCheck.value = row.ENGINEERING  || "";
+  engineeringData.value = row.ENGAPPROVER || "" ;
+  originatorData.value = row.ORIGINATOR ;
+  signature.value = row.SIGNATURE ;
+  CompleteBoolean.value = row.APPROVAL ;
+  commentsComplete.value = row.COMMENTS ;
+  manufacturingBoolean.value = row.MANAPPROVAL ;
+  manufacturingComments.value = row.MANCOMMENTS ;
+  engineeringComments.value = row.ENGCOMMENTS ;
+  CompleteDate.value = row.DISTRIBUTIONDATE ;
+  manufacturingDate.value = row.MANDATEAPPROVED ;
+  marketingDate.value =row.MARDATEAPPROVED ;
+  engineeringDate.value = row.ENGDATEAPPROVED ;
+  productsDetails.value = row.ProductsDetails;
+  partsDetails.value = row.PartsDetails;
+  verificationValue.value = VandVNotRequired.value ? -1 : 0;
+
 };
 
-const dateFormate = (dateString) => {
-  if (!dateString) return "";
-  const [year, month, day] = dateString.split("-");
-  return `${year}-${month}-${day} 00:00:00.000`;
-};
 
 
 
@@ -311,6 +256,8 @@ const employeeOptions = ref([]);
 const changeReason = ref([]);
 const originatorData = ref("");
 const originatorDate = ref("");
+const productsDetails = ref("")
+const partsDetails = ref("")
 const engineeringCheck = ref(false);
 const engineeringData = ref("");
 const engineeringDate = ref("");
@@ -345,69 +292,25 @@ const verificationNotRequired = ref(false);
 const verificationValue = verificationNotRequired.value ? 0 : -1;
 
 
-
-
-
-
 const submitInsertForm = async () => {
-
-  const formatToSQLDateTime = (date, isStringDate = false) => {
-  if (!(date instanceof Date) || isNaN(date.getTime())) {
-    throw new Error("Invalid date");
+  const formatToSQLDateTime = (date) => {
+  if (!(date instanceof Date) || isNaN(date)) {
+    date = new Date(date);
   }
-  const pad = (n, length = 2) => String(n).padStart(length, "0");
+  if (isNaN(date)) {
+    throw new Error("Invalid date object");
+  }
+  const pad = (num) => String(num).padStart(2, '0');
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
   const day = pad(date.getDate());
-
-  if (isStringDate) {
-    return `${month}/${day}/${year}`;
-  }
-
   const hours = pad(date.getHours());
   const minutes = pad(date.getMinutes());
   const seconds = pad(date.getSeconds());
-  const milliseconds = String(date.getMilliseconds()).padStart(3, "0");
-
+  const milliseconds = pad(date.getMilliseconds(), 3);
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
 };
 
-
-
-  // const formData = {
-  //   uniqueID: uniqueIdNumber.value,
-  //   REASONFORCHANGE: changeReasonData.value,
-  //   PRODUCT: productLineOption.value,
-  //   SOLUTION: solutionOrder.value,
-  //   DESCRIPTION: Description.value,
-  //   DetailReason: DetailsReasonChange.value,
-  //   FromModel: fromModel.value,
-  //   ToModel: toModel.value,
-  //   PARTS: PartsAffect.value,
-  //   ISSUE: IssueDetails.value,
-  //   VandVNotRequired: verificationValue,
-  //   ORIGINATOR: originatorData.value.label || "",
-  //   ORIGINATORDATE: formatToSQLDateTime(new Date(originatorDate.value)),
-  //   ENGINEERING: engineeringCheck.value,
-  //   ENGAPPROVER: engineeringData.value.label || "",
-  //   ENGDATEAPPROVED: formatToSQLDateTime(new Date(engineeringDate.value)),
-  //   ENGAPPROVAL: engineeringBoolean.value,
-  //   ENGCOMMENTS: engineeringComments.value,
-  //   MARKETING: marketingCheck.value,
-  //   MARAPPROVER: marketingData.value.label || "",
-  //   MARDATEAPPROVED: formatToSQLDateTime(new Date(marketingDate.value)),
-  //   MARAPPROVAL: marketingBoolean.value,
-  //   MARCOMMENTS: marketingComments.value,
-  //   MANUFACTURING: manufacturingCheck.value,
-  //   MANAPPROVER: manufacturingData.value.label || "",
-  //   MANDATEAPPROVED: formatToSQLDateTime(new Date(manufacturingDate.value)),
-  //   MANAPPROVAL: manufacturingBoolean.value,
-  //   MANCOMMENTS: manufacturingComments.value,
-  //   SIGNATURE: signature.value.label || "",
-  //   DISTRIBUTIONDATE: formatToSQLDateTime(new Date(CompleteDate.value)),
-  //   APPROVAL: CompleteBoolean.value,
-  //   COMMENTS: commentsComplete.value,
-  // };
 
 
   const formData = {
@@ -422,30 +325,31 @@ const submitInsertForm = async () => {
     PARTS: PartsAffect.value,
     ISSUE: IssueDetails.value,
     VandVNotRequired: verificationValue,
-    ORIGINATOR: originatorData.value.label || "",
-    ORIGINATORDATE: formatToSQLDateTime(new Date(originatorDate.value), true),
+    ORIGINATOR: originatorData.value.label ,
+    ORIGINATORDATE: (originatorDate.value),
     ENGINEERING: engineeringCheck.value,
-    ENGAPPROVER: engineeringData.value.label || "",
-    ENGDATEAPPROVED: engineeringDate.value ? new Date(engineeringDate.value) : null, 
+    ENGAPPROVER: engineeringData.value.label ,
+    // ENGDATEAPPROVED: engineeringDate.value, 
     ENGAPPROVAL: engineeringBoolean.value,
     ENGCOMMENTS: engineeringComments.value,
     MARKETING: marketingCheck.value,
-    MARAPPROVER: marketingData.value.label || "",
-    MARDATEAPPROVED: marketingDate.value ? new Date(marketingDate.value) : null, 
+    MARAPPROVER: marketingData.value.label,
+    // MARDATEAPPROVED:marketingDate.value,
     MARAPPROVAL: marketingBoolean.value,
     MARCOMMENTS: marketingComments.value,
     MANUFACTURING: manufacturingCheck.value,
-    MANAPPROVER: manufacturingData.value.label || "",
-    MANDATEAPPROVED: manufacturingDate.value ? new Date(manufacturingDate.value) : null,
+   MANAPPROVER: manufacturingData.value.label,
+    // MANDATEAPPROVED: manufacturingDate.value, 
     MANAPPROVAL: manufacturingBoolean.value,
     MANCOMMENTS: manufacturingComments.value,
-    SIGNATURE: signature.value.label || "",
-    DISTRIBUTIONDATE: formatToSQLDateTime(new Date(CompleteDate.value), true), 
+    SIGNATURE: signature.value.label,
+    DISTRIBUTIONDATE:(CompleteDate.value), 
     APPROVAL: CompleteBoolean.value,
     COMMENTS: commentsComplete.value,
   };
-  
 
+  console.log(formData);
+debugger
   try {
     const response = await useApiFetch(
       "/api/engineering/changeorder/postOrder",
@@ -785,7 +689,7 @@ const handleChange = (field, newValue) => {
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup class="flex-1" name="firstInput">
-              <UInput class="h-full" />
+              <UInput class="h-full"  v-model="partsDetails" />
             </UFormGroup>
             <UButton
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
@@ -798,7 +702,7 @@ const handleChange = (field, newValue) => {
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup class="flex-1" name="firstInput">
-              <UInput class="h-full" />
+              <UInput class="h-full" v-model="productsDetails"/>
             </UFormGroup>
             <UButton
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
@@ -954,7 +858,7 @@ const handleChange = (field, newValue) => {
             <UInputMenu v-model="signature" :options="SignatureList" />
           </div>
           <div class="lg:col-span-1">
-            <UInput v-model="CompleteDate" type="DATE" class="w-40" />
+            <UInput v-model="CompleteDate" type="date" class="w-40" />
           </div>
           <div class="lg:col-span-1">
             <div class="flex items-center space-x-4">
