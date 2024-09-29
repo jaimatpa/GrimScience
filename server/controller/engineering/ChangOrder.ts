@@ -103,30 +103,43 @@ export const getReasonForChangList = async () => {
   }
 };
 
+export const getJobOperationsById = async (params) => {
 
-export const getChangeOrderDetail = async (id) => {
-  try {
-    const detail = await tblECO.findByPk(id, {
-      attributes: [
-        'uniqueID',
-        'DESCRIPTION',
-        'REASONFORCHANGE',
-        'DISTRIBUTIONDATE',
-      ]
-    });
-
-
-    if (!detail) {
-      throw new Error('Change order not found');
-    }
-    return detail;
+  const { uniqID } = params; 
+  let where = {};
+  if (uniqID) where['uniqueID'] = uniqID;
+  const reports = await tblECO.findAll({
+    where: where,
+    raw: true
+  });
+  return reports;
+}
 
 
-  } catch (error) {
-    console.error('Error fetching change order detail:', error);
-    throw error;
-  }
-};
+
+// export const getChangeOrderDetail = async (id) => {
+//   try {
+//     const detail = await tblECO.findByPk(id, {
+//       attributes: [
+//         'uniqueID',
+//         'DESCRIPTION',
+//         'REASONFORCHANGE',
+//         'DISTRIBUTIONDATE',
+//       ]
+//     });
+
+
+//     if (!detail) {
+//       throw new Error('Change order not found');
+//     }
+//     return detail;
+
+
+//   } catch (error) {
+//     console.error('Error fetching change order detail:', error);
+//     throw error;
+//   }
+// };
 
 
 

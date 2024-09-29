@@ -4,6 +4,7 @@ import { defineEmits } from "vue";
 
 onMounted(() => {
   init();
+  
 });
 
 useSeoMeta({
@@ -123,20 +124,7 @@ const columns = computed(() =>
 );
 
 const init = async () => {
-  gridMeta.value.isLoading = true;
   fetchGridData();
-  for (const key in headerFilters.value) {
-    const apiURL =
-      headerFilters.value[key]?.api ?? `/api/service/orders/${key}`;
-    await useApiFetch(apiURL, {
-      method: "GET",
-      onResponse({ response }) {
-        if (response.status === 200) {
-          headerFilters.value[key].options = [null, ...response._data.body];
-        }
-      },
-    });
-  }
 };
 
 const fetchGridData = async () => {

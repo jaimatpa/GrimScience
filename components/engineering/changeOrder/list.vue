@@ -2,9 +2,55 @@
 import { ref, reactive } from "vue";
 
 
+
 const onPrevieOrderBtnClick = () => {
-     window.open(`./pdf.vue`)
+  
+  if (uniqueIDP.value) {
+    const queryString = new URLSearchParams({ id: uniqueIDP.value }).toString();
+    
+    const fetchData = async (id) => {
+      const pdfUrl = `/api/engineering/changeorder/pdf/${id}`;
+      try {
+        const response = await fetch(pdfUrl);
+        console.log(response);
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch PDF');
+        }
+
+        const blob = await response.blob();
+        const pdfContentUrl = URL.createObjectURL(blob); // Create a URL for the PDF blob
+        
+        // Open the PDF in a new tab/window after fetching
+        window.open(pdfContentUrl, '_blank');
+      } catch (error) {
+        console.error(error);
+        alert('Error fetching the PDF. Please try again later.');
+      }
+    };
+
+    // Call the fetchData function with the unique ID
+    fetchData(uniqueIDP.value);
+  } else {
+    alert('Unique ID is missing! The function cannot execute.');
   }
+};
+
+
+
+// ok code
+// const onPrevieOrderBtnClick = () => {
+//   if (uniqueIDP.value) {
+//     const queryString = new URLSearchParams({ id: uniqueIDP.value }).toString();
+//     window.open(`/engineering/pdf?${queryString}`, '_blank');
+//   } else {
+//     alert('Unique ID is missing! The function cannot execute.');
+//   }
+// };
+
+
+
+
 
 
 onMounted(() => {
@@ -63,7 +109,6 @@ const clearFields = () => {
     ENGINEERING: "",
   };
 
-  // Clear other reactive variables
   Description.value = "";
   IssueDetails.value = "";
   solutionOrder.value = "";
@@ -190,6 +235,10 @@ const selectedRowData = ref({
 // };
 
 const handleRowSelected = (row) => {
+  uniqueIDP.value = row.uniqueID;
+  selectedRow.value = row;
+
+
   selectedRowData.value = {
     uniqueID: row.uniqueID,
     DESCRIPTION: row.DESCRIPTION,
@@ -253,6 +302,10 @@ const dateFormate = (dateString) => {
   return `${year}-${month}-${day} 00:00:00.000`;
 };
 
+
+
+const uniqueIDP = ref(null);
+const selectedRow = ref(null);
 const SignatureList = ref([]);
 const employeeOptions = ref([]);
 const changeReason = ref([]);
@@ -291,22 +344,72 @@ const uniqueIdNumber = ref("");
 const verificationNotRequired = ref(false);
 const verificationValue = verificationNotRequired.value ? 0 : -1;
 
-const submitInsertForm = async () => {
-  const formatToSQLDateTime = (date) => {
-    if (!(date instanceof Date) || isNaN(date.getTime())) {
-      throw new Error("Invalid date");
-    }
-    const pad = (n, length = 2) => String(n).padStart(length, "0");
-    const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1);
-    const day = pad(date.getDate());
-    const hours = pad(date.getHours());
-    const minutes = pad(date.getMinutes());
-    const seconds = pad(date.getSeconds());
-    const milliseconds = String(date.getMilliseconds()).padStart(3, "0");
 
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
-  };
+
+
+
+
+const submitInsertForm = async () => {
+
+  const formatToSQLDateTime = (date, isStringDate = false) => {
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    throw new Error("Invalid date");
+  }
+  const pad = (n, length = 2) => String(n).padStart(length, "0");
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+
+  if (isStringDate) {
+    return `${month}/${day}/${year}`;
+  }
+
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+  const milliseconds = String(date.getMilliseconds()).padStart(3, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+};
+
+
+
+  // const formData = {
+  //   uniqueID: uniqueIdNumber.value,
+  //   REASONFORCHANGE: changeReasonData.value,
+  //   PRODUCT: productLineOption.value,
+  //   SOLUTION: solutionOrder.value,
+  //   DESCRIPTION: Description.value,
+  //   DetailReason: DetailsReasonChange.value,
+  //   FromModel: fromModel.value,
+  //   ToModel: toModel.value,
+  //   PARTS: PartsAffect.value,
+  //   ISSUE: IssueDetails.value,
+  //   VandVNotRequired: verificationValue,
+  //   ORIGINATOR: originatorData.value.label || "",
+  //   ORIGINATORDATE: formatToSQLDateTime(new Date(originatorDate.value)),
+  //   ENGINEERING: engineeringCheck.value,
+  //   ENGAPPROVER: engineeringData.value.label || "",
+  //   ENGDATEAPPROVED: formatToSQLDateTime(new Date(engineeringDate.value)),
+  //   ENGAPPROVAL: engineeringBoolean.value,
+  //   ENGCOMMENTS: engineeringComments.value,
+  //   MARKETING: marketingCheck.value,
+  //   MARAPPROVER: marketingData.value.label || "",
+  //   MARDATEAPPROVED: formatToSQLDateTime(new Date(marketingDate.value)),
+  //   MARAPPROVAL: marketingBoolean.value,
+  //   MARCOMMENTS: marketingComments.value,
+  //   MANUFACTURING: manufacturingCheck.value,
+  //   MANAPPROVER: manufacturingData.value.label || "",
+  //   MANDATEAPPROVED: formatToSQLDateTime(new Date(manufacturingDate.value)),
+  //   MANAPPROVAL: manufacturingBoolean.value,
+  //   MANCOMMENTS: manufacturingComments.value,
+  //   SIGNATURE: signature.value.label || "",
+  //   DISTRIBUTIONDATE: formatToSQLDateTime(new Date(CompleteDate.value)),
+  //   APPROVAL: CompleteBoolean.value,
+  //   COMMENTS: commentsComplete.value,
+  // };
+
+
   const formData = {
     uniqueID: uniqueIdNumber.value,
     REASONFORCHANGE: changeReasonData.value,
@@ -320,27 +423,28 @@ const submitInsertForm = async () => {
     ISSUE: IssueDetails.value,
     VandVNotRequired: verificationValue,
     ORIGINATOR: originatorData.value.label || "",
-    ORIGINATORDATE: formatToSQLDateTime(new Date(originatorDate.value)),
+    ORIGINATORDATE: formatToSQLDateTime(new Date(originatorDate.value), true),
     ENGINEERING: engineeringCheck.value,
     ENGAPPROVER: engineeringData.value.label || "",
-    ENGDATEAPPROVED: formatToSQLDateTime(new Date(engineeringDate.value)),
+    ENGDATEAPPROVED: engineeringDate.value ? new Date(engineeringDate.value) : null, 
     ENGAPPROVAL: engineeringBoolean.value,
     ENGCOMMENTS: engineeringComments.value,
     MARKETING: marketingCheck.value,
     MARAPPROVER: marketingData.value.label || "",
-    MARDATEAPPROVED: formatToSQLDateTime(new Date(marketingDate.value)),
+    MARDATEAPPROVED: marketingDate.value ? new Date(marketingDate.value) : null, 
     MARAPPROVAL: marketingBoolean.value,
     MARCOMMENTS: marketingComments.value,
     MANUFACTURING: manufacturingCheck.value,
     MANAPPROVER: manufacturingData.value.label || "",
-    MANDATEAPPROVED: formatToSQLDateTime(new Date(manufacturingDate.value)),
+    MANDATEAPPROVED: manufacturingDate.value ? new Date(manufacturingDate.value) : null,
     MANAPPROVAL: manufacturingBoolean.value,
     MANCOMMENTS: manufacturingComments.value,
     SIGNATURE: signature.value.label || "",
-    DISTRIBUTIONDATE: formatToSQLDateTime(new Date(CompleteDate.value)),
+    DISTRIBUTIONDATE: formatToSQLDateTime(new Date(CompleteDate.value), true), 
     APPROVAL: CompleteBoolean.value,
     COMMENTS: commentsComplete.value,
   };
+  
 
   try {
     const response = await useApiFetch(
