@@ -2,12 +2,12 @@ import { getAllOperation } from "~/server/controller/jobs";
 
 export default eventHandler(async (event) => {
     try {
-        const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
+        const { jobId, model } = getQuery(event);
         const method = event._method;
 
         switch (method.toUpperCase()) {
             case 'GET':
-                const list = await getAllOperation(sortBy, sortOrder, filterParams);
+                const list = await getAllOperation(jobId, model);
                 return { body: list, message: '' }
             default:
                 setResponseStatus(event, 405);

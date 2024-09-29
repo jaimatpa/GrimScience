@@ -11,6 +11,10 @@ const props = defineProps({
     type: [String, Number, null],
     required: true,
   },
+  operationId: {
+    type: [String, Number, null],
+    required: true,
+  }
 });
 
 const toast = useToast();
@@ -18,54 +22,41 @@ const router = useRouter();
 const reworkFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false);
 const isLoading = ref(false);
+const category = ref([])
+const subCategory = ref([])
 const formData = reactive({
-  ReportsTo: null,
-  Title: null,
-  Employee: null,
-  JobType: null,
-  JobDescription: null,
-  WorkCenters: null,
-
-  NUMBER: null,
-  QUANTITY: null,
-  DATEOPENED: null,
-  DATECLOSED: null,
-  JOBCLOSED: null,
-  jobcat: null,
-  jobsubcat: null,
-  Cost: null,
-  Catagory: null,
-  SubCatagory: null,
-  ClosedBy: null,
-  PerType: null,
-  ProductionDate: null,
-  ProductionBy: null,
-  PART: null,
-  ByEmployee: null,
-  PRODUCTLINE: null,
-  MODEL: null,
+  category: null,
+  subcategory: null,
+  parts: null,
+  description: null
 });
 const date = new Date();
 const editInit = async () => {
   loadingOverlay.value = true;
 
-  //   await useApiFetch("/api/jobs/operations", {
-  //     method: "GET",
-  //     params: { ...operationFilterValues.value },
-  //     onResponse({ response }) {
-  //       if (response.status === 200) {
-  //         prodOperationGridMeta.value.operations = response._data.body;
+    await useApiFetch("/api/jobs/reworkparts/category", {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          category.value = response._data.body
+        }
+      },
+      onResponseError() {
+        category.value = []
+      },
+    });
 
-  //         totalHours.value = response._data.body.reduce(
-  //           (sum, job) => sum + parseFloat(job.Hours),
-  //           0
-  //         );
-  //       }
-  //     },
-  //     onResponseError() {
-  //       prodOperationGridMeta.value.operations = [];
-  //     },
-  //   });
+    await useApiFetch("/api/jobs/reworkparts/subcategory", {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          subCategory.value = response._data.body
+        }
+      },
+      onResponseError() {
+        subCategory.value = []
+      },
+    });
 
   loadingOverlay.value = false;
 };
@@ -147,35 +138,44 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   emit("save");
 };
 
-const prodOperationGridMeta = ref({
+const reworkPartsGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "#",
+      key: "Category",
       label: "Category",
     },
     {
-      key: "week",
+      key: "sub",
       label: "Sub",
     },
     {
-      key: "Operation",
-      label: "Parts",
+      key: "Part",
+      label: "Part#",
     },
     {
-      key: "WorkCenter",
+      key: "Description",
       label: "Description",
     },
     {
-      key: "Hours",
-      label: "Hrs.",
+      key: "Qty",
+      label: "Qty.",
     },
     {
-      key: "material",
-      label: "Material",
+      key: "Cost",
+      label: "Cost",
     },
+    {
+      key: "Unit",
+      label: "Unit",
+    },
+    {
+      key: "Amount",
+      label: "Amount.",
+    },
+
   ],
-  operations: [],
-  selectedOperation: null,
+  parts: [],
+  selectedPart: null,
   isLoading: false,
 });
 
@@ -205,13 +205,19 @@ else propertiesInit();
       <div class="w-full flex items-center mb-4 gap-x-4">
         <div class="flex flex-row items-center px-0 space-x-4 w-1/2">
           <div class="">
-            <UFormGroup label="" name="ReportsTo">
-              <UInputMenu :options="[]" />
+            <UFormGroup label="" name="category">
+              <UInputMenu
+                v-model="formData.category"
+               :options="category" 
+               />
             </UFormGroup>
           </div>
           <div class="">
-            <UFormGroup label="" name="Job Qty">
-              <UInputMenu :options="[]" />
+            <UFormGroup label="" name="subcategory">
+              <UInputMenu
+               v-model="formData.subcategory"
+               :options="subCategory" 
+              />
             </UFormGroup>
           </div>
           <div class="">
@@ -243,8 +249,8 @@ else propertiesInit();
       <div class="flex gap-x-4">
         <div class="w-1/2">
           <UTable
-            :columns="prodOperationGridMeta.defaultColumns"
-            :rows="prodOperationGridMeta.operations"
+            :columns="reworkPartsGridMeta.defaultColumns"
+            :rows="reworkPartsGridMeta.parts"
             :ui="{
               wrapper:
                 'h-[168px] border-2 border-gray-300 dark:border-gray-700',
@@ -275,8 +281,8 @@ else propertiesInit();
         </div>
         <div class="w-1/2">
           <UTable
-            :columns="prodOperationGridMeta.defaultColumns"
-            :rows="prodOperationGridMeta.operations"
+            :columns="reworkPartsGridMeta.defaultColumns"
+            :rows="reworkPartsGridMeta.operations"
             :ui="{
               wrapper:
                 'h-[168px] border-2 border-gray-300 dark:border-gray-700',

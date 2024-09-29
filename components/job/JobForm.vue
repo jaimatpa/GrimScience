@@ -72,6 +72,14 @@ const formData = reactive({
   MODEL: null,
   InstanceID: null,
 });
+
+// Watch for changes to PRODUCTLINE
+watch(() => formData.PRODUCTLINE, async (newProductLine) => {
+  if (newProductLine) {
+    await fetchModels(newProductLine);
+  }
+});
+
 let date = new Date();
 const editInit = async () => {
   loadingOverlay.value = true;
@@ -151,17 +159,18 @@ const editInit = async () => {
   });
 
   // get models users
-  await useApiFetch("/api/jobs/models", {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        models.value = response._data.body;
-      }
-    },
-    onResponseError() {
-      models.value = [];
-    },
-  });
+  // await useApiFetch("/api/jobs/models", {
+  //   method: "GET",
+  //   params: {productline: formData.PRODUCTLINE},
+  //   onResponse({ response }) {
+  //     if (response.status === 200) {
+  //       models.value = response._data.body;
+  //     }
+  //   },
+  //   onResponseError() {
+  //     models.value = [];
+  //   },
+  // });
 
   await fetchJobOperation();
 
@@ -196,13 +205,28 @@ const editInit = async () => {
       linkedJobGridMeta.value.jobs = null;
     },
   });
-
+  await fetchModels(formData.PRODUCTLINE)
   await getLinkedJobs()
   await getSerial()
   await calculateLatestUnitCost()
 
   await propertiesInit();
   loadingOverlay.value = false;
+};
+
+const fetchModels = async (productLine) => {
+  await useApiFetch("/api/jobs/models", {
+    method: "GET",
+    params: { productline: productLine },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        models.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      models.value = [];
+    },
+  });
 };
 
 const getLinkedJobs = async () => {
@@ -259,7 +283,7 @@ const fetchJobOperation = async () => {
   // get job operation
   await useApiFetch("/api/jobs/operations", {
     method: "GET",
-    params: { ...operationFilterValues.value },
+    params: { jobId:props.selectedJob, model:formData.MODEL },
     onResponse({ response }) {
       if (response.status === 200) {
         if (formData.JobType === "Product") {
@@ -369,7 +393,6 @@ const propertiesInit = async () => {
 
 const getSchedules = async () => {
   loadingOverlay.value = true;
-  // get job operation
   await useApiFetch("/api/jobs/employeeSchedule", {
     method: "GET",
     params: { ...emploeeFilterValues.value },
@@ -494,15 +517,14 @@ const handleClearCick = () => {
 const handleProdOperationSelect = (row) => {
   prodOperationGridMeta.value.selectedOperation = { ...row, class: "" };
   prodOperationGridMeta.value.operations.forEach((c) => {
-    if (c.UniqueID === row.UniqueID) {
+    if (c.uniqueID === row.uniqueID) {
       c.class = "bg-gray-200";
     } else {
       delete c.class;
     }
   });
 
-  emploeeFilterValues.value.OperationID =
-    prodOperationGridMeta.value.selectedOperation.UniqueID;
+  emploeeFilterValues.value.OperationID = prodOperationGridMeta.value.selectedOperation.uniqueID;
 
   getSchedules();
 };
@@ -523,10 +545,6 @@ const handleSubOperationSelect = (row) => {
   getSchedules();
 };
 
-const operationFilterValues = ref({
-  JobID: props.selectedJob,
-});
-
 const emploeeFilterValues = ref({
   JobID: props.selectedJob,
   OperationID: null,
@@ -543,9 +561,9 @@ const handleDeleteOperation = async () => {
   ) {
     toast.add({
       title: "Failed",
-      description: "Please Select rouge Operation",
+      description: "Please Select Rouge Operation",
       icon: "i-heroicons-check-circle",
-      color: "green",
+      color: "red",
     });
   }
 
@@ -559,12 +577,22 @@ const handleDeleteOperation = async () => {
         color: "red",
       });
     } else {
-      const id = subOperationGridMeta.value.selectedSubOperation.UniqueID;
 
-      const data = subOperationGridMeta.value.subOperations.filter(
-        (item) => item.UniqueID !== id
-      );
-      subOperationGridMeta.value.subOperations = data;
+      await useApiFetch(`/api/jobs/operations/deleteoperation`, {
+        method: "DELETE",
+        params: {jobId:props.selectedJob, operationId:prodOperationGridMeta.value.selectedOperation.uniqueID, planId:prodOperationGridMeta.value.selectedOperation.PlanID },
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: "i-heroicons-check-circle",
+              color: "green",
+            });
+          }
+        },
+      });
+      await fetchJobOperation()
     }
   }
 
@@ -578,29 +606,46 @@ const handleDeleteOperation = async () => {
         color: "red",
       });
     } else {
-      const id = prodOperationGridMeta.value.selectedOperation.UniqueID;
-      const data = prodOperationGridMeta.value.operations.filter(
-        (item) => item.UniqueID !== id
-      );
-
-      prodOperationGridMeta.value.operations = data;
-      console.log("data", data);
+      
+      await useApiFetch(`/api/jobs/operations/deleteoperation`, {
+        method: "DELETE",
+        params: {jobId:props.selectedJob, operationId:prodOperationGridMeta.value.selectedOperation.uniqueID, planId:prodOperationGridMeta.value.selectedOperation.PlanID },
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: "i-heroicons-check-circle",
+              color: "green",
+            });
+          }
+        },
+      });
+      await fetchJobOperation()
     }
   }
 };
 
-const handleDeleteAll = () => {
-  const uniqueIDs = prodOperationGridMeta.value.operations.map(
-    (item) => item.UniqueID
-  );
+const handleDeleteAllOperation = async () => {
 
-  const uniqueIDs2 = subOperationGridMeta.value.subOperations.map(
-    (item) => item.UniqueID
-  );
-  prodOperationIds.value = uniqueIDs;
-  subOperationIds.value = uniqueIDs2;
-  prodOperationGridMeta.value.operations = [];
-  subOperationGridMeta.value.subOperations = [];
+  loadingOverlay.value = true
+  await useApiFetch(`/api/jobs/operations/deleteallrougeoperation`, {
+    method: "DELETE",
+    params: {jobId:props.selectedJob },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: "i-heroicons-check-circle",
+          color: "green",
+        });
+      }
+    },
+  });
+  await fetchJobOperation()
+  loadingOverlay.value = false
+  
 };
 
 const prodOperationGridMeta = ref({
@@ -967,6 +1012,17 @@ const onSelectLinkedJob = (row) => {
   });
 }
 
+const handleRefreshOperation = async() => {
+  loadingOverlay.value = true
+  await useApiFetch("/api/jobs/operations/refreshoperations", {
+    method: "GET",
+    params: { jobId:props.selectedJob, instanceId:formData.InstanceID, model:formData.MODEL },
+  });
+
+  await fetchJobOperation()
+  loadingOverlay.value = false
+}
+
 if (props.selectedJob !== null) editInit();
 else propertiesInit();
 </script>
@@ -1224,6 +1280,7 @@ else propertiesInit();
               color="green"
               label="Refresh Job Costs"
               :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
+              @click="handleRefreshOperation"
               truncate
             />
           </div>
@@ -1641,7 +1698,7 @@ else propertiesInit();
                   base: 'w-full',
                   truncate: 'flex justify-center w-full',
                 }"
-                @click="fetchJobOperation()"
+                @click="handleRefreshOperation"
                 truncate
               />
             </div>
@@ -1682,7 +1739,7 @@ else propertiesInit();
                   base: 'w-full',
                   truncate: 'flex justify-center w-full',
                 }"
-                @click="handleDeleteAll"
+                @click="handleDeleteAllOperation"
                 truncate
               />
             </div>
@@ -2002,6 +2059,6 @@ else propertiesInit();
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobReworkParts :selected-job="selectedJob" />
+    <JobReworkParts :selected-job="selectedJob" :operationId="prodOperationGridMeta.selectedOperation.uniqueID" />
   </UDashboardModal>
 </template>

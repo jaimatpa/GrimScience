@@ -43,9 +43,7 @@ const applyCusFilters = (params) => {
 };
 
 const formatDateForSQLServer = (date) => {
-  console.log("formate", date)
   const year = date.getFullYear();
-  console.log('year',year)
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const hours = String(date.getHours()).padStart(2, '0');
@@ -215,7 +213,6 @@ export const fixSerialIssue = async (serialItems, instanceId, employee, perType,
   // Filter out checked items
   serialItems = JSON.parse(serialItems)
   const checkedItems = serialItems.filter(item => item.checked);
-  console.log(checkedItems)
   // Process each checked item
   for (const item of checkedItems) {
     if (item.dateEntered === "" || ignoreDuplicateCheck) {
@@ -277,7 +274,6 @@ export const pullIntoSerial = async (serialItems, instanceId, employee, perType,
       item.dateEntered = formatDate(new Date(date)) 
       // Update serial records (Assuming AddtoSerialRecords is a function handling serial updates)
       await addToSerialRecords(item.Serial, item.UniqueID, instanceId, employee, item.JobID, perType, jobPart, date);
-      // console.log(item)
       // Fetch and update tblJobDetail
       const jobDetail = await sequelize.query(`
         SELECT * FROM tblJobDetail WHERE uniqueID = :uniqueID
@@ -320,7 +316,6 @@ export const pullIntoSerial = async (serialItems, instanceId, employee, perType,
 
   // Final save and confirmation message (assumed to be logging)
   await saveJob(jobId); // Assuming Save() is a function that commits changes
-  console.log("Serials have been added and the inventory has been updated.");
   return {serialItems, message: "Serials have been added and the inventory has been updated."}
 };
 
@@ -354,7 +349,6 @@ const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, j
 
     // Step 4: Insert the record into tblInventory
     const today = formatDateForSQLServer(new Date(date))
-    console.log(today)
     // Fetch the max instanceID from tblInventory and increment it
     const instanceResult = await sequelize.query(`
       SELECT MAX(instanceID) + 1 AS nextInstanceId FROM tblInventory
@@ -393,7 +387,6 @@ const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, j
     // Step 8: Save the data (assuming this is a function in your code)
     await saveJob(jobId);
 
-    console.log('Record successfully added to inventory');
   } catch (error) {
     console.error('Error adding serial record:', error.message);
     throw new Error('Error adding serial record: '+error.message)
@@ -444,10 +437,10 @@ const verifyInventoryTransaction = async (manual = '', date, createdBy, options 
     if (serviceReportID > 0) strType = 'Service Report';
     if (vendorInvoiceID > 0) strType = 'Vendor Invoice';
     if (orderID > 0) strType = 'Sales Invoice';
-    console.log(transID)
+
     // If transaction does not exist, insert a new record
     if (transID === 0) {
-      console.log("insert")
+
       await sequelize.query(`
         INSERT INTO tblInventoryTransactions (Justification, Dated, [By], ServiceReportID, JobID, OperationID, VendorInvoiceID, InvoiceID, JobDetailID, Manual, PONumber)
         VALUES ('System Generated - ${strType}', :date, :createdBy, :serviceReportID, :jobID, :jobOperationID, :vendorInvoiceID, :orderID, :jobDetailID, :manual, :poNumber)
@@ -478,7 +471,7 @@ const verifyInventoryTransaction = async (manual = '', date, createdBy, options 
         transID = newTransaction[0].uniqueID;
       }
     } else {
-      console.log("update")
+
       // Update the existing transaction
       await sequelize.query(`
         UPDATE tblInventoryTransactions
@@ -513,7 +506,6 @@ const verifyInventoryTransaction = async (manual = '', date, createdBy, options 
 }
 
 const clearInventoryTransactionDetails = async (transactionalID) => {
-  console.log('tran',transactionalID)
   try {
     // Fetch all transaction details for the given InventoryTransactionID
     const transactionDetails = await sequelize.query(`
@@ -564,7 +556,7 @@ const updateOnhandByInstanceId = async (instanceID) => {
 
     // If no model is found, exit
     if (modelResult.length === 0) {
-      console.log('No model found for the given instanceID');
+      throw new Error('No model found for the given instanceID')
       return;
     }
 
@@ -699,7 +691,6 @@ const updateOnhandByModel = async (strModel) => {
   } catch (error) {
     console.log("Error in updateOnhand:",error)
     throw new Error('Error in updateOnhand:', error.message);
-    
   }
 }
 
@@ -718,8 +709,7 @@ const removePlanFromInventory = async (qty, lngTransID, lngJob, strModel = '') =
 
       // If no records are found, exit the function
       if (rs.length === 0) {
-        console.log("No job parts found for the given JobID");
-        return;
+        throw new Error("No job parts found for the given JobID");
       }
 
       // Remove inventory by adding inventory transaction detail with negative quantity
@@ -739,8 +729,7 @@ const removePlanFromInventory = async (qty, lngTransID, lngJob, strModel = '') =
 
       // If no records are found, exit the function
       if (rs.length === 0) {
-        console.log("No instanceID found for the given model");
-        return;
+        throw new Error("No instanceID found for the given model");
       }
 
       // Assuming further logic is implemented here
@@ -977,9 +966,6 @@ const loadSerialItems = async (lngJob) => {
     const jobCost = await calculateJobCost(lngJob); // Assuming this function exists
     const formattedJobCost = jobCost.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
-    // Set the job cost to a UI element or variable (e.g., recJOnCost)
-    console.log('Total Job Cost:', formattedJobCost);
-
     return {
       serialItems: lvwSerialItems,
       totalJobCost: formattedJobCost
@@ -1115,7 +1101,7 @@ export const getLinkJobs = async (lngJob) => {
       replacements: { lngJob },
       type: QueryTypes.SELECT
     });
-    console.log(linkedJobs)
+
     // Process each row from the result
     const linkedProducts = [];
     const linkedSubs = [];
@@ -1366,21 +1352,16 @@ export const getJobSubCat = async () => {
   return distinctjobsubcat;
 }
 
-export const getModels = async () => {
-  const result = await tblJobs.findAll({
-    attributes: [
-      [Sequelize.fn('DISTINCT', Sequelize.col('MODEL')), 'MODEL']
-    ],
-    where: {
-      [Op.and]: [
-        { 'MODEL': { [Op.ne]: null } },
-        { 'MODEL': { [Op.ne]: '' } }
-      ]
-    },
-    order: [['MODEL', 'ASC']],
-    raw: true
-  });
+export const getModels = async (productline) => {
+  
+    const result =  await sequelize.query(`
+      Select distinct model + ' ' + description, instanceID from tblBP where uniqueid in (Select max(uniqueID) from tblBP group by instanceID) and productline = :productline order by model + ' ' + description
+    `, {
+      replacements: { productline: productline },
+      type: QueryTypes.SELECT
+    });
+  
+  const distinctMODEL = result.map((item: any) => item['']);
 
-  const distinctMODEL = result.map((item: any) => item['MODEL']);
   return distinctMODEL;
 }
