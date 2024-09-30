@@ -6,6 +6,7 @@ import type { UTableColumn } from "~/types";
 import { format } from "date-fns";
 import PartsComponent from "~/pages/materials/parts.vue";
 import Vendors from "~/pages/materials/vendors.vue";
+import ChangeOrderPage from "../../../components/engineering/changeOrder/list.vue";
 
 const emit = defineEmits(["close", "link"]);
 const props = defineProps({
@@ -879,7 +880,6 @@ else propertiesInit();
         body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
         width: 'w-[1200px] sm:max-w-9xl',
     }">
-        <!-- <PartsComponent @onPartSelect="handleSelectedPart" /> -->
         <Vendors :is-page="false" @handleSelect="v => {
             formData.VENDOR = v.NAME;
             modalMeta.isVendorModalOpen = false
@@ -897,6 +897,11 @@ else propertiesInit();
         body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
         width: 'w-[1200px] sm:max-w-9xl',
     }">
-        <!-- <PartsComponent @onPartSelect="handleSelectedPart" /> -->
+         <ChangeOrderPage :is-page="false" @close="modalMeta.isEcoModalOpen=false" @selectEco="v => {
+            formData.ECO = `#${v.NUMBER} ${v.DESCRIPTION}`;
+            // modalMeta.isVendorModalOpen = false
+
+    console.log(v)
+        }" />
     </UDashboardModal>
 </template>

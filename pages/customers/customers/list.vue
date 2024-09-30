@@ -559,6 +559,7 @@ const onDblClick = async () => {
     <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"
       :is-modal="true" />
   </UDashboardModal>
+
   <!-- Order Modal -->
   <UDashboardModal v-model="modalMeta.isOrderDetailModalOpen" title="Invoice" :ui="{
     title: 'text-lg',
@@ -583,6 +584,7 @@ const onDblClick = async () => {
   }">
     <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId" />
   </UDashboardModal>
+  
   <!-- Service Order Modal -->
   <UDashboardModal v-model="modalMeta.isServiceOrderDetailModalOpen" title="Service Order" :ui="{
     title: 'text-lg text-white',
