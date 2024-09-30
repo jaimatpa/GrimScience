@@ -96,6 +96,7 @@ const filterValues = ref({
   REASONFORCHANGE: null,
   DISTRIBUTIONDATE: null,
   PRODUCT: null,
+  newCheckedValue:null
 });
 
 const watchCheckbox = (property, filterKey) => {

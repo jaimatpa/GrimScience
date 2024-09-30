@@ -1,8 +1,28 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
+import PartsModalPage from "../../../pages/materials/parts/parts.vue"
+
+const modalMeta = ref({
+  isCustomerModalOpen: false,
+  isOrderDetailModalOpen: false,
+  isQuoteDetailModalOpen: false,
+  isServiceOrderDetailModalOpen: false,
+  isSiteVisitModalOpen: false,
+  modalTitle: "Products",
+});
+
+const onCreate = () => {
+  gridMeta.value.selectedCustomerId = null;
+  modalMeta.value.modalTitle = "Products";
+  modalMeta.value.isCustomerModalOpen = true;
+};
+
+const handleSelectedPart = (data) => {
+  console.log(data)
+};
+
 
 const onPrevieOrderBtnClick = () => {
-  
   if (uniqueIDP.value) {
     const queryString = new URLSearchParams({ id: uniqueIDP.value }).toString();
     
@@ -55,8 +75,14 @@ onMounted(() => {
   fetchReasonForChangeData();
 });
 
+// redirectToProductsList() {
+//       // This will redirect to the specific path
+//       this.$router.push('/marketing/products/list');
+//     }
 
-const emit = defineEmits([]);
+const emit = defineEmits(["selectEco","close"]);
+
+
 const props = defineProps({
   isModal: {
     type: [Boolean],
@@ -64,7 +90,11 @@ const props = defineProps({
   selectedEmployee: {
     type: Object,
     required: true,
-  },
+  },isPage: {
+        type: Boolean,
+        default: true,
+    },
+
 });
 
 const clearFields = () => {
@@ -242,7 +272,7 @@ const handleRowSelected = (row) => {
   engineeringDate.value = row.ENGDATEAPPROVED ;
   productsDetails.value = row.ProductsDetails;
   partsDetails.value = row.PartsDetails;
-  verificationValue.value = VandVNotRequired.value ? -1 : 0;
+  verificationValue.value = row.VandVNotRequired.value ? -1 : 0;
 
 };
 
@@ -531,6 +561,12 @@ const init = async () => {
 const handleChange = (field, newValue) => {
   formState[field] = newValue;
 };
+
+const handleSelect=()=>{
+  emit("selectEco", selectedRow);
+  emit("close")
+}
+ 
 </script>
 <template>
   <!-- Top product line search option start-->
@@ -658,6 +694,7 @@ const handleChange = (field, newValue) => {
             </UFormGroup>
             <UButton
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[30px] ml-[10px]"
+             
             >
               Fiend
             </UButton>
@@ -669,6 +706,7 @@ const handleChange = (field, newValue) => {
             <h2 class="text-left">Products Affected</h2>
             <UButton
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[30px]"
+               @click="onCreate()"
             >
               Find
             </UButton>
@@ -910,8 +948,40 @@ const handleChange = (field, newValue) => {
           />
         </div>
       </div>
+<div v-if="!props.isPage" class="basis-1/3 flex justify-end">
+                <div class="min-w-[150px]">
+                    <UButton icon="i-heroicons-cursor-arrow-ripple" label="Select" variant="outline"
+                        :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
+                         @click="handleSelect" truncate />
+                </div>
+            </div>
 
       <UDivider />
     </UForm>
   </UCard>
+
+
+
+
+
+ 
+  <UDashboardModal
+          v-model="modalMeta.isCustomerModalOpen"
+          :title="modalMeta.modalTitle"
+          :ui="{
+            title: 'text-lg',
+            header: {
+              base: 'flex flex-row min-h-[0] items-center',
+              padding: 'pt-5 sm:px-9',
+            },
+            body: {
+              base: 'gap-y-1',
+              padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+            },
+            width: 'w-[1000px] sm:max-w-7xl',
+          }"
+        >
+          <ProductsProductList @onPartSelect="handleSelectedPart"/>
+        </UDashboardModal>
+
 </template>

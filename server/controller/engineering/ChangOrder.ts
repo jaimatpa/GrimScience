@@ -5,7 +5,7 @@ import { tblEmployee} from "~/server/models";
 import sequelize from '~/server/utils/databse';
 
 const applyFilters = (params) => {
-  const filterParams = ['ACTIVE', 'DESCRIPTION', 'REASONFORCHANGE', 'PRODUCT', 'uniqueID', 'DISTRIBUTIONDATE'];
+  const filterParams = ['ACTIVE', 'DESCRIPTION', 'REASONFORCHANGE', 'PRODUCT', 'uniqueID', 'DISTRIBUTIONDATE'"];
   const whereClause = {};
 
   filterParams.forEach(param => {

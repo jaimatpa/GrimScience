@@ -604,6 +604,7 @@ const onDblClick = async () => {
       :is-modal="true"
     />
   </UDashboardModal>
+
   <!-- Order Modal -->
   <UDashboardModal
     v-model="modalMeta.isOrderDetailModalOpen"
@@ -639,6 +640,7 @@ const onDblClick = async () => {
   >
     <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId" />
   </UDashboardModal>
+  
   <!-- Service Order Modal -->
   <UDashboardModal
     v-model="modalMeta.isServiceOrderDetailModalOpen"

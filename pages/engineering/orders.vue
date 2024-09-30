@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ChangeOrderPage from "../../components/engineering/changeOrder/list.vue"
+import ChangeOrderPage from "../../components/engineering/changeOrder/list.vue";
 </script>
 
 <!-- ChangeOrdersForm.vue -->
@@ -7,7 +7,7 @@ import ChangeOrderPage from "../../components/engineering/changeOrder/list.vue"
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardPanelContent>
-       <ChangeOrderPage/>
+        <ChangeOrderPage />
       </UDashboardPanelContent>
     </UDashboardPanel>
   </UDashboardPage>
