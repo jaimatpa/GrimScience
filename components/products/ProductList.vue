@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
 
-const emit = defineEmits(["close", "select"]);
+const emit = defineEmits(["rowSelectedProduct", "close"]);
+
+console.log(emit);
 
 onMounted(() => {
   init();
@@ -215,8 +217,12 @@ const onDelete = (row) => {
   
 };
 
+
 const onSelect = async (row) => {
+
+
   gridMeta.value.selectedProductId = row?.UniqueID;
+  
   gridMeta.value.products.forEach((pro) => {
     if (pro.UniqueID === row.UniqueID) {
       pro.class = "bg-gray-200";
@@ -227,7 +233,11 @@ const onSelect = async (row) => {
   gridMeta.value.selectProduct = row;
 
 };
-
+const handleSelect = 
+()=>{
+  
+  emit("rowSelectedProduct",  gridMeta.value.selectProduct);
+}
 const onDblClick = async () => {
   if (gridMeta.value.selectedProductId) {
     modalMeta.value.modalTitle = "Edit";
@@ -505,7 +515,7 @@ const handleFilterInputChange = async (event, name) => {
           />
         </div> -->
 
-        <!-- <div v-if="!props.isPage">
+        <div v-if="!props.isPage">
           <div class="mt-3 w-[120px]">
             <UButton
               icon="i-heroicons-cursor-arrow-ripple"
@@ -521,7 +531,7 @@ const handleFilterInputChange = async (event, name) => {
             >
             </UButton>
           </div>
-        </div> -->
+        </div>
       <!-- </div> -->
     </UDashboardPanel>
   </UDashboardPage>

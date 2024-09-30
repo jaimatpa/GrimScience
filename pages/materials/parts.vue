@@ -28,6 +28,8 @@ const headerFilters = ref({
     options: [],
   }
 });
+
+
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
@@ -94,6 +96,7 @@ const modalMeta = ref({
   isSiteVisitModalOpen: false,
   modalTitle: "New Parts",
 });
+
 const filterValues = ref({
   PARTTYPE: null,
   SUBCATEGORY: null,
@@ -102,6 +105,7 @@ const filterValues = ref({
   ETLCriticalComponent: null,
   MODEL:null
 });
+
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
 
@@ -407,9 +411,6 @@ const onDblClick = async () => {
             </div>
           </template>
         </template>
-  
-    
-
 
         <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">

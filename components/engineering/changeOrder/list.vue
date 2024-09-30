@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
-import PartsModalPage from "../../../pages/materials/parts/parts.vue"
+import { ref, reactive, onMounted } from "vue";
+import PartsModalPage from "../../../pages/materials/parts/parts.vue";
 
 const modalMeta = ref({
   isCustomerModalOpen: false,
@@ -11,21 +11,37 @@ const modalMeta = ref({
   modalTitle: "Products",
 });
 
-const onCreate = () => {
-  gridMeta.value.selectedCustomerId = null;
+const onOpenProduct = () => {
   modalMeta.value.modalTitle = "Products";
   modalMeta.value.isCustomerModalOpen = true;
 };
 
-const handleSelectedPart = (data) => {
-  console.log(data)
+const onOpenParts = () => {
+  partsMeta.value.modalTitle = "Products";
+  partsMeta.value.isPartsModalOpen = true;
 };
 
+const partsMeta = ref({
+  isPartsModalOpen: false,
+  isOrderDetailModalOpen: false,
+  isQuoteDetailModalOpen: false,
+  isServiceOrderDetailModalOpen: false,
+  isSiteVisitModalOpen: false,
+  modalTitle: "Parts",
+});
+
+const handleSelectedPart = (data) => {
+  console.log(data);
+};
+
+// const handleRowSelectedProduct = (product) => {
+//   console.log("Selected product: ", product);
+// };
 
 const onPrevieOrderBtnClick = () => {
   if (uniqueIDP.value) {
     const queryString = new URLSearchParams({ id: uniqueIDP.value }).toString();
-    
+
     const fetchData = async (id) => {
       const pdfUrl = `/api/engineering/changeorder/pdf/${id}`;
       try {
@@ -33,28 +49,26 @@ const onPrevieOrderBtnClick = () => {
         console.log(response);
 
         if (!response.ok) {
-          throw new Error('Failed to fetch PDF');
+          throw new Error("Failed to fetch PDF");
         }
 
         const blob = await response.blob();
         const pdfContentUrl = URL.createObjectURL(blob); // Create a URL for the PDF blob
-        
+
         // Open the PDF in a new tab/window after fetching
-        window.open(pdfContentUrl, '_blank');
+        window.open(pdfContentUrl, "_blank");
       } catch (error) {
         console.error(error);
-        alert('Error fetching the PDF. Please try again later.');
+        alert("Error fetching the PDF. Please try again later.");
       }
     };
 
     // Call the fetchData function with the unique ID
     fetchData(uniqueIDP.value);
   } else {
-    alert('Unique ID is missing! The function cannot execute.');
+    alert("Unique ID is missing! The function cannot execute.");
   }
 };
-
-
 
 // ok code
 // const onPrevieOrderBtnClick = () => {
@@ -65,8 +79,6 @@ const onPrevieOrderBtnClick = () => {
 //     alert('Unique ID is missing! The function cannot execute.');
 //   }
 // };
-
-
 
 onMounted(() => {
   init();
@@ -80,7 +92,17 @@ onMounted(() => {
 //       this.$router.push('/marketing/products/list');
 //     }
 
-const emit = defineEmits(["selectEco","close"]);
+// const emit = defineEmits(["selectEco","rowSelectedProduct",  "close"]);
+
+// const emit = defineEmits(["rowSelectedProduct", "selectEco", "close"]);
+
+// const handleSelect = () => {
+//   emit("selectEco", selectedRow);
+//   // emit("rowSelectedProduct", rowSelectedProduct);
+//   emit("close");
+
+// };
+
 
 
 const props = defineProps({
@@ -90,11 +112,11 @@ const props = defineProps({
   selectedEmployee: {
     type: Object,
     required: true,
-  },isPage: {
-        type: Boolean,
-        default: true,
-    },
-
+  },
+  isPage: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const clearFields = () => {
@@ -128,9 +150,8 @@ const clearFields = () => {
     VandVNotRequired: "",
     MANUFACTURING: "",
     ENGINEERING: "",
-    ProductsDetails:"",
-    PartsDetails:"",
-   
+    ProductsDetails: "",
+    PartsDetails: "",
   };
 
   Description.value = "";
@@ -160,8 +181,8 @@ const clearFields = () => {
   engineeringComments.value = "";
   manufacturingDate.value = "";
   engineeringDate.value = "";
-  productsDetails.value ="";
-  partsDetails.value =""
+  productsDetails.value = "";
+  partsDetails.value = "";
 };
 
 const selectedRowData = ref({
@@ -193,16 +214,23 @@ const selectedRowData = ref({
   PRODUCTS: "",
   VandVNotRequired: "",
   MANUFACTURING: "",
-  MARKETING:"",
-  ENGINEERING:"",
-  ProductsDetails:"",
-  PartsDetails:"",
+  MARKETING: "",
+  ENGINEERING: "",
+  ProductsDetails: "",
+  PartsDetails: "",
 });
+
+const handleRowSelectedProduct = (row) => {
+ 
+  selectedRowData.value = row.PRODUCTS
+
+};
+
+
 
 const handleRowSelected = (row) => {
   uniqueIDP.value = row.uniqueID;
   selectedRow.value = row;
-
 
   selectedRowData.value = {
     uniqueID: row.uniqueID,
@@ -234,50 +262,44 @@ const handleRowSelected = (row) => {
     MARKETING: row.MARKETING,
     VandVNotRequired: row.VandVNotRequired,
     ENGINEERING: row.ENGINEERING,
-    MANUFACTURING:row.MANUFACTURING,
-    ProductsDetails:row.ProductsDetails,
-    PartsDetails:row.PartsDetails,
-  
-    
+    MANUFACTURING: row.MANUFACTURING,
+    ProductsDetails: row.ProductsDetails,
+    PartsDetails: row.PartsDetails,
   };
 
-  Description.value = row.DESCRIPTION ;
-  IssueDetails.value = row.ISSUE ;
-  solutionOrder.value = row.SOLUTION ;
-  uniqueIdNumber.value = row.uniqueID ;
-  DetailsReasonChange.value = row.DetailReason ;
-  fromModel.value = row.FromModel ;
-  toModel.value = row.ToModel ;
-  PartsAffect.value = row.PARTS ;
-  productLineOption.value = row.PRODUCT ;
-  changeReasonData.value = row.REASONFORCHANGE ;
-  engineeringBoolean.value = row.ENGAPPROVAL ;
-  marketingData.value = row.MARAPPROVER ;
-  marketingBoolean.value = row.MARAPPROVAL ;
-  marketingComments.value = row.MARCOMMENTS ;
-  manufacturingCheck.value = row.MANUFACTURING  ||"";
-  manufacturingData.value = row.MANAPPROVER ;
-  engineeringCheck.value = row.ENGINEERING  || "";
-  engineeringData.value = row.ENGAPPROVER || "" ;
-  originatorData.value = row.ORIGINATOR ;
-  signature.value = row.SIGNATURE ;
-  CompleteBoolean.value = row.APPROVAL ;
-  commentsComplete.value = row.COMMENTS ;
-  manufacturingBoolean.value = row.MANAPPROVAL ;
-  manufacturingComments.value = row.MANCOMMENTS ;
-  engineeringComments.value = row.ENGCOMMENTS ;
-  CompleteDate.value = row.DISTRIBUTIONDATE ;
-  manufacturingDate.value = row.MANDATEAPPROVED ;
-  marketingDate.value =row.MARDATEAPPROVED ;
-  engineeringDate.value = row.ENGDATEAPPROVED ;
+  Description.value = row.DESCRIPTION;
+  IssueDetails.value = row.ISSUE;
+  solutionOrder.value = row.SOLUTION;
+  uniqueIdNumber.value = row.uniqueID;
+  DetailsReasonChange.value = row.DetailReason;
+  fromModel.value = row.FromModel;
+  toModel.value = row.ToModel;
+  PartsAffect.value = row.PARTS;
+  productLineOption.value = row.PRODUCT;
+  changeReasonData.value = row.REASONFORCHANGE;
+  engineeringBoolean.value = row.ENGAPPROVAL;
+  marketingData.value = row.MARAPPROVER;
+  marketingBoolean.value = row.MARAPPROVAL;
+  marketingComments.value = row.MARCOMMENTS;
+  manufacturingCheck.value = row.MANUFACTURING || "";
+  manufacturingData.value = row.MANAPPROVER;
+  engineeringCheck.value = row.ENGINEERING || "";
+  engineeringData.value = row.ENGAPPROVER || "";
+  originatorData.value = row.ORIGINATOR;
+  signature.value = row.SIGNATURE;
+  CompleteBoolean.value = row.APPROVAL;
+  commentsComplete.value = row.COMMENTS;
+  manufacturingBoolean.value = row.MANAPPROVAL;
+  manufacturingComments.value = row.MANCOMMENTS;
+  engineeringComments.value = row.ENGCOMMENTS;
+  CompleteDate.value = row.DISTRIBUTIONDATE;
+  manufacturingDate.value = row.MANDATEAPPROVED;
+  marketingDate.value = row.MARDATEAPPROVED;
+  engineeringDate.value = row.ENGDATEAPPROVED;
   productsDetails.value = row.ProductsDetails;
   partsDetails.value = row.PartsDetails;
   verificationValue.value = row.VandVNotRequired.value ? -1 : 0;
-
 };
-
-
-
 
 const uniqueIDP = ref(null);
 const selectedRow = ref(null);
@@ -286,8 +308,8 @@ const employeeOptions = ref([]);
 const changeReason = ref([]);
 const originatorData = ref("");
 const originatorDate = ref("");
-const productsDetails = ref("")
-const partsDetails = ref("")
+const productsDetails = ref("");
+const partsDetails = ref("");
 const engineeringCheck = ref(false);
 const engineeringData = ref("");
 const engineeringDate = ref("");
@@ -321,27 +343,24 @@ const uniqueIdNumber = ref("");
 const verificationNotRequired = ref(false);
 const verificationValue = verificationNotRequired.value ? 0 : -1;
 
-
 const submitInsertForm = async () => {
   const formatToSQLDateTime = (date) => {
-  if (!(date instanceof Date) || isNaN(date)) {
-    date = new Date(date);
-  }
-  if (isNaN(date)) {
-    throw new Error("Invalid date object");
-  }
-  const pad = (num) => String(num).padStart(2, '0');
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
-  const milliseconds = pad(date.getMilliseconds(), 3);
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
-};
-
-
+    if (!(date instanceof Date) || isNaN(date)) {
+      date = new Date(date);
+    }
+    if (isNaN(date)) {
+      throw new Error("Invalid date object");
+    }
+    const pad = (num) => String(num).padStart(2, "0");
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+    const milliseconds = pad(date.getMilliseconds(), 3);
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+  };
 
   const formData = {
     uniqueID: uniqueIdNumber.value,
@@ -355,11 +374,11 @@ const submitInsertForm = async () => {
     PARTS: PartsAffect.value,
     ISSUE: IssueDetails.value,
     VandVNotRequired: verificationValue,
-    ORIGINATOR: originatorData.value.label ,
-    ORIGINATORDATE: (originatorDate.value),
+    ORIGINATOR: originatorData.value.label,
+    ORIGINATORDATE: originatorDate.value,
     ENGINEERING: engineeringCheck.value,
-    ENGAPPROVER: engineeringData.value.label ,
-    // ENGDATEAPPROVED: engineeringDate.value, 
+    ENGAPPROVER: engineeringData.value.label,
+    // ENGDATEAPPROVED: engineeringDate.value,
     ENGAPPROVAL: engineeringBoolean.value,
     ENGCOMMENTS: engineeringComments.value,
     MARKETING: marketingCheck.value,
@@ -368,18 +387,18 @@ const submitInsertForm = async () => {
     MARAPPROVAL: marketingBoolean.value,
     MARCOMMENTS: marketingComments.value,
     MANUFACTURING: manufacturingCheck.value,
-   MANAPPROVER: manufacturingData.value.label,
-    // MANDATEAPPROVED: manufacturingDate.value, 
+    MANAPPROVER: manufacturingData.value.label,
+    // MANDATEAPPROVED: manufacturingDate.value,
     MANAPPROVAL: manufacturingBoolean.value,
     MANCOMMENTS: manufacturingComments.value,
     SIGNATURE: signature.value.label,
-    DISTRIBUTIONDATE:(CompleteDate.value), 
+    DISTRIBUTIONDATE: CompleteDate.value,
     APPROVAL: CompleteBoolean.value,
     COMMENTS: commentsComplete.value,
   };
 
   console.log(formData);
-debugger
+  debugger;
   try {
     const response = await useApiFetch(
       "/api/engineering/changeorder/postOrder",
@@ -547,6 +566,7 @@ const init = async () => {
   for (const key in headerFilters.value) {
     const apiURL =
       headerFilters.value[key]?.api ?? `/api/service/orders/${key}`;
+
     await useApiFetch(apiURL, {
       method: "GET",
       onResponse({ response }) {
@@ -561,12 +581,6 @@ const init = async () => {
 const handleChange = (field, newValue) => {
   formState[field] = newValue;
 };
-
-const handleSelect=()=>{
-  emit("selectEco", selectedRow);
-  emit("close")
-}
- 
 </script>
 <template>
   <!-- Top product line search option start-->
@@ -693,10 +707,10 @@ const handleSelect=()=>{
               <UInput class="h-full" />
             </UFormGroup>
             <UButton
+              @click="onOpenParts()"
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[30px] ml-[10px]"
-             
             >
-              Fiend
+              Find
             </UButton>
           </div>
         </div>
@@ -706,7 +720,7 @@ const handleSelect=()=>{
             <h2 class="text-left">Products Affected</h2>
             <UButton
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[30px]"
-               @click="onCreate()"
+              @click="onOpenProduct()"
             >
               Find
             </UButton>
@@ -727,7 +741,7 @@ const handleSelect=()=>{
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup class="flex-1" name="firstInput">
-              <UInput class="h-full"  v-model="partsDetails" />
+              <UInput class="h-full" v-model="partsDetails" />
             </UFormGroup>
             <UButton
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
@@ -740,7 +754,7 @@ const handleSelect=()=>{
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup class="flex-1" name="firstInput">
-              <UInput class="h-full" v-model="productsDetails"/>
+              <UInput class="h-full" v-model="productsDetails" />
             </UFormGroup>
             <UButton
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
@@ -944,44 +958,65 @@ const handleSelect=()=>{
             color="gray"
             label="Preview ECO"
             icon="i-heroicons-eye"
-          @click="onPrevieOrderBtnClick"
+            @click="onPrevieOrderBtnClick"
           />
         </div>
       </div>
-<div v-if="!props.isPage" class="basis-1/3 flex justify-end">
-                <div class="min-w-[150px]">
-                    <UButton icon="i-heroicons-cursor-arrow-ripple" label="Select" variant="outline"
-                        :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
-                         @click="handleSelect" truncate />
-                </div>
-            </div>
+      <div v-if="!props.isPage" class="basis-1/3 flex justify-end">
+        <div class="min-w-[150px]">
+          <UButton
+            icon="i-heroicons-cursor-arrow-ripple"
+            label="Select"
+            variant="outline"
+            :ui="{
+              base: 'min-w-[200px] w-full',
+              truncate: 'flex justify-center w-full',
+            }"
+            @click="handleSelect"
+            truncate
+          />
+        </div>
+      </div>
 
       <UDivider />
     </UForm>
   </UCard>
 
-
-
-
-
- 
   <UDashboardModal
-          v-model="modalMeta.isCustomerModalOpen"
-          :title="modalMeta.modalTitle"
-          :ui="{
-            title: 'text-lg',
-            header: {
-              base: 'flex flex-row min-h-[0] items-center',
-              padding: 'pt-5 sm:px-9',
-            },
-            body: {
-              base: 'gap-y-1',
-              padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
-            },
-            width: 'w-[1000px] sm:max-w-7xl',
-          }"
-        >
-          <ProductsProductList @onPartSelect="handleSelectedPart"/>
-        </UDashboardModal>
+    v-model="modalMeta.isCustomerModalOpen"
+    :title="modalMeta.modalTitle"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: {
+        base: 'gap-y-1',
+        padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+      },
+      width: 'w-[3000px] sm:max-w-7xl',
+    }"
+  >
+    <ProductsProductList @rowSelectedProduct="handleRowSelectedProduct" />
+  </UDashboardModal>
 
+  <UDashboardModal
+    v-model="partsMeta.isPartsModalOpen"
+    :title="partsMeta.modalTitle"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+      },
+      body: {
+        base: 'gap-y-1',
+        padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+      },
+      width: 'w-[4000px] sm:max-w-7xl',
+    }"
+  >
+    <PartsModalPage @onPartSelect="handleSelectedPart" />
+  </UDashboardModal>
 </template>
