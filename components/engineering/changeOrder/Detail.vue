@@ -79,7 +79,7 @@ const gridMeta = ref({
   selectedCompaintNumber: null,
   selectedSerialNumber: null,
   sort: {
-    column: "PRODUCT",
+    column: "uniqueID",
     direction: "desc",
   },
   isLoading: false,
@@ -200,7 +200,7 @@ const handleSortingButton = async (btnName: string) => {
             break;
           default:
             column.sortDirection = "none";
-            gridMeta.value.sort.column = "PRODUCT";
+            gridMeta.value.sort.column = "uniqueID";
             gridMeta.value.sort.direction = "desc";
             break;
         }
@@ -223,25 +223,27 @@ const handleFilterInputChange = async (event, name) => {
 
 // Export excel data download  function
 const excelExport = () => {
-  exportIsLoading.value = true;
-  const params = {
-    sortBy: gridMeta.value.sort.column,
-    sortOrder: gridMeta.value.sort.direction,
-    ...filterValues.value,
-  };
-  const paramsString = Object.entries(params)
-    .filter(([_, value]) => value !== null)
-    .map(([key, value]) => {
-      if (value !== null) return `${key}=${value}`;
-    })
-    .join("&");
-  location.href = `/api/engineering/changeorder/exportorder?${paramsString}`;
-  exportIsLoading.value = false;
-};
+  debugger
+    exportIsLoading.value = true
+    const params = {
+        sortBy: gridMeta.value.sort.column,
+        sortOrder: gridMeta.value.sort.direction,
+        ...filterValues.value,
+      }
+    const paramsString = Object.entries(params)
+      .filter(([_, value]) => value !== null)
+      .map(([key, value]) => {
+        if(value !== null)
+        return `${key}=${value}`
+      })
+      .join("&")
+    location.href = `/api/engineering/changeorder/exportorder?${paramsString}`
+    exportIsLoading.value = false
+  }
 
-const onPrevieOrderBtnClick = () => {
-  window.open(`/api/service/orders/exportcomplaints`);
-};
+
+
+
 
 const emit = defineEmits(["rowSelected", "rowDoubleClicked"]);
 
