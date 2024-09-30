@@ -20,13 +20,9 @@ const applyFilters = (params) => {
 };
 
 export const getReworkParts = (filterParams) => {
-  
   const whereClause = applyFilters(filterParams);
-  
   console.log(whereClause)
-
 }
-
 
 export const getReworkCategories = async () => {
   
@@ -37,10 +33,9 @@ export const getReworkCategories = async () => {
   });
 
   const category = result
-        .map((item) => item['parttype'])
-        .filter((category) => category !== null);
+      .map((item) => item['parttype'])
+      .filter((category) => category !== null);
         
-  console.log(category)
   return category;
 }
 
@@ -60,7 +55,7 @@ export const getReworkSubCategories = async () => {
 }
 
 export const getSelectedPartInfo = async (jobId, jobOperationId) => {
-  console.log(jobId, jobOperationId)
+
   const result =  await sequelize.query(`
     Select Qty, tblBPID, model, Description, inventoryCost, inventoryUnit from tblOperationReworks join tblbp on tblOperationReworks.tblBPID = tblbp.uniqueID where JobID = :jobId and OperationID = :jobOperationId
   `, {
@@ -82,3 +77,109 @@ export const getSelectedPartInfo = async (jobId, jobOperationId) => {
   
   return list;
 }
+
+export const saveReworkParts = async (lngJobID, lngJobOperationID, parts) => {
+  try {
+    console.log(lngJobID, lngJobOperationID, parts)
+    for (const item of parts) {
+      // Query to check if an existing record exists in tblOperationReworks
+      const existingRecord = await sequelize.query(`
+        SELECT * 
+        FROM tblOperationReworks 
+        WHERE JobID = :lngJobID 
+          AND OperationID = :lngJobOperationID 
+          AND tblBPID = :tblBPID
+      `, {
+        replacements: { lngJobID, lngJobOperationID, tblBPID: item.UniqueID },
+        type: QueryTypes.SELECT
+      });
+
+      if (existingRecord.length === 0) {
+        // Insert new record if it doesn't exist
+        await sequelize.query(`
+          INSERT INTO tblOperationReworks (JobID, OperationID, tblBPID, Qty) 
+          VALUES (:lngJobID, :lngJobOperationID, :tblBPID, :Qty)
+        `, {
+          replacements: {
+            lngJobID,
+            lngJobOperationID,
+            tblBPID: item.UniqueID,
+            Qty: item.qty
+          },
+          type: QueryTypes.INSERT
+        });
+      } else {
+        // Update the existing record
+        await sequelize.query(`
+          UPDATE tblOperationReworks 
+          SET Qty = :Qty 
+          WHERE JobID = :lngJobID 
+            AND OperationID = :lngJobOperationID 
+            AND tblBPID = :tblBPID
+        `, {
+          replacements: {
+            Qty: item.qty,
+            lngJobID,
+            lngJobOperationID,
+            tblBPID: item.UniqueID
+          },
+          type: QueryTypes.UPDATE
+        });
+      }
+    }
+
+    return { message: "Rework parts saved successfully." };
+  } catch (error) {
+    console.error("Error saving rework parts:", error.message);
+    throw new Error(error.message);
+  }
+};
+
+export const removePart = async (lngJobID, lngJobOperationID, partId) => {
+  console.log(lngJobID, lngJobOperationID, partId)
+  try {
+    if (!partId) {
+      throw new Error('Please select a part')
+    }
+
+    // Delete from tblOperationReworks
+    await sequelize.query(`
+      DELETE FROM tblOperationReworks 
+      WHERE jobId = :lngJobID 
+        AND OperationID = :lngJobOperationID 
+        AND tblBPID = :tblBPID
+    `, {
+      replacements: {
+        lngJobID,
+        lngJobOperationID,
+        tblBPID: partId
+      },
+      type: QueryTypes.DELETE
+    });
+
+    const result =  await sequelize.query(`
+      Select Qty, tblBPID, model, Description, inventoryCost, inventoryUnit from tblOperationReworks join tblbp on tblOperationReworks.tblBPID = tblbp.uniqueID where JobID = :lngJobID and OperationID = :lngJobOperationID
+    `, {
+      replacements: { lngJobID, lngJobOperationID },
+      type: QueryTypes.SELECT
+    });
+  
+    const list = result.map(row => {
+      return { 
+        qty:row.Qty,
+        MODEL: row.model,
+        DESCRIPTION: row.Description,
+        InventoryCost: row.inventoryCost,
+        InventoryUnit: row.inventoryUnit,
+        Amount: (row.inventoryCost * row.Qty).toFixed(2),
+        UniqueID: row.tblBPID
+      }
+    })
+    
+    return list;
+
+  } catch (error) {
+    console.error("Error in removeFromInvoice:", error.message);
+    throw new Error(error.message);
+  }
+};

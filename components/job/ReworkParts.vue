@@ -285,6 +285,17 @@ const onPartDblClick = async () => {
   isQuantityModalOpen.value = true;
 };
 
+const onSelectedPartSelect = async (row) => {
+  selectedPartsGridMeta.value.selectedPart = row
+  selectedPartsGridMeta.value.selectedParts.forEach((part) => {
+    if (part.UniqueID === row.UniqueID) {
+      part.class = "bg-gray-200";
+    } else {
+      delete part.class;
+    }
+  });
+}
+
 const handleQuantityClick = async () => {
   if(partQuantity.value > 0) {
     selectedPartsGridMeta.value.selectedParts = [...selectedPartsGridMeta.value.selectedParts,{...reworkPartsGridMeta.value.selectedPart, Amount: (reworkPartsGridMeta.value.selectedPart.InventoryCost *  partQuantity.value).toFixed(2), qty: partQuantity.value }]
@@ -307,18 +318,54 @@ const closeQuantityModal = () => {
   partQuantity.value = 1
 }
 
- // Optionally, if you want to watch changes explicitly
+const saveReworkParts = async () => {
+  loadingOverlay.value = true;
+
+  await useApiFetch(`/api/jobs/reworkparts/savereworkparts`, {
+    method: "POST",
+    body: { jobId: props.selectedJob ,jobOperationId: props.operationId, parts: selectedPartsGridMeta.value.selectedParts },
+    onResponse({ response }) {
+      if (response.status === 200) {
+          isLoading.value = false;
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+    },
+  });
+
+  loadingOverlay.value = false;
+};
+
+const removePart = async () => {
+  loadingOverlay.value = true;
+  await useApiFetch(`/api/jobs/reworkparts/removepart`, {
+    method: "DELETE",
+    params: { jobId: props.selectedJob ,jobOperationId: props.operationId, partId: selectedPartsGridMeta.value.selectedPart.UniqueID },
+    onResponse({ response }) {
+      if (response.status === 200) {
+          selectedPartsGridMeta.value.selectedParts = response._data.body
+          isLoading.value = false;
+        }
+    },
+  });
+  loadingOverlay.value = false;
+};
+
  watch(
-      () => selectedPartsGridMeta.value.selectedParts,
-      () => {
-        console.log(selectedPartsGridMeta.value.selectedParts)
-        totalCost.value = 0
-        selectedPartsGridMeta.value.selectedParts.forEach(part => {
-          totalCost.value = totalCost.value + parseFloat(part.Amount)
-        })
-      },
-      { deep: true }
-    );
+  () => selectedPartsGridMeta.value.selectedParts,
+  () => {
+    console.log(selectedPartsGridMeta.value.selectedParts)
+    totalCost.value = 0
+    selectedPartsGridMeta.value.selectedParts.forEach(part => {
+      totalCost.value = totalCost.value + parseFloat(part.Amount)
+    })
+  },
+  { deep: true }
+);
 propertiesInit();
 </script>
 
@@ -341,19 +388,18 @@ propertiesInit();
   >
     <div class="flex flex-col space-x-4">
       <div class="gmsPurpleTitlebar py-3 mb-2 pl-2">Parts Used</div>
-      <div class="w-full flex items-center mb-4 gap-x-4">
-        <div class="flex items-end justify-end w-1/2">
-          <div class="w-[120px]">
-            <UButton
-              label="Remove Part"
-              class="gmsPurpleTitlebar"
-              :ui="{
-                base: 'w-full',
-                truncate: 'flex justify-center w-full',
-              }"
-              truncate
-            />
-          </div>
+      <div class="flex items-end justify-end mb-5">
+        <div class="w-[120px]">
+          <UButton
+            label="Remove"
+            class="gmsPurpleTitlebar"
+            :ui="{
+              base: 'w-full',
+              truncate: 'flex justify-center w-full',
+            }"
+            @click="removePart"
+            truncate
+          />
         </div>
       </div>
 
@@ -461,6 +507,7 @@ propertiesInit();
                 padding: 'px-2 py-0',
               },
             }"
+            @select="onSelectedPartSelect"
           >
             <template #empty-state>
               <div></div>
@@ -482,6 +529,7 @@ propertiesInit();
               base: 'w-full',
               truncate: 'flex justify-center w-full',
             }"
+            @click="saveReworkParts"
             truncate
           />
         </div>
