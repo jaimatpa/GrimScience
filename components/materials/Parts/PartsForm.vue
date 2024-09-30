@@ -1,9 +1,28 @@
 <script setup lang="ts">
-import type { FormError, FormSubmitEvent } from "#ui/types";
+import type { FormSubmitEvent } from "#ui/types";
 import { format } from "date-fns";
 import { ref } from 'vue';
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
+
+const emit = defineEmits(["close", "save"]);
+const props = defineProps({
+  selectedParts: {
+    type: [String, Number, null],
+    required: true,
+  },
+  isModal: {
+    type: [Boolean],
+  },
+  selectedPartInstace: {
+    type: [String, Number, null],
+    required: true,
+  },
+  selectedPartModel: {
+    type: [String, Number, null],
+    required: true,
+  },
+});
 
 const accountList = ref([]);
 const revisions = ref([]);
@@ -14,7 +33,6 @@ const workplacesColumns = [
     label: "location",
   }
 ];
-
 
 const revisionsColumns = [
   {
@@ -88,38 +106,15 @@ const jobDetailsColumns = [
   },
 ];
 
-const emit = defineEmits(["close", "save"]);
-const props = defineProps({
-  selectedCustomer: {
-    type: [String, Number, null],
-    required: true,
-  },
-  isModal: {
-    type: [Boolean],
-  },
-  selectedPartInstace: {
-    type: [String, Number, null],
-    required: true,
-  },
-  selectedPartModel: {
-    type: [String, Number, null],
-    required: true,
-  },
-});
-
 const toast = useToast();
-const router = useRouter();
-const customersFormInstance = getCurrentInstance();
-
 const loadingOverlay = ref(false);
-const customerExist = ref(true);
+const partsExist = ref(true);
 const category = ref([]);
 const subCategory = ref([]);
-const professions = ref([]);
 const vendorList = ref();
 const partUnit = ref([]);
 const insepctionList = ref([]);
-const usstates = ref([]);
+
 const formData = reactive({
   UniqueID: null,
   instanceID: null,
@@ -257,22 +252,14 @@ const formData = reactive({
   SupportorProject: null,
 });
 
-
-
-
-
-
-
-
-
 const editInit = async () => {
   loadingOverlay.value = true;
-  await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
+  await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
         loadingOverlay.value = false;
-        customerExist.value = true;
+        partsExist.value = true;
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
             formData[key] = response._data.body[key];
@@ -281,27 +268,29 @@ const editInit = async () => {
       }
     },
     onResponseError({}) {
-      customerExist.value = false;
+      partsExist.value = false;
     },
   });
   propertiesInit();
   loadingOverlay.value = false;
   fetchWorkCentersBy();
 };
+
 const propertiesInit = async () => {
   loadingOverlay.value = true;
+
   await useApiFetch("/api/materials/categories", {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
         category.value = response._data.body;
-        console.log("category is ", response._data.body);
       }
     },
     onResponseError() {
       category.value = [];
     },
   });
+
   await useApiFetch("/api/materials/subcategories", {
     method: "GET",
     onResponse({ response }) {
@@ -313,11 +302,12 @@ const propertiesInit = async () => {
       subCategory.value = [];
     },
   });
+
   await useApiFetch("/api/common/partUnit", {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        console.log("order unit is", response._data.body.unit);
+        // console.log("order unit is", response._data.body.unit);
         partUnit.value = response._data.body
           .map((item) => item.unit)
           .filter((unit) => unit !== null && unit !== undefined);
@@ -327,12 +317,13 @@ const propertiesInit = async () => {
       partUnit.value = [];
     },
   });
+
   await useApiFetch("/api/common/getInspectionNumbers", {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
         insepctionList.value = response._data.body;
-        console.log("insepction ", response._data.body);
+        // console.log("insepction ", response._data.body);
       }
     },
     onResponseError() {
@@ -340,14 +331,13 @@ const propertiesInit = async () => {
     },
   });
 
-
   await useApiFetch(
     `/api/materials/parts/parts/transactions?model=${props.selectedPartModel}`,
     {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          console.log("transation vlau eis", response._data.body);
+          // console.log("transation vlau eis", response._data.body);
           InventoryTransactions.value = response._data.body;
         }
       },
@@ -363,30 +353,28 @@ const propertiesInit = async () => {
       if (response.status === 200) {
         vendorList.value = response._data.body;
 
-        console.log("v", vendorList.value);
+        // console.log("v", vendorList.value);
       }
     },
     onResponseError() {
       // orders = []
     },
   });
+
   await useApiFetch(
   `/api/materials/parts/getJobsTotal?instanceId=${props.selectedPartInstace}`,
   {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        console.log("jobdetails", response._data);
+        // console.log("jobdetails", response._data);
         jobDetails.value =response._data;
       }
     },
     onResponseError({ response }) {
       console.error("Error fetching job details:", response);
-      // Handle error, maybe reset jobDetails or show a notification
     },
-  }
-);
-
+  });
 
   await useApiFetch(
     `/api/materials/parts/parts/podetails?instanceId=${props.selectedPartInstace}`,
@@ -394,7 +382,7 @@ const propertiesInit = async () => {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          console.log("the value of po", response._data.body);
+          // console.log("the value of po", response._data.body);
           poDetails.value = response._data.body;
         }
       },
@@ -404,16 +392,14 @@ const propertiesInit = async () => {
     }
   );
 
-getRevisions();
-
-
+  getRevisions();
 
   await useApiFetch("/api/materials/parts/accountsList",
     {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          console.log("the value of accountlist", response._data.body);
+          // console.log("the value of accountlist", response._data.body);
           accountList.value = response._data.body;
         }
       },
@@ -422,36 +408,25 @@ getRevisions();
       },
     }
   );
-
-
-
   loadingOverlay.value = false;
 };
 
-const handleClose = async () => {
-  // Check if props.selectedPartInstace is defined and has vnode with onClose
-  if (props.selectedPartInstace?.vnode?.props?.onClose) {
-    emit("close");
+if (props.selectedParts !== null) editInit();
+else propertiesInit();
+
+const files = ref([null, null, null]);
+
+const handleFileChange = (event, index) => {
+  // console.log("file", event.target.files[0]);
+  const file = event.target.files[0];
+  if (file && file.type === 'application/pdf') {
+    files.value[index] = file;
   } else {
-    // Fallback to go back in the router history
-    router.go(-1);
+    alert('Please select a PDF file.');
+    event.target.value = '';
   }
 };
 
-const files = ref([null, null, null]);
-const errorMessage = ref('');
-const uploadedFiles = ref([]);
-
-  const handleFileChange = (event, index) => {
-    console.log("file",event.target.files[0]);
-    const file = event.target.files[0];
-    if (file && file.type === 'application/pdf') {
-      files.value[index] = file;
-    } else {
-      alert('Please select a PDF file.');
-      event.target.value = '';
-    }
-  };
 const getRevisions=async()=>{
   await useApiFetch(
     `/api/materials/parts/revisions?instanceId=${props.selectedPartInstace}`,
@@ -459,7 +434,7 @@ const getRevisions=async()=>{
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          console.log("the value of revision", response._data.body);
+          // console.log("the value of revision", response._data.body);
           revisions.value = response._data.body;
         }
       },
@@ -468,7 +443,6 @@ const getRevisions=async()=>{
       },
     }
   );
-
 }
 
 const fetchWorkCentersBy = async () => {
@@ -477,7 +451,7 @@ const fetchWorkCentersBy = async () => {
             method: 'GET',
         });
         if (response) {
-            console.log(response)
+            // console.log(response)
             const workCenterIds = formData.WORKCENTERS
                 .split(',')
                 .map(id => id.trim()) 
@@ -486,7 +460,7 @@ const fetchWorkCentersBy = async () => {
             const filteredResponse = response.filter(val => workCenterIds.includes(val.UniqueId));
 
             workplaces.value = filteredResponse;
-            console.log("work center is",filteredResponse);
+            // console.log("work center is",filteredResponse);
         } else {
             console.log('Unexpected response structure or status code:', response);
         }
@@ -502,77 +476,67 @@ function formatDate(date: Date): string {
 
 const revision=async()=>{
   if(props.selectedPartInstace!=null){
-    console.log("meth dfadsf");
+    // console.log("meth dfadsf");
 
-    const response = await useApiFetch(`/api/materials/parts/parts/revision?instanceIdForRevision=${props.selectedPartInstace}&id=${props.selectedCustomer}`, {
+    const response = await useApiFetch(`/api/materials/parts/parts/revision?instanceIdForRevision=${props.selectedPartInstace}&id=${props.selectedParts}`, {
         method: "PUT",
         onResponse({ response }) {
-            if (response.status === 200) {
-              console.log("status is",response.status);
-              toast.add({
-                title: "Success",
-                description: "Revision Add",
-                icon: "i-heroicons-check-circle",
-                color: "green",
-              });
-            }
-          },
-
-
-      });
- 
-
+          if (response.status === 200) {
+            // console.log("status is",response.status);
+            toast.add({
+              title: "Success",
+              description: "Revision Add",
+              icon: "i-heroicons-check-circle",
+              color: "green",
+            });
+          }
+        },
+    });
 }
 
-
 getRevisions();
-
-
 }
 
 
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  console.log("files are", files.value);
+  // console.log("files are", files.value);
 
-// Check if there are any files to upload
-if (!files.value.some(file => file)) {
-  console.log('No files to upload.');
-  alert('Please upload at least one file.');
-  return;
-}
-
-const formData = new FormData();
-const fileTypes = ['Drawing/Manual', 'PDS', 'SDS'];
-
-// Loop through files and append only if a file exists
-files.value.forEach((file, index) => {
-  if (file) {
-    formData.append(fileTypes[index], file);
+  if (!files.value.some(file => file)) {
+    // console.log('No files to upload.');
+    alert('Please upload at least one file.');
+    return;
   }
-});
+
+  const formData = new FormData();
+  const fileTypes = ['Drawing/Manual', 'PDS', 'SDS'];
+
+  files.value.forEach((file, index) => {
+    if (file) {
+      formData.append(fileTypes[index], file);
+    }
+  });
+
   try {
-    // Replace '/api/upload' with your actual upload endpoint
+    console.log('Formdata');
+    
     const response = await fetch('/api/file', {
       method: 'POST',
       body: formData,
     });
 
     if (response.ok) {
-      const responseData = await response.json(); // Parse the JSON response
-      console.log('Files uploaded successfully! Response:', responseData);
+      const responseData = await response.json(); 
+      // console.log('Files uploaded successfully! Response:', responseData);
       alert('Files uploaded successfully!');
 
-      // You can print individual file details
       responseData.files.forEach(file => {
-        console.log(`File uploaded: ${file.originalName}, URL: ${file.url}`);
+        // console.log(`File uploaded: ${file.originalName}, URL: ${file.url}`);
         if(file.fileType==='SDS'){
           event.data.sds=file.url;
         }
         if(file.fileType==='Drawing/Manual'){
           event.data.DRAWINGCUSTOM=file.url;
         }
-
-        
       });
 
       files.value = [null, null, null];
@@ -584,21 +548,17 @@ files.value.forEach((file, index) => {
     alert('An error occurred while uploading the files. Please try again.');
   }
 
-  if(props.selectedCustomer!=null){
-console.log("event is",event.data);
+  if(props.selectedParts!=null){
     const now = new Date();
     const isoString = now.toISOString();
     event.data.TODAY =isoString;
 
-
-    
-      console.log("form data is",event.data)
-        await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
+        await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
           method: "PUT",
           body: event.data,
           onResponse({ response }) {
             if (response.status === 200) {
-              console.log("status is",response.status);
+              // console.log("status is",response.status);
               toast.add({
                 title: "Success",
                 description: response._data.message,
@@ -608,12 +568,10 @@ console.log("event is",event.data);
             }
           },
         });
-       
-
   }
   else{
-    console.log("file value is",event.data)
-        await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
+    // console.log("file value is",event.data)
+        await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
           method: "POST",
           body: event.data,
           onResponse({ response }) {
@@ -628,29 +586,16 @@ console.log("event is",event.data);
           },
         });
   }
-   emit('save');
-
+  emit('save');
 };
 
-if (props.selectedCustomer !== null) editInit();
-else propertiesInit();
-
-
-
-
-// Ref to store selected files
 const selectedFiles = ref([]);
 
-// Handler for file selection
 const onFileSelected = (event) => {
   const files = Array.from(event.target.files);
   selectedFiles.value.push(...files);
-  console.log('Selected files:', selectedFiles.value);
-
-
+  // console.log('Selected files:', selectedFiles.value);
 };
-
-
 
 const logFormData = (formData) => {
   for (const [key, value] of formData.entries()) {
@@ -663,26 +608,18 @@ const logFormData = (formData) => {
 };
 
 const handleUpload  = async () => {
-
   if (selectedFiles.value.length === 0) {
     console.error('No files selected');
     return;
   }
-
   const formData = new FormData();
-  
-  // Append each file to the FormData object
   selectedFiles.value.forEach(file => {
     formData.append('files[]', file);
-    console.log('Selected files xxx:', file);
+    // console.log('Selected files xxx:', file);
     logFormData(formData);
-    
   });
 
  try {
-
-  console.log('Selected files:', formData);
- 
     await useApiFetch(`/api/materials/parts/parts/`, {
       method: "POST",
       body: formData,
@@ -697,26 +634,19 @@ const handleUpload  = async () => {
         }
       },
     });
-
-    
   } catch (error) {
-   
     toast.add({
       title: "Error",
       description: "Failed to upload files.",
       icon: "i-heroicons-x-circle",
       color: "red",
     });
-    
   }
-
-
 };
 
-
-
-
 </script>
+
+
 
 <template>
   <div class="vl-parent">
@@ -728,11 +658,11 @@ const handleUpload  = async () => {
       loader="dots"
     />
   </div>
-  <template v-if="!props.isModal && !customerExist">
+  <template v-if="!props.isModal && !partsExist">
     <CommonNotFound
-      :name="'Customer not found'"
-      :message="'The customer you are looking for does not exist'"
-      :to="'/customers/customers/list'"
+      :name="'Parts not found!'"
+      :message="'The parts you are looking for does not exist!'"
+      :to="'/materials/parts'"
     />
   </template>
   <template v-else>
@@ -741,638 +671,601 @@ const handleUpload  = async () => {
       class="space-y-4"
       @submit="onSubmit"
     >
-    <div class="gmsBlueTitlebar pl-2 h-6">
-  <label class="text-white font-bold">Part Information</label>
-</div>
-<div class="overflow-auto">
-
-
-
-
-
-
-
-      <div>
+      <div class="gmsBlueTitlebar pl-2 h-6">
+        <label class="text-white font-bold">Part Information</label>
+      </div>
+      
+      <div class="overflow-auto">
         <div>
-          <div class="flex flex-row space-x-5">
-            <div class="basis-1/5">
-              <UFormGroup label="Category" name="fname">
-                <UInputMenu
-                  v-model="formData.PARTTYPE"
-                  placeholder="Category"
-                  :options="category"
-                />
-              </UFormGroup>
+          <div>
+            <div class="flex flex-row space-x-5">
+              <div class="basis-1/5">
+                <UFormGroup label="Category" name="fname">
+                  <UInputMenu
+                    v-model="formData.PARTTYPE"
+                    placeholder="Category"
+                    :options="category"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/5">
+                <UFormGroup label="Sub Category" name="lname">
+                  <UInputMenu
+                    v-model="formData.SUBCATEGORY"
+                    placeholder="Sub Category"
+                    :options="subCategory"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/5">
+                <UFormGroup label="Stock Number" name="title">
+                  <UInput
+                    v-model="formData.STOCKNUMBER"
+                    placeholder="Stock Number"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/5">
+                <UFormGroup label="Inspection" name="position">
+                  <UInputMenu
+                    v-model="formData.InspectionLevel"
+                    placeholder="Inspection"
+                    :options="insepctionList"
+                  />
+                </UFormGroup>
+              </div>
             </div>
 
-            <div class="basis-1/5">
-              <UFormGroup label="Sub Category" name="lname">
-                <UInputMenu
-                  v-model="formData.SUBCATEGORY"
-                  placeholder="Sub Category"
-                  :options="subCategory"
-                />
-              </UFormGroup>
+            <div class="flex flex-row space-x-3">
+              <div class="basis-1/5">
+                <UFormGroup label="Order Unit" name="market">
+                  <UInputMenu v-model="formData.UNIT" :options="partUnit" />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/5">
+                <UFormGroup label="Multiple" name="number">
+                  <UInput v-model="formData.MULTIPLE" placeholder="" />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/5">
+                <UFormGroup label="Inventory Unit" name="profession">
+                  <UInputMenu
+                    v-model="formData.InventoryUnit"
+                    :options="partUnit"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/5">
+                <UFormGroup label="Account#" name="Account">
+                  <UInputMenu
+                    v-model="formData.AccountNumber"
+                    :options="accountList"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/5">
+                <UFormGroup label="Description" name="Description">
+                  <UInput
+                    v-model="formData.DESCRIPTION"
+                    :options="insepctionList"
+                  />
+                </UFormGroup>
+              </div>
             </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Stock Number" name="title">
-                <UInput
-                  v-model="formData.STOCKNUMBER"
-                  placeholder="Stock Number"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Inspection" name="position">
-                <UInputMenu
-                  v-model="formData.InspectionLevel"
-                  placeholder="Inspection"
-                  :options="insepctionList"
-                />
-              </UFormGroup>
-            </div>
-          </div>
 
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/5">
-              <UFormGroup label="Order Unit" name="market">
-                <UInputMenu v-model="formData.UNIT" :options="partUnit" />
-              </UFormGroup>
+            <div class="flex flex-row space-x-3">
+              <div class="basis-1/5">
+                <UFormGroup label="Order Cost" name="Order Cost">
+                  <UInput v-model="formData.ORDERCOST" />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/5">
+                <UFormGroup label="Inventory Cost" name="Inventory Cost">
+                  <UInput v-model="formData.InventoryCost"  placeholder="" />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/5">
+                <UFormGroup label="Selling Price" name="Selling Price">
+                  <UInput v-model="formData.SELLINGPRICE" />
+                </UFormGroup>
+              </div>
+              <div class="basis-2/5">
+                <UFormGroup label="Specification" name="Account">
+                  <UInput v-model="formData.SPECIFICATIONS" />
+                </UFormGroup>
+              </div>
             </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Multiple" name="number">
-                <UInput v-model="formData.MULTIPLE" placeholder="" />
-              </UFormGroup>
+            <div class="flex flex-row space-x-5">
+              <div class="basis-1.2/5">
+                <UFormGroup label="Drawing/Mannul" name="SPECSHEET">
+                  <input
+                    type="file"
+                    @change="(e) => handleFileChange(e, 0)"
+                    accept="application/pdf"
+                    class="block w-full"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1.2/5">
+                <UFormGroup label="PDS" name="PDS">
+                  <input          
+                    type="file"
+                    @change="(e) => handleFileChange(e, 1)"
+                    accept="application/pdf"
+                    class="block w-full"
+                  />
+                </UFormGroup>
+              </div>
+              <div class="basis-1.2/5">
+                <UFormGroup label="sds" name="sds">
+                  <input
+                    type="file"
+                    @change="(e) => handleFileChange(e, 2)"
+                    accept="application/pdf"
+                    class="block w-full"
+                  />
+                </UFormGroup>
+              </div>
             </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Inventory Unit" name="profession">
-                <UInputMenu
-                  v-model="formData.InventoryUnit"
-                  :options="partUnit"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Account#" name="Account">
-                <UInputMenu
-                  v-model="formData.AccountNumber"
-                  :options="accountList"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Description" name="Description">
-                <UInput
-                  v-model="formData.DESCRIPTION"
-                  :options="insepctionList"
-                />
-              </UFormGroup>
-            </div>
-          </div>
-
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/5">
-              <UFormGroup label="Order Cost" name="Order Cost">
-                <UInput v-model="formData.ORDERCOST" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Inventory Cost" name="Inventory Cost">
-                <UInput v-model="formData.InventoryCost"  placeholder="" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Selling Price" name="Selling Price">
-                <UInput v-model="formData.SELLINGPRICE" />
-              </UFormGroup>
-            </div>
-            <div class="basis-2/5">
-              <UFormGroup label="Specification" name="Account">
-                <UInput v-model="formData.SPECIFICATIONS" />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="flex flex-row space-x-5">
-            <div class="basis-1.2/5">
-              <UFormGroup label="Drawing/Mannul" name="SPECSHEET">
-              <input
-           
-           type="file"
-           @change="(e) => handleFileChange(e, 0)"
-           
-           accept="application/pdf"
-           class="block w-full"
-         />
-        </UFormGroup>
-    </div>
-    <div class="basis-1.2/5">
-      <UFormGroup label="PDS" name="PDS">
-
-      <input
-           
-            type="file"
-            @change="(e) => handleFileChange(e, 1)"
-            accept="application/pdf"
-            class="block w-full"
-          />
-        </UFormGroup>
         
-    </div>
-    <div class="basis-1.2/5">
-      <UFormGroup label="sds" name="sds">
-      <input
-           
-           type="file"
-           @change="(e) => handleFileChange(e, 2)"
-           accept="application/pdf"
-           class="block w-full"
-         />
-        </UFormGroup>
 
-    </div>
- 
-          </div>
-       
-
-          <div class="gmsBlueTitlebar mt-3 ">
-            <div class=" pl-2 text-white font-bold">Primary Vendor</div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-3 mt-2">
-            <!-- First Grid Section -->
-            <div class="grid grid-cols-2 gap-5">
-              <div class="col-span-2">
-                <UFormGroup label="Manufacturer" name="Manufacturer">
-                  <UInputMenu
-                    v-model="formData.PRIMARYMANTXT"
-                    :options="vendorList"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="col-span-1">
-                <UFormGroup label="Dealer" name="Dealer">
-                  <UInputMenu
-                    v-model="formData.PRIMARYDEATXT"
-                    :options="vendorList"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="col-span-1">
-                <UFormGroup label="Lead Time" name="Lead Time">
-                  <UInput placeholder="1" v-model="formData.PRIMARYLEADTIME" />
-                </UFormGroup>
-              </div>
-              <div class="col-span-2">
-                <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
-                  <UInput />
-                </UFormGroup>
-              </div>
-            </div>
-            <!-- Second Grid Section -->
-            <div class="grid grid-cols-1 gap-5">
-              <div>
-                <UFormGroup label="Part Number" name="Part Number">
-                  <UInput v-Model="formData.PRIMARYMANNUM" placeholder="" />
-                </UFormGroup>
-              </div>
-              <div>
-                <UFormGroup label="Part Number" name="Part Number">
-                  <UInput v-model="formData.PRIMARYDEANUM" placeholder="1" />
-                </UFormGroup>
-              </div>
-              <div>
-                <UFormGroup label="UL Number" name="UL Number">
-                  <UInput v-model="formData.PRIMARYUL" />
-                </UFormGroup>
-              </div>
+            <div class="gmsBlueTitlebar mt-3 ">
+              <div class=" pl-2 text-white font-bold">Primary Vendor</div>
             </div>
 
-           <div class="col-span-1 grid grid-cols-2 gap-2">
-            <!-- <div class="flex flex-row w-full space-x-2"> -->
-              <div class="grid grid-cols-1 gap-1">
-                <div class="text-center">Qty</div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYQTY1" />
+            <div class="grid grid-cols-3 gap-3 mt-2">
+              <!-- First Grid Section -->
+              <div class="grid grid-cols-2 gap-5">
+                <div class="col-span-2">
+                  <UFormGroup label="Manufacturer" name="Manufacturer">
+                    <UInputMenu
+                      v-model="formData.PRIMARYMANTXT"
+                      :options="vendorList"
+                    />
                   </UFormGroup>
                 </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYQTY2" />
+                <div class="col-span-1">
+                  <UFormGroup label="Dealer" name="Dealer">
+                    <UInputMenu
+                      v-model="formData.PRIMARYDEATXT"
+                      :options="vendorList"
+                    />
                   </UFormGroup>
                 </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYQTY3" />
+                <div class="col-span-1">
+                  <UFormGroup label="Lead Time" name="Lead Time">
+                    <UInput placeholder="1" v-model="formData.PRIMARYLEADTIME" />
                   </UFormGroup>
                 </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYQTY4" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYQTY5" />
+                <div class="col-span-2">
+                  <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
+                    <UInput />
                   </UFormGroup>
                 </div>
               </div>
               <!-- Second Grid Section -->
-              <div class="grid grid-cols-1">
-                <div class=" text-center">Price</div>
+              <div class="grid grid-cols-1 gap-5">
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYPRICE1" />
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput v-Model="formData.PRIMARYMANNUM" placeholder="" />
                   </UFormGroup>
                 </div>
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYPRICE2" />
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput v-model="formData.PRIMARYDEANUM" placeholder="1" />
                   </UFormGroup>
                 </div>
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYPRICE3" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYPRICE4" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYPRICE5" />
+                  <UFormGroup label="UL Number" name="UL Number">
+                    <UInput v-model="formData.PRIMARYUL" />
                   </UFormGroup>
                 </div>
               </div>
-            </div>
-           <!-- </div> -->
 
+              <div class="col-span-1 grid grid-cols-2 gap-2">
+              <!-- <div class="flex flex-row w-full space-x-2"> -->
+                <div class="grid grid-cols-1 gap-1">
+                  <div class="text-center">Qty</div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.PRIMARYQTY1" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.PRIMARYQTY2" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.PRIMARYQTY3" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.PRIMARYQTY4" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.PRIMARYQTY5" />
+                    </UFormGroup>
+                  </div>
+                </div>
+                <!-- Second Grid Section -->
+                <div class="grid grid-cols-1">
+                  <div class=" text-center">Price</div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.PRIMARYPRICE1" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.PRIMARYPRICE2" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.PRIMARYPRICE3" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.PRIMARYPRICE4" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.PRIMARYPRICE5" />
+                    </UFormGroup>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <div></div>
         </div>
 
-        <div></div>
-      </div>
-
-      <div class="flex flex-row  mt-[30px]">
-
-     
-         <div class="basis-1/2 gmsBlueTitlebar">
+        <div class="flex flex-row  mt-[30px]">
+          <div class="basis-1/2 gmsBlueTitlebar">
             <div class="pl-2  text-white font-bold">Alternative Vendor #1</div>
           </div>
-<div class="basis-1/2 ml-2  gmsBlueTitlebar">
+          <div class="basis-1/2 ml-2  gmsBlueTitlebar">
+            <div class=" text-white pl-2 font-bold">Alternative Vendor #2</div>
+          </div>
+        </div>
 
-  <div class=" text-white pl-2 font-bold">Alternative Vendor #2</div>
-  </div>
-      </div>
-
-      <div class="flex flex-row space-x-5 mt-2">
-        <div class="basis-1/2">
-          <!-- Shipping Information -->
-          <div class="flex flex-row space-x-5 ">
-            <!-- First Grid Section -->
-            <div class="grid grid-cols-1 gap-5">
-              <div>
-                <UFormGroup label="Manufacturer" name="Manufacturer">
-                  <UInputMenu
-                    v-model="formData.ALTER1MANTXT"
-                    :options="vendorList"
-                  />
-
-
-
-                </UFormGroup>
-              </div>
-              <div>
-                <UFormGroup label="Dealer" name="Dealer">
-        
-                  <UInputMenu
-                    v-model="formData.ALTER1DEATXT"
-                    :options="vendorList"
-                  />
-
-                </UFormGroup>
-              </div>
-              <div>
-                <UFormGroup label="Lead Time" name="Lead Time">
-                  <UInput placeholder="1" v-model="formData.ALTER1LEADTIME" />
-                </UFormGroup>
-              </div>
-            </div>
-            <!-- Second Grid Section -->
-            <div class="grid grid-cols-1 gap-5">
-              <div>
-                <UFormGroup label="Part Number" name="Part Number">
-                  <UInput placeholder="" v-model="formData.ALTER1MANNUM" />
-                </UFormGroup>
-              </div>
-              <div>
-                <UFormGroup label="Part Number" name="Part Number">
-                  <UInput placeholder="1" v-model="formData.ALTER1DEANUM" />
-                </UFormGroup>
-              </div>
-              <div>
-                <UFormGroup label="UL Number" name="UL Number">
-                  <UInput placeholder="14.56" />
-                </UFormGroup>
-              </div>
-            </div>
-
-            <div class="flex flex-row space-x-2">
-              <div class="grid grid-cols-1 gap-1">
-                <div class="basis-1/2 text-center">Qty</div>
+        <div class="flex flex-row space-x-5 mt-2">
+          <div class="basis-1/2">
+            <!-- Shipping Information -->
+            <div class="flex flex-row space-x-5 ">
+              <!-- First Grid Section -->
+              <div class="grid grid-cols-1 gap-5">
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER1QTY1" />
+                  <UFormGroup label="Manufacturer" name="Manufacturer">
+                    <UInputMenu
+                      v-model="formData.ALTER1MANTXT"
+                      :options="vendorList"
+                    />
                   </UFormGroup>
                 </div>
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER1QTY2" />
+                  <UFormGroup label="Dealer" name="Dealer">
+                    <UInputMenu
+                      v-model="formData.ALTER1DEATXT"
+                      :options="vendorList"
+                    />
                   </UFormGroup>
                 </div>
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER1QTY3" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER1QTY4" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER1QTY5" />
+                  <UFormGroup label="Lead Time" name="Lead Time">
+                    <UInput placeholder="1" v-model="formData.ALTER1LEADTIME" />
                   </UFormGroup>
                 </div>
               </div>
               <!-- Second Grid Section -->
-              <div class="grid grid-cols-1">
-                <div class="basis-1/2 text-center">Price</div>
+              <div class="grid grid-cols-1 gap-5">
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER1PRICE1" />
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput placeholder="" v-model="formData.ALTER1MANNUM" />
                   </UFormGroup>
                 </div>
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER1PRICE2" />
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput placeholder="1" v-model="formData.ALTER1DEANUM" />
                   </UFormGroup>
                 </div>
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER1PRICE3" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER1PRICE4" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER1PRICE5" />
+                  <UFormGroup label="UL Number" name="UL Number">
+                    <UInput placeholder="14.56" />
                   </UFormGroup>
                 </div>
               </div>
-            </div>
 
-            <div class="grid grid-cols-1 gap-5">
-              <div>
-                <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
-                  <UInput />
-                </UFormGroup>
+              <div class="flex flex-row space-x-2">
+                <div class="grid grid-cols-1 gap-1">
+                  <div class="basis-1/2 text-center">Qty</div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER1QTY1" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER1QTY2" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER1QTY3" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER1QTY4" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER1QTY5" />
+                    </UFormGroup>
+                  </div>
+                </div>
+                <!-- Second Grid Section -->
+                <div class="grid grid-cols-1">
+                  <div class="basis-1/2 text-center">Price</div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER1PRICE1" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER1PRICE2" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER1PRICE3" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER1PRICE4" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER1PRICE5" />
+                    </UFormGroup>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 gap-5">
+                <div>
+                  <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
+                    <UInput />
+                  </UFormGroup>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="basis-1/2">
-          <!-- Billing Information -->
-          <div class="flex flex-row space-x-5 ">
-            <!-- First Grid Section -->
-            <div class="grid grid-cols-1 gap-5">
-              <div>
-                <UFormGroup label="Manufacturer" name="Manufacturer">
-               
-                  <UInputMenu
-                    placeholder="Garmin"
-                    v-model="formData.ALTER2MANTXT"
-                     :options="vendorList"
-                  />
-                </UFormGroup>
-              </div>
-              <div>
-                <UFormGroup label="Dealer" name="Dealer">
-                 
-                  <UInputMenu
-                  :options="vendorList"
-                 
-                    v-model="formData.ALTER2DEATXT"
-                  />
-                </UFormGroup>
-              </div>
-              <div>
-                <UFormGroup label="Lead Time" name="Lead Time">
-                  <UInput placeholder="1" v-model="formData.ALTER2LEADTIME" />
-                </UFormGroup>
-              </div>
-            </div>
-            <!-- Second Grid Section -->
-            <div class="grid grid-cols-1 gap-5">
-              <div>
-                <UFormGroup label="Part Number" name="Part Number">
-                  <UInput placeholder="" v-model="formData.ALTER2MANNUM" />
-                </UFormGroup>
-              </div>
-              <div>
-                <UFormGroup label="Part Number" name="Part Number">
-                  <UInput placeholder="1" v-model="formData.ALTER2DEANUM" />
-                </UFormGroup>
-              </div>
-              <div>
-                <UFormGroup label="UL Number" name="UL Number">
-                  <UInput placeholder="14.56" v-model="formData.ALTER2UL" />
-                </UFormGroup>
-              </div>
-            </div>
-
-            <div class="flex flex-row space-x-2">
-              <div class="grid grid-cols-1 gap-1">
-                <div class="basis-1/2 text-center">Qty</div>
+          <div class="basis-1/2">
+            <!-- Billing Information -->
+            <div class="flex flex-row space-x-5 ">
+              <!-- First Grid Section -->
+              <div class="grid grid-cols-1 gap-5">
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER2QTY1" />
+                  <UFormGroup label="Manufacturer" name="Manufacturer">
+                    <UInputMenu
+                      placeholder="Garmin"
+                      v-model="formData.ALTER2MANTXT"
+                      :options="vendorList"
+                    />
                   </UFormGroup>
                 </div>
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER2QTY2" />
+                  <UFormGroup label="Dealer" name="Dealer">
+                    <UInputMenu
+                    :options="vendorList"
+                  
+                      v-model="formData.ALTER2DEATXT"
+                    />
                   </UFormGroup>
                 </div>
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER2QTY3" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER2QTY3" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER2QTY4" />
+                  <UFormGroup label="Lead Time" name="Lead Time">
+                    <UInput placeholder="1" v-model="formData.ALTER2LEADTIME" />
                   </UFormGroup>
                 </div>
               </div>
               <!-- Second Grid Section -->
-              <div class="grid grid-cols-1">
-                <div class="basis-1/2 text-center">Price</div>
+              <div class="grid grid-cols-1 gap-5">
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER2PRICE1" />
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput placeholder="" v-model="formData.ALTER2MANNUM" />
                   </UFormGroup>
                 </div>
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER2PRICE2" />
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput placeholder="1" v-model="formData.ALTER2DEANUM" />
                   </UFormGroup>
                 </div>
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER2PRICE3" />
+                  <UFormGroup label="UL Number" name="UL Number">
+                    <UInput placeholder="14.56" v-model="formData.ALTER2UL" />
                   </UFormGroup>
                 </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER2PRICE4" />
-                  </UFormGroup>
+              </div>
+
+              <div class="flex flex-row space-x-2">
+                <div class="grid grid-cols-1 gap-1">
+                  <div class="basis-1/2 text-center">Qty</div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER2QTY1" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER2QTY2" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER2QTY3" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER2QTY3" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER2QTY4" />
+                    </UFormGroup>
+                  </div>
                 </div>
+                <!-- Second Grid Section -->
+                <div class="grid grid-cols-1">
+                  <div class="basis-1/2 text-center">Price</div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER2PRICE1" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER2PRICE2" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER2PRICE3" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER2PRICE4" />
+                    </UFormGroup>
+                  </div>
+                  <div>
+                    <UFormGroup>
+                      <UInput v-model="formData.ALTER2PRICE5" />
+                    </UFormGroup>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 gap-5">
                 <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.ALTER2PRICE5" />
+                  <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
+                    <UInput />
                   </UFormGroup>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div class="grid grid-cols-1 gap-5">
-              <div>
-                <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
-                  <UInput />
-                </UFormGroup>
-              </div>
+        <div class="gmsBlueTitlebar mt-4 ">
+          <div class=" pl-2 text-white font-bold">Inventory</div>
+        </div>
+
+        <div class="flex flex-row space-x-3 ">
+          <!-- Left Side - Job Details Table -->
+          <div class="basis-1/3 h-96 overflow-auto">
+            <UTable :rows="jobDetails" :columns="jobDetailsColumns" />
+          </div>
+
+          <!-- Middle - Comments Textarea -->
+          <div class="basis-1/3">
+            <UFormGroup label="Comments" name="Comments">
+              <UTextarea class="w-full h-full" :rows="18" />
+            </UFormGroup>
+          </div>
+
+          <!-- Right Side - PO Details Table -->
+          <div class="basis-1/3">
+            <UTable :rows="poDetails" :columns="poDetailsColumns" class="h-96 w-full" />
+          </div>
+        </div>
+
+        <!-- Right Side - Inputs and People Table -->
+        <div class="flex flex-row   p-3">
+          <div class="space-y-2 mr-2 mt-4  basis-1/2">
+            <div class="flex items-center space-x-2">
+              <label>On Order</label>
+              <UInput class="flex-1" />
+            </div>
+            <div class="flex items-center space-x-2">
+              <label>On Hand</label>
+              <UInput class="flex-1" v-model="formData.OnHand" />
+            </div>
+            <div class="flex items-center space-x-2">
+              <label>Required</label>
+              <UInput class="flex-1" />
+            </div>
+            <div class="flex items-center space-x-2">
+              <label>Available</label>
+              <UInput class="flex-1" />
+            </div>
+            <div class="flex items-center space-x-2">
+              <label>Minimum</label>
+              <UInput class="flex-1" v-model="formData.minimum" />
             </div>
           </div>
-        </div>
-      </div>
 
-      
-      <div class="gmsBlueTitlebar mt-4 ">
-            <div class=" pl-2 text-white font-bold">Inventory</div>
+          <div class="ml-4 basis-1/2">
+            <UTable :rows="workplaces" :columns="workplacesColumns" class="h-48 w-full" />
+          </div>
+        </div>
+
+        <div class="space-x-3 mt-6">
+          <!-- Left Side - Inventory Transactions Table -->
+          <div class="gmsBlueTitlebar  ">
+            <div class=" pl-2 text-white font-bold">Inventory Transactions</div>
+          </div>
+          <div class="basis-1/2 h-96 overflow-auto">
+            <UTable :columns="InventoryTransactionsColumns" :rows="InventoryTransactions" />
+          </div>
+        </div>
+
+        <div class="gmsBlueTitlebar mt-4 ">
+          <div class=" pl-2 text-white font-bold">Revision History</div>
+        </div>
+        <div class="flex flex-row space-x-3">
+          <!-- Left Side - Revisions Table -->
+          <div class="basis-1/2 h-32 overflow-auto">
+            <UTable :columns="revisionsColumns" :rows="revisions" />
           </div>
 
-<div class="flex flex-row space-x-3 ">
-  <!-- Left Side - Job Details Table -->
-  <div class="basis-1/3 h-96 overflow-auto">
-    <UTable :rows="jobDetails" :columns="jobDetailsColumns" />
-  </div>
+          <!-- Right Side - Revised By Input -->
+          <div class=basis-1/2> 
+            <UFormGroup label="Revised By" name="fname" class="basis-1/2">
+              <UInputMenu placeholder="Revised By" />
+            </UFormGroup>
 
-  <!-- Middle - Comments Textarea -->
-  <div class="basis-1/3">
-    <UFormGroup label="Comments" name="Comments">
-      <UTextarea class="w-full h-full" :rows="18" />
-    </UFormGroup>
-  </div>
-
-  <!-- Right Side - PO Details Table -->
-  <div class="basis-1/3">
-    <UTable :rows="poDetails" :columns="poDetailsColumns" class="h-96 w-full" />
-  </div>
-</div>
-  <!-- Right Side - Inputs and People Table -->
-  <div class="flex flex-row   p-3">
-    <div class="space-y-2 mr-2 mt-4  basis-1/2">
-      <div class="flex items-center space-x-2">
-        <label>On Order</label>
-        <UInput class="flex-1" />
-      </div>
-      <div class="flex items-center space-x-2">
-        <label>On Hand</label>
-        <UInput class="flex-1" v-model="formData.OnHand" />
-      </div>
-      <div class="flex items-center space-x-2">
-        <label>Required</label>
-        <UInput class="flex-1" />
-      </div>
-      <div class="flex items-center space-x-2">
-        <label>Available</label>
-        <UInput class="flex-1" />
-      </div>
-      <div class="flex items-center space-x-2">
-        <label>Minimum</label>
-        <UInput class="flex-1" v-model="formData.minimum" />
-      </div>
-    </div>
-
-    <div class="ml-4 basis-1/2">
-      <UTable :rows="workplaces" :columns="workplacesColumns" class="h-48 w-full" />
-    </div>
-  </div>
-
-
-
-<div class="space-x-3 mt-6">
-  <!-- Left Side - Inventory Transactions Table -->
-
-  <div class="gmsBlueTitlebar  ">
-          <div class=" pl-2 text-white font-bold">Inventory Transactions</div>
-        </div>
-  <div class="basis-1/2 h-96 overflow-auto">
-    <UTable :columns="InventoryTransactionsColumns" :rows="InventoryTransactions" />
-  </div>
-
-
-
-
-</div>
-<div class="gmsBlueTitlebar mt-4 ">
-            <div class=" pl-2 text-white font-bold">Revision History</div>
+            <UFormGroup  class="basis-1/2 mt-2 ">
+              <UButton 
+                color="cyan" 
+                :disabled="props.selectedPartInstace==null" 
+                variant="outline" 
+                @click="revision" 
+                label="Revision" 
+              />
+            </UFormGroup>
           </div>
-<div class="flex flex-row space-x-3">
-  <!-- Left Side - Revisions Table -->
-  <div class="basis-1/2 h-32 overflow-auto">
-    <UTable :columns="revisionsColumns" :rows="revisions" />
-  </div>
+        </div>
 
-  <!-- Right Side - Revised By Input -->
-   <div class=basis-1/2> 
-     <UFormGroup label="Revised By" name="fname" class="basis-1/2">
-       <UInputMenu placeholder="Revised By" />
-     </UFormGroup>
-     <UFormGroup  class="basis-1/2 mt-2 ">
-      <UButton 
-  color="cyan" 
-  :disabled="props.selectedPartInstace==null" 
-  variant="outline" 
-  @click="revision" 
-  label="Revision" 
-  
-/>
-
-     </UFormGroup>
-    </div>
-
-</div>
-
-
-      <div class="flex justify-end gap-3">
-      
-        <UButton color="cyan" variant="outline" type="submit" label="Save" />
+        <div class="flex justify-end gap-3">
+          <UButton color="cyan" variant="outline" type="submit" label="Save" />
+        </div>
       </div>
-    </div>
     </UForm> 
   </template>
 </template>

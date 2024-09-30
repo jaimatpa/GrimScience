@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import PartsForm from "~/components/materials/Parts/PartsForm.vue";
 import type { UTableColumn } from "~/types";
 
 onMounted(() => {
@@ -26,7 +27,7 @@ const headerFilters = ref({
     label: "Sub Catagory",
     filter: "SUBCATEGORY",
     options: [],
-  }
+  },
 });
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -72,14 +73,24 @@ const gridMeta = ref({
       sortDirection: "none",
       filterable: true,
     },
+    {
+      key: "edit",
+      label: "Edit",
+      kind: "actions",
+    },
+    {
+      key: "delete",
+      label: "Delete",
+      kind: "actions",
+    },
   ],
   page: 1,
   pageSize: 50,
-  numberOfCustomers: 0,
-  customers: [],
-  selectedCustomerId: null,
-  selectedPartInstanceId:null,
-  selectedPartModdel:null,
+  numberOfParts: 0,
+  partsList: [],
+  selectedPartsId: null,
+  selectedPartInstanceId: null,
+  selectedPartModdel: null,
   sort: {
     column: "UniqueID",
     direction: "asc",
@@ -100,7 +111,7 @@ const filterValues = ref({
   DESCRIPTION: null,
   OnHand: null,
   ETLCriticalComponent: null,
-  MODEL:null
+  MODEL: null,
 });
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
@@ -131,7 +142,7 @@ const init = async () => {
   fetchGridData();
   for (const key in headerFilters.value) {
     const apiURL = headerFilters.value[key]?.api ?? `/api/materials/${key}`;
-    console.log("Api url is", apiURL);
+
     await useApiFetch(apiURL, {
       method: "GET",
       onResponse({ response }) {
@@ -152,25 +163,24 @@ const fetchGridData = async () => {
     },
     onResponse({ response }) {
       if (response.status === 200) {
-        gridMeta.value.numberOfCustomers = response._data.body;
+        gridMeta.value.numberOfParts = response._data.body;
       }
     },
   });
-  if (gridMeta.value.numberOfCustomers === 0) {
-    gridMeta.value.customers = [];
-    gridMeta.value.numberOfCustomers = 0;
+  if (gridMeta.value.numberOfParts === 0) {
+    gridMeta.value.partsList = [];
+    gridMeta.value.numberOfParts = 0;
     gridMeta.value.isLoading = false;
     return;
   }
   if (
     gridMeta.value.page * gridMeta.value.pageSize >
-    gridMeta.value.numberOfCustomers
+    gridMeta.value.numberOfParts
   ) {
     gridMeta.value.page =
-      Math.ceil(gridMeta.value.numberOfCustomers / gridMeta.value.pageSize) | 1;
+      Math.ceil(gridMeta.value.numberOfParts / gridMeta.value.pageSize) | 1;
   }
 
- console.log('filter value is',filterValues);
   await useApiFetch("/api/materials/parts/parts", {
     method: "GET",
     params: {
@@ -182,31 +192,31 @@ const fetchGridData = async () => {
     },
     onResponse({ response }) {
       if (response.status === 200) {
-        gridMeta.value.customers = response._data.body;
-        console.log("parts are:",gridMeta.value.customers);
+        console.log("response._data.body", response._data.body);
+
+        gridMeta.value.partsList = response._data.body;
       }
       gridMeta.value.isLoading = false;
     },
   });
 };
+
 const onCreate = () => {
-  gridMeta.value.selectedCustomerId = null;
-  modalMeta.value.modalTitle = "New Parts";
+  gridMeta.value.selectedPartsId = null;
+  modalMeta.value.modalTitle = "Add New Parts";
   modalMeta.value.isCustomerModalOpen = true;
   gridMeta.value.selectedPartInstanceId = null;
-  gridMeta.value.selectedPartModdel=null;
-
-
+  gridMeta.value.selectedPartModdel = null;
 };
+
 const onEdit = (row) => {
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-  modalMeta.value.modalTitle = "Edit";
+  gridMeta.value.selectedPartsId = row?.UniqueID;
+  modalMeta.value.modalTitle = "Edit Parts";
   modalMeta.value.isCustomerModalOpen = true;
 };
 
-
 const onDelete = async (row: any) => {
-  await useApiFetch(`/api/customers/${row?.UniqueID}`, {
+  await useApiFetch(`/api/materials/parts/parts/${row?.UniqueID}`, {
     method: "DELETE",
     onResponse({ response }) {
       if (response.status === 200) {
@@ -221,9 +231,9 @@ const onDelete = async (row: any) => {
     },
   });
 };
+
 const handleModalClose = () => {
-  console.log("it's coming modal")
-  modalMeta.value.isCustomerModalOpen=false;
+  modalMeta.value.isCustomerModalOpen = false;
 };
 const handleModalSave = async () => {
   handleModalClose();
@@ -291,13 +301,12 @@ const excelExport = async () => {
   exportIsLoading.value = false;
 };
 const onSelect = async (row) => {
-  console.log("row is in there",row);
-  gridMeta.value.selectedCustomerId = row?.UniqueID;
-  gridMeta.value.selectedPartInstanceId=row?.instanceID;
-  gridMeta.value.selectedPartModdel=row?.MODEL;
+  gridMeta.value.selectedPartsId = row?.UniqueID;
+  gridMeta.value.selectedPartInstanceId = row?.instanceID;
+  gridMeta.value.selectedPartModdel = row?.MODEL;
 };
 const onDblClick = async () => {
-  if (gridMeta.value.selectedCustomerId) {
+  if (gridMeta.value.selectedPartsId) {
     modalMeta.value.modalTitle = "Edit";
     modalMeta.value.isCustomerModalOpen = true;
   }
@@ -332,7 +341,6 @@ const onDblClick = async () => {
                 </div>
               </template>
             </template>
-         
           </div>
         </template>
         <template #right>
@@ -359,7 +367,7 @@ const onDblClick = async () => {
         <h2>Lookup</h2>
       </div>
       <UTable
-        :rows="gridMeta.customers"
+        :rows="gridMeta.partsList"
         :columns="columns"
         :loading="gridMeta.isLoading"
         class="w-full"
@@ -408,9 +416,6 @@ const onDblClick = async () => {
             </div>
           </template>
         </template>
-  
-    
-
 
         <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
@@ -438,7 +443,7 @@ const onDblClick = async () => {
           <UPagination
             :max="7"
             :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfCustomers | 0"
+            :total="gridMeta.numberOfParts | 0"
             v-model="gridMeta.page"
             @update:model-value="handlePageChange()"
           />
@@ -446,6 +451,7 @@ const onDblClick = async () => {
       </div>
     </UDashboardPanel>
   </UDashboardPage>
+
   <!-- New Customer Detail Modal -->
   <UDashboardModal
     v-model="modalMeta.isCustomerModalOpen"
@@ -460,15 +466,14 @@ const onDblClick = async () => {
       width: 'w-[1800px] sm:max-w-9xl',
     }"
   >
-    <MaterialsPartsForm
+    <PartsForm
       @close="handleModalClose"
       @save="handleModalSave"
-      :selected-customer="gridMeta.selectedCustomerId"
-      :selectedPartInstace ="gridMeta.selectedPartInstanceId"
+      :selected-parts="gridMeta.selectedPartsId"
+      :selectedPartInstace="gridMeta.selectedPartInstanceId"
       :is-modal="true"
       :selectedPartModel="gridMeta.selectedPartModdel"
     />
   </UDashboardModal>
- 
 </template>
 <style scoped></style>
