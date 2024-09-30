@@ -358,18 +358,12 @@ const onDelete = async (row: any) => {
     <UDashboardPanel grow>
       <UDashboardToolbar>
         <template #left>
-          <template
-            v-for="[key, value] in Object.entries(headerFilters)"
-            :key="key"
-          >
+          <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
             <!-- <template v-if="value.options.length > 1"> -->
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup :label="value.label" :name="key">
-                <USelect
-                  v-model="filterValues[`${value.filter}`]"
-                  :options="value.options"
-                  @change="handleFilterChange()"
-                />
+                <USelect v-model="filterValues[`${value.filter}`]" :options="value.options"
+                  @change="handleFilterChange()" />
               </UFormGroup>
             </div>
             <!-- </template> -->
@@ -386,57 +380,35 @@ const onDelete = async (row: any) => {
           </div>
         </template>
         <template #right>
-          <UButton
-            label="Add New Job"
-            color="gray"
-            trailing-icon="i-heroicons-plus"
-            @click="onCreate()"
-          />
+          <UButton label="Add New Job" color="gray" trailing-icon="i-heroicons-plus" @click="onCreate()" />
         </template>
       </UDashboardToolbar>
 
-      <UTable
-        :rows="gridMeta.organization"
-        :columns="columns"
-        :loading="gridMeta.isLoading"
-        class="w-full"
-        :ui="{
-          divide: 'divide-gray-200 dark:divide-gray-800',
-          th: {
-            base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
-            padding: 'p-0',
-          },
-          td: {
-            padding: 'py-1',
-          },
-        }"
-        :empty-state="{
+      <UTable :rows="gridMeta.organization" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
+        divide: 'divide-gray-200 dark:divide-gray-800',
+        th: {
+          base: 'sticky top-0 z-10',
+          color: 'bg-white dark:text-gray dark:bg-[#111827]',
+          padding: 'p-0',
+        },
+        td: {
+          padding: 'py-1',
+        },
+      }" :empty-state="{
           icon: 'i-heroicons-circle-stack-20-solid',
           label: 'No items.',
-        }"
-        @select="onSelect"
-        @dblclick="onDblClick"
-      >
+        }" @select="onSelect" @dblclick="onDblClick">
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
             <div class="px-4 py-3.5">
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
+              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
                     ? noneIcon
                     : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
-              />
+                      ? ascIcon
+                      : descIcon
+                  " :filterable="column.filterable" :filter-key="column.key" />
             </div>
           </template>
           <template v-else class="bg-slate-400">
@@ -447,53 +419,30 @@ const onDelete = async (row: any) => {
         </template>
         <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-pencil-square"
-              @click="onEdit(row)"
-            />
+            <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
           </UTooltip>
         </template>
         <template #delete-data="{ row }">
           <UTooltip text="Delete" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-trash"
-              @click="onDelete(row)"
-            />
+            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
           </UTooltip>
         </template>
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
-          <UPagination
-            :max="7"
-            :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfOrganization || 0"
-            v-model="gridMeta.page"
-            @update:model-value="handlePageChange()"
-          />
+          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfOrganization || 0"
+            v-model="gridMeta.page" @update:model-value="handlePageChange()" />
         </div>
       </div>
     </UDashboardPanel>
   </UDashboardPage>
 
   <!-- New Organization Detail Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isJobFormModalOpen"
-    :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
-    :ui="{
+  <UDashboardModal v-model="modalMeta.isJobFormModalOpen" :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription" :ui="{
       width: 'w-[1100px] sm:max-w-7xl',
       body: { padding: 'py-0 sm:pt-0' },
-    }"
-  >
-    <JobForm
-      @close="handleModalClose"
-      @save="handleModalSave"
-      :selected-job="gridMeta.selectedJobId"
-    />
+    }">
+    <JobForm @close="handleModalClose" @save="handleModalSave" :selected-job="gridMeta.selectedJobId" />
   </UDashboardModal>
 </template>

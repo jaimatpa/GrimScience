@@ -21,7 +21,6 @@ const descIcon = "i-heroicons-bars-arrow-down-20-solid"
 const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
 const loadingOverlay = ref(false)
-const partsTotalAmount = ref('0.00')
 const formData = reactive({
   uniqueID: null,
   REPAIRSMADE: null,
@@ -31,7 +30,7 @@ const formData = reactive({
   CANO: null,
   COMPLAINTID: props.selectedComplaint,
   Week: null,
-  ServiceStatus: null,
+  ServiceStatus: 'Closed',
   type: 0,
   FactoryHours: null,
   TravelHours: 0,
@@ -81,11 +80,10 @@ const warrantyMaterialGridMeta = ref({
     key: 'DESCRIPTION',
     label: 'Description',
     filterable: true
-  }, 
-  // {
-  //   key: 'OnHand',
-  //   label: 'Current On Hand',
-  // }
+  }, {
+    key: 'OnHand',
+    label: 'Current On Hand',
+  }
   ],
   sort: {
     column: 'UniqueID',
@@ -105,17 +103,16 @@ const selectedWarrantyMaterialGridMeta = ref({
   }, {
     key: 'DESCRIPTION',
     label: 'Description'
-  }, 
-  // {
-  //   key: 'PRIMARYPRICE1',
-  //   label: 'Cost'
-  // }, {
-  //   key: 'UNIT',
-  //   label: 'Unit'
-  // }, {
-  //   key: 'Amount',
-  //   label: 'Amount'
-  // }
+  }, {
+    key: 'PRIMARYPRICE1',
+    label: 'Cost'
+  }, {
+    key: 'UNIT',
+    label: 'Unit'
+  }, {
+    key: 'Amount',
+    label: 'Amount'
+  }
   ],
   warrantyMaterials: [],
   selectedWarrantyMaterial: null,
@@ -140,11 +137,10 @@ const partGridMeta = ref({
     key: 'DESCRIPTION',
     label: 'Description',
     filterable: true
-  }, 
-  // {
-  //   key: 'OnHand',
-  //   label: 'Current On Hand',
-  // }
+  }, {
+    key: 'OnHand',
+    label: 'Current On Hand',
+  }
   ],
   sort: {
     column: 'UniqueID',
@@ -164,20 +160,19 @@ const selectedPartGridMeta = ref({
   }, {
     key: 'DESCRIPTION',
     label: 'Description'
-  }, 
-  // {
-  //   key: 'PRIMARYPRICE1',
-  //   label: 'Cost'
-  // }, {
-  //   key: 'UNIT',
-  //   label: 'Unit'
-  // }, {
-  //   key: 'Amount',
-  //   label: 'Amount'
-  // }, {
-  //   key: 'Nonconformance',
-  //   label: 'NonConformance'
-  // }
+  }, {
+    key: 'PRIMARYPRICE1',
+    label: 'Cost'
+  }, {
+    key: 'UNIT',
+    label: 'Unit'
+  }, {
+    key: 'Amount',
+    label: 'Amount'
+  }, {
+    key: 'Nonconformance',
+    label: 'NonConformance'
+  }
   ],
   parts: [],
   selectedPart: null,
@@ -200,9 +195,10 @@ const partFilterValues = ref({
   MODEL: null,
   DESCRIPTION: null
 })
+const selectedStatus = ref('open')
 const statusGroup = ref([
   { value: 'open', label: 'Open' },
-  { value: 'Closed', label: 'Closed' }
+  { value: 'close', label: 'Closed' }
 ])
 const typeGroup = ref([
   { value: 1, label: 'Factory' },
@@ -244,9 +240,7 @@ const editInit = async () => {
       if (response.status === 200) {
         for (const key in response._data.body[0]) {
           if (response._data.body[0][key] !== undefined) {
-            if (key !== 'DATESHIPPED') {
-              formData[key] = response._data.body[0][key]
-            }
+            formData[key] = response._data.body[0][key]
           }
         }
       }
@@ -291,10 +285,7 @@ const editInit = async () => {
     }
   }
   selectedWarrantyMaterialGridMeta.value.warrantyMaterials = parsedParts
-  warrantyMaterialInfo.value.total = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
   selectedPartGridMeta.value.parts = parsedPartReceived
-  partsTotalAmount.value = selectedPartGridMeta.value.parts.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
-
   await propertiesInit()
 }
 const propertiesInit = async () => {
@@ -329,14 +320,14 @@ const propertiesInit = async () => {
       }
     }
   })
-  if (formData.REPAIRDATE) {
+  if (formData.REPAIRDATE && !formData.Week) {
     formData.REPAIRDATE = new Date(formData.REPAIRDATE)
     formData.Week = `${new Date(formData.REPAIRDATE).getFullYear().toString().substring(2)}-${getWeekNumber(formData.REPAIRDATE)}`
   }
   loadingOverlay.value = false
 }
 const warrantyMaterialFetchGridData = async () => {
-  await useApiFetch(`/api/materials/distinctparts`, {
+  await useApiFetch(`/api/materials/parts`, {
     method: 'GET',
     params: { ...warrantyMaterialFilterValues.value },
     onResponse({ response }) {
@@ -369,7 +360,7 @@ const warrantyMaterialFetchGridData = async () => {
   })
 }
 const partFetchGridData = async () => {
-  await useApiFetch(`/api/materials/distinctparts`, {
+  await useApiFetch(`/api/materials/parts`, {
     method: 'GET',
     params: { ...partFilterValues.value },
     onResponse({ response }) {
@@ -472,7 +463,6 @@ const onAddWarrantyOrMaterial = () => {
         warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1 = 0
       let amount = Math.round(Number.parseFloat(warrantyMaterialGridMeta.value.selectedWarrantyMaterial.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) / 100
       selectedWarrantyMaterialGridMeta.value.warrantyMaterials.push({ ...warrantyMaterialGridMeta.value.selectedWarrantyMaterial, Quantity: addModalMeta.value.quantity, Amount: amount })
-      warrantyMaterialInfo.value.total = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
     }
   } else if (addModalMeta.value.title === 'Part') {
     const index = selectedPartGridMeta.value.parts.findIndex((value) => value?.UniqueID === partGridMeta.value.selectedPart?.UniqueID)
@@ -481,7 +471,6 @@ const onAddWarrantyOrMaterial = () => {
         partGridMeta.value.selectedPart.PRIMARYPRICE1 = 0
       let amount = Math.round(Number.parseFloat(partGridMeta.value.selectedPart.PRIMARYPRICE1) * addModalMeta.value.quantity * 100) / 100
       selectedPartGridMeta.value.parts.push({ ...partGridMeta.value.selectedPart, Quantity: addModalMeta.value.quantity, Amount: amount, Nonconformance: 0 })
-      partsTotalAmount.value = selectedPartGridMeta.value.parts.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
     }
   } else if (addModalMeta.value.title === 'EditWarranty') {
     selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial.Quantity = addModalMeta.value.quantity
@@ -530,16 +519,8 @@ const onSelectedPartDblclick = () => {
 const onRemoveWarranty = () => {
   if (selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial) {
     selectedWarrantyMaterialGridMeta.value.warrantyMaterials = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.filter((item) => item?.UniqueID !== selectedWarrantyMaterialGridMeta.value.selectedWarrantyMaterial?.UniqueID)
-    warrantyMaterialInfo.value.total = selectedWarrantyMaterialGridMeta.value.warrantyMaterials.reduce((sum, item) => sum + parseFloat(item.Amount), 0);
   }
 }
-const onPartsRemoved = () => {
-  if (selectedPartGridMeta.value.selectedPart) {
-    selectedPartGridMeta.value.parts = selectedPartGridMeta.value.parts.filter((item) => item?.UniqueID !== selectedPartGridMeta.value.selectedPart?.UniqueID)
-    partsTotalAmount.value = selectedPartGridMeta.value.parts.reduce((sum, item) => sum + parseFloat(item.Amount), 0).toFixed(2);
-  }
-}
-
 const onNonConformanceBtnClick = () => {
   modalMeta.value.isNonConformanceModalOpen = true
 }
@@ -592,9 +573,6 @@ async function onSubmit(event: FormSubmitEvent<any>) {
   emit('save', event.data)
   emit('close')
 }
-async function onClose() {
-  emit('close')
-}
 watch(() => formData.REPAIRDATE, () => formData.Week = `${new Date(formData.REPAIRDATE).getFullYear().toString().substring(2)}-${getWeekNumber(formData.REPAIRDATE)}`)
 if (props.selectedServiceReport)
   editInit()
@@ -610,14 +588,14 @@ else
   <UForm :validate="validate" :validate-on="['submit']" :state="formData" @submit="onSubmit">
     <div class="flex flex-row">
       <div class="basis-2/3 border-[1px] border-slate-600 border-t-0 border-l-0 border-b-0 pb-2">
-        <div class="w-full px-3 py-1 gmsPurpleTitlebar">
+        <div class="w-full px-3 py-1 bg-slate-400">
           Service Report
         </div>
-        <div class="flex flex-row space-x-4 p-3">
+        <div class="flex flex-row space-x-4 px-2 pr-7 pt-2">
           <div class="basis-2/3 flex flex-col space-y-1">
             <div class="flex flex-row space-x-5">
-              <div class="basis-1/3">
-                <div class="flex flex-row space-x-2 pt-1">
+              <div class="basis-1/2">
+                <div class="flex flex-row space-x-2 px-2 pt-1">
                   <div class="font-medium">
                     Report
                   </div>
@@ -626,40 +604,42 @@ else
                   </div>
                 </div>
               </div>
-
               <div class="basis-1/2">
-                <div class="flex flex-row">
-                  <div class="w-[50px] font-medium flex items-center">
-                    Date
+                <div class="flex flex-row space-x-2">
+                  <div class="basis-1/2">
+                    <div class="flex flex-row">
+                      <div class="w-[50px] font-medium flex items-center">
+                        Date
+                      </div>
+                      <div class="flex-1">
+                        <UPopover :popper="{ placement: 'bottom-start' }">
+                          <UButton icon="i-heroicons-calendar-days-20-solid"
+                            :label="formData.REPAIRDATE && format(formData.REPAIRDATE, 'MM/dd/yyyy')" variant="outline"
+                            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+                          <template #panel="{ close }">
+                            <CommonDatePicker v-model="formData.REPAIRDATE" is-required @close="close" />
+                          </template>
+                        </UPopover>
+                      </div>
+                    </div>
                   </div>
-                  <div class="flex-1">
-                    <UPopover :popper="{ placement: 'bottom-start' }">
-                      <UButton icon="i-heroicons-calendar-days-20-solid"
-                        :label="formData.REPAIRDATE && format(formData.REPAIRDATE, 'MM/dd/yyyy')" variant="outline"
-                        :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
-                      <template #panel="{ close }">
-                        <CommonDatePicker v-model="formData.REPAIRDATE" is-required @close="close" />
-                      </template>
-                    </UPopover>
-                  </div>
-                </div>
-              </div>
-              <div class="basis-1/2">
-                <div class="flex flex-row">
-                  <div class="w-[50px] font-medium flex items-center">
-                    Week
-                  </div>
-                  <div class="flex-1">
-                    <UInput v-model="formData.Week" />
+                  <div class="basis-1/2">
+                    <div class="flex flex-row">
+                      <div class="w-[50px] font-medium flex items-center">
+                        Week
+                      </div>
+                      <div class="flex-1">
+                        <UInput v-model="formData.Week" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <div class="flex flex-row space-x-5">
-              <div class="basis-1/2 flex items-center w-full border rounded border-gray-500 px-3 py-1">
+              <div class="basis-1/2 flex items-center w-full border-[1px] border-slate-200 px-3 py-1">
                 <div class="flex justify-between w-full">
-                  <URadio v-for="status of statusGroup" :key='status.value' v-model="formData.ServiceStatus" class="gms-ModalFormText"
-                    v-bind="status" />
+                  <URadio v-for="status of statusGroup" :key='status.value' v-model="selectedStatus" v-bind="status" />
                 </div>
               </div>
               <div class="basis-1/2">
@@ -672,10 +652,10 @@ else
               </div>
             </div>
             <div class="flex flex-row space-x-5">
-              <div class="basis-1/2 flex items-center w-full border rounded border-gray-500 px-3">
+              <div class="basis-1/2 flex items-center w-full border-[1px] border-slate-200 p-3">
                 <div class="flex flex-col space-y-1">
                   <div class="flex justify-between w-full">
-                    <URadio v-for="type of typeGroup" :key='type.value' v-model="formData.REPAIRDESC" class="gms-ModalFormText" v-bind="type" />
+                    <URadio v-for="type of typeGroup" :key='type.value' v-model="formData.REPAIRDESC" v-bind="type" />
                   </div>
                   <div class="flex flex-row">
                     <div class="w-[90px] font-medium flex items-center">
@@ -736,21 +716,21 @@ else
                 </div>
               </div>
             </div>
-            <div class="flex flex-row space-x-2 pt-1">
-              <div class="flex-1">
-                <p class="font-medium">
+            <div class="flex flex-row space-x-2 pl-3">
+              <div class="min-w-[80px] font-medium flex items-center">
                 Description
-              </p>
-                <UTextarea v-model="formData.REPAIRSMADE" :rows="2" />
+              </div>
+              <div class="flex-1">
+                <UTextarea v-model="formData.REPAIRSMADE" :rows="1" />
               </div>
             </div>
           </div>
           <div class="basis-1/3">
-            <div class="border rounded border-slate-500 p-2">
-              <UFormGroup class="gms-ModalFormText" label="Was device performing per specification?">
-                <div class="flex flex-row space-x-5 pb-1">
+            <div class="border-[1px] border-slate-200 p-2 pb-3">
+              <UFormGroup label="Was device performing per specification?">
+                <div class="flex flex-row space-x-5">
                   <URadio v-for="performance of performanceGroup" :key='performance.value'
-                    v-model="formData.performs_to_spec" class="gms-ModalFormText" v-bind="performance" />
+                    v-model="formData.performs_to_spec" v-bind="performance" />
                 </div>
                 <UTextarea v-model="formData.performsnotext" :rows="6" />
               </UFormGroup>
@@ -759,19 +739,19 @@ else
         </div>
       </div>
       <div class="basis-1/3">
-        <div class="w-full px-3 py-1 gmsPurpleTitlebar">
+        <div class="w-full px-3 py-1 bg-slate-400">
           Invoice
         </div>
-        <div class="p-3">
+        <div class="p-2 pl-7">
           <UTable :rows="invoiceGridMeta.invoices" :columns="invoiceGridMeta.defaultColumns" :ui="{
-            wrapper: 'h-[155px] border border-gray-400 gms-ModalFormText',
+            wrapper: 'h-[155px] border-2 border-gray-300 dark:border-gray-700',
             divide: 'divide-gray-200 dark:divide-gray-800',
             tr: {
               active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
             },
             th: {
               base: 'sticky top-0 z-10',
-              color: 'bg-white dark:bg-gray-700',
+              color: 'bg-white dark:text-gray dark:bg-[#111827]',
               padding: 'px-2 py-0'
             },
             td: {
@@ -783,7 +763,7 @@ else
               <div></div>
             </template>
           </UTable>
-          <div class="flex flex-row space-x-2 mt-2 fheight-btn-row">
+          <div class="flex flex-row space-x-2 mt-2">
             <div class="basis-1/3 w-full">
               <UButton icon="i-heroicons-plus-20-solid" label="Look-Up Invoice" variant="outline" color="green"
                 :ui="{ base: 'w-full', truncate: 'flex justify-center break-words text-center w-full' }" truncate />
@@ -794,7 +774,7 @@ else
             </div>
             <div class="basis-1/3 w-full">
               <UButton icon="i-heroicons-minus-circle-20-solid" label="Unlink" variant="outline" color="red"
-                :ui="{ base: 'w-full', truncate: 'flex justify-center break-words text-center w-full' }"
+                :ui="{ base: 'w-full', truncate: 'flex justify-center break-words text-center w-full h-full' }"
                 truncate />
             </div>
           </div>
@@ -802,21 +782,21 @@ else
       </div>
     </div>
     <div class="flex flex-col">
-      <div class="w-full px-3 py-1 gmsPurpleTitlebar">
+      <div class="w-full px-3 py-1 bg-slate-400">
         Warranty Material
       </div>
-      <div class="flex flex-row space-x-3 p-3">
-        <div class="w-1/2">
+      <div class="flex flex-row space-x-9 p-2">
+        <div class="basis-1/2">
           <UTable :rows="warrantyMaterialGridMeta.warrantyMaterials" :columns="warrantyMaterialGridMeta.defaultColumns"
             :loading="warrantyMaterialGridMeta.isLoading" class="w-full" :ui="{
-              wrapper: 'h-[170px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+              wrapper: 'h-[210px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
               },
               th: {
                 base: 'sticky top-0 z-10',
-                color: 'bg-white',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
                 padding: 'p-0'
               },
               td: {
@@ -866,18 +846,56 @@ else
             </template>
           </UTable>
         </div>
-        <div class="w-1/2">
-          <div class="flex flex-row space-x-4">
-            
-            <div class="basis-1/4 w-full mb-1">
-              <UButton label="Remove Part" color="gms-purple" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate
+        <div class="basis-1/2">
+          <div class="flex flex-row space-x-4 py-1">
+            <div class="basis-1/4 flex items-center">
+              <div class="flex flex-row space-x-2 ">
+                <div class="flex-1 flex items-center">
+                  Ship Date
+                </div>
+                <div class="min-w-[120px] flex items-center">
+                  <div class="w-full">
+                    <UPopover :popper="{ placement: 'bottom-start' }">
+                      <UButton icon="i-heroicons-calendar-days-20-solid"
+                        :label="formData.DATESHIPPED && format(formData.DATESHIPPED, 'MM/dd/yyyy')" variant="outline"
+                        :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+                      <template #panel="{ close }">
+                        <CommonDatePicker v-model="formData.DATESHIPPED" is-required @close="close" />
+                      </template>
+                    </UPopover>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="basis-1/4 flex items-center">
+              <div class="flex flex-row space-x-2">
+                <div class="flex-1 flex items-center">
+                  Shipping
+                </div>
+                <div class="min-w-[60px]">
+                  <UInput v-model="formData.Shipping" />
+                </div>
+              </div>
+            </div>
+            <div class="basis-1/4 flex items-center">
+              <div class="flex flex-row w-full">
+                <div class="flex-1 flex items-center">
+                  Total
+                </div>
+                <div class="min-w-[80px]">
+                  {{ warrantyMaterialInfo.total }}
+                </div>
+              </div>
+            </div>
+            <div class="basis-1/4 w-full">
+              <UButton label="Remove Part" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate
                 @click="onRemoveWarranty" />
             </div>
           </div>
           <UTable :rows="selectedWarrantyMaterialGridMeta.warrantyMaterials"
             :columns="selectedWarrantyMaterialGridMeta.defaultColumns"
             :loading="selectedWarrantyMaterialGridMeta.isLoading" class="w-full" :ui="{
-              wrapper: 'h-[133px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+              wrapper: 'h-[170px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -897,60 +915,18 @@ else
               <div></div>
             </template>
           </UTable>
-          <div class="flex flex-row space-x-4 pt-1">
-            <div class="basis-1/3 flex items-center">
-              <div class="flex flex-row space-x-2 ">
-                <div class="flex-1 flex items-center">
-                  Ship Date
-                </div>
-                <div class="min-w-[120px] flex items-center">
-                  <div class="w-full">
-                    <UPopover :popper="{ placement: 'bottom-start' }">
-                      <UButton icon="i-heroicons-calendar-days-20-solid"
-                        :label="formData.DATESHIPPED && format(formData.DATESHIPPED, 'MM/dd/yyyy')" variant="outline"
-                        :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
-                      <template #panel="{ close }">
-                        <CommonDatePicker v-model="formData.DATESHIPPED" is-required @close="close" />
-                      </template>
-                    </UPopover>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="basis-1/3 flex items-center">
-              <div class="flex flex-row space-x-2">
-                <div class="flex-1 flex items-center">
-                  Shipping
-                </div>
-                <div class="min-w-[60px]">
-                  <UInput v-model="formData.Shipping" />
-                </div>
-              </div>
-            </div>
-            <div class="basis-1/3 flex items-center">
-              <div class="flex flex-row w-full">
-                <div class="flex-1 flex items-center">
-                  Total
-                </div>
-                <div class="min-w-[80px]">
-                  {{ warrantyMaterialInfo.total }}
-                </div>
-              </div>
-            </div>
-            
-          </div>
         </div>
       </div>
     </div>
     <div class="flex flex-col">
-      <div class="w-full px-3 py-1 gmsPurpleTitlebar">
+      <div class="w-full px-3 py-1 bg-slate-400">
         Parts Received
       </div>
-      <div class="flex flex-row space-x-3 p-3">
-        <div class="w-1/2">
+      <div class="flex flex-row space-x-3 p-2">
+        <div class="basis-1/2">
           <UTable :rows="partGridMeta.parts" :columns="partGridMeta.defaultColumns" :loading="partGridMeta.isLoading"
             class="w-full" :ui="{
-              wrapper: 'h-[170px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+              wrapper: 'h-[210px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -1008,10 +984,10 @@ else
             Parts(Double-Click To Select)
           </div>
         </div>
-        <div class="w-1/2">
+        <div class="basis-1/2">
           <UTable :rows="selectedPartGridMeta.parts" :columns="selectedPartGridMeta.defaultColumns"
             :loading="selectedPartGridMeta.isLoading" class="w-full" :ui="{
-              wrapper: 'h-[170px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+              wrapper: 'h-[210px] overflow-y-auto border-2 border-gray-300 dark:border-gray-700',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -1031,18 +1007,18 @@ else
             </template>
           </UTable>
           <div class="italic">
-            Singleclick to Select Part for Non-Conformance, Double Click to View
+            Singleclick to Select Part for Non-Conformamce, Double Click to View
           </div>
         </div>
       </div>
-      <div class="flex justify-between px-3">
+      <div class="flex justify-between px-2">
         <div class="basis-1/6 w-full">
           <UButton icon="i-heroicons-document" label="Save" variant="outline" color="green"
             :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate @click="onSave" />
         </div>
         <div class="basis-1/6 w-full">
           <UButton icon="i-heroicons-magnifying-glass" label="View Order" variant="outline" color="primary"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate @click="onClose" />
+            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
         </div>
         <div class="basis-1/6 w-full">
           <UButton icon="i-heroicons-currency-dollar" label="Quickbooks" variant="outline" color="primary"
@@ -1050,7 +1026,7 @@ else
         </div>
         <div class="basis-1/6 w-full">
           <UButton icon="i-heroicons-minus-circle" label="Remove Part" variant="outline" color="red"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" @click="onPartsRemoved" truncate />
+            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
         </div>
         <div class="">
           <UButton icon="i-heroicons-document" label="Non-Conformance Create/View" variant="outline" color="green"
@@ -1062,7 +1038,7 @@ else
               Total:
             </div>
             <div class="flex items-center">
-              {{ partsTotalAmount }}
+              0.00
             </div>
           </div>
         </div>

@@ -12,12 +12,12 @@ export default defineAppConfig({
     },
 
     button: {
-//       color: {
-//         primary: {
-//             outline:
-// 'text-primary-600'
-//         }
-//       },
+      //       color: {
+      //         primary: {
+      //             outline:
+      // 'text-primary-600'
+      //         }
+      //       },
       variant: {
         outline: 'bg-slate-50 hover:bg-{color}-100 dark:bg-{color}-800'
 

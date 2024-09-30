@@ -236,7 +236,7 @@ const deletePurchase = async () => {
     });
 };
 
-const handlePageChange = () => {};
+const handlePageChange = () => { };
 
 fetchPurchasesData();
 </script>
@@ -249,12 +249,8 @@ fetchPurchasesData();
         <h2>Purchase Lookup</h2>
       </div>
 
-      <UTable
-        :rows="gridMeta.purchases"
-        :columns="columns"
-        :loading="gridMeta.isLoading"
-        class="w-full min-h-[60%] overflow-y-auto"
-        :ui="{
+      <UTable :rows="gridMeta.purchases" :columns="columns" :loading="gridMeta.isLoading"
+        class="w-full min-h-[60%] overflow-y-auto" :ui="{
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
@@ -263,33 +259,21 @@ fetchPurchasesData();
           td: {
             padding: `py-1`,
           },
-        }"
-        :empty-state="{
+        }" :empty-state="{
           icon: 'i-heroicons-circle-stack-20-solid',
           label: 'No items.',
-        }"
-        @select="onSelect"
-        @dblclick="onDblClick"
-      >
+        }" @select="onSelect" @dblclick="onDblClick">
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind === 'actions'">
             <div class="">
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
+              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
                     ? noneIcon
                     : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
-              />
+                      ? ascIcon
+                      : descIcon
+                  " :filterable="column.filterable" :filter-key="column.key" />
             </div>
           </template>
           <template v-else class="bg-slate-400">
@@ -303,29 +287,18 @@ fetchPurchasesData();
         <div class="flex flex-row justify-end mx-10 mt-1 gap-5">
           <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-3">
-              <UButton
-                color="gms-gray" variant="outline"
-              >
+              <UButton color="gms-gray" variant="outline">
                 Select Purchase Order
               </UButton>
-              <UButton
-                @click="triggerCreatePurchaseModal"
-                color="gms-gray" variant="outline"
-              >
+              <UButton @click="triggerCreatePurchaseModal" color="gms-gray" variant="outline">
                 Create Purchase Order
               </UButton>
             </div>
             <div class="flex items-center gap-3">
-              <UButton
-                @click="triggerViewPurchaseModal"
-                color="primary" variant="outline"
-              >
+              <UButton @click="triggerViewPurchaseModal" color="primary" variant="outline">
                 View Purchase Order
               </UButton>
-              <UButton
-                @click="deletePurchase"
-                color="red" variant="outline"
-              >
+              <UButton @click="deletePurchase" color="red" variant="outline">
                 Delete Purchase Order
               </UButton>
             </div>
@@ -346,17 +319,11 @@ fetchPurchasesData();
         <div class="flex items-center gap-10">
           <div class="flex items-center gap-2">
             <label for="form">Form</label>
-            <input
-              type="date"
-              class="border border-solid border-gray-600 rounded-lg px-2"
-            />
+            <input type="date" class="border border-solid border-gray-600 rounded-lg px-2" />
           </div>
           <div class="flex items-center gap-2">
             <label for="to">To</label>
-            <input
-              type="date"
-              class="border border-solid border-gray-600 rounded-lg px-2"
-            />
+            <input type="date" class="border border-solid border-gray-600 rounded-lg px-2" />
           </div>
           <UButton color="primary" variant="solid">
             Lookup
@@ -366,25 +333,18 @@ fetchPurchasesData();
     </UDashboardPanel>
   </UDashboardPage>
 
-  <UDashboardModal
-    v-model="createPurchaseModalMeta.isModalOpen"
-    title="Create Purchase"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[60%] sm:max-w-9xl',
-    }"
-  >
+  <UDashboardModal v-model="createPurchaseModalMeta.isModalOpen" title="Create Purchase" :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[60%] sm:max-w-9xl',
+  }">
     <CreatePurchaseModal :modalMeta="createPurchaseModalMeta" />
   </UDashboardModal>
-  <UDashboardModal
-    v-model="viewPurchaseModalMeta.isModalOpen"
-    title="View Purchase"
-    class="h-[50vh] overflow-y-auto"
+  <UDashboardModal v-model="viewPurchaseModalMeta.isModalOpen" title="View Purchase" class="h-[50vh] overflow-y-auto"
     :ui="{
       title: 'text-lg',
       header: {
@@ -394,12 +354,8 @@ fetchPurchasesData();
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
       width: 'w-[90%] sm:max-w-9xl',
       height: 'h-[500px]',
-    }"
-  >
-    <ViewPurchaseModal
-      :modalMeta="viewPurchaseModalMeta"
-      :purchaseId="gridMeta.selectedPurchaseId"
-    />
+    }">
+    <ViewPurchaseModal :modalMeta="viewPurchaseModalMeta" :purchaseId="gridMeta.selectedPurchaseId" />
   </UDashboardModal>
 </template>
 <style scoped></style>

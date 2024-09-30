@@ -9,24 +9,24 @@ export default eventHandler(async (event) => {
       case 'GET':
         const query = getQuery(event);
         let list = [];
-        if(Object.keys(query).length > 0){
+        if (Object.keys(query).length > 0) {
           let orderby = null;
-          if(query.orderby){
+          if (query.orderby) {
             orderby = query.orderby;
             orderby = orderby.split(',');
             delete query.orderby;
           }
           let orderdirection = null;
-          if(query.orderdirection){
+          if (query.orderdirection) {
             orderdirection = query.orderdirection;
             orderdirection = orderdirection.split(',');
-            orderby = orderby.map((item, index)=>{
-              return [item, orderdirection[index]||'ASC']
+            orderby = orderby.map((item, index) => {
+              return [item, orderdirection[index] || 'ASC']
             })
             delete query.orderdirection;
           }
-          list = await getTableWhere({tblName, where:query, orderby});
-        }else list = await getTableList({ tblName });
+          list = await getTableWhere({ tblName, where: query, orderby });
+        } else list = await getTableList({ tblName });
         return { body: list, message: "Table list retrieved successfully." };
       case 'POST':
         const data = await readBody(event);

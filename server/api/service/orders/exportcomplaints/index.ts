@@ -5,7 +5,7 @@ export default eventHandler(async (event) => {
   try {
     const method = event._method;
 
-    switch(method){
+    switch (method) {
       case 'GET':
         const complaints = await getAllComplaints()
         let htmlContent = ''
@@ -37,7 +37,7 @@ export default eventHandler(async (event) => {
                   <div>${item.cusomtercompany1}</div>
                 </div>
               </td>
-              <td width="200" style="padding:2px 30px 2px 0; text-align: center; vertical-align: top;">${item?.ValidComplaintReason??''}</td>
+              <td width="200" style="padding:2px 30px 2px 0; text-align: center; vertical-align: top;">${item?.ValidComplaintReason ?? ''}</td>
               <td width="200" style="padding:2px 30px 2px 0; text-align: center; vertical-align: top;"></td>
             </tr>
           `
@@ -48,7 +48,7 @@ export default eventHandler(async (event) => {
           </div>
         `
         const browser = await puppeteer.launch();
-        const page = await browser.newPage(); 
+        const page = await browser.newPage();
 
         const pdfOptions: any = {
           path: 'Complaints.pdf',
@@ -61,7 +61,7 @@ export default eventHandler(async (event) => {
             right: '40px'
           }
         };
-        await page.setContent(htmlContent, {waitUntil: 'domcontentloaded'});
+        await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
 
         const pdfBuffer = await page.pdf(pdfOptions);
         console.log(pdfBuffer)
@@ -70,13 +70,13 @@ export default eventHandler(async (event) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'inline; filename="Orders Summary.pdf"',
           'Page-Size': 'Letter'
-        })  
+        })
         return pdfBuffer
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
-    
+
   } catch (error) {
     console.log(error)
     throw new Error(`Error fetching data from table: ${error.message}`);
