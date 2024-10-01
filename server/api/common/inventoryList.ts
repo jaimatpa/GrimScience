@@ -1,4 +1,4 @@
-import { getInspectionNumberList } from "~/server/controller/common/Vendors";
+import { getInventoryList } from "~/server/controller/common/Vendors";
 
 export default eventHandler(async (event) => {
   try {
@@ -6,8 +6,8 @@ export default eventHandler(async (event) => {
 
     switch (method.toUpperCase()) {
       case "GET":
-        const inspectionNumbers = await getInspectionNumberList();
-        return { body: inspectionNumbers, message: "" };
+        const inventoryList = await getInventoryList();
+        return { body: inventoryList, message: "Success!" };
       default:
         setResponseStatus(event, 405);
         return { error: "Method Not Allowed" };

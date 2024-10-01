@@ -114,6 +114,7 @@ const subCategory = ref([]);
 const vendorList = ref();
 const partUnit = ref([]);
 const insepctionList = ref([]);
+const inventoryList = ref([]);
 
 const formData = reactive({
   UniqueID: null,
@@ -174,7 +175,7 @@ const formData = reactive({
   PARTTYPE: null,
   SPECIFICATIONS: null,
   DESCRIPTION: null,
-  STOCKNUMBER: null,
+  // STOCKNUMBER: null,
   UNIT: null,
   MULTIPLE: null,
   CODE: null,
@@ -257,14 +258,18 @@ const editInit = async () => {
   await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
     method: "GET",
     onResponse({ response }) {
+      console.log('Get by ID----', response);
+      
       if (response.status === 200) {
         loadingOverlay.value = false;
         partsExist.value = true;
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
             formData[key] = response._data.body[key];
+            
           }
         }
+        console.log('formData', formData.SPECSHEET);
       }
     },
     onResponseError({}) {
@@ -275,6 +280,7 @@ const editInit = async () => {
   loadingOverlay.value = false;
   fetchWorkCentersBy();
 };
+
 
 const propertiesInit = async () => {
   loadingOverlay.value = true;
@@ -321,13 +327,26 @@ const propertiesInit = async () => {
   await useApiFetch("/api/common/getInspectionNumbers", {
     method: "GET",
     onResponse({ response }) {
+      console.log('insepctionList', response);
       if (response.status === 200) {
         insepctionList.value = response._data.body;
-        // console.log("insepction ", response._data.body);
       }
     },
     onResponseError() {
       insepctionList.value = [];
+    },
+  });
+
+  await useApiFetch("/api/common/inventoryList", {
+    method: "GET",
+    onResponse({ response }) {
+      console.log('insepctionList', response);
+      if (response.status === 200) {
+        inventoryList.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      inventoryList.value = [];
     },
   });
 
@@ -399,7 +418,6 @@ const propertiesInit = async () => {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          // console.log("the value of accountlist", response._data.body);
           accountList.value = response._data.body;
         }
       },
@@ -415,19 +433,25 @@ if (props.selectedParts !== null) editInit();
 else propertiesInit();
 
 const files = ref([null, null, null]);
+const filesName = ref([null, null, null]);
+// formData.DRAWINGCUSTOM, formData.SPECSHEET, formData.sds
+
 
 const handleFileChange = (event, index) => {
   // console.log("file", event.target.files[0]);
   const file = event.target.files[0];
   if (file && file.type === 'application/pdf') {
     files.value[index] = file;
+    filesName.value[index] = files.value[index].name;
+    console.log('filesName', filesName.value[1]);
+    
   } else {
     alert('Please select a PDF file.');
     event.target.value = '';
   }
 };
 
-const getRevisions=async()=>{
+const getRevisions = async() => {
   await useApiFetch(
     `/api/materials/parts/revisions?instanceId=${props.selectedPartInstace}`,
     {
@@ -477,7 +501,6 @@ function formatDate(date: Date): string {
 const revision=async()=>{
   if(props.selectedPartInstace!=null){
     // console.log("meth dfadsf");
-
     const response = await useApiFetch(`/api/materials/parts/parts/revision?instanceIdForRevision=${props.selectedPartInstace}&id=${props.selectedParts}`, {
         method: "PUT",
         onResponse({ response }) {
@@ -499,8 +522,6 @@ getRevisions();
 
 
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  // console.log("files are", files.value);
-
   if (!files.value.some(file => file)) {
     // console.log('No files to upload.');
     alert('Please upload at least one file.');
@@ -516,9 +537,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     }
   });
 
-  try {
-    console.log('Formdata');
-    
+  try {    
     const response = await fetch('/api/file', {
       method: 'POST',
       body: formData,
@@ -541,50 +560,58 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
 
       files.value = [null, null, null];
     } else {
-      throw new Error('Upload failed');
+      throw new Error('Upload failed!');
     }
   } catch (error) {
     console.error('Error uploading files:', error);
     alert('An error occurred while uploading the files. Please try again.');
   }
 
-  if(props.selectedParts!=null){
+  if(props.selectedParts != null){
     const now = new Date();
     const isoString = now.toISOString();
     event.data.TODAY =isoString;
 
-        await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
-          method: "PUT",
-          body: event.data,
-          onResponse({ response }) {
-            if (response.status === 200) {
-              // console.log("status is",response.status);
-              toast.add({
-                title: "Success",
-                description: response._data.message,
-                icon: "i-heroicons-check-circle",
-                color: "green",
-              });
-            }
-          },
-        });
+    console.log('Edit data===========', event.data);
+
+    await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
+      method: "PUT",
+      body: event.data,
+      onResponse({ response }) {
+        if (response.status === 200) {
+
+          console.log("Edit res---",response);
+
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
   }
   else{
-    // console.log("file value is",event.data)
-        await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
-          method: "POST",
-          body: event.data,
-          onResponse({ response }) {
-            if (response.status === 200) {
-              toast.add({
-                title: "Success",
-                description: response._data.message,
-                icon: "i-heroicons-check-circle",
-                color: "green",
-              });
-            }
-          },
-        });
+    console.log('Add data===========', event.data);
+
+    await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
+      method: "POST",
+      body: event.data,
+      onResponse({ response }) {
+
+        console.log("Add res---",response);
+        
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
   }
   emit('save');
 };
@@ -700,7 +727,7 @@ const handleUpload  = async () => {
               <div class="basis-1/5">
                 <UFormGroup label="Stock Number" name="title">
                   <UInput
-                    v-model="formData.STOCKNUMBER"
+                    v-model="formData.MODEL"
                     placeholder="Stock Number"
                   />
                 </UFormGroup>
@@ -731,7 +758,7 @@ const handleUpload  = async () => {
                 <UFormGroup label="Inventory Unit" name="profession">
                   <UInputMenu
                     v-model="formData.InventoryUnit"
-                    :options="partUnit"
+                    :options="inventoryList"
                   />
                 </UFormGroup>
               </div>
@@ -778,31 +805,43 @@ const handleUpload  = async () => {
             <div class="flex flex-row space-x-5">
               <div class="basis-1.2/5">
                 <UFormGroup label="Drawing/Mannul" name="SPECSHEET">
+                  <label class="custom-file-label max-w-[50px] " for="SPECSHEET">  
+                    {{ files[0]?.name || formData.SPECSHEET || 'Upload a file' }} 
+                  </label>
                   <input
+                    id="SPECSHEET"
                     type="file"
                     @change="(e) => handleFileChange(e, 0)"
                     accept="application/pdf"
-                    class="block w-full"
+                    class="hidden"
                   />
                 </UFormGroup>
               </div>
-              <div class="basis-1.2/5">
+              <div class="basis-1.2/5 min-w-24">
                 <UFormGroup label="PDS" name="PDS">
-                  <input          
+                  <label class="custom-file-label max-w-[50px] " for="PDS">  
+                    {{ files[1]?.name || formData.DRAWINGCUSTOM || 'Upload a file' }} 
+                  </label>
+                  <input
+                    id="PDS"
                     type="file"
                     @change="(e) => handleFileChange(e, 1)"
                     accept="application/pdf"
-                    class="block w-full"
+                    class="hidden"
                   />
                 </UFormGroup>
               </div>
               <div class="basis-1.2/5">
                 <UFormGroup label="sds" name="sds">
+                  <label class="custom-file-label max-w-[50px] " for="sds">  
+                    {{ files[2]?.name || formData.sds || 'Upload a file' }} 
+                  </label>
                   <input
+                    id="sds"
                     type="file"
                     @change="(e) => handleFileChange(e, 2)"
                     accept="application/pdf"
-                    class="block w-full"
+                    class="hidden"
                   />
                 </UFormGroup>
               </div>

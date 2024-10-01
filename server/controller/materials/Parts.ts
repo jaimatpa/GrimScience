@@ -218,8 +218,6 @@ export const getAllParts = async (
   sortOrder,
   filterParams
 ) => {
-  console.log("products aree");
-
   const limit = parseInt(pageSize, 10) || 50;
   const offset = (parseInt(page, 10) - 1 || 0) * limit;
 
