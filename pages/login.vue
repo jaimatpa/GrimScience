@@ -41,6 +41,8 @@
     })
   }
 
+  const toast = useToast()
+
   const onSubmit = (event: FormSubmitEvent<FormDataSchema>) => {
     useApiFetch('/api/auth/login', {
       method: 'POST',
@@ -48,7 +50,13 @@
       async onResponse({ response }) {
         if(response.status === 200) {
           token.value = response._data.token;
-          await navigateTo("/")
+          toast.add({
+            title: "Success",
+            description: "Login successful !",
+            icon: 'i-heroicons-check-circle',
+            color: 'green'
+          })
+          await navigateTo("/installation-map")
         }
       }
     })
