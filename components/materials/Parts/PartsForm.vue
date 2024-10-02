@@ -132,14 +132,14 @@ const formData = reactive({
   ALTER2DEANUM: null,
   ALTER2QTY1: null,
   ALTER2QTY2: null,
-  ALTER2QTY4: null,
   ALTER2QTY3: null,
+  ALTER2QTY4: null,
+  ALTER2QTY5: null,
   ALTER2PRICE1: null,
   ALTER2PRICE4: null,
   ALTER2PRICE3: null,
   ALTER2PRICE2: null,
   ALTER2PRICE5: null,
-  ALTER2QTY5: null,
   ALTER1LEADTIME: null,
   ALTER1MANTXT: null,
   ALTER1MANNUM: null,
@@ -433,20 +433,14 @@ if (props.selectedParts !== null) editInit();
 else propertiesInit();
 
 const files = ref([null, null, null]);
-const filesName = ref([null, null, null]);
-// formData.DRAWINGCUSTOM, formData.SPECSHEET, formData.sds
-
 
 const handleFileChange = (event, index) => {
-  // console.log("file", event.target.files[0]);
   const file = event.target.files[0];
   if (file && file.type === 'application/pdf') {
     files.value[index] = file;
-    filesName.value[index] = files.value[index].name;
-    console.log('filesName', filesName.value[1]);
     
   } else {
-    alert('Please select a PDF file.');
+    // alert('Please select a PDF file.');
     event.target.value = '';
   }
 };
@@ -475,7 +469,6 @@ const fetchWorkCentersBy = async () => {
             method: 'GET',
         });
         if (response) {
-            // console.log(response)
             const workCenterIds = formData.WORKCENTERS
                 .split(',')
                 .map(id => id.trim()) 
@@ -484,7 +477,6 @@ const fetchWorkCentersBy = async () => {
             const filteredResponse = response.filter(val => workCenterIds.includes(val.UniqueId));
 
             workplaces.value = filteredResponse;
-            // console.log("work center is",filteredResponse);
         } else {
             console.log('Unexpected response structure or status code:', response);
         }
@@ -522,11 +514,11 @@ getRevisions();
 
 
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  if (!files.value.some(file => file)) {
-    // console.log('No files to upload.');
-    alert('Please upload at least one file.');
-    return;
-  }
+  // if (!files.value.some(file => file)) {
+  //   // console.log('No files to upload.');
+  //   alert('Please upload at least one file.');
+  //   return;
+  // }
 
   const formData = new FormData();
   const fileTypes = ['Drawing/Manual', 'PDS', 'SDS'];
@@ -545,17 +537,19 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
 
     if (response.ok) {
       const responseData = await response.json(); 
-      // console.log('Files uploaded successfully! Response:', responseData);
-      alert('Files uploaded successfully!');
+      // alert('Files uploaded successfully!');
 
       responseData.files.forEach(file => {
-        // console.log(`File uploaded: ${file.originalName}, URL: ${file.url}`);
-        if(file.fileType==='SDS'){
-          event.data.sds=file.url;
-        }
         if(file.fileType==='Drawing/Manual'){
           event.data.DRAWINGCUSTOM=file.url;
         }
+        if(file.fileType==='PDS'){
+          event.data.SPECSHEET=file.url;
+        }
+        if(file.fileType==='SDS'){
+          event.data.sds=file.url;
+        }
+        
       });
 
       files.value = [null, null, null];
@@ -593,8 +587,6 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     });
   }
   else{
-    console.log('Add data===========', event.data);
-
     await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
       method: "POST",
       body: event.data,
@@ -710,7 +702,6 @@ const handleUpload  = async () => {
                 <UFormGroup label="Category" name="fname">
                   <UInputMenu
                     v-model="formData.PARTTYPE"
-                    placeholder="Category"
                     :options="category"
                   />
                 </UFormGroup>
@@ -719,7 +710,6 @@ const handleUpload  = async () => {
                 <UFormGroup label="Sub Category" name="lname">
                   <UInputMenu
                     v-model="formData.SUBCATEGORY"
-                    placeholder="Sub Category"
                     :options="subCategory"
                   />
                 </UFormGroup>
@@ -728,7 +718,6 @@ const handleUpload  = async () => {
                 <UFormGroup label="Stock Number" name="title">
                   <UInput
                     v-model="formData.MODEL"
-                    placeholder="Stock Number"
                   />
                 </UFormGroup>
               </div>
@@ -736,7 +725,6 @@ const handleUpload  = async () => {
                 <UFormGroup label="Inspection" name="position">
                   <UInputMenu
                     v-model="formData.InspectionLevel"
-                    placeholder="Inspection"
                     :options="insepctionList"
                   />
                 </UFormGroup>
@@ -751,7 +739,7 @@ const handleUpload  = async () => {
               </div>
               <div class="basis-1/5">
                 <UFormGroup label="Multiple" name="number">
-                  <UInput v-model="formData.MULTIPLE" placeholder="" />
+                  <UInput v-model="formData.MULTIPLE" />
                 </UFormGroup>
               </div>
               <div class="basis-1/5">
@@ -788,7 +776,7 @@ const handleUpload  = async () => {
               </div>
               <div class="basis-1/5">
                 <UFormGroup label="Inventory Cost" name="Inventory Cost">
-                  <UInput v-model="formData.InventoryCost"  placeholder="" />
+                  <UInput v-model="formData.InventoryCost"   />
                 </UFormGroup>
               </div>
               <div class="basis-1/5">
@@ -802,14 +790,20 @@ const handleUpload  = async () => {
                 </UFormGroup>
               </div>
             </div>
-            <div class="flex flex-row space-x-5">
-              <div class="basis-1.2/5">
-                <UFormGroup label="Drawing/Mannul" name="SPECSHEET">
-                  <label class="custom-file-label max-w-[50px] " for="SPECSHEET">  
-                    {{ files[0]?.name || formData.SPECSHEET || 'Upload a file' }} 
+            <div class="flex flex-row space-x-8">
+              <div class="basis-1.2/5 min-w-[350px]">
+                <UFormGroup label="Drawing/Mannul" name="DRAWINGCUSTOM">
+                  <label class="custom-file-label max-w-[50px]" for="DRAWINGCUSTOM">
+                    <span :class="!files[0]?.name && !formData.DRAWINGCUSTOM ? 'bg-gray-500 text-white px-3 text-center py-1.5 rounded' : ''">
+                      {{ (files[0]?.name?.length > 20 ? '...' + files[0]?.name.slice(-20) : files[0]?.name) || (formData.DRAWINGCUSTOM?.length > 20 ? '...' + formData.DRAWINGCUSTOM.slice(-20) : formData.DRAWINGCUSTOM) || 'Upload a file' }}
+                    </span>
+                    <span v-if="files[0]?.name || formData.DRAWINGCUSTOM" class="bg-gray-500 text-white px-3 text-center py-1.5 rounded ms-3">
+                      Upload
+                    </span>
                   </label>
+
                   <input
-                    id="SPECSHEET"
+                    id="DRAWINGCUSTOM" 
                     type="file"
                     @change="(e) => handleFileChange(e, 0)"
                     accept="application/pdf"
@@ -817,11 +811,17 @@ const handleUpload  = async () => {
                   />
                 </UFormGroup>
               </div>
-              <div class="basis-1.2/5 min-w-24">
+              <div class="basis-1.2/5 min-w-[350px]">
                 <UFormGroup label="PDS" name="PDS">
-                  <label class="custom-file-label max-w-[50px] " for="PDS">  
-                    {{ files[1]?.name || formData.DRAWINGCUSTOM || 'Upload a file' }} 
+                  <label class="custom-file-label max-w-[50px]" for="PDS">
+                    <span :class="!files[1]?.name && !formData.SPECSHEET ? 'bg-gray-500 text-white px-3 text-center py-1.5 rounded' : ''">
+                      {{ (files[1]?.name?.length > 20 ? '...' + files[1]?.name.slice(-20) : files[1]?.name) || (formData.SPECSHEET?.length > 20 ? '...' + formData.SPECSHEET.slice(-20) : formData.SPECSHEET) || 'Upload a file' }}
+                    </span>
+                    <span v-if="files[1]?.name || formData.SPECSHEET" class="bg-gray-500 text-white px-3 text-center py-1.5 rounded ms-3">
+                      Upload
+                    </span>
                   </label>
+
                   <input
                     id="PDS"
                     type="file"
@@ -831,11 +831,17 @@ const handleUpload  = async () => {
                   />
                 </UFormGroup>
               </div>
-              <div class="basis-1.2/5">
+              <div class="basis-1.2/5 min-w-[350px]">
                 <UFormGroup label="sds" name="sds">
-                  <label class="custom-file-label max-w-[50px] " for="sds">  
-                    {{ files[2]?.name || formData.sds || 'Upload a file' }} 
+                  <label class="custom-file-label max-w-[50px]" for="sds">
+                    <span :class="!files[2]?.name && !formData.sds ? 'bg-gray-500 text-white px-3 text-center py-1.5 rounded' : ''">
+                      {{ (files[2]?.name?.length > 20 ? '...' + files[2]?.name.slice(-20) : files[2]?.name) || (formData.sds?.length > 20 ? '...' + formData.sds.slice(-20) : formData.sds) || 'Upload a file' }}
+                    </span>
+                    <span v-if="files[2]?.name || formData.sds" class="bg-gray-500 text-white px-3 text-center py-1.5 rounded ms-3">
+                      Upload
+                    </span>
                   </label>
+
                   <input
                     id="sds"
                     type="file"
@@ -873,7 +879,7 @@ const handleUpload  = async () => {
                 </div>
                 <div class="col-span-1">
                   <UFormGroup label="Lead Time" name="Lead Time">
-                    <UInput placeholder="1" v-model="formData.PRIMARYLEADTIME" />
+                    <UInput v-model="formData.PRIMARYLEADTIME" />
                   </UFormGroup>
                 </div>
                 <div class="col-span-2">
@@ -882,16 +888,17 @@ const handleUpload  = async () => {
                   </UFormGroup>
                 </div>
               </div>
+
               <!-- Second Grid Section -->
               <div class="grid grid-cols-1 gap-5">
                 <div>
                   <UFormGroup label="Part Number" name="Part Number">
-                    <UInput v-Model="formData.PRIMARYMANNUM" placeholder="" />
+                    <UInput v-model="formData.PRIMARYMANNUM"  />
                   </UFormGroup>
                 </div>
                 <div>
                   <UFormGroup label="Part Number" name="Part Number">
-                    <UInput v-model="formData.PRIMARYDEANUM" placeholder="1" />
+                    <UInput v-model="formData.PRIMARYDEANUM"  />
                   </UFormGroup>
                 </div>
                 <div>
@@ -977,6 +984,7 @@ const handleUpload  = async () => {
         </div>
 
         <div class="flex flex-row space-x-5 mt-2">
+          <!-- Alternative Vendor #1 -->
           <div class="basis-1/2">
             <!-- Shipping Information -->
             <div class="flex flex-row space-x-5 ">
@@ -1000,7 +1008,7 @@ const handleUpload  = async () => {
                 </div>
                 <div>
                   <UFormGroup label="Lead Time" name="Lead Time">
-                    <UInput placeholder="1" v-model="formData.ALTER1LEADTIME" />
+                    <UInput  v-model="formData.ALTER1LEADTIME" />
                   </UFormGroup>
                 </div>
               </div>
@@ -1008,17 +1016,17 @@ const handleUpload  = async () => {
               <div class="grid grid-cols-1 gap-5">
                 <div>
                   <UFormGroup label="Part Number" name="Part Number">
-                    <UInput placeholder="" v-model="formData.ALTER1MANNUM" />
+                    <UInput  v-model="formData.ALTER1MANNUM" />
                   </UFormGroup>
                 </div>
                 <div>
                   <UFormGroup label="Part Number" name="Part Number">
-                    <UInput placeholder="1" v-model="formData.ALTER1DEANUM" />
+                    <UInput  v-model="formData.ALTER1DEANUM" />
                   </UFormGroup>
                 </div>
                 <div>
                   <UFormGroup label="UL Number" name="UL Number">
-                    <UInput placeholder="14.56" />
+                    <UInput  v-model="formData.ALTER1UL"/>
                   </UFormGroup>
                 </div>
               </div>
@@ -1092,6 +1100,7 @@ const handleUpload  = async () => {
               </div>
             </div>
           </div>
+          <!-- Alternative Vendor #2 -->
           <div class="basis-1/2">
             <!-- Billing Information -->
             <div class="flex flex-row space-x-5 ">
@@ -1100,7 +1109,6 @@ const handleUpload  = async () => {
                 <div>
                   <UFormGroup label="Manufacturer" name="Manufacturer">
                     <UInputMenu
-                      placeholder="Garmin"
                       v-model="formData.ALTER2MANTXT"
                       :options="vendorList"
                     />
@@ -1117,7 +1125,7 @@ const handleUpload  = async () => {
                 </div>
                 <div>
                   <UFormGroup label="Lead Time" name="Lead Time">
-                    <UInput placeholder="1" v-model="formData.ALTER2LEADTIME" />
+                    <UInput  v-model="formData.ALTER2LEADTIME" />
                   </UFormGroup>
                 </div>
               </div>
@@ -1125,17 +1133,17 @@ const handleUpload  = async () => {
               <div class="grid grid-cols-1 gap-5">
                 <div>
                   <UFormGroup label="Part Number" name="Part Number">
-                    <UInput placeholder="" v-model="formData.ALTER2MANNUM" />
+                    <UInput  v-model="formData.ALTER2MANNUM" />
                   </UFormGroup>
                 </div>
                 <div>
                   <UFormGroup label="Part Number" name="Part Number">
-                    <UInput placeholder="1" v-model="formData.ALTER2DEANUM" />
+                    <UInput  v-model="formData.ALTER2DEANUM" />
                   </UFormGroup>
                 </div>
                 <div>
                   <UFormGroup label="UL Number" name="UL Number">
-                    <UInput placeholder="14.56" v-model="formData.ALTER2UL" />
+                    <UInput  v-model="formData.ALTER2UL" />
                   </UFormGroup>
                 </div>
               </div>
@@ -1160,12 +1168,12 @@ const handleUpload  = async () => {
                   </div>
                   <div>
                     <UFormGroup>
-                      <UInput v-model="formData.ALTER2QTY3" />
+                      <UInput v-model="formData.ALTER2QTY4" />
                     </UFormGroup>
                   </div>
                   <div>
                     <UFormGroup>
-                      <UInput v-model="formData.ALTER2QTY4" />
+                      <UInput v-model="formData.ALTER2QTY5" />
                     </UFormGroup>
                   </div>
                 </div>
@@ -1224,7 +1232,7 @@ const handleUpload  = async () => {
           <!-- Middle - Comments Textarea -->
           <div class="basis-1/3">
             <UFormGroup label="Comments" name="Comments">
-              <UTextarea class="w-full h-full" :rows="18" />
+              <UTextarea class="w-full h-full" :rows="18" v-model="formData.COMMENT"/>
             </UFormGroup>
           </div>
 
@@ -1286,7 +1294,7 @@ const handleUpload  = async () => {
           <!-- Right Side - Revised By Input -->
           <div class=basis-1/2> 
             <UFormGroup label="Revised By" name="fname" class="basis-1/2">
-              <UInputMenu placeholder="Revised By" />
+              <UInputMenu  />
             </UFormGroup>
 
             <UFormGroup  class="basis-1/2 mt-2 ">
