@@ -690,71 +690,34 @@ const handleUpload  = async () => {
       class="space-y-4"
       @submit="onSubmit"
     >
-      <div class="gmsBlueTitlebar pl-2 h-6">
-        <label class="text-white font-bold">Part Information</label>
-      </div>
-      
       <div class="overflow-auto">
+
         
-        <div>
-          <!-- <div class="flex flex-row space-x-5">
-            <div class="basis-1/5">
-              <UFormGroup label="Category" name="fname">
-                <UInputMenu
-                  v-model="formData.PARTTYPE"
-                  :options="category"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Sub Category" name="lname">
-                <UInputMenu
-                  v-model="formData.SUBCATEGORY"
-                  :options="subCategory"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Stock Number" name="title">
-                <UInput
-                  v-model="formData.MODEL"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Inspection" name="position">
-                <UInputMenu
-                  v-model="formData.InspectionLevel"
-                  :options="insepctionList"
-                />
-              </UFormGroup>
-            </div>
-          </div> -->
+        <div class="space-y-4">
+          <div class="gmsBlueTitlebar ps-2 py-1.5 text-white font-bold">Part Information</div>
 
-
-
-          <div class="flex flex-row space-x-5">
-            <div class="basis-1/5">
+          <div class="flex flex-row space-x-4">
+            <div class="basis-1/4 space-y-1">
               <label>Category</label>
               <UInputMenu
                 v-model="formData.PARTTYPE"
                 :options="category"
               />
             </div>
-            <div class="basis-1/5">
+            <div class="basis-1/4 space-y-1">
               <label>Sub Category</label>
               <UInputMenu
                 v-model="formData.SUBCATEGORY"
                 :options="subCategory"
               />
             </div>
-            <div class="basis-1/5">
+            <div class="basis-1/4 space-y-1">
               <label>Stock Number</label>
               <UInput
                 v-model="formData.MODEL"
               />
             </div>
-            <div class="basis-1/5">
+            <div class="basis-1/4 space-y-1">
               <label>Inspection</label>
               <UInputMenu
                 v-model="formData.InspectionLevel"
@@ -763,130 +726,62 @@ const handleUpload  = async () => {
             </div>
           </div>
 
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/5">
+          <div class="flex flex-row space-x-4">
+            <div class="basis-1/4 space-y-1">
               <label>Order Unit</label>
               <UInputMenu v-model="formData.UNIT" :options="partUnit" />
             </div>
-            <div class="basis-1/5">
+            <div class="basis-1/4 space-y-1">
               <label>Multiple</label>
               <UInput v-model="formData.MULTIPLE" />
             </div>
-            <div class="basis-1/5">
+            <div class="basis-1/4 space-y-1">
               <label>Inventory Unit</label>
               <UInputMenu
                 v-model="formData.InventoryUnit"
                 :options="inventoryList"
               />
             </div>
-            <div class="basis-1/5">
+            <div class="basis-1/4 space-y-1">
               <label>Account#</label>
               <UInputMenu
                 v-model="formData.AccountNumber"
                 :options="accountList"
               />
             </div>
-            <div class="basis-1/5">
-              <label>Description</label>
-              <UInput
-                v-model="formData.DESCRIPTION"
-              />
-            </div>
           </div>
 
-
-          <!-- <div class="flex flex-row space-x-3">
-            <div class="basis-1/5">
-              <UFormGroup label="Order Unit" name="market">
-                <UInputMenu v-model="formData.UNIT" :options="partUnit" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Multiple" name="number">
-                <UInput v-model="formData.MULTIPLE" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Inventory Unit" name="profession">
-                <UInputMenu
-                  v-model="formData.InventoryUnit"
-                  :options="inventoryList"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Account#" name="Account">
-                <UInputMenu
-                  v-model="formData.AccountNumber"
-                  :options="accountList"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Description" name="Description">
-                <UInput
-                  v-model="formData.DESCRIPTION"
-                  :options="insepctionList"
-                />
-              </UFormGroup>
-            </div>
-          </div> -->
-
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/5">
+          <div class="flex flex-row space-x-4">
+            <div class="basis-1/4 space-y-1">
               <label>Order Cost</label>
               <UInput v-model="formData.ORDERCOST" />
             </div>
-            <div class="basis-1/5">
+            <div class="basis-1/4 space-y-1">
               <label>Inventory Cost</label>
               <UInput v-model="formData.InventoryCost" />
             </div>
-            <div class="basis-1/5">
+            <div class="basis-1/4 space-y-1">
               <label>Selling Price</label>
               <UInput v-model="formData.SELLINGPRICE" />
             </div>
-            <div class="basis-2/5">
+            <div class="basis-1/4 space-y-1">
               <label>Specification</label>
               <UInput v-model="formData.SPECIFICATIONS" />
             </div>
           </div>
 
-          
-          <!-- <div class="flex flex-row space-x-3">
-            <div class="basis-1/5">
-              <UFormGroup label="Order Cost" name="Order Cost">
-                <UInput v-model="formData.ORDERCOST" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Inventory Cost" name="Inventory Cost">
-                <UInput v-model="formData.InventoryCost"   />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Selling Price" name="Selling Price">
-                <UInput v-model="formData.SELLINGPRICE" />
-              </UFormGroup>
-            </div>
-            <div class="basis-2/5">
-              <UFormGroup label="Specification" name="Account">
-                <UInput v-model="formData.SPECIFICATIONS" />
-              </UFormGroup>
-            </div>
-          </div> -->
-
-          <div class="flex flex-row space-x-8">
-            <div class="basis-1.2/5 min-w-[350px]">
-              <UFormGroup label="Drawing/Mannul" name="DRAWINGCUSTOM">
-                <label class="custom-file-label max-w-[50px]" for="DRAWINGCUSTOM">
-                  <span :class="!files[0]?.name && !formData.DRAWINGCUSTOM ? 'bg-gray-500 text-white px-3 text-center py-1.5 rounded' : ''">
-                    {{ (files[0]?.name?.length > 20 ? '...' + files[0]?.name.slice(-20) : files[0]?.name) || (formData.DRAWINGCUSTOM?.length > 20 ? '...' + formData.DRAWINGCUSTOM.slice(-20) : formData.DRAWINGCUSTOM) || 'Upload a file' }}
-                  </span>
-                  <span v-if="files[0]?.name || formData.DRAWINGCUSTOM" class="bg-gray-500 text-white px-3 text-center py-1.5 rounded ms-3">
+          <div class="flex flex-row space-x-4 mb-3">
+            <div class="basis-1/4">
+              <!-- <UFormGroup label="Drawing/Mannul" name="DRAWINGCUSTOM"> -->
+                <div class="mb-2">Drawing/Mannul</div>
+                <label class="" for="DRAWINGCUSTOM">
+                  <span v-if="files[0]?.name || formData.DRAWINGCUSTOM" class="bg-gray-400 text-white px-2 py-2 rounded cursor-pointer me-3">
                     Upload
                   </span>
+                  <span :class="!files[0]?.name && !formData.DRAWINGCUSTOM ? 'bg-gray-400 text-white px-3 text-center py-2 rounded' : ''">
+                    {{ (files[0]?.name?.length > 20 ? '...' + files[0]?.name.slice(-20) : files[0]?.name) || (formData.DRAWINGCUSTOM?.length > 20 ? '...' + formData.DRAWINGCUSTOM.slice(-20) : formData.DRAWINGCUSTOM) || 'Upload a file' }}
+                  </span>
                 </label>
-
                 <input
                   id="DRAWINGCUSTOM" 
                   type="file"
@@ -894,19 +789,19 @@ const handleUpload  = async () => {
                   accept="application/pdf"
                   class="hidden"
                 />
-              </UFormGroup>
+              <!-- </UFormGroup> -->
             </div>
-            <div class="basis-1.2/5 min-w-[350px]">
-              <UFormGroup label="PDS" name="PDS">
-                <label class="custom-file-label max-w-[50px]" for="PDS">
-                  <span :class="!files[1]?.name && !formData.SPECSHEET ? 'bg-gray-500 text-white px-3 text-center py-1.5 rounded' : ''">
-                    {{ (files[1]?.name?.length > 20 ? '...' + files[1]?.name.slice(-20) : files[1]?.name) || (formData.SPECSHEET?.length > 20 ? '...' + formData.SPECSHEET.slice(-20) : formData.SPECSHEET) || 'Upload a file' }}
-                  </span>
-                  <span v-if="files[1]?.name || formData.SPECSHEET" class="bg-gray-500 text-white px-3 text-center py-1.5 rounded ms-3">
+            <div class="basis-1/4">
+              <!-- <UFormGroup label="PDS" name="PDS"> -->
+                <div class="mb-2">PDS</div>
+                <label class="" for="PDS">
+                  <span v-if="files[1]?.name || formData.SPECSHEET" class="bg-gray-400 text-white px-2 py-2 rounded cursor-pointer me-3">
                     Upload
                   </span>
+                  <span :class="!files[1]?.name && !formData.SPECSHEET ? 'bg-gray-400 text-white px-3 text-center py-2 rounded' : ''">
+                    {{ (files[1]?.name?.length > 20 ? '...' + files[1]?.name.slice(-20) : files[1]?.name) || (formData.SPECSHEET?.length > 20 ? '...' + formData.SPECSHEET.slice(-20) : formData.SPECSHEET) || 'Upload a file' }}
+                  </span>
                 </label>
-
                 <input
                   id="PDS"
                   type="file"
@@ -914,19 +809,19 @@ const handleUpload  = async () => {
                   accept="application/pdf"
                   class="hidden"
                 />
-              </UFormGroup>
+              <!-- </UFormGroup> -->
             </div>
-            <div class="basis-1.2/5 min-w-[350px]">
-              <UFormGroup label="sds" name="sds">
-                <label class="custom-file-label max-w-[50px]" for="sds">
-                  <span :class="!files[2]?.name && !formData.sds ? 'bg-gray-500 text-white px-3 text-center py-1.5 rounded' : ''">
-                    {{ (files[2]?.name?.length > 20 ? '...' + files[2]?.name.slice(-20) : files[2]?.name) || (formData.sds?.length > 20 ? '...' + formData.sds.slice(-20) : formData.sds) || 'Upload a file' }}
-                  </span>
-                  <span v-if="files[2]?.name || formData.sds" class="bg-gray-500 text-white px-3 text-center py-1.5 rounded ms-3">
+            <div class="basis-1/4">
+              <!-- <UFormGroup label="sds" name="sds"> -->
+                <div class="mb-2">SDS</div>
+                <label class="" for="sds">
+                  <span v-if="files[2]?.name || formData.sds" class="bg-gray-400 text-white px-2 py-2 rounded cursor-pointer me-3">
                     Upload
                   </span>
+                  <span :class="!files[2]?.name && !formData.sds ? 'bg-gray-400 text-white px-3 text-center py-2 rounded' : ''">
+                    {{ (files[2]?.name?.length > 20 ? '...' + files[2]?.name.slice(-20) : files[2]?.name) || (formData.sds?.length > 20 ? '...' + formData.sds.slice(-20) : formData.sds) || 'Upload a file' }}
+                  </span>
                 </label>
-
                 <input
                   id="sds"
                   type="file"
@@ -934,371 +829,228 @@ const handleUpload  = async () => {
                   accept="application/pdf"
                   class="hidden"
                 />
-              </UFormGroup>
+              <!-- </UFormGroup> -->
+            </div>
+            <div class="basis-1/4 space-y-1">
+              <label>Description</label>
+              <UInput
+                v-model="formData.DESCRIPTION"
+              />
             </div>
           </div>
-      
+        </div>
 
-          <div class="gmsBlueTitlebar mt-3 ">
-            <div class=" pl-2 text-white font-bold">Primary Vendor</div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-3 mt-2">
-            <!-- First Grid Section -->
+        <div class="space-y-4 mt-8">
+          <div class="gmsBlueTitlebar ps-2 py-1.5 text-white font-bold">Primary Vendor</div>
+          
+          <div class="grid grid-cols-3 gap-5 mt-2">
+            <!-- Left Grid Section -->
             <div class="grid grid-cols-2 gap-5">
-              <div class="col-span-2">
-                <UFormGroup label="Manufacturer" name="Manufacturer">
-                  <UInputMenu
-                    v-model="formData.PRIMARYMANTXT"
-                    :options="vendorList"
-                  />
-                </UFormGroup>
+              <div class="col-span-2  space-y-1">
+                <label>Manufacturer</label>
+                <UInputMenu
+                  v-model="formData.PRIMARYMANTXT"
+                  :options="vendorList"
+                />
               </div>
-              <div class="col-span-1">
-                <UFormGroup label="Dealer" name="Dealer">
-                  <UInputMenu
-                    v-model="formData.PRIMARYDEATXT"
-                    :options="vendorList"
-                  />
-                </UFormGroup>
+              <div class="space-y-1">
+                <label>Dealer</label>
+                <UInputMenu
+                  v-model="formData.PRIMARYDEATXT"
+                  :options="vendorList"
+                />
               </div>
-              <div class="col-span-1">
-                <UFormGroup label="Lead Time" name="Lead Time">
-                  <UInput v-model="formData.PRIMARYLEADTIME" />
-                </UFormGroup>
+              <div class="space-y-1">
+                <label>Lead Time</label>
+                <UInput v-model="formData.PRIMARYLEADTIME" />
               </div>
-              <div class="col-span-2">
-                <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
-                  <UInput />
-                </UFormGroup>
+              <div class="col-span-2 space-y-1">
+                <label>Last Ordered Date:</label>
+                <UInput />
               </div>
             </div>
-
-            <!-- Second Grid Section -->
+            <!-- Middle Grid Section -->
             <div class="grid grid-cols-1 gap-5">
-              <div>
-                <UFormGroup label="Part Number" name="Part Number">
-                  <UInput v-model="formData.PRIMARYMANNUM"  />
-                </UFormGroup>
+              <div class="space-y-1">
+                <label>Part Number</label>
+                <UInput v-model="formData.PRIMARYMANNUM"  />
               </div>
-              <div>
-                <UFormGroup label="Part Number" name="Part Number">
-                  <UInput v-model="formData.PRIMARYDEANUM"  />
-                </UFormGroup>
+              <div class="space-y-1">
+                <label>Part Number</label>
+                <UInput v-model="formData.PRIMARYDEANUM" />
               </div>
-              <div>
-                <UFormGroup label="UL Number" name="UL Number">
-                  <UInput v-model="formData.PRIMARYUL" />
-                </UFormGroup>
+              <div class="space-y-1">
+                <label>UL Number</label>
+                <UInput v-model="formData.PRIMARYUL" />
               </div>
             </div>
-
-            <div class="col-span-1 grid grid-cols-2 gap-2">
-            <!-- <div class="flex flex-row w-full space-x-2"> -->
-              <div class="grid grid-cols-1 gap-1">
-                <div class="text-center">Qty</div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYQTY1" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYQTY2" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYQTY3" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYQTY4" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYQTY5" />
-                  </UFormGroup>
-                </div>
+            <!-- Right Grid Section -->
+            <div class="col-span-1 grid grid-cols-2 gap-5">
+              <div class="grid grid-cols-1 gap-1.5">
+                <div>Qty</div>
+                <UInput v-model="formData.PRIMARYQTY1" />
+                <UInput v-model="formData.PRIMARYQTY2" />
+                <UInput v-model="formData.PRIMARYQTY3" />
+                <UInput v-model="formData.PRIMARYQTY4" />
+                <UInput v-model="formData.PRIMARYQTY5" />
               </div>
-              <!-- Second Grid Section -->
-              <div class="grid grid-cols-1">
-                <div class=" text-center">Price</div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYPRICE1" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYPRICE2" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYPRICE3" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYPRICE4" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup>
-                    <UInput v-model="formData.PRIMARYPRICE5" />
-                  </UFormGroup>
-                </div>
+
+              <div class="grid grid-cols-1 gap-1.5">
+                <div>Price</div>
+                <UInput v-model="formData.PRIMARYPRICE1" />
+                <UInput v-model="formData.PRIMARYPRICE2" />
+                <UInput v-model="formData.PRIMARYPRICE3" />
+                <UInput v-model="formData.PRIMARYPRICE4" />
+                <UInput v-model="formData.PRIMARYPRICE5" />
               </div>
             </div>
           </div>
         </div>
 
-        <div class="flex flex-row  mt-[30px]">
-          <div class="basis-1/2 gmsBlueTitlebar">
-            <div class="pl-2  text-white font-bold">Alternative Vendor #1</div>
-          </div>
-          <div class="basis-1/2 ml-2  gmsBlueTitlebar">
-            <div class=" text-white pl-2 font-bold">Alternative Vendor #2</div>
-          </div>
+        <div class="flex flex-row gap-5 mt-8 mb-5">
+          <div class="basis-1/2 gmsBlueTitlebar text-white font-bold ps-2 py-1.5">Alternative Vendor #1</div>
+          <div class="basis-1/2 gmsBlueTitlebar text-white font-bold ps-2 py-1.5">Alternative Vendor #2</div>
         </div>
 
         <div class="flex flex-row space-x-5 mt-2">
           <!-- Alternative Vendor #1 -->
           <div class="basis-1/2">
-            <!-- Shipping Information -->
-            <div class="flex flex-row space-x-5 ">
-              <!-- First Grid Section -->
-              <div class="grid grid-cols-1 gap-5">
-                <div>
-                  <UFormGroup label="Manufacturer" name="Manufacturer">
-                    <UInputMenu
-                      v-model="formData.ALTER1MANTXT"
-                      :options="vendorList"
-                    />
-                  </UFormGroup>
+            <div class="grid grid-cols-3 gap-5">
+              <div class="col-span-2">
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="space-y-2">
+                    <div>
+                      <label class="mb-1">Manufacturer</label>
+                      <UInputMenu
+                        v-model="formData.ALTER1MANTXT"
+                        :options="vendorList"
+                      />
+                    </div>
+                    <div>
+                      <label class="mb-1">Dealer</label>
+                      <UInputMenu
+                        v-model="formData.ALTER1DEATXT"
+                        :options="vendorList"
+                      />
+                    </div>
+                    <div>
+                      <label class="mb-1">Lead Time</label>
+                      <UInput v-model="formData.ALTER1LEADTIME" />
+                    </div>
+                  </div>
+
+                  <div class="space-y-2">
+                    <div>
+                      <label class="mb-1">Part Number</label>
+                      <UInput v-model="formData.ALTER1MANNUM" />
+                    </div>
+                    <div>
+                      <label class="mb-1">Part Number</label>
+                      <UInput v-model="formData.ALTER1DEANUM" />
+                    </div>
+                    <div>
+                      <label class="mb-1">UL Number</label>
+                      <UInput v-model="formData.ALTER1UL"/>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <UFormGroup label="Dealer" name="Dealer">
-                    <UInputMenu
-                      v-model="formData.ALTER1DEATXT"
-                      :options="vendorList"
-                    />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup label="Lead Time" name="Lead Time">
-                    <UInput  v-model="formData.ALTER1LEADTIME" />
-                  </UFormGroup>
-                </div>
-              </div>
-              <!-- Second Grid Section -->
-              <div class="grid grid-cols-1 gap-5">
-                <div>
-                  <UFormGroup label="Part Number" name="Part Number">
-                    <UInput  v-model="formData.ALTER1MANNUM" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup label="Part Number" name="Part Number">
-                    <UInput  v-model="formData.ALTER1DEANUM" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup label="UL Number" name="UL Number">
-                    <UInput  v-model="formData.ALTER1UL"/>
-                  </UFormGroup>
+
+                <div class="mt-2">
+                  <label class="mb-1">Last Ordered Date:</label>
+                  <UInput />
                 </div>
               </div>
 
-              <div class="flex flex-row space-x-2">
-                <div class="grid grid-cols-1 gap-1">
-                  <div class="basis-1/2 text-center">Qty</div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER1QTY1" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER1QTY2" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER1QTY3" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER1QTY4" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER1QTY5" />
-                    </UFormGroup>
-                  </div>
+              <div class="col-span-1 grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 gap-[10px]">
+                  <div class="-mb-[15px]">Qty</div>
+                  <UInput v-model="formData.ALTER1QTY1" />
+                  <UInput v-model="formData.ALTER1QTY2" />
+                  <UInput v-model="formData.ALTER1QTY3" />
+                  <UInput v-model="formData.ALTER1QTY4" />
+                  <UInput v-model="formData.ALTER1QTY5" />
                 </div>
-                <!-- Second Grid Section -->
-                <div class="grid grid-cols-1">
-                  <div class="basis-1/2 text-center">Price</div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER1PRICE1" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER1PRICE2" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER1PRICE3" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER1PRICE4" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER1PRICE5" />
-                    </UFormGroup>
-                  </div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 gap-5">
-                <div>
-                  <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
-                    <UInput />
-                  </UFormGroup>
+                <div class="grid grid-cols-1 gap-[10px]">
+                  <div class="-mb-[15px]">Price</div>
+                  <UInput v-model="formData.ALTER1PRICE1" />
+                  <UInput v-model="formData.ALTER1PRICE2" />
+                  <UInput v-model="formData.ALTER1PRICE3" />
+                  <UInput v-model="formData.ALTER1PRICE4" />
+                  <UInput v-model="formData.ALTER1PRICE5" />
                 </div>
               </div>
             </div>
           </div>
+
           <!-- Alternative Vendor #2 -->
           <div class="basis-1/2">
-            <!-- Billing Information -->
-            <div class="flex flex-row space-x-5 ">
-              <!-- First Grid Section -->
-              <div class="grid grid-cols-1 gap-5">
-                <div>
-                  <UFormGroup label="Manufacturer" name="Manufacturer">
-                    <UInputMenu
-                      v-model="formData.ALTER2MANTXT"
-                      :options="vendorList"
-                    />
-                  </UFormGroup>
+            <div class="grid grid-cols-3 gap-5">
+              <div class="col-span-2">
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="space-y-2">
+                    <div>
+                      <label class="mb-1">Manufacturer</label>
+                      <UInputMenu
+                        v-model="formData.ALTER2MANTXT"
+                        :options="vendorList"
+                      />
+                    </div>
+                    <div>
+                      <label class="mb-1">Dealer</label>
+                      <UInputMenu
+                        :options="vendorList"
+                        v-model="formData.ALTER2DEATXT"
+                      />
+                    </div>
+                    <div>
+                      <label class="mb-1">Lead Time</label>
+                      <UInput v-model="formData.ALTER2LEADTIME" />
+                    </div>
+                  </div>
+
+                  <div class="space-y-2">
+                    <div>
+                      <label class="mb-1">Part Number</label>
+                      <UInput v-model="formData.ALTER2MANNUM" />
+                    </div>
+                    <div>
+                      <label class="mb-1">Part Number</label>
+                      <UInput v-model="formData.ALTER2DEANUM" />
+                    </div>
+                    <div>
+                      <label class="mb-1">UL Number</label>
+                      <UInput v-model="formData.ALTER2UL" />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <UFormGroup label="Dealer" name="Dealer">
-                    <UInputMenu
-                    :options="vendorList"
-                  
-                      v-model="formData.ALTER2DEATXT"
-                    />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup label="Lead Time" name="Lead Time">
-                    <UInput  v-model="formData.ALTER2LEADTIME" />
-                  </UFormGroup>
-                </div>
-              </div>
-              <!-- Second Grid Section -->
-              <div class="grid grid-cols-1 gap-5">
-                <div>
-                  <UFormGroup label="Part Number" name="Part Number">
-                    <UInput  v-model="formData.ALTER2MANNUM" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup label="Part Number" name="Part Number">
-                    <UInput  v-model="formData.ALTER2DEANUM" />
-                  </UFormGroup>
-                </div>
-                <div>
-                  <UFormGroup label="UL Number" name="UL Number">
-                    <UInput  v-model="formData.ALTER2UL" />
-                  </UFormGroup>
+
+                <div class="mt-2">
+                  <label class="mb-1">Last Ordered Date:</label>
+                  <UInput />
                 </div>
               </div>
 
-              <div class="flex flex-row space-x-2">
-                <div class="grid grid-cols-1 gap-1">
-                  <div class="basis-1/2 text-center">Qty</div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER2QTY1" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER2QTY2" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER2QTY3" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER2QTY4" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER2QTY5" />
-                    </UFormGroup>
-                  </div>
+              <div class="col-span-1 grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 gap-[10px]">
+                  <div class="-mb-[15px]">Qty</div>
+                  <UInput v-model="formData.ALTER2QTY1" />
+                  <UInput v-model="formData.ALTER2QTY2" />
+                  <UInput v-model="formData.ALTER2QTY3" />
+                  <UInput v-model="formData.ALTER2QTY4" />
+                  <UInput v-model="formData.ALTER2QTY5" />
                 </div>
-                <!-- Second Grid Section -->
-                <div class="grid grid-cols-1">
-                  <div class="basis-1/2 text-center">Price</div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER2PRICE1" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER2PRICE2" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER2PRICE3" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER2PRICE4" />
-                    </UFormGroup>
-                  </div>
-                  <div>
-                    <UFormGroup>
-                      <UInput v-model="formData.ALTER2PRICE5" />
-                    </UFormGroup>
-                  </div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 gap-5">
-                <div>
-                  <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
-                    <UInput />
-                  </UFormGroup>
+                <div class="grid grid-cols-1 gap-[10px]">
+                  <div class="-mb-[15px]">Price</div>
+                  <UInput v-model="formData.ALTER2PRICE1" />
+                  <UInput v-model="formData.ALTER2PRICE2" />
+                  <UInput v-model="formData.ALTER2PRICE3" />
+                  <UInput v-model="formData.ALTER2PRICE4" />
+                  <UInput v-model="formData.ALTER2PRICE5" />
                 </div>
               </div>
             </div>
           </div>
+
         </div>
 
         <div class="gmsBlueTitlebar mt-4 ">
