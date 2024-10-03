@@ -6,8 +6,12 @@ export default eventHandler(async (event) => {
 
     if (method === 'POST') {
       const body = await readBody(event);
+    
       const result = await updateChangeOrderData(body);
-      return { body: result };
+
+ console.log(result)
+ 
+      return { body: result , message: ''};
     } else {
       setResponseStatus(event, 405);
       return { error: 'Method Not Allowed' };

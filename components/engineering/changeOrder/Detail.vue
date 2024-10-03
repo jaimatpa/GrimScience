@@ -93,14 +93,16 @@ const filterValues = ref({
   uniqueID: null,
   NUMBER: null,
   DESCRIPTION: null,
-  ORIGINATORDATE:null,
+  ORIGINATORDATE: null,
   REASONFORCHANGE: null,
   DISTRIBUTIONDATE: null,
   PRODUCT: null,
-  newCheckedValue:null
-  
+  APPROVAL: null,
 });
 
+const handleCheckboxChange = (key, isChecked) => {
+  filterValues.value[key] = isChecked ? "Yes" : "No";
+};
 
 // const watchCheckbox = (property, filterKey) => {
 //   watch(
@@ -118,7 +120,6 @@ const filterValues = ref({
 //   ShowOpenOnly: false
 // });
 
-
 // const selectedOptions = computed(() => {
 //   return Object.entries(checkboxes.value)
 //     .filter(([key, value]) => value)
@@ -129,11 +130,8 @@ const filterValues = ref({
 // watch(selectedOptions, (newSelectedOptions) => {
 //   filterValues.value.selectedOptions = newSelectedOptions;
 //   console.log("filter value is",newSelectedOptions);
-//   fetchGridData(); 
+//   fetchGridData();
 // });
-
-
-
 
 const props = defineProps({
   isPage: {
@@ -148,35 +146,24 @@ const columns = computed(() =>
   )
 );
 
-
 const init = async () => {
-  fetchGridData()
+  fetchGridData();
 
-gridMeta.value.isLoading = true;
-for (const key in headerFilters.value) {
-  const apiURL =
-    headerFilters.value[key]?.api ?? `/api/service/orders/${key}`;
+  gridMeta.value.isLoading = true;
+  for (const key in headerFilters.value) {
+    const apiURL =
+      headerFilters.value[key]?.api ?? `/api/service/orders/${key}`;
 
-  await useApiFetch(apiURL, {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        headerFilters.value[key].options = [null, ...response._data.body];
-      }
-    },
-  });
-}
-
-
+    await useApiFetch(apiURL, {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          headerFilters.value[key].options = [null, ...response._data.body];
+        }
+      },
+    });
+  }
 };
-
-
-
-
-
-
-
-
 
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
@@ -191,7 +178,7 @@ const fetchGridData = async () => {
       }
     },
   });
-  
+
   if (
     gridMeta.value.page * gridMeta.value.pageSize >
     gridMeta.value.numberOfChangeOrders
@@ -200,7 +187,7 @@ const fetchGridData = async () => {
       Math.ceil(gridMeta.value.numberOfChangeOrders / gridMeta.value.pageSize) |
       1;
   }
-
+debugger
   await useApiFetch("/api/engineering/changeorder/", {
     method: "GET",
     params: {
@@ -272,27 +259,23 @@ const handleFilterInputChange = async (event, name) => {
   init();
 };
 
-
-
-
 // Export excel data download  function
 const excelExport = () => {
-    exportIsLoading.value = true
-    const params = {
-        sortBy: gridMeta.value.sort.column,
-        sortOrder: gridMeta.value.sort.direction,
-        ...filterValues.value,
-      }
-    const paramsString = Object.entries(params)
-      .filter(([_, value]) => value !== null)
-      .map(([key, value]) => {
-        if(value !== null)
-        return `${key}=${value}`
-      })
-      .join("&")
-    location.href = `/api/engineering/changeorder/exportorder?${paramsString}`
-    exportIsLoading.value = false
-  }
+  exportIsLoading.value = true;
+  const params = {
+    sortBy: gridMeta.value.sort.column,
+    sortOrder: gridMeta.value.sort.direction,
+    ...filterValues.value,
+  };
+  const paramsString = Object.entries(params)
+    .filter(([_, value]) => value !== null)
+    .map(([key, value]) => {
+      if (value !== null) return `${key}=${value}`;
+    })
+    .join("&");
+  location.href = `/api/engineering/changeorder/exportorder?${paramsString}`;
+  exportIsLoading.value = false;
+};
 
 const emit = defineEmits(["rowSelected", "rowDoubleClicked"]);
 
@@ -324,7 +307,6 @@ const onDblClick = () => {
                   v-model="filterValues.PRODUCT"
                   :options="headerFilters.productLines.options"
                   @change="handleFilterChange()"
-                  
                 />
               </UFormGroup>
             </div>
@@ -349,15 +331,26 @@ const onDblClick = () => {
             <div
               class="flex flex-row px-4 pt-[5px] bg-gms-gray-100 border border-green-500 rounded-md"
             >
-              <template v-for="checkbox in headerCheckboxes">
+              <!-- <template v-for="checkbox in headerCheckboxes">
                 <div>
                   <UCheckbox
                     color="green"
                     variant="outline"
                     v-model="filterValues[checkbox.filterKey]"
+                    :label="checkbox.label"                
+                  />
+                </div>
+              </template> -->
+              <template v-for="checkbox in headerCheckboxes">
+                <div>
+                  <UCheckbox
+                    color="green"
+                    variant="outline"
                     :label="checkbox.label"
-
-                    
+                    :modelValue="filterValues[checkbox.filterKey] === 'Yes'"
+                    @update:modelValue="
+                      handleCheckboxChange(checkbox.filterKey, $event)
+                    "
                   />
                 </div>
               </template>
@@ -433,7 +426,7 @@ const onDblClick = () => {
         </template>
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
-        <div  class="flex flex-row justify-end mr-20 mt-1">
+        <div class="flex flex-row justify-end mr-20 mt-1">
           <UPagination
             :max="7"
             :page-count="gridMeta.pageSize"

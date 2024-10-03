@@ -51,41 +51,18 @@ const onPrevieOrderBtnClick = () => {
         }
 
         const blob = await response.blob();
-        const pdfContentUrl = URL.createObjectURL(blob); // Create a URL for the PDF blob
-
-        // Open the PDF in a new tab/window after fetching
+        const pdfContentUrl = URL.createObjectURL(blob);
         window.open(pdfContentUrl, "_blank");
       } catch (error) {
         console.error(error);
         alert("Error fetching the PDF. Please try again later.");
       }
     };
-
-    // Call the fetchData function with the unique ID
     fetchData(uniqueIDP.value);
   } else {
     alert("Unique ID is missing! The function cannot execute.");
   }
 };
-
-// ok code
-// const onPrevieOrderBtnClick = () => {
-//   if (uniqueIDP.value) {
-//     const queryString = new URLSearchParams({ id: uniqueIDP.value }).toString();
-//     window.open(`/engineering/pdf?${queryString}`, '_blank');
-//   } else {
-//     alert('Unique ID is missing! The function cannot execute.');
-//   }
-// };
-
-
-
-// redirectToProductsList() {
-//       // This will redirect to the specific path
-//       this.$router.push('/marketing/products/list');
-//     }
-
-// const emit = defineEmits(["selectEco","rowSelectedProduct",  "close"]);
 
 const emit = defineEmits(["rowSelectedProduct", "selectEco", "close"]);
 
@@ -93,10 +70,7 @@ const handleSelect = () => {
   emit("selectEco", selectedRow);
   // emit("rowSelectedProduct", rowSelectedProduct);
   emit("close");
-
 };
-
-
 
 const props = defineProps({
   isModal: {
@@ -168,7 +142,7 @@ const clearFields = () => {
   engineeringCheck.value = false;
   engineeringData.value = "";
   originatorData.value = "";
-  originatorDate.value ="";
+  originatorDate.value = "";
   signature.value = "";
   CompleteBoolean.value = "";
   commentsComplete.value = "";
@@ -180,7 +154,7 @@ const clearFields = () => {
   productsDetails.value = "";
   partsDetails.value = "";
   CompleteDate.value = "";
-  verificationNotRequired.value = false
+  verificationNotRequired.value = false;
 };
 
 const selectedRowData = ref({
@@ -198,7 +172,7 @@ const selectedRowData = ref({
   MARAPPROVER: "",
   ORIGINATOR: "",
   MANAPPROVER: "",
-  APPROVAL:"",
+  APPROVAL: "",
   ENGAPPROVAL: "",
   MARAPPROVAL: "",
   MANAPPROVAL: "",
@@ -209,7 +183,7 @@ const selectedRowData = ref({
   MANCOMMENTS: "",
   MARCOMMENTS: "",
   ENGCOMMENTS: "",
-  SIGNATURE:"",
+  SIGNATURE: "",
   COMMENTS: "",
   PRODUCTS: "",
   VandVNotRequired: "",
@@ -220,21 +194,17 @@ const selectedRowData = ref({
   PartsDetails: "",
 });
 
-
-
-
 const formatDate = (date) => {
   if (!date) return "";
   const d = new Date(date);
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   const year = d.getFullYear();
   return `${year}-${month}-${day}`;
 };
 
 const handleRowSelected = (row) => {
-
-  console.log("functon okay ", row)
+  console.log("functon okay ", row);
   uniqueIDP.value = row.uniqueID;
   selectedRow.value = row;
 
@@ -253,7 +223,7 @@ const handleRowSelected = (row) => {
     MARAPPROVER: row.MARAPPROVER,
     ORIGINATOR: row.ORIGINATOR,
     MANAPPROVER: row.MANAPPROVER,
-    APPROVAL:row.APPROVAL,
+    APPROVAL: row.APPROVAL,
     ENGAPPROVAL: row.ENGAPPROVAL,
     MARAPPROVAL: row.MARAPPROVAL,
     MANAPPROVAL: row.MANAPPROVAL,
@@ -266,13 +236,13 @@ const handleRowSelected = (row) => {
     ENGCOMMENTS: row.ENGCOMMENTS,
     SIGNATURE: row.SIGNATURE,
     COMMENTS: row.COMMENTS,
-    PRODUCTS: row.PRODUCTS,
     MARKETING: row.MARKETING,
     VandVNotRequired: row.VandVNotRequired,
     ENGINEERING: row.ENGINEERING,
     MANUFACTURING: row.MANUFACTURING,
-    ProductsDetails: row.ProductsDetails,
-    PartsDetails: row.PartsDetails,
+    // ProductsDetails: row.ProductsDetails,
+    PRODUCTS: row.PRODUCTS,
+    //  PartsDetails: row.PARTS,
   };
 
   Description.value = row.DESCRIPTION;
@@ -282,7 +252,7 @@ const handleRowSelected = (row) => {
   DetailsReasonChange.value = row.DetailReason;
   fromModel.value = row.FromModel;
   toModel.value = row.ToModel;
-  PartsAffect.value = row.PARTS;
+  // PartsAffect.value = row.PARTS;
   productLineOption.value = row.PRODUCT;
   changeReasonData.value = row.REASONFORCHANGE;
   engineeringBoolean.value = row.ENGAPPROVAL;
@@ -293,7 +263,7 @@ const handleRowSelected = (row) => {
   manufacturingCheck.value = row.MANUFACTURING === "1" ? true : false;
   manufacturingData.value = row.MANAPPROVER;
   engineeringCheck.value = row.ENGINEERING === "1" ? true : false;
-  verificationNotRequired.value =row.VandVNotRequired === "0" ? true : false;
+  verificationNotRequired.value = row.VandVNotRequired === "0" ? true : false;
   engineeringData.value = row.ENGAPPROVER;
   originatorData.value = row.ORIGINATOR;
   signature.value = row.SIGNATURE;
@@ -304,60 +274,106 @@ const handleRowSelected = (row) => {
   engineeringComments.value = row.ENGCOMMENTS;
   CompleteDate.value = row.DISTRIBUTIONDATE;
   manufacturingDate.value = formatDate(row.MANDATEAPPROVED);
-  marketingDate.value =formatDate(row.MARDATEAPPROVED);
-  originatorDate.value = row.ORIGINATORDATE
+  marketingDate.value = formatDate(row.MARDATEAPPROVED);
+  originatorDate.value = row.ORIGINATORDATE;
   engineeringDate.value = formatDate(row.ENGDATEAPPROVED);
-  productsDetails.value = row.ProductsDetails;
   productsDetails.value = row.PRODUCTS;
   partsDetails.value = row.PARTS;
- 
-  
 
-  if (typeof row.PARTS === 'string' && row.PARTS.trim()) {
-    selectedRowParts.value.partsArray = row.PARTS.split(',').map(part => {
-      const [model, ...descriptionParts] = part.trim().split(' ');
-      const description = descriptionParts.join(' ');
+  // Handle PRODUCTS field
+  if (typeof row.PRODUCTS === "string" && row.PRODUCTS.trim()) {
+    selectedRowProducts.value.partsArray = row.PRODUCTS.split(",").map(
+      (product) => {
+        const [uniqueID, ...productLineParts] = product.trim().split(" ");
+        const productLine = productLineParts.join(" ");
+        return {
+          UniqueID: uniqueID.trim(),
+          PRODUCTLINE: productLine.trim(),
+        };
+      }
+    );
+  } else {
+    selectedRowProducts.value.partsArray = [];
+  }
+
+  updateProductsDetails();
+
+  if (typeof row.PARTS === "string" && row.PARTS.trim()) {
+    selectedRowParts.value.partsArray = row.PARTS.split(",").map((part) => {
+      const [model, ...descriptionParts] = part.trim().split(" ");
+      const description = descriptionParts.join(" ");
       return {
         MODEL: model.trim(),
         DESCRIPTION: description.trim(),
       };
     });
   } else {
-    selectedRowParts.value.partsArray = []; 
+    selectedRowParts.value.partsArray = [];
   }
-
-  // Update parts details
   updatePartsDetails();
-
 };
 
-const selectedRowDataProduct = ref({
-  UniqueID: "",
-  PRODUCTLINE: "",
-  
-})
+
+
+// start list of PRODUCT
+const selectedRowProducts = ref({
+  productsArray: [],
+  productsDetails: "",
+  selectedIndex: null,
+});
+
 const handleRowSelectedProduct = (row) => {
-  selectedRowDataProduct.value ={
-    UniqueID: row.UniqueID,
-    PRODUCTLINE: row.PRODUCTLINE,
+  const productExists = selectedRowProducts.value.productsArray.some(
+    (product) =>
+      product.UniqueID === row.UniqueID &&
+      product.PRODUCTLINE === row.PRODUCTLINE
+  );
+
+  if (!productExists) {
+    selectedRowProducts.value.productsArray.push({
+      UniqueID: row.UniqueID,
+      PRODUCTLINE: row.PRODUCTLINE,
+    });
+    updateProductsDetails();
   }
-  productsDetails.value = `#${row.UniqueID} ${row.PRODUCTLINE}`;
 };
+
+const updateProductsDetails = () => {
+  selectedRowProducts.value.productsDetails =
+    selectedRowProducts.value.productsArray
+      .map((product) => `#${product.UniqueID} ${product.PRODUCTLINE}`)
+      .join(", ");
+};
+
+const handleSelectProduct = (index) => {
+  selectedRowProducts.value.selectedIndex =
+    selectedRowProducts.value.selectedIndex === index ? null : index;
+};
+
+const handleRemoveProduct = () => {
+  const indexToRemove = selectedRowProducts.value.selectedIndex;
+
+  if (indexToRemove !== null) {
+    selectedRowProducts.value.productsArray.splice(indexToRemove, 1);
+    selectedRowProducts.value.selectedIndex = null;
+    updateProductsDetails();
+  }
+};
+
+// start list of parts
 
 const selectedRowParts = ref({
   partsArray: [],
-  partsDetails: "", 
-  selectedIndex: null,  
+  partsDetails: "",
+  selectedIndex: null,
 });
 
 const handleSelectedPart = (row) => {
-  // Check if the part already exists
   const partExists = selectedRowParts.value.partsArray.some(
-    part => part.MODEL === row.MODEL && part.DESCRIPTION === row.DESCRIPTION
+    (part) => part.MODEL === row.MODEL && part.DESCRIPTION === row.DESCRIPTION
   );
 
   if (!partExists) {
-    // Add the selected row to the array
     selectedRowParts.value.partsArray.push({
       MODEL: row.MODEL,
       DESCRIPTION: row.DESCRIPTION,
@@ -368,45 +384,24 @@ const handleSelectedPart = (row) => {
 
 const updatePartsDetails = () => {
   selectedRowParts.value.partsDetails = selectedRowParts.value.partsArray
-    .map(part => `#${part.MODEL} ${part.DESCRIPTION}`)
-    .join(', ');
+    .map((part) => `#${part.MODEL} ${part.DESCRIPTION}`)
+    .join(", ");
 };
 
 const handleSelectPart = (index) => {
-  selectedRowParts.value.selectedIndex = selectedRowParts.value.selectedIndex === index ? null : index;
+  selectedRowParts.value.selectedIndex =
+    selectedRowParts.value.selectedIndex === index ? null : index;
 };
 
 const handleRemovePart = () => {
   const indexToRemove = selectedRowParts.value.selectedIndex;
-  
+
   if (indexToRemove !== null) {
-    // Remove the selected part by index
     selectedRowParts.value.partsArray.splice(indexToRemove, 1);
     selectedRowParts.value.selectedIndex = null; // Reset selected index
     updatePartsDetails();
   }
 };
-
-// ok code
-// const selectedRowParts = ref({
-//   uniqueID: "",
-//   PARTS: "",
-//   partsDetails:"",
-//   MODEL:"",
-//   DESCRIPTION:""
-  
-// })
-
-// const handleSelectedPart = (row) => {
-//   console.log("data is get", row);
-//   selectedRowParts.value = {
-//     MODEL: row.MODEL,
-//     DESCRIPTION: row.DESCRIPTION,
-//   }
-//   partsDetails.value = `#${row.MODEL} ${row.DESCRIPTION}`;
-
-// };
-
 
 const uniqueIDP = ref(null);
 const selectedRow = ref(null);
@@ -449,23 +444,20 @@ const ProductAffect = ref("");
 const uniqueIdNumber = ref("");
 const verificationNotRequired = ref(false);
 
-
-// const verificationValue = verificationNotRequired.value ? 0 : -1;
-
 const submitInsertForm = async () => {
-
   const formData = {
     uniqueID: uniqueIdNumber.value,
     REASONFORCHANGE: changeReasonData.value,
     PRODUCT: productLineOption.value,
-    PRODUCTS:productsDetails.value,
+    // PRODUCTS: productsDetails.value,
+    PRODUCTS: selectedRowProducts.value.productsDetails,
     SOLUTION: solutionOrder.value,
     DESCRIPTION: Description.value,
     DetailReason: DetailsReasonChange.value,
     FromModel: fromModel.value,
     ToModel: toModel.value,
-  // PARTS: partsDetails.value,
-     PARTS: selectedRowParts.value.partsDetails,
+    // PARTS: partsDetails.value,
+    PARTS: selectedRowParts.value.partsDetails,
     ISSUE: IssueDetails.value,
     VandVNotRequired: verificationNotRequired.value ? "0" : "-1",
     // VandVNotRequired: verificationNotRequired.value,
@@ -473,17 +465,17 @@ const submitInsertForm = async () => {
     ORIGINATORDATE: originatorDate.value,
     ENGINEERING: engineeringCheck.value,
     ENGAPPROVER: engineeringData.value.label || "",
-    ENGDATEAPPROVED: engineeringDate.value,///
+    ENGDATEAPPROVED: engineeringDate.value, ///
     ENGAPPROVAL: engineeringBoolean.value,
     ENGCOMMENTS: engineeringComments.value,
     MARKETING: marketingCheck.value,
-    MARAPPROVER: marketingData.value.label || "",/////
-    MARDATEAPPROVED:marketingDate.value,
+    MARAPPROVER: marketingData.value.label || "", /////
+    MARDATEAPPROVED: marketingDate.value,
     MARAPPROVAL: marketingBoolean.value,
     MARCOMMENTS: marketingComments.value,
     MANUFACTURING: manufacturingCheck.value,
     MANAPPROVER: manufacturingData.value.label || "",
-    MANDATEAPPROVED: manufacturingDate.value,////
+    MANDATEAPPROVED: manufacturingDate.value, ////
     MANAPPROVAL: manufacturingBoolean.value,
     MANCOMMENTS: manufacturingComments.value,
     SIGNATURE: signature.value.label || "",
@@ -491,6 +483,8 @@ const submitInsertForm = async () => {
     APPROVAL: CompleteBoolean.value,
     COMMENTS: commentsComplete.value,
   };
+
+  const toast = useToast();
 
   console.log(formData);
   debugger;
@@ -503,10 +497,15 @@ const submitInsertForm = async () => {
       }
     );
 
-    if (response.status === 200) {
-
+    if (response.body.success === true) {
+      toast.add({
+        title: "Success",
+        description: response.body.message,
+        icon: "i-heroicons-check-circle",
+        color: "green",
+      });
     } else {
-      console.error("Submission failed:", response.error);
+      console.error("Submission failed:", response.body.message);
     }
   } catch (error) {
     console.error("Error during form submission:", error);
@@ -585,7 +584,6 @@ const fetchReasonForChangeData = async () => {
   }
 };
 
-// Clear the interval when the component is unmounted
 onBeforeUnmount(() => {
   if (fetchInterval.value) {
     clearInterval(fetchInterval.value);
@@ -822,39 +820,54 @@ const handleChange = (field, newValue) => {
       </div>
 
       <div class="flex flex-row space-x-4">
-
-        <!-- <div class="w-3/4 flex flex-col">
-    <UTextarea v-model="selectedRowParts.partsDetails" class="w-full" readonly />
-  </div> -->
-
-  <!-- <div class="w-3/4 flex flex-col">
-  <UTextarea v-html="selectedRowParts.partsDetails" class="w-full" readonly @click="removePartOnClick" />
-</div> -->
-        <!-- <div class="w-3/4 flex flex-col">
-          <UTextarea v-model="partsDetails" class="w-full" readonly/>
-        </div> -->
-
-
-        <!-- <div class="w-3/4 flex flex-col">
-      <UTextarea v-model="selectedRowParts.partsDetails" class="w-full" readonly />
-    </div> -->
-
-    <div class="w-3/4 flex flex-col">
-    <div class="h-[70px] overflow-y-auto border-2 border-gray-300 rounded-md">
-      <div v-for="(part, index) in selectedRowParts.partsArray" :key="index" class="flex items-center">
-        <div
-          @click="handleSelectPart(index)"
-          :class="['cursor-pointer', { 'bg-green-100 ': selectedRowParts.selectedIndex === index }]"
-        >
-          #{{ part.MODEL }} {{ part.DESCRIPTION }}
-        </div>
-      </div>
-    </div>
-  </div>
-
         <div class="w-3/4 flex flex-col">
-          <UTextarea v-model="productsDetails" class="w-full" readonly/>
+          <div
+            class="h-[70px] overflow-y-auto border-2 border-gray-300 rounded-md"
+          >
+            <div
+              v-for="(part, index) in selectedRowParts.partsArray"
+              :key="index"
+              class="flex items-center"
+            >
+              <div
+                @click="handleSelectPart(index)"
+                :class="[
+                  'cursor-pointer',
+                  { 'bg-green-100 ': selectedRowParts.selectedIndex === index },
+                ]"
+              >
+                #{{ part.MODEL }} {{ part.DESCRIPTION }}
+              </div>
+            </div>
+          </div>
         </div>
+        <div class="w-3/4 flex flex-col">
+          <div
+            class="h-[70px] overflow-y-auto border-2 border-gray-300 rounded-md"
+          >
+            <div
+              v-for="(product, index) in selectedRowProducts.productsArray"
+              :key="index"
+              class="flex items-center"
+            >
+              <div
+                @click="handleSelectProduct(index)"
+                :class="[
+                  'cursor-pointer',
+                  {
+                    'bg-green-100 ':
+                      selectedRowProducts.selectedIndex === index,
+                  },
+                ]"
+              >
+                #{{ product.UniqueID }} {{ product.PRODUCTLINE }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="w-3/4 flex flex-col">
+          <UTextarea v-model="productsDetails" class="w-full" readonly/>
+        </div> -->
       </div>
 
       <div class="flex flex-row space-x-4">
@@ -865,7 +878,7 @@ const handleChange = (field, newValue) => {
             </UFormGroup>
 
             <UButton
-             @click="handleRemovePart"
+              @click="handleRemovePart"
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
             >
               Remove
@@ -876,9 +889,10 @@ const handleChange = (field, newValue) => {
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup class="flex-1" name="firstInput">
-              <UInput class="h-full"  />
+              <UInput class="h-full" />
             </UFormGroup>
             <UButton
+              @click="handleRemoveProduct"
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
             >
               Remove
@@ -1142,5 +1156,3 @@ const handleChange = (field, newValue) => {
     <PartsModalPage @rowSelectedParts="handleSelectedPart" />
   </UDashboardModal>
 </template>
-
-

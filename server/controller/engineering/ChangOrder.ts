@@ -9,7 +9,9 @@ const applyFilters = (params) => {
     "DESCRIPTION",
     "REASONFORCHANGE",
     "PRODUCT",
+    "ORIGINATORDATE",
     "DISTRIBUTIONDATE",
+    "APPROVAL"
   ];
   const whereClause = {};
 
@@ -57,6 +59,11 @@ export const getNumberOfChangeOrder = async (filterParams) => {
   return numberOfCustomers;
 };
 
+
+
+
+
+
 export const getSignature = async () => {
   try {
     const signatures = await tblECO.findAll({
@@ -102,8 +109,12 @@ export const getAllChangeOrderData = async (sortBy, sortOrder, filterParams) => 
     whereClause["COMPLAINTNUMBER"] = {
       [Op.like]: `%${filterParams.COMPLAINTNUMBER}%`,
     };
+
   if (filterParams.SERIALNO)
     whereClause["SERIALNO"] = { [Op.like]: `%${filterParams.SERIALNO}%` };
+ if (filterParams.SERIALNO)
+    whereClause["APPROVAL"] = { [Op.like]: `%${filterParams.APPROVAL}%` };
+
   if (filterParams.COMPLAINTDATE)
     whereClause[Op.and] = [
       Sequelize.where(
