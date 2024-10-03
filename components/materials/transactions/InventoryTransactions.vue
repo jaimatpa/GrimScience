@@ -517,28 +517,29 @@ editInit()
       loader="dots" />
   </div>
   <UForm :validate="validate" :validate-on="['submit']" :state="formData" @submit="onSubmit">
+
+
     <div class="flex flex-col">
-      <div class="flex justify-between bg-slate-400 px-3 py-1">
-        <div class="flex items-center">
-          Inventory transactions
-        </div>
-        <div class="flex flex-row space-x-5">
-          <div class="flex flex-row space-x-3">
-            <div class="flex items-center">Stock# Search</div>
-            <div class="min-w-[150px]">
-              <UInput v-model="inventoryFilterValues.uniqueid" />
-            </div>
+      <div class="w-full px-4 py-2 gmsBlueTitlebar flex flex-row justify-between items-center">
+        <div></div>
+        <div class="flex justify-between items-center space-x-2">
+          <div class="text-white">
+            Stock# Search
           </div>
           <div>
-            <UButton label="Refresh List" color="gray" />
+            <UInput v-model="inventoryFilterValues.uniqueid" />
+          </div>
+          <div>
+            <UButton color="gray" variant="solid" label="Refresh List" />
           </div>
         </div>
       </div>
-      <div class="py-2">
-        <div class="px-4">
+
+      <div class="px-4 py-2 w-full">
+        <div>
           <UTable :rows="inventoryGridMeta.inventories" :columns="inventoryGridMeta.defaultColumns"
             :loading="inventoryGridMeta.isLoading" class="w-full" :ui="{
-              wrapper: 'overflow-auto h-60 border-2 border-gray-300 dark:border-gray-700',
+              wrapper: 'overflow-auto h-60 border border-gray-400 dark:border-gray-700',
               divide: 'divide-gray-200 dark:divide-gray-800',
               tr: {
                 active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
@@ -587,171 +588,191 @@ editInit()
             </template>
           </UTable>
         </div>
-        <div class="flex items-center bg-slate-400 px-3 py-1 mt-2">
-          Parts Used
-        </div>
-        <div class="flex flex-row-reverse px-4 py-1">
-          <div class="min-w-[100px]">
-            <UButton label="Remove Part" :ui="{ base: 'min-w-[125px] justify-center' }" @click="onRemovePart" />
+      </div>
+
+      <div class="w-full px-3 py-1 gmsBlueTitlebar">
+        Parts Used
+      </div>
+      <div class="px-4 py-2 w-full flex flex-col space-y-2">
+        <div class="flex justify-end">
+          <div>
+            <UButton color="primary" label="Remove Part" @click="onRemovePart" />
           </div>
         </div>
-        <div class="flex flex-row space-x-3 p-4 pt-0">
-          <div class="basis-1/2">
-            <UTable :rows="productGridMeta.products" :columns="productGridMeta.defaultColumns"
-              :loading="productGridMeta.isLoading" class="w-full" :ui="{
-                wrapper: 'overflow-y-auto h-60 border-2 border-gray-300 dark:border-gray-700',
-                divide: 'divide-gray-200 dark:divide-gray-800',
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'p-0'
-                },
-                td: {
-                  base: 'h-[31px]',
-                  padding: 'py-0'
-                }
-              }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-              @select="onProductSelect" @dblclick="onProductDblClick">
-              <template v-for="column in productGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
-                <template v-if="!column.filterOptions">
-                  <div class="px-1 py-1">
-                    <CommonSortAndInputFilter @handle-sorting-button="handleProductSortingButton"
-                      @handle-input-change="handleProductFilterInputChange" :label="column.label"
-                      :sortable="column.sortable" :sort-key="column.key"
-                      :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                      :filterable="column.filterable" :filter-key="column.key" />
+
+
+        <div class="flex flex-row space-x-2">
+          <div class="w-1/2 flex flex-col space-y-2">
+            <div>
+              <UTable :rows="productGridMeta.products" :columns="productGridMeta.defaultColumns"
+                :loading="productGridMeta.isLoading" class="w-full" :ui="{
+                  wrapper: 'overflow-y-auto h-60 border border-gray-300 dark:border-gray-700',
+                  divide: 'divide-gray-200 dark:divide-gray-800',
+                  th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-0'
+                  },
+                  td: {
+                    base: 'h-[31px]',
+                    padding: 'py-0'
+                  }
+                }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+                @select="onProductSelect" @dblclick="onProductDblClick">
+                <template v-for="column in productGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
+                  <template v-if="!column.filterOptions">
+                    <div class="px-1 py-1">
+                      <CommonSortAndInputFilter @handle-sorting-button="handleProductSortingButton"
+                        @handle-input-change="handleProductFilterInputChange" :label="column.label"
+                        :sortable="column.sortable" :sort-key="column.key"
+                        :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
+                        :filterable="column.filterable" :filter-key="column.key" />
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div class="px-1 py-1">
+                      <CommonSortAndSelectFilter @handle-sorting-button="handleProductSortingButton"
+                        @handle-select-change="handleProductFilterInputChange" :label="column.label"
+                        :sortable="column.sortable" :sort-key="column.key"
+                        :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
+                        :value="productFilterValues[column.key]" :filterable="column.filterable"
+                        :filter-key="column.key" :filter-options="column.filterOptions" />
+                    </div>
+                  </template>
+                </template>
+                <template #UniqueID-data="{ row }">
+                  <div class="w-[50px]">
+                    {{ row.UniqueID }}
                   </div>
                 </template>
-                <template v-else>
-                  <div class="px-1 py-1 min-w-[120px]">
-                    <CommonSortAndSelectFilter @handle-sorting-button="handleProductSortingButton"
-                      @handle-select-change="handleProductFilterInputChange" :label="column.label"
-                      :sortable="column.sortable" :sort-key="column.key"
-                      :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                      :value="productFilterValues[column.key]" :filterable="column.filterable" :filter-key="column.key"
-                      :filter-options="column.filterOptions" />
-                  </div>
+                <template #edit-data="{ row }">
+                  <UTooltip text="Detail" class="flex justify-center">
+                    <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square"
+                      @click="onInventoryEdit(row)" />
+                  </UTooltip>
                 </template>
-              </template>
-              <template #UniqueID-data="{ row }">
-                <div class="w-[50px]">
-                  {{ row.UniqueID }}
-                </div>
-              </template>
-              <template #edit-data="{ row }">
-                <UTooltip text="Detail" class="flex justify-center">
-                  <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square"
-                    @click="onInventoryEdit(row)" />
-                </UTooltip>
-              </template>
-              <template #delete-data="{ row }">
-                <UTooltip text="Delete" class="flex justify-center">
-                  <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onInventoryDelete(row)" />
-                </UTooltip>
-              </template>
-            </UTable>
-          </div>
-          <div class="basis-1/2">
-            <UTable :rows="inventoryDetailGridMeta.details" :columns="inventoryDetailGridMeta.defaultColumns"
-              :loading="inventoryDetailGridMeta.isLoading" class="w-full" :ui="{
-                wrapper: 'overflow-y-auto h-60 border-2 border-gray-300 dark:border-gray-700',
-                divide: 'divide-gray-200 dark:divide-gray-800',
-                tr: {
-                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
-                },
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'p-0'
-                },
-                td: {
-                  base: 'h-[31px]',
-                  padding: 'py-0'
-                }
-              }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-              @select="onInventoryDetailSelect" @dblclick="">
-              <template v-for="column in inventoryDetailGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
-                <template v-if="column.kind !== 'actions'">
-                  <div class="px-1 py-1">
-                    <CommonSortAndInputFilter @handle-sorting-button="handleStockSortingButton"
-                      @handle-input-change="handleInventoryDetailFilterInputChange" :label="column.label"
-                      :sortable="column.sortable" :sort-key="column.key"
-                      :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                      :filterable="column.filterable" :filter-key="column.key" />
-                  </div>
+                <template #delete-data="{ row }">
+                  <UTooltip text="Delete" class="flex justify-center">
+                    <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onInventoryDelete(row)" />
+                  </UTooltip>
                 </template>
-                <template v-else class='bg-slate-400'>
-                  <div class="flex justify-center text-center w-[53px]">
-                    {{ column.label }}
-                  </div>
-                </template>
-              </template>
-              <template #UniqueID-data="{ row }">
-                <div class="w-[50px]">
-                  {{ row.UniqueID }}
-                </div>
-              </template>
-              <template #edit-data="{ row }">
-                <UTooltip text="Detail" class="flex justify-center">
-                  <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square"
-                    @click="onInventoryEdit(row)" />
-                </UTooltip>
-              </template>
-              <template #delete-data="{ row }">
-                <UTooltip text="Delete" class="flex justify-center">
-                  <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onInventoryDelete(row)" />
-                </UTooltip>
-              </template>
-            </UTable>
+              </UTable>
+            </div>
+
+            <div class="italic">Parts (Double-Click To Add)</div>
+            <div class="pt-8 flex justify-end">
+              <div class="px-8">Transaction #: {{ formData.transactionID }}</div>
+            </div>
           </div>
 
-        </div>
-        <div class="flex flex-row">
-          <div class="basis-1/2 p-4 pt-0">
-            <div class="italic">
-              Parts(Double-Clcick To Add)
-            </div>
-          </div>
-          <div class="basis-1/2 p-4 pt-0 flex flex-row space-x-3">
-            <div class="basis-1/4 flex justify-center">
-              Transaction#: {{ formData.transactionID }}
-            </div>
-            <div class="basis-1/4 flex flex-col space-y-3">
-              <UFormGroup label="By">
-                <UInput v-model="formData.By" />
-              </UFormGroup>
-              <UFormGroup label="Date">
-                <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton icon="i-heroicons-calendar-days-20-solid"
-                    :label="formData.Dated && format(formData.Dated, 'MM/dd/yyyy')" variant="outline"
-                    :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
-                  <template #panel="{ close }">
-                    <CommonDatePicker v-model="formData.Dated" is-required @close="close" />
+
+          <div class="w-1/2 flex flex-col space-y-2">
+            <div>
+              <UTable :rows="inventoryDetailGridMeta.details" :columns="inventoryDetailGridMeta.defaultColumns"
+                :loading="inventoryDetailGridMeta.isLoading" class="w-full" :ui="{
+                  wrapper: 'overflow-y-auto h-60 border-2 border-gray-300 dark:border-gray-700',
+                  divide: 'divide-gray-200 dark:divide-gray-800',
+                  tr: {
+                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                  },
+                  th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-0'
+                  },
+                  td: {
+                    base: 'h-[31px]',
+                    padding: 'py-0'
+                  }
+                }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+                @select="onInventoryDetailSelect" @dblclick="">
+                <template v-for="column in inventoryDetailGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
+                  <template v-if="column.kind !== 'actions'">
+                    <div class="px-1 py-1">
+                      <CommonSortAndInputFilter @handle-sorting-button="handleStockSortingButton"
+                        @handle-input-change="handleInventoryDetailFilterInputChange" :label="column.label"
+                        :sortable="column.sortable" :sort-key="column.key"
+                        :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
+                        :filterable="column.filterable" :filter-key="column.key" />
+                    </div>
                   </template>
-                </UPopover>
-              </UFormGroup>
+                  <template v-else class='bg-slate-400'>
+                    <div class="">
+                      {{ column.label }}
+                    </div>
+                  </template>
+                </template>
+                <template #UniqueID-data="{ row }">
+                  <div class="w-[50px]">
+                    {{ row.UniqueID }}
+                  </div>
+                </template>
+                <template #edit-data="{ row }">
+                  <UTooltip text="Detail" class="flex justify-center">
+                    <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square"
+                      @click="onInventoryEdit(row)" />
+                  </UTooltip>
+                </template>
+                <template #delete-data="{ row }">
+                  <UTooltip text="Delete" class="flex justify-center">
+                    <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onInventoryDelete(row)" />
+                  </UTooltip>
+                </template>
+              </UTable>
             </div>
-            <div class="basis-1/2">
-              <UFormGroup label="Justification">
-                <UTextarea v-model="formData.Justification" :rows="5" />
-              </UFormGroup>
+
+            <div class="flex space-x-4">
+              <div class="basis-1/2 flex flex-col space-y-1">
+                <UFormGroup label="By">
+                  <USelect v-model="formData.By" />
+                </UFormGroup>
+                <UFormGroup label="Date">
+                  <UPopover :popper="{ placement: 'bottom-start' }">
+                    <UButton icon="i-heroicons-calendar-days-20-solid"
+                      :label="formData.Dated && format(formData.Dated, 'MM/dd/yyyy')" variant="outline"
+                      :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+                    <template #panel="{ close }">
+                      <CommonDatePicker v-model="formData.Dated" is-required @close="close" />
+                    </template>
+                  </UPopover>
+                </UFormGroup>
+              </div>
+              <div class="basis-1/2">
+                <UFormGroup label="Justification">
+                  <UTextarea v-model="formData.Justification" :rows="4" />
+                </UFormGroup>
+              </div>
+            </div>
+
+          </div>
+
+
+        </div>
+
+        <div class="flex justify-between">
+          <div>
+            <div class="w-[150px]">
+              <UButton icon="i-heroicons-minus-circle" label="Delete" color="red" variant="outline" block
+                @click="onDelete" />
+            </div>
+          </div>
+          <div class="flex flex-row space-x-2">
+            <div class="w-[150px]">
+              <UButton icon="i-f7-rays" label="Clear Form" color="red" variant="outline" block @click="onClear" />
+            </div>
+            <div class="w-[150px]">
+              <UButton icon="i-heroicons-document-text" type="submit" label="Save" color="green" variant="outline" block
+                @click="onSave" />
             </div>
           </div>
         </div>
+
       </div>
     </div>
-    <div class="flex justify-between gap-3 px-8">
-      <div>
-        <UButton icon="i-heroicons-minus-circle" label="Delete" color="red" variant="outline"
-          :ui="{ base: 'min-w-[200px]', truncate: 'flex justify-center w-full' }" truncate @click="onDelete" />
-      </div>
-      <div class="flex flex-row space-x-5">
-        <UButton icon="i-f7-rays" label="Clear Form" color="red" variant="outline"
-          :ui="{ base: 'min-w-[200px]', truncate: 'flex justify-center w-full' }" truncate @click="onClear" />
-        <UButton icon="i-heroicons-document-text" type="submit" label="Save" color="green" variant="outline"
-          :ui="{ base: 'min-w-[200px]', truncate: 'flex justify-center w-full' }" truncate @click="onSave" />
-      </div>
-    </div>
+
+
+
+
   </UForm>
   <UDashboardModal v-model="isAddPartsModalOpen" :ui="{
     header: { base: 'flex flex-row min-h-[0] items-center', padding: 'p-0 pt-1' },
