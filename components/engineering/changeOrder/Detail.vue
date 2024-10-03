@@ -5,6 +5,7 @@ import { defineEmits } from "vue";
 onMounted(() => {
   init();
   fetchGridData();
+
 });
 
 useSeoMeta({
@@ -103,36 +104,6 @@ const filterValues = ref({
 const handleCheckboxChange = (key, isChecked) => {
   filterValues.value[key] = isChecked ? "Yes" : "No";
 };
-
-// const watchCheckbox = (property, filterKey) => {
-//   watch(
-//     () => headerCheckboxes.value[property].isChecked,
-//     (newCheckedValue) => {
-//       filterValues.value[filterKey] = newCheckedValue ? "-1" : "0";
-//     }
-//   );
-// };
-
-// // Watch for each checkbox
-// watchCheckbox("open", "OPENCASE");
-
-// const checkboxes = ref({
-//   ShowOpenOnly: false
-// });
-
-// const selectedOptions = computed(() => {
-//   return Object.entries(checkboxes.value)
-//     .filter(([key, value]) => value)
-//     .map(([key]) => key);
-// });
-
-// // Watch for changes in selectedOptions and update filterValues
-// watch(selectedOptions, (newSelectedOptions) => {
-//   filterValues.value.selectedOptions = newSelectedOptions;
-//   console.log("filter value is",newSelectedOptions);
-//   fetchGridData();
-// });
-
 const props = defineProps({
   isPage: {
     type: [Boolean, null],
@@ -187,7 +158,6 @@ const fetchGridData = async () => {
       Math.ceil(gridMeta.value.numberOfChangeOrders / gridMeta.value.pageSize) |
       1;
   }
-debugger
   await useApiFetch("/api/engineering/changeorder/", {
     method: "GET",
     params: {
@@ -331,16 +301,6 @@ const onDblClick = () => {
             <div
               class="flex flex-row px-4 pt-[5px] bg-gms-gray-100 border border-green-500 rounded-md"
             >
-              <!-- <template v-for="checkbox in headerCheckboxes">
-                <div>
-                  <UCheckbox
-                    color="green"
-                    variant="outline"
-                    v-model="filterValues[checkbox.filterKey]"
-                    :label="checkbox.label"                
-                  />
-                </div>
-              </template> -->
               <template v-for="checkbox in headerCheckboxes">
                 <div>
                   <UCheckbox
@@ -348,9 +308,7 @@ const onDblClick = () => {
                     variant="outline"
                     :label="checkbox.label"
                     :modelValue="filterValues[checkbox.filterKey] === 'Yes'"
-                    @update:modelValue="
-                      handleCheckboxChange(checkbox.filterKey, $event)
-                    "
+                     @change="handleFilterChange()"
                   />
                 </div>
               </template>

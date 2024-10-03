@@ -34,7 +34,7 @@ export const getChangeOrders = async (
   filterParams
 ) => {
 
-  debugger
+
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = (parseInt(page as string, 10) - 1 || 0) * limit;
   const whereClause = applyFilters(filterParams);
@@ -349,10 +349,13 @@ export const updateChangeOrderData = async (body) => {
     DISTRIBUTIONDATE,
     APPROVAL,
     COMMENTS,
-    ...updatedData
   } = body;
-
+  
   const formatDate = (dateString) => {
+    if (!dateString || dateString === "" || dateString === null) {
+      return null; 
+    }
+    
     const date = new Date(dateString);
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
@@ -360,18 +363,16 @@ export const updateChangeOrderData = async (body) => {
     const hours = String(date.getUTCHours()).padStart(2, '0');
     const minutes = String(date.getUTCMinutes()).padStart(2, '0');
     const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-
+  
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
 
-
-
   const finalUpdatedData = {
-    ...updatedData,
     ENGDATEAPPROVED: formatDate(ENGDATEAPPROVED),
     MARDATEAPPROVED: formatDate(MARDATEAPPROVED),
     MANDATEAPPROVED: formatDate(MANDATEAPPROVED),
   };
+  
   try {
     const queryCheck = `
       SELECT COUNT(*) as count FROM tblECO WHERE uniqueID = :uniqueID
