@@ -102,7 +102,7 @@ const jobDetailsColumns = [
   },
   {
     key: "instanceID",
-    label: "instance",
+    label: "Instance",
   },
 ];
 
@@ -1050,28 +1050,21 @@ const handleUpload  = async () => {
               </div>
             </div>
           </div>
-
         </div>
 
-        <div class="gmsBlueTitlebar mt-4 ">
-          <div class=" pl-2 text-white font-bold">Inventory</div>
-        </div>
+        <div class="gmsBlueTitlebar text-white font-bold ps-2 py-1.5 mt-8 mb-5">Inventory</div>
 
         <div class="flex flex-row space-x-3 ">
-          <!-- Left Side - Job Details Table -->
-          <div class="basis-1/3 h-96 overflow-auto">
-            <UTable :rows="jobDetails" :columns="jobDetailsColumns" />
+          <div class="basis-1/4 h-96 overflow-auto">
+            <UTable :rows="jobDetails" :columns="jobDetailsColumns" class="h-96 w-full" />
           </div>
 
-          <!-- Middle - Comments Textarea -->
-          <div class="basis-1/3">
-            <UFormGroup label="Comments" name="Comments">
+          <div class="basis-1/4">
+              <label class="mb-1">Comments</label>
               <UTextarea class="w-full h-full" :rows="18" v-model="formData.COMMENT"/>
-            </UFormGroup>
           </div>
 
-          <!-- Right Side - PO Details Table -->
-          <div class="basis-1/3">
+          <div class="basis-2/4">
             <UTable :rows="poDetails" :columns="poDetailsColumns" class="h-96 w-full" />
           </div>
         </div>
