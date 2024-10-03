@@ -4,7 +4,7 @@ export default eventHandler(async (event) => {
   try {
     
     const method = event._method;
-    console.log(method)
+
     switch(method.toUpperCase()){
       case 'GET':
         const { jobId } = getQuery(event);

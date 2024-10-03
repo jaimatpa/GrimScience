@@ -12,6 +12,18 @@ const formatDate = (date) => {
   today.getFullYear();
 }
 
+const formatDateForSQLServer = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+}
+
 const applyFilters = (params) => {
   const filterParams = ['UniqueID', 'NUMBER', 'QUANTITY', 'MODEL', 'PerType', 'DATEOPENED', 'DATECLOSED', 'PercentageComplete', 'Catagory', 'SubCatagory', 'Cost', 'jobcat', 'jobsubcat', 'ProductionDate', 'JobID'];
   const whereClause = {};
@@ -41,18 +53,6 @@ const applyCusFilters = (params) => {
 
   return whereClause;
 };
-
-const formatDateForSQLServer = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-  const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
-
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
-}
 
 
 export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams) => {
@@ -217,7 +217,7 @@ export const fixSerialIssue = async (serialItems, instanceId, employee, perType,
   for (const item of checkedItems) {
     if (item.dateEntered === "" || ignoreDuplicateCheck) {
       // Update the `dateEntered` field with the selected date
-      item.dateEntered = formatDate(new Date(date)) ; // Format as short date (YYYY-MM-DD)
+      item.dateEntered = formatDate(new Date(date)) ; 
 
       // Update serial records (Assuming `addToSerialRecords` is a function handling serial updates)
       await addToSerialRecords(item.Serial, item.UniqueID, instanceId, employee, item.JobID, perType, jobPart, date);
@@ -393,7 +393,7 @@ const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, j
   }
 }
 
-const verifyInventoryTransaction = async (manual = '', date, createdBy, options = {}) => {
+export const verifyInventoryTransaction = async (manual = '', date, createdBy, options = {}) => {
   try {
     // Destructure optional parameters with default values
     const {
@@ -497,7 +497,7 @@ const verifyInventoryTransaction = async (manual = '', date, createdBy, options 
         type: QueryTypes.UPDATE
       });
     }
-
+    console.log(" verifying inventory transaction")
     return transID;
   } catch (error) {
     console.log("Error verifying inventory transaction:",error)
@@ -505,7 +505,7 @@ const verifyInventoryTransaction = async (manual = '', date, createdBy, options 
   }
 }
 
-const clearInventoryTransactionDetails = async (transactionalID) => {
+export const clearInventoryTransactionDetails = async (transactionalID) => {
   try {
     // Fetch all transaction details for the given InventoryTransactionID
     const transactionDetails = await sequelize.query(`
@@ -531,7 +531,7 @@ const clearInventoryTransactionDetails = async (transactionalID) => {
       await updateOnhandByInstanceId(instanceID);
     }
 
-    // Return a success value
+    console.log("clearing inventory transaction details")
     return 1;
   } catch (error) {
     console.log("Error clearing inventory transaction details:",error)
@@ -752,7 +752,7 @@ const removePlanFromInventory = async (qty, lngTransID, lngJob, strModel = '') =
   }
 }
 
-const addInventoryTransactionDetail = async (lngTransactionalID, strModel, lngQtyChange = 0, lngOnHandCount = 0, planremoval = 0, lvw = null) => {
+export const addInventoryTransactionDetail = async (lngTransactionalID, strModel, lngQtyChange = 0, lngOnHandCount = 0, planremoval = 0, lvw = null) => {
   try {
     // Fetch the instance ID from tblbp using the strModel
     let dtt = await sequelize.query(`
@@ -850,7 +850,7 @@ const addInventoryTransactionDetail = async (lngTransactionalID, strModel, lngQt
 
     // Update on-hand count for the model
     await updateOnhandByModel(transDetail.model);
-
+    console.log("IT_AddInventoryTransactionDetail")
     return lngTransactionalID;
 
   } catch (error) {

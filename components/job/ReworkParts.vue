@@ -17,8 +17,6 @@ const props = defineProps({
   }
 });
 
-console.log(props.selectedJob, props.operationId)
-
 const toast = useToast();
 const router = useRouter();
 const reworkFormInstance = getCurrentInstance();

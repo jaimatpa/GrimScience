@@ -42,9 +42,14 @@ const subScheduleHrs = ref("0");
 const prodOperationIds = ref([]);
 const subOperationIds = ref([]);
 const multipleSerialSelect = ref([]);
+const multipleEmployeeSelect = ref([]);
 const prodHrs = ref(0);
 const subHrs = ref(0);
 const unitCost = ref();
+const reScheduleOp = ref(null)
+const destOp = ref(null)
+const operationHourInputDisable = ref(true)
+const reworkCost = ref(0)
 const formData = reactive({
   ReportsTo: null,
   Title: null,
@@ -208,7 +213,7 @@ const editInit = async () => {
   await fetchModels(formData.PRODUCTLINE)
   await getLinkedJobs()
   await getSerial()
-  await calculateLatestUnitCost()
+  // await calculateLatestUnitCost()
 
   await propertiesInit();
   loadingOverlay.value = false;
@@ -289,7 +294,9 @@ const fetchJobOperation = async () => {
         if (formData.JobType === "Product") {
           prodOperationGridMeta.value.operations = response._data.body;
           prodDesOperations.value = response._data.body.map(
-            (item) => item.Operation
+            (item) =>{
+              return {name: item.Operation, value: item.uniqueID }
+            } 
           );
         } else {
           subOperationGridMeta.value.subOperations = response._data.body;
@@ -525,7 +532,10 @@ const handleProdOperationSelect = (row) => {
   });
 
   emploeeFilterValues.value.OperationID = prodOperationGridMeta.value.selectedOperation.uniqueID;
-
+  reScheduleOp.value = prodOperationGridMeta.value.selectedOperation.DateScheduled
+  operationHourInputDisable.value = !prodOperationGridMeta.value.selectedOperation.verified
+  prodHrs.value = prodOperationGridMeta.value.selectedOperation.reworkhrs ? prodOperationGridMeta.value.selectedOperation.reworkhrs : 0
+  onReworkHrsChange();
   getSchedules();
 };
 
@@ -731,6 +741,11 @@ const subOperationGridMeta = ref({
 const prodEmployeeGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
+      key: "select",
+      label: "Select",
+      kind: "actions",
+    },
+    {
       key: "StartTime",
       label: "Date",
     },
@@ -750,6 +765,11 @@ const prodEmployeeGridMeta = ref({
 
 const subEmployeeGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
+    {
+      key: "select",
+      label: "Select",
+      kind: "actions",
+    },
     {
       key: "StartTime",
       label: "Date",
@@ -827,7 +847,7 @@ const tabitems = computed(() => [
   {
     slot: "jobs",
     label:
-      formData.JobType === "Product" ? "Sub Assembly Jobs" : "Product Jobs",
+    formData.JobType === "Product" ? "Sub Assembly Jobs" : "Product Jobs",
   },
   {
     slot: "operations",
@@ -907,6 +927,7 @@ const handlePullIntoSerial = async () => {
   await useApiFetch(`/api/jobs/pullintoserial/`, {
     method: "PUT",
     params: { serialList: JSON.stringify(multipleSerialSelect.value), instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, model: formData.MODEL, date:date },
+
     onResponse({ response }) {
       if (response.status === 200) {
         toast.add({
@@ -986,7 +1007,7 @@ const handleDeleteLinkedJob = async () =>{
     toast.add({
       title: "Select",
       description: "Please select a job",
-      icon: "i-heroicons-trash-solid",
+      icon: "i-heroicons-check-circle",
       color: "red",
     });
   }else{
@@ -1021,6 +1042,111 @@ const handleRefreshOperation = async() => {
 
   await fetchJobOperation()
   loadingOverlay.value = false
+}
+
+const reScheduleOperation = async() => {
+  if(prodOperationGridMeta.value.selectedOperation !== null){
+    loadingOverlay.value = true
+    await useApiFetch("/api/jobs/operations/reScheduledOp", {
+      method: "PUT",
+      params: { operationId: prodOperationGridMeta.value.selectedOperation.uniqueID , date: reScheduleOp.value },
+    });
+
+    await fetchJobOperation()
+    loadingOverlay.value = false
+  }else{
+    toast.add({
+      title: "Select",
+      description: "Please select a job",
+      icon: "i-heroicons-check-circle",
+      color: "red",
+    });
+  }
+  
+}
+
+const onMultipleEmployeeSelect = (row) => {
+  prodEmployeeGridMeta.value.employees.forEach(item => {
+    if(item.checked === undefined){
+      item.checked = false
+    }
+    if(item.UniqueID === row.UniqueID){
+      item.checked = item.checked ? false : true
+    }
+  })
+  multipleEmployeeSelect.value = prodEmployeeGridMeta.value.employees
+}
+
+const moveSelectedEnteriesToOperation = async () => {
+  if(destOp !== null){
+    loadingOverlay.value = true
+    await useApiFetch("/api/jobs/operations/movetooperation", {
+      method: "PUT",
+      body: { operationId: destOp.value , employees: multipleEmployeeSelect.value },
+      onResponse({ response }) {
+      if (response.status === 200) {
+        prodEmployeeGridMeta.value.employees = prodEmployeeGridMeta.value.employees.filter(item => item.checked === false)
+      }
+    },
+    });
+
+    destOp.value = null
+    loadingOverlay.value = false
+  }else{
+    toast.add({
+      title: "Select",
+      description: "Please select destination operation",
+      icon: "i-heroicons-check-circle",
+      color: "red",
+    });
+  }
+}
+
+const verifyAndCloseOperation = async () => {
+  loadingOverlay.value = true
+  await useApiFetch(`/api/jobs/operations/verifyAndCloseOp/`, {
+    method: "PUT",
+    // params: { serialList: JSON.stringify(multipleSerialSelect.value), instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, model: formData.MODEL, date:date },
+    params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHours: prodHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY },
+    onResponse({ response }) {
+      
+    },
+  });
+
+  await fetchJobOperation()
+
+  loadingOverlay.value = false
+}
+
+const reOpenOperation = async () => {
+  loadingOverlay.value = true
+  await useApiFetch(`/api/jobs/operations/verifyAndCloseOp/`, {
+    method: "PUT",
+    // params: { serialList: JSON.stringify(multipleSerialSelect.value), instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, model: formData.MODEL, date:date },
+    params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHours: prodHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY },
+    onResponse({ response }) {
+      
+    },
+  });
+
+  await fetchJobOperation()
+
+  loadingOverlay.value = false
+}
+
+const onReworkHrsChange = async () => {
+  console.log(prodHrs)
+  if( prodOperationGridMeta.value.selectedOperation !== null){
+    await useApiFetch(`/api/jobs/operations/reworkcost/`, {
+      method: "GET",
+      params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHrs: prodHrs.value },
+      onResponse({ response }) {
+        if (response.status === 200) {
+          reworkCost.value = response._data.body
+        }
+      },
+    });
+  }
 }
 
 if (props.selectedJob !== null) editInit();
@@ -1424,9 +1550,6 @@ else propertiesInit();
                     />
                   </UTooltip>
                 </template>
-                <!-- <template #empty-state>
-                  <div></div>
-                </template> -->
                 </UTable>
               </div>
               <div class="w-1/2">
@@ -1831,8 +1954,13 @@ else propertiesInit();
                       },
                     }"
                   >
-                    <template #empty-state>
-                      <div></div>
+                    <template  #select-data="{ row }">
+                      <UTooltip text="Select" >
+                        <UCheckbox
+                        :model-value="row.checked"
+                          @change="onMultipleEmployeeSelect(row)"
+                        />
+                      </UTooltip>
                     </template>
                   </UTable>
 
@@ -1874,7 +2002,7 @@ else propertiesInit();
                 </div>
 
                 <div
-                  class="basis-2/5 flex flex-col items-center justify-center"
+                  class="basis-2/5 flex flex-col "
                 >
                   <div class="flex items-center">
                     <div class="flex flex-col items-center">
@@ -1899,23 +2027,31 @@ else propertiesInit();
                         <UFormGroup label="Hours" name="Hours">
                           <UInput
                             v-if="formData.JobType === 'Product'"
+                            :disabled="!operationHourInputDisable"
                             v-model="prodHrs"
+                            type="number"
+                            @input="onReworkHrsChange"
                           />
-                          <UInput v-else v-model="subHrs" />
+                          <UInput v-else 
+                            v-model="subHrs"
+                            type="number"
+                            @input="onReworkHrsChange"
+                          />
                         </UFormGroup>
                       </div>
                     </div>
                     <div class="flex-col flex pl-3">
                       <span>Rework Cost</span>
                       <span v-if="formData.JobType === 'Product'"
-                        >$ {{ (prodHrs * 36).toFixed(2) }}
+                        >$ {{ reworkCost }}
                       </span>
-                      <span v-else>$ {{ (subHrs * 36).toFixed(2) }} </span>
+                      <span v-else>$ {{ reworkCost }} </span>
                     </div>
                   </div>
 
-                  <div class="mt-5">
+                  <div class="mt-5" >
                     <UButton
+                      v-if="operationHourInputDisable"
                       icon="i-heroicons-plus"
                       variant="outline"
                       color="green"
@@ -1924,8 +2060,24 @@ else propertiesInit();
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
                       }"
+                      @click="verifyAndCloseOperation"
                       truncate
                     />
+
+                    <UButton
+                      v-else
+                      icon="i-f7-rays"
+                      variant="outline"
+                      color="red"
+                      label="Re-Open Operation"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }"
+                      @click="reOpenOperation"
+                      truncate
+                    />
+          
                   </div>
                 </div>
               </div>
@@ -1943,6 +2095,7 @@ else propertiesInit();
                         base: 'w-fit',
                         truncate: 'flex justify-center w-full',
                       }"
+                      @click="moveSelectedEnteriesToOperation"
                       truncate
                     />
                   </div>
@@ -1954,7 +2107,9 @@ else propertiesInit();
                     >
                       <USelect
                         v-if="formData.JobType === 'Product'"
+                        v-model="destOp"
                         :options="prodDesOperations"
+                        option-attribute="name"
                       />
                       <USelect v-else :options="subDesOperations" />
                     </UFormGroup>
@@ -1972,8 +2127,8 @@ else propertiesInit();
                   <UButton
                     icon="i-heroicons-calendar-days-20-solid"
                     :label="
-                      formData.DATEOPENED &&
-                      format(formData.DATEOPENED, 'MM/dd/yyyy')
+                      reScheduleOp &&
+                      format(reScheduleOp, 'MM/dd/yyyy')
                     "
                     variant="outline"
                     :ui="{
@@ -1984,7 +2139,7 @@ else propertiesInit();
                   />
                   <template #panel="{ close }">
                     <CommonDatePicker
-                      v-model="formData.DATEOPENED"
+                      v-model="reScheduleOp"
                       is-required
                       @close="close"
                     />
@@ -2002,6 +2157,7 @@ else propertiesInit();
                     base: 'w-full',
                     truncate: 'flex justify-center w-full',
                   }"
+                  @click="reScheduleOperation"
                   truncate
                 />
               </div>
