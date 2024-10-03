@@ -290,8 +290,11 @@ const excelExport = async () => {
   location.href = `/api/materials/parts/exportList?${paramsString}`;
   exportIsLoading.value = false;
 };
+const emit = defineEmits()
+
 const onSelect = async (row) => {
-  console.log("row is in there",row);
+  console.log("row is in there", row);
+  emit('onPartSelect', row?.UniqueID)
   gridMeta.value.selectedCustomerId = row?.UniqueID;
   gridMeta.value.selectedPartInstanceId=row?.instanceID;
   gridMeta.value.selectedPartModdel=row?.MODEL;
