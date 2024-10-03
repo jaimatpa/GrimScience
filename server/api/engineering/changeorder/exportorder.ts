@@ -14,7 +14,7 @@ export default eventHandler(async (event) => {
     worksheet.columns = [ 
       { header: 'SO#', key: 'COMPLAINTNUMBER', width: 10 },
       { header: 'Serial#', key: 'uniqueID', width: 32 },
-      { header: 'Date', key: 'COMPLAINTDATE', width: 32 },
+      { header: 'Date', key: 'ORIGINATORDATE', width: 32 },
       { header: 'DESCRIPTION ', key: 'DESCRIPTION', width: 32 },
       { header: 'PRODUCT', key: 'PRODUCT', width: 32 },
       { header: 'REASONFORCHANGE', key: 'REASONFORCHANGE', width: 32 },

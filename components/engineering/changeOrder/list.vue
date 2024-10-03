@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import PartsModalPage from "../../../pages/materials/parts/parts.vue";
+import PartsModalPage from "../../../pages/materials/parts.vue";
+onMounted(() => {
+  init();
+  fetchSignature();
+  fetchEmployeeData();
+  fetchReasonForChangeData();
+});
 
 const modalMeta = ref({
   isCustomerModalOpen: false,
@@ -17,7 +23,7 @@ const onOpenProduct = () => {
 };
 
 const onOpenParts = () => {
-  partsMeta.value.modalTitle = "Products";
+  partsMeta.value.modalTitle = "Parts";
   partsMeta.value.isPartsModalOpen = true;
 };
 
@@ -29,14 +35,6 @@ const partsMeta = ref({
   isSiteVisitModalOpen: false,
   modalTitle: "Parts",
 });
-
-const handleSelectedPart = (data) => {
-  console.log(data);
-};
-
-// const handleRowSelectedProduct = (product) => {
-//   console.log("Selected product: ", product);
-// };
 
 const onPrevieOrderBtnClick = () => {
   if (uniqueIDP.value) {
@@ -80,12 +78,7 @@ const onPrevieOrderBtnClick = () => {
 //   }
 // };
 
-onMounted(() => {
-  init();
-  fetchSignature();
-  fetchEmployeeData();
-  fetchReasonForChangeData();
-});
+
 
 // redirectToProductsList() {
 //       // This will redirect to the specific path
@@ -94,14 +87,14 @@ onMounted(() => {
 
 // const emit = defineEmits(["selectEco","rowSelectedProduct",  "close"]);
 
-// const emit = defineEmits(["rowSelectedProduct", "selectEco", "close"]);
+const emit = defineEmits(["rowSelectedProduct", "selectEco", "close"]);
 
-// const handleSelect = () => {
-//   emit("selectEco", selectedRow);
-//   // emit("rowSelectedProduct", rowSelectedProduct);
-//   emit("close");
+const handleSelect = () => {
+  emit("selectEco", selectedRow);
+  // emit("rowSelectedProduct", rowSelectedProduct);
+  emit("close");
 
-// };
+};
 
 
 
@@ -166,13 +159,16 @@ const clearFields = () => {
   changeReasonData.value = "";
   engineeringBoolean.value = "";
   marketingData.value = "";
+  marketingDate.value = "";
   marketingBoolean.value = "";
   marketingComments.value = "";
+  marketingCheck.value = false;
   manufacturingCheck.value = false;
   manufacturingData.value = "";
   engineeringCheck.value = false;
   engineeringData.value = "";
   originatorData.value = "";
+  originatorDate.value ="";
   signature.value = "";
   CompleteBoolean.value = "";
   commentsComplete.value = "";
@@ -183,6 +179,8 @@ const clearFields = () => {
   engineeringDate.value = "";
   productsDetails.value = "";
   partsDetails.value = "";
+  CompleteDate.value = "";
+  verificationNotRequired.value = false
 };
 
 const selectedRowData = ref({
@@ -200,6 +198,7 @@ const selectedRowData = ref({
   MARAPPROVER: "",
   ORIGINATOR: "",
   MANAPPROVER: "",
+  APPROVAL:"",
   ENGAPPROVAL: "",
   MARAPPROVAL: "",
   MANAPPROVAL: "",
@@ -210,6 +209,7 @@ const selectedRowData = ref({
   MANCOMMENTS: "",
   MARCOMMENTS: "",
   ENGCOMMENTS: "",
+  SIGNATURE:"",
   COMMENTS: "",
   PRODUCTS: "",
   VandVNotRequired: "",
@@ -220,15 +220,21 @@ const selectedRowData = ref({
   PartsDetails: "",
 });
 
-const handleRowSelectedProduct = (row) => {
- 
-  selectedRowData.value = row.PRODUCTS
 
+
+
+const formatDate = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${year}-${month}-${day}`;
 };
 
-
-
 const handleRowSelected = (row) => {
+
+  console.log("functon okay ", row)
   uniqueIDP.value = row.uniqueID;
   selectedRow.value = row;
 
@@ -247,6 +253,7 @@ const handleRowSelected = (row) => {
     MARAPPROVER: row.MARAPPROVER,
     ORIGINATOR: row.ORIGINATOR,
     MANAPPROVER: row.MANAPPROVER,
+    APPROVAL:row.APPROVAL,
     ENGAPPROVAL: row.ENGAPPROVAL,
     MARAPPROVAL: row.MARAPPROVAL,
     MANAPPROVAL: row.MANAPPROVAL,
@@ -257,6 +264,7 @@ const handleRowSelected = (row) => {
     MANCOMMENTS: row.MANCOMMENTS,
     MARCOMMENTS: row.MARCOMMENTS,
     ENGCOMMENTS: row.ENGCOMMENTS,
+    SIGNATURE: row.SIGNATURE,
     COMMENTS: row.COMMENTS,
     PRODUCTS: row.PRODUCTS,
     MARKETING: row.MARKETING,
@@ -281,10 +289,12 @@ const handleRowSelected = (row) => {
   marketingData.value = row.MARAPPROVER;
   marketingBoolean.value = row.MARAPPROVAL;
   marketingComments.value = row.MARCOMMENTS;
-  manufacturingCheck.value = row.MANUFACTURING || "";
+  marketingCheck.value = row.MARKETING === "1" ? true : false;
+  manufacturingCheck.value = row.MANUFACTURING === "1" ? true : false;
   manufacturingData.value = row.MANAPPROVER;
-  engineeringCheck.value = row.ENGINEERING || "";
-  engineeringData.value = row.ENGAPPROVER || "";
+  engineeringCheck.value = row.ENGINEERING === "1" ? true : false;
+  verificationNotRequired.value =row.VandVNotRequired === "0" ? true : false;
+  engineeringData.value = row.ENGAPPROVER;
   originatorData.value = row.ORIGINATOR;
   signature.value = row.SIGNATURE;
   CompleteBoolean.value = row.APPROVAL;
@@ -293,13 +303,110 @@ const handleRowSelected = (row) => {
   manufacturingComments.value = row.MANCOMMENTS;
   engineeringComments.value = row.ENGCOMMENTS;
   CompleteDate.value = row.DISTRIBUTIONDATE;
-  manufacturingDate.value = row.MANDATEAPPROVED;
-  marketingDate.value = row.MARDATEAPPROVED;
-  engineeringDate.value = row.ENGDATEAPPROVED;
+  manufacturingDate.value = formatDate(row.MANDATEAPPROVED);
+  marketingDate.value =formatDate(row.MARDATEAPPROVED);
+  originatorDate.value = row.ORIGINATORDATE
+  engineeringDate.value = formatDate(row.ENGDATEAPPROVED);
   productsDetails.value = row.ProductsDetails;
-  partsDetails.value = row.PartsDetails;
-  verificationValue.value = row.VandVNotRequired.value ? -1 : 0;
+  productsDetails.value = row.PRODUCTS;
+  partsDetails.value = row.PARTS;
+ 
+  
+
+  if (typeof row.PARTS === 'string' && row.PARTS.trim()) {
+    selectedRowParts.value.partsArray = row.PARTS.split(',').map(part => {
+      const [model, ...descriptionParts] = part.trim().split(' ');
+      const description = descriptionParts.join(' ');
+      return {
+        MODEL: model.trim(),
+        DESCRIPTION: description.trim(),
+      };
+    });
+  } else {
+    selectedRowParts.value.partsArray = []; 
+  }
+
+  // Update parts details
+  updatePartsDetails();
+
 };
+
+const selectedRowDataProduct = ref({
+  UniqueID: "",
+  PRODUCTLINE: "",
+  
+})
+const handleRowSelectedProduct = (row) => {
+  selectedRowDataProduct.value ={
+    UniqueID: row.UniqueID,
+    PRODUCTLINE: row.PRODUCTLINE,
+  }
+  productsDetails.value = `#${row.UniqueID} ${row.PRODUCTLINE}`;
+};
+
+const selectedRowParts = ref({
+  partsArray: [],
+  partsDetails: "", 
+  selectedIndex: null,  
+});
+
+const handleSelectedPart = (row) => {
+  // Check if the part already exists
+  const partExists = selectedRowParts.value.partsArray.some(
+    part => part.MODEL === row.MODEL && part.DESCRIPTION === row.DESCRIPTION
+  );
+
+  if (!partExists) {
+    // Add the selected row to the array
+    selectedRowParts.value.partsArray.push({
+      MODEL: row.MODEL,
+      DESCRIPTION: row.DESCRIPTION,
+    });
+    updatePartsDetails();
+  }
+};
+
+const updatePartsDetails = () => {
+  selectedRowParts.value.partsDetails = selectedRowParts.value.partsArray
+    .map(part => `#${part.MODEL} ${part.DESCRIPTION}`)
+    .join(', ');
+};
+
+const handleSelectPart = (index) => {
+  selectedRowParts.value.selectedIndex = selectedRowParts.value.selectedIndex === index ? null : index;
+};
+
+const handleRemovePart = () => {
+  const indexToRemove = selectedRowParts.value.selectedIndex;
+  
+  if (indexToRemove !== null) {
+    // Remove the selected part by index
+    selectedRowParts.value.partsArray.splice(indexToRemove, 1);
+    selectedRowParts.value.selectedIndex = null; // Reset selected index
+    updatePartsDetails();
+  }
+};
+
+// ok code
+// const selectedRowParts = ref({
+//   uniqueID: "",
+//   PARTS: "",
+//   partsDetails:"",
+//   MODEL:"",
+//   DESCRIPTION:""
+  
+// })
+
+// const handleSelectedPart = (row) => {
+//   console.log("data is get", row);
+//   selectedRowParts.value = {
+//     MODEL: row.MODEL,
+//     DESCRIPTION: row.DESCRIPTION,
+//   }
+//   partsDetails.value = `#${row.MODEL} ${row.DESCRIPTION}`;
+
+// };
+
 
 const uniqueIDP = ref(null);
 const selectedRow = ref(null);
@@ -341,57 +448,45 @@ const PartsAffect = ref("");
 const ProductAffect = ref("");
 const uniqueIdNumber = ref("");
 const verificationNotRequired = ref(false);
-const verificationValue = verificationNotRequired.value ? 0 : -1;
+
+
+// const verificationValue = verificationNotRequired.value ? 0 : -1;
 
 const submitInsertForm = async () => {
-  const formatToSQLDateTime = (date) => {
-    if (!(date instanceof Date) || isNaN(date)) {
-      date = new Date(date);
-    }
-    if (isNaN(date)) {
-      throw new Error("Invalid date object");
-    }
-    const pad = (num) => String(num).padStart(2, "0");
-    const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1);
-    const day = pad(date.getDate());
-    const hours = pad(date.getHours());
-    const minutes = pad(date.getMinutes());
-    const seconds = pad(date.getSeconds());
-    const milliseconds = pad(date.getMilliseconds(), 3);
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
-  };
 
   const formData = {
     uniqueID: uniqueIdNumber.value,
     REASONFORCHANGE: changeReasonData.value,
     PRODUCT: productLineOption.value,
+    PRODUCTS:productsDetails.value,
     SOLUTION: solutionOrder.value,
     DESCRIPTION: Description.value,
     DetailReason: DetailsReasonChange.value,
     FromModel: fromModel.value,
     ToModel: toModel.value,
-    PARTS: PartsAffect.value,
+  // PARTS: partsDetails.value,
+     PARTS: selectedRowParts.value.partsDetails,
     ISSUE: IssueDetails.value,
-    VandVNotRequired: verificationValue,
-    ORIGINATOR: originatorData.value.label,
+    VandVNotRequired: verificationNotRequired.value ? "0" : "-1",
+    // VandVNotRequired: verificationNotRequired.value,
+    ORIGINATOR: originatorData.value.label || "",
     ORIGINATORDATE: originatorDate.value,
     ENGINEERING: engineeringCheck.value,
-    ENGAPPROVER: engineeringData.value.label,
-    // ENGDATEAPPROVED: engineeringDate.value,
+    ENGAPPROVER: engineeringData.value.label || "",
+    ENGDATEAPPROVED: engineeringDate.value,///
     ENGAPPROVAL: engineeringBoolean.value,
     ENGCOMMENTS: engineeringComments.value,
     MARKETING: marketingCheck.value,
-    MARAPPROVER: marketingData.value.label,
-    // MARDATEAPPROVED:marketingDate.value,
+    MARAPPROVER: marketingData.value.label || "",/////
+    MARDATEAPPROVED:marketingDate.value,
     MARAPPROVAL: marketingBoolean.value,
     MARCOMMENTS: marketingComments.value,
     MANUFACTURING: manufacturingCheck.value,
-    MANAPPROVER: manufacturingData.value.label,
-    // MANDATEAPPROVED: manufacturingDate.value,
+    MANAPPROVER: manufacturingData.value.label || "",
+    MANDATEAPPROVED: manufacturingDate.value,////
     MANAPPROVAL: manufacturingBoolean.value,
     MANCOMMENTS: manufacturingComments.value,
-    SIGNATURE: signature.value.label,
+    SIGNATURE: signature.value.label || "",
     DISTRIBUTIONDATE: CompleteDate.value,
     APPROVAL: CompleteBoolean.value,
     COMMENTS: commentsComplete.value,
@@ -409,7 +504,7 @@ const submitInsertForm = async () => {
     );
 
     if (response.status === 200) {
-      console.log(response.data);
+
     } else {
       console.error("Submission failed:", response.error);
     }
@@ -455,8 +550,6 @@ const fetchSignature = async () => {
           label: signature,
           value: signature,
         }));
-
-      console.log("Signature List:", SignatureList.value);
     } else {
       console.error("No valid signatures found", data.value);
       SignatureList.value = [];
@@ -729,11 +822,38 @@ const handleChange = (field, newValue) => {
       </div>
 
       <div class="flex flex-row space-x-4">
-        <div class="w-3/4 flex flex-col">
-          <UTextarea v-model="PartsAffect" class="w-full" />
+
+        <!-- <div class="w-3/4 flex flex-col">
+    <UTextarea v-model="selectedRowParts.partsDetails" class="w-full" readonly />
+  </div> -->
+
+  <!-- <div class="w-3/4 flex flex-col">
+  <UTextarea v-html="selectedRowParts.partsDetails" class="w-full" readonly @click="removePartOnClick" />
+</div> -->
+        <!-- <div class="w-3/4 flex flex-col">
+          <UTextarea v-model="partsDetails" class="w-full" readonly/>
+        </div> -->
+
+
+        <!-- <div class="w-3/4 flex flex-col">
+      <UTextarea v-model="selectedRowParts.partsDetails" class="w-full" readonly />
+    </div> -->
+
+    <div class="w-3/4 flex flex-col">
+    <div class="h-[70px] overflow-y-auto border-2 border-gray-300 rounded-md">
+      <div v-for="(part, index) in selectedRowParts.partsArray" :key="index" class="flex items-center">
+        <div
+          @click="handleSelectPart(index)"
+          :class="['cursor-pointer', { 'bg-green-100 ': selectedRowParts.selectedIndex === index }]"
+        >
+          #{{ part.MODEL }} {{ part.DESCRIPTION }}
         </div>
+      </div>
+    </div>
+  </div>
+
         <div class="w-3/4 flex flex-col">
-          <UTextarea v-model="ProductAffect" class="w-full" />
+          <UTextarea v-model="productsDetails" class="w-full" readonly/>
         </div>
       </div>
 
@@ -741,9 +861,11 @@ const handleChange = (field, newValue) => {
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup class="flex-1" name="firstInput">
-              <UInput class="h-full" v-model="partsDetails" />
+              <UInput class="h-full" />
             </UFormGroup>
+
             <UButton
+             @click="handleRemovePart"
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
             >
               Remove
@@ -754,7 +876,7 @@ const handleChange = (field, newValue) => {
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup class="flex-1" name="firstInput">
-              <UInput class="h-full" v-model="productsDetails" />
+              <UInput class="h-full"  />
             </UFormGroup>
             <UButton
               class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
@@ -802,7 +924,7 @@ const handleChange = (field, newValue) => {
           <div class="lg:col-span-1">
             <UInput
               v-model="engineeringDate"
-              type="DATE"
+              type="date"
               class="w-40 cursor-pointer"
             />
           </div>
@@ -846,7 +968,7 @@ const handleChange = (field, newValue) => {
             <UInputMenu v-model="marketingData" :options="employeeOptions" />
           </div>
           <div class="lg:col-span-1">
-            <UInput v-model="marketingDate" type="DATE" class="w-40" />
+            <UInput v-model="marketingDate" type="date" class="w-40" />
           </div>
           <div class="lg:col-span-1">
             <div class="flex items-center space-x-4">
@@ -879,7 +1001,7 @@ const handleChange = (field, newValue) => {
             />
           </div>
           <div class="lg:col-span-1">
-            <UInput v-model="manufacturingDate" type="DATE" class="w-40" />
+            <UInput v-model="manufacturingDate" type="date" class="w-40" />
           </div>
           <div class="lg:col-span-1">
             <div class="flex items-center space-x-4">
@@ -1017,6 +1139,8 @@ const handleChange = (field, newValue) => {
       width: 'w-[4000px] sm:max-w-7xl',
     }"
   >
-    <PartsModalPage @onPartSelect="handleSelectedPart" />
+    <PartsModalPage @rowSelectedParts="handleSelectedPart" />
   </UDashboardModal>
 </template>
+
+

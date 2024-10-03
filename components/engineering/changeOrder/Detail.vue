@@ -4,7 +4,7 @@ import { defineEmits } from "vue";
 
 onMounted(() => {
   init();
-  
+  fetchGridData();
 });
 
 useSeoMeta({
@@ -18,7 +18,7 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 const headerFilters = ref({
   productLines: {
     label: "Product Line",
-    filter: "PRODUCTDESC",
+    filter: "PRODUCT",
     api: "/api/materials/productlines",
     options: [],
   },
@@ -90,26 +90,50 @@ const modalMeta = ref({
 });
 
 const filterValues = ref({
-  NUMBER: null,
   uniqueID: null,
+  NUMBER: null,
   DESCRIPTION: null,
+  ORIGINATORDATE:null,
   REASONFORCHANGE: null,
   DISTRIBUTIONDATE: null,
   PRODUCT: null,
   newCheckedValue:null
+  
 });
 
-const watchCheckbox = (property, filterKey) => {
-  watch(
-    () => headerCheckboxes.value[property].isChecked,
-    (newCheckedValue) => {
-      filterValues.value[filterKey] = newCheckedValue ? "1" : "0";
-    }
-  );
-};
 
-// Watch for each checkbox
-watchCheckbox("open", "OPENCASE");
+// const watchCheckbox = (property, filterKey) => {
+//   watch(
+//     () => headerCheckboxes.value[property].isChecked,
+//     (newCheckedValue) => {
+//       filterValues.value[filterKey] = newCheckedValue ? "-1" : "0";
+//     }
+//   );
+// };
+
+// // Watch for each checkbox
+// watchCheckbox("open", "OPENCASE");
+
+// const checkboxes = ref({
+//   ShowOpenOnly: false
+// });
+
+
+// const selectedOptions = computed(() => {
+//   return Object.entries(checkboxes.value)
+//     .filter(([key, value]) => value)
+//     .map(([key]) => key);
+// });
+
+// // Watch for changes in selectedOptions and update filterValues
+// watch(selectedOptions, (newSelectedOptions) => {
+//   filterValues.value.selectedOptions = newSelectedOptions;
+//   console.log("filter value is",newSelectedOptions);
+//   fetchGridData(); 
+// });
+
+
+
 
 const props = defineProps({
   isPage: {
@@ -124,9 +148,35 @@ const columns = computed(() =>
   )
 );
 
+
 const init = async () => {
-  fetchGridData();
+  fetchGridData()
+
+gridMeta.value.isLoading = true;
+for (const key in headerFilters.value) {
+  const apiURL =
+    headerFilters.value[key]?.api ?? `/api/service/orders/${key}`;
+
+  await useApiFetch(apiURL, {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        headerFilters.value[key].options = [null, ...response._data.body];
+      }
+    },
+  });
+}
+
+
 };
+
+
+
+
+
+
+
+
 
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
@@ -141,6 +191,7 @@ const fetchGridData = async () => {
       }
     },
   });
+  
   if (
     gridMeta.value.page * gridMeta.value.pageSize >
     gridMeta.value.numberOfChangeOrders
@@ -221,9 +272,11 @@ const handleFilterInputChange = async (event, name) => {
   init();
 };
 
+
+
+
 // Export excel data download  function
 const excelExport = () => {
-  debugger
     exportIsLoading.value = true
     const params = {
         sortBy: gridMeta.value.sort.column,
@@ -240,10 +293,6 @@ const excelExport = () => {
     location.href = `/api/engineering/changeorder/exportorder?${paramsString}`
     exportIsLoading.value = false
   }
-
-
-
-
 
 const emit = defineEmits(["rowSelected", "rowDoubleClicked"]);
 
@@ -275,6 +324,7 @@ const onDblClick = () => {
                   v-model="filterValues.PRODUCT"
                   :options="headerFilters.productLines.options"
                   @change="handleFilterChange()"
+                  
                 />
               </UFormGroup>
             </div>
@@ -306,7 +356,8 @@ const onDblClick = () => {
                     variant="outline"
                     v-model="filterValues[checkbox.filterKey]"
                     :label="checkbox.label"
-                    @update:model-value="handleFilterChange"
+
+                    
                   />
                 </div>
               </template>
@@ -382,7 +433,7 @@ const onDblClick = () => {
         </template>
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
-        <div v-if="props.isPage" class="flex flex-row justify-end mr-20 mt-1">
+        <div  class="flex flex-row justify-end mr-20 mt-1">
           <UPagination
             :max="7"
             :page-count="gridMeta.pageSize"

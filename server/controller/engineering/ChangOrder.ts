@@ -5,11 +5,10 @@ import sequelize from "~/server/utils/databse";
 
 const applyFilters = (params) => {
   const filterParams = [
-    "ACTIVE",
+    "uniqueID",
     "DESCRIPTION",
     "REASONFORCHANGE",
     "PRODUCT",
-    "uniqueID",
     "DISTRIBUTIONDATE",
   ];
   const whereClause = {};
@@ -32,6 +31,8 @@ export const getChangeOrders = async (
   sortOrder,
   filterParams
 ) => {
+
+  debugger
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = (parseInt(page as string, 10) - 1 || 0) * limit;
   const whereClause = applyFilters(filterParams);
@@ -39,7 +40,7 @@ export const getChangeOrders = async (
     where: {
       ...whereClause,
     },
-    order: [[(sortBy as string) || "PRODUCT", (sortOrder as string) || "DESC"]],
+    order: [[(sortBy as string) || "uniqueID", (sortOrder as string) || "DESC"]],
     offset,
     limit,
     raw: true,
@@ -125,7 +126,8 @@ export const getAllChangeOrderData = async (sortBy, sortOrder, filterParams) => 
       "REASONFORCHANGE",
       "PRODUCT",
       "uniqueID",
-      "DISTRIBUTIONDATE"
+      "DISTRIBUTIONDATE",
+      "ORIGINATORDATE",
     ],
     order: [
       [
@@ -138,6 +140,7 @@ export const getAllChangeOrderData = async (sortBy, sortOrder, filterParams) => 
   const formattedList = list.map((item: any) => {
     return {
       uniqueID: item.uniqueID,
+      ORIGINATORDATE:item.ORIGINATORDATE,
       DESCRIPTION: item.DESCRIPTION,
       REASONFORCHANGE: item.REASONFORCHANGE,
       PRODUCT: item.PRODUCT,
@@ -225,100 +228,354 @@ export const getJobOperationsById = async (params) => {
 //   }
 // };
 
-export const updateChangeOrderData3 = async (data) => {
-  const formatToSQLDateTime = (date) => {
-    if (!(date instanceof Date) || isNaN(date)) {
-      // If it's not a valid date, try to parse it
-      date = new Date(date);
-    }
+// const formatToSQLDateTimeObject = (date) => {
+//   if (!date) return null;
+//   const d = new Date(date);
+//   const pad = (n) => (n < 10 ? '0' + n : n);
 
-    if (isNaN(date)) {
-      throw new Error("Invalid date object");
-    }
+//   return {
+//     year: d.getFullYear(),
+//     month: pad(d.getMonth() + 1),
+//     day: pad(d.getDate()),
+//     time: `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.000`,
+//   };
+// };
 
-    const pad = (num) => String(num).padStart(2, "0");
 
-    const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1);
-    const day = pad(date.getDate());
-    const hours = pad(date.getHours());
-    const minutes = pad(date.getMinutes());
-    const seconds = pad(date.getSeconds());
-    const milliseconds = pad(date.getMilliseconds(), 3);
 
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
-  };
 
-  const allData = {
-    uniqueID: data.uniqueID,
-    REASONFORCHANGE: data.REASONFORCHANGE,
-    PRODUCT: data.PRODUCT,
-    SOLUTION: data.SOLUTION, // Add SOLUTION
-    DESCRIPTION: data.DESCRIPTION,
-    DetailReason: data.DetailReason,
-    FromModel: data.FromModel,
-    ToModel: data.ToModel,
-    PARTS: data.PARTS,
-    ISSUE: data.ISSUE,
-    VandVNotRequired: data.VandVNotRequired,
-    ORIGINATOR: data.ORIGINATOR,
-    ORIGINATORDATE: data.ORIGINATORDATE, // Ensure this is a Date object
-    ENGINEERING: data.ENGINEERING,
-    ENGAPPROVER: data.ENGAPPROVER,
-    ENGDATEAPPROVED: data.ENGDATEAPPROVED, // Ensure this is a Date object
-    ENGAPPROVAL: data.ENGAPPROVAL,
-    ENGCOMMENTS: data.ENGCOMMENTS,
-    MARKETING: data.MARKETING,
-    MARAPPROVER: data.MARAPPROVER,
-    MARDATEAPPROVED: data.MARDATEAPPROVED, // Ensure this is a Date object
-    MARAPPROVAL: data.MARAPPROVAL,
-    MARCOMMENTS: data.MARCOMMENTS,
-    MANUFACTURING: data.MANUFACTURING,
-    MANAPPROVER: data.MANAPPROVER,
-    MANDATEAPPROVED: data.MANDATEAPPROVED, // Ensure this is a Date object
-    MANAPPROVAL: data.MANAPPROVAL,
-    MANCOMMENTS: data.MANCOMMENTS,
-    SIGNATURE: data.SIGNATURE,
-    DISTRIBUTIONDATE: data.DISTRIBUTIONDATE, // Ensure this is a Date object
-    APPROVAL: data.APPROVAL,
-    COMMENTS: data.COMMENTS,
-  };
 
-  debugger;
+// export const updateChangeOrderData = async (body) => {
+//   const { uniqueID, ENGDATEAPPROVED, MARDATEAPPROVED, MANDATEAPPROVED, ...updatedData } = body;
 
-  try {
-    // Create a new record using the tblECO model
-    const newRecord = await tblECO.create(allData);
-    console.log("New record created:", newRecord);
-    return newRecord;
-  } catch (error) {
-    console.error("Error inserting data:", error);
-    throw error; // Re-throw the error for further handling
-  }
-};
+//   const formatDate = (dateString) => {
+//     // const date = new Date(dateString);
+//     // return date.toISOString(); // Converts date to ISO 8601 format
+  
+//     const date = new Date(dateString)
+//     const year = date.getUTCFullYear()
+//     const month = String(date.getUTCMonth() + 1).padStart(2, '0') // Months are zero-indexed
+//     const day = String(date.getUTCDate()).padStart(2, '0')
+//     const hours = String(date.getUTCHours()).padStart(2, '0')
+//     const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+//     const seconds = String(date.getUTCSeconds()).padStart(2, '0')
+  
+//     // Format as YYYY-MM-DD HH:MM:SS
+//     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+//   }
+  
+
+//   const finalUpdatedData = {
+//     ...updatedData,
+//     ENGDATEAPPROVED: formatDate(ENGDATEAPPROVED),
+//     MARDATEAPPROVED: formatDate(MARDATEAPPROVED),
+//     MANDATEAPPROVED: formatDate(MANDATEAPPROVED),
+//   };
+
+//   try {
+//     const existingRecord = await tblECO.findOne({ where: { uniqueID } });
+    
+//     if (existingRecord) {
+//       await existingRecord.update(finalUpdatedData);
+//       return {
+//         success: true,
+//         message: "Record updated successfully",
+//         data: existingRecord,
+//       };
+//     } else {
+//       const newRecord = await tblECO.create(finalUpdatedData);
+//       return {
+//         success: true,
+//         message: "Record created successfully",
+//         data: newRecord,
+//       };
+//     }
+//   } catch (error) {
+//     console.error("Error in updateChangeOrderData:", error);
+//     return {
+//       success: false,
+//       message: "Error processing request",
+//       error: error.message,
+//     };
+//   }
+// };
+
+
 
 export const updateChangeOrderData = async (body) => {
-  const { uniqueID, ...updatedData } = body;
-  try {
-    const existingRecord = await tblECO.findOne({ where: { uniqueID } });
 
-    if (existingRecord) {
-      await existingRecord.update(updatedData);
+  const {
+    uniqueID,
+    ENGDATEAPPROVED,
+    MARDATEAPPROVED,
+    MANDATEAPPROVED,
+    DESCRIPTION,
+    REASONFORCHANGE,
+    PRODUCT,
+    PRODUCTS,
+    SOLUTION,
+    DetailReason,
+    FromModel,
+    ToModel,
+    PARTS,
+    ISSUE,
+    VandVNotRequired,
+    ORIGINATOR,
+    ORIGINATORDATE,
+    ENGINEERING,
+    ENGAPPROVER,
+    ENGAPPROVAL,
+    ENGCOMMENTS,
+    MARKETING,
+    MARAPPROVER,
+    MARAPPROVAL,
+    MARCOMMENTS,
+    MANUFACTURING,
+    MANAPPROVER,
+    MANAPPROVAL,
+    MANCOMMENTS,
+    SIGNATURE,
+    DISTRIBUTIONDATE,
+    APPROVAL,
+    COMMENTS,
+    ...updatedData
+  } = body;
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+
+
+
+  const finalUpdatedData = {
+    ...updatedData,
+    ENGDATEAPPROVED: formatDate(ENGDATEAPPROVED),
+    MARDATEAPPROVED: formatDate(MARDATEAPPROVED),
+    MANDATEAPPROVED: formatDate(MANDATEAPPROVED),
+  };
+  try {
+    const queryCheck = `
+      SELECT COUNT(*) as count FROM tblECO WHERE uniqueID = :uniqueID
+    `;
+
+    const [result] = await sequelize.query(queryCheck, {
+      replacements: { uniqueID },
+    });
+
+    const recordExists = result[0].count > 0;
+
+    if (recordExists) {
+      const queryUpdate = `
+        UPDATE tblECO
+        SET
+          ENGDATEAPPROVED = :engDateApproved,
+          MARDATEAPPROVED = :marDateApproved,
+          MANDATEAPPROVED = :mandateApproved,
+          DESCRIPTION = :descriptionData,
+          REASONFORCHANGE = :reasonForChange,
+          PRODUCT = :product,
+          PRODUCTS = :products,
+          SOLUTION = :solution,
+          DetailReason = :detailReason,
+          FromModel = :fromModel,
+          ToModel = :toModel,
+          PARTS = :parts,
+          ISSUE = :issue,
+          VandVNotRequired = :vandVNotRequired,
+          ORIGINATOR = :originator,
+          ORIGINATORDATE = :originatorDate,
+          ENGINEERING = :engineering,
+          ENGAPPROVER = :engApprover,
+          ENGAPPROVAL = :engApproval,
+          ENGCOMMENTS = :engComments,
+          MARKETING = :marketing,
+          MARAPPROVER = :marApprover,
+          MARAPPROVAL = :marApproval,
+          MARCOMMENTS = :marComments,
+          MANUFACTURING = :manufacturing,
+          MANAPPROVER = :manApprover,
+          MANAPPROVAL = :manApproval,
+          MANCOMMENTS = :manComments,
+          SIGNATURE = :signature,
+          DISTRIBUTIONDATE = :distributionDate,
+          APPROVAL = :approval,
+          COMMENTS = :comments
+        WHERE uniqueID = :uniqueID
+      `;
+
+      
+      await sequelize.query(queryUpdate, {
+        replacements: {
+          engDateApproved: finalUpdatedData.ENGDATEAPPROVED,
+          marDateApproved: finalUpdatedData.MARDATEAPPROVED,
+          mandateApproved: finalUpdatedData.MANDATEAPPROVED,
+          descriptionData: DESCRIPTION,
+          reasonForChange: REASONFORCHANGE,
+          product: PRODUCT,
+          products: PRODUCTS,
+          solution: SOLUTION,
+          detailReason: DetailReason,
+          fromModel: FromModel,
+          toModel: ToModel,
+          parts: PARTS,
+          issue: ISSUE,
+          vandVNotRequired: VandVNotRequired,
+          originator: ORIGINATOR,
+          originatorDate: ORIGINATORDATE,
+          engineering: ENGINEERING,
+          engApprover: ENGAPPROVER,
+          engApproval: ENGAPPROVAL,
+          engComments: ENGCOMMENTS,
+          marketing: MARKETING,
+          marApprover: MARAPPROVER,
+          marApproval: MARAPPROVAL,
+          marComments: MARCOMMENTS,
+          manufacturing: MANUFACTURING,
+          manApprover: MANAPPROVER,
+          manApproval: MANAPPROVAL,
+          manComments: MANCOMMENTS,
+          signature: SIGNATURE,
+          distributionDate: DISTRIBUTIONDATE,
+          approval: APPROVAL,
+          comments: COMMENTS,
+          uniqueID: uniqueID,
+        },
+      });
+
       return {
         success: true,
         message: "Record updated successfully",
-        data: existingRecord,
+        data: finalUpdatedData,
       };
     } else {
-      const newRecord = await tblECO.create(updatedData);
+      const queryInsert = `
+        INSERT INTO tblECO (
+          ENGDATEAPPROVED,
+          MARDATEAPPROVED,
+          MANDATEAPPROVED,
+          DESCRIPTION,
+          REASONFORCHANGE,
+          PRODUCT,
+          PRODUCTS,
+          SOLUTION,
+          DetailReason,
+          FromModel,
+          ToModel,
+          PARTS,
+          ISSUE,
+          VandVNotRequired,
+          ORIGINATOR,
+          ORIGINATORDATE,
+          ENGINEERING,
+          ENGAPPROVER,
+          ENGAPPROVAL,
+          ENGCOMMENTS,
+          MARKETING,
+          MARAPPROVER,
+          MARAPPROVAL,
+          MARCOMMENTS,
+          MANUFACTURING,
+          MANAPPROVER,
+          MANAPPROVAL,
+          MANCOMMENTS,
+          SIGNATURE,
+          DISTRIBUTIONDATE,
+          APPROVAL,
+          COMMENTS
+        ) 
+        VALUES (
+          :engDateApproved,
+          :marDateApproved,
+          :mandateApproved,
+          :descriptionData,
+          :reasonForChange,
+          :product,
+          :products,
+          :solution,
+          :detailReason,
+          :fromModel,
+          :toModel,
+          :parts,
+          :issue,
+          :vandVNotRequired,
+          :originator,
+          :originatorDate,
+          :engineering,
+          :engApprover,
+          :engApproval,
+          :engComments,
+          :marketing,
+          :marApprover,
+          :marApproval,
+          :marComments,
+          :manufacturing,
+          :manApprover,
+          :manApproval,
+          :manComments,
+          :signature,
+          :distributionDate,
+          :approval,
+          :comments
+        )
+      `;
+
+      await sequelize.query(queryInsert, {
+        replacements: {
+          engDateApproved: finalUpdatedData.ENGDATEAPPROVED,
+          marDateApproved: finalUpdatedData.MARDATEAPPROVED,
+          mandateApproved: finalUpdatedData.MANDATEAPPROVED,
+          descriptionData: DESCRIPTION,
+          reasonForChange: REASONFORCHANGE,
+          product: PRODUCT,
+          products: PRODUCTS,
+          solution: SOLUTION,
+          detailReason: DetailReason,
+          fromModel: FromModel,
+          toModel: ToModel,
+          parts: PARTS,
+          issue: ISSUE,
+          vandVNotRequired: VandVNotRequired,
+          originator: ORIGINATOR,
+          originatorDate: ORIGINATORDATE,
+          engineering: ENGINEERING,
+          engApprover: ENGAPPROVER,
+          engApproval: ENGAPPROVAL,
+          engComments: ENGCOMMENTS,
+          marketing: MARKETING,
+          marApprover: MARAPPROVER,
+          marApproval: MARAPPROVAL,
+          marComments: MARCOMMENTS,
+          manufacturing: MANUFACTURING,
+          manApprover: MANAPPROVER,
+          manApproval: MANAPPROVAL,
+          manComments: MANCOMMENTS,
+          signature: SIGNATURE,
+          distributionDate: DISTRIBUTIONDATE,
+          approval: APPROVAL,
+          comments: COMMENTS,
+        },
+      });
+      console.log(finalUpdatedData)
+      
       return {
         success: true,
         message: "Record created successfully",
-        data: newRecord,
+        data: finalUpdatedData,
+      
       };
+     
     }
+  
   } catch (error) {
-    console.error("Error in updateChangeOrderData:", error);
+    console.error("Error in upsertChangeOrderData:", error);
     return {
       success: false,
       message: "Error processing request",

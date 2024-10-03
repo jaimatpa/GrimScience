@@ -233,8 +233,7 @@ const onSelect = async (row) => {
   gridMeta.value.selectProduct = row;
 
 };
-const handleSelect = 
-()=>{
+const handleSelect = ()=>{
   
   emit("rowSelectedProduct",  gridMeta.value.selectProduct);
 }
@@ -501,9 +500,9 @@ const handleFilterInputChange = async (event, name) => {
           </div>
         </div>
       </div>
-      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- v-if="props.isPage && activeTab === 'lookup'" -->
+      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div
-          v-if="props.isPage && activeTab === 'lookup'"
           class="flex flex-row justify-end mr-20 mt-1"
         >
           <UPagination
@@ -513,7 +512,7 @@ const handleFilterInputChange = async (event, name) => {
             v-model="gridMeta.page"
             @update:model-value="handlePageChange()"
           />
-        </div> -->
+        </div>
 
         <div v-if="!props.isPage">
           <div class="mt-3 w-[120px]">
@@ -532,7 +531,7 @@ const handleFilterInputChange = async (event, name) => {
             </UButton>
           </div>
         </div>
-      <!-- </div> -->
+      </div>
     </UDashboardPanel>
   </UDashboardPage>
   <!-- New Product Detail Modal -->
