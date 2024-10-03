@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "#ui/types";
 import { format } from "date-fns";
-import { ref } from 'vue';
+import { ref } from "vue";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
 
@@ -30,8 +30,8 @@ const workplaces = ref([]);
 const workplacesColumns = [
   {
     key: "location",
-    label: "location",
-  }
+    label: "Locations",
+  },
 ];
 
 const revisionsColumns = [
@@ -258,18 +258,17 @@ const editInit = async () => {
   await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
     method: "GET",
     onResponse({ response }) {
-      console.log('Get by ID----', response);
-      
+      console.log("Get by ID----", response);
+
       if (response.status === 200) {
         loadingOverlay.value = false;
         partsExist.value = true;
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
             formData[key] = response._data.body[key];
-            
           }
         }
-        console.log('formData', formData.SPECSHEET);
+        console.log("formData", formData.SPECSHEET);
       }
     },
     onResponseError({}) {
@@ -280,7 +279,6 @@ const editInit = async () => {
   loadingOverlay.value = false;
   fetchWorkCentersBy();
 };
-
 
 const propertiesInit = async () => {
   loadingOverlay.value = true;
@@ -313,7 +311,6 @@ const propertiesInit = async () => {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        // console.log("order unit is", response._data.body.unit);
         partUnit.value = response._data.body
           .map((item) => item.unit)
           .filter((unit) => unit !== null && unit !== undefined);
@@ -327,7 +324,7 @@ const propertiesInit = async () => {
   await useApiFetch("/api/common/getInspectionNumbers", {
     method: "GET",
     onResponse({ response }) {
-      console.log('insepctionList', response);
+      console.log("insepctionList", response);
       if (response.status === 200) {
         insepctionList.value = response._data.body;
       }
@@ -340,7 +337,7 @@ const propertiesInit = async () => {
   await useApiFetch("/api/common/inventoryList", {
     method: "GET",
     onResponse({ response }) {
-      console.log('insepctionList', response);
+      console.log("insepctionList", response);
       if (response.status === 200) {
         inventoryList.value = response._data.body;
       }
@@ -356,7 +353,6 @@ const propertiesInit = async () => {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          // console.log("transation vlau eis", response._data.body);
           InventoryTransactions.value = response._data.body;
         }
       },
@@ -371,8 +367,6 @@ const propertiesInit = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         vendorList.value = response._data.body;
-
-        // console.log("v", vendorList.value);
       }
     },
     onResponseError() {
@@ -381,19 +375,20 @@ const propertiesInit = async () => {
   });
 
   await useApiFetch(
-  `/api/materials/parts/getJobsTotal?instanceId=${props.selectedPartInstace}`,
-  {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        // console.log("jobdetails", response._data);
-        jobDetails.value =response._data;
-      }
-    },
-    onResponseError({ response }) {
-      console.error("Error fetching job details:", response);
-    },
-  });
+    `/api/materials/parts/getJobsTotal?instanceId=${props.selectedPartInstace}`,
+    {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          // console.log("jobdetails", response._data);
+          jobDetails.value = response._data;
+        }
+      },
+      onResponseError({ response }) {
+        console.error("Error fetching job details:", response);
+      },
+    }
+  );
 
   await useApiFetch(
     `/api/materials/parts/parts/podetails?instanceId=${props.selectedPartInstace}`,
@@ -413,19 +408,17 @@ const propertiesInit = async () => {
 
   getRevisions();
 
-  await useApiFetch("/api/materials/parts/accountsList",
-    {
-      method: "GET",
-      onResponse({ response }) {
-        if (response.status === 200) {
-          accountList.value = response._data.body;
-        }
-      },
-      onResponseError() {
-        // orders = []
-      },
-    }
-  );
+  await useApiFetch("/api/materials/parts/accountsList", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        accountList.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      // orders = []
+    },
+  });
   loadingOverlay.value = false;
 };
 
@@ -436,16 +429,15 @@ const files = ref([null, null, null]);
 
 const handleFileChange = (event, index) => {
   const file = event.target.files[0];
-  if (file && file.type === 'application/pdf') {
+  if (file && file.type === "application/pdf") {
     files.value[index] = file;
-    
   } else {
     // alert('Please select a PDF file.');
-    event.target.value = '';
+    event.target.value = "";
   }
 };
 
-const getRevisions = async() => {
+const getRevisions = async () => {
   await useApiFetch(
     `/api/materials/parts/revisions?instanceId=${props.selectedPartInstace}`,
     {
@@ -461,43 +453,44 @@ const getRevisions = async() => {
       },
     }
   );
-}
+};
 
 const fetchWorkCentersBy = async () => {
-    try {
-        const response = await useApiFetch('/api/materials/workcenter', {
-            method: 'GET',
-        });
-        if (response) {
-            const workCenterIds = formData.WORKCENTERS
-                .split(',')
-                .map(id => id.trim()) 
-                .filter(id => id !== ""); 
+  try {
+    const response = await useApiFetch("/api/materials/workcenter", {
+      method: "GET",
+    });
+    if (response) {
+      const workCenterIds = formData.WORKCENTERS.split(",")
+        .map((id) => id.trim())
+        .filter((id) => id !== "");
 
-            const filteredResponse = response.filter(val => workCenterIds.includes(val.UniqueId));
+      const filteredResponse = response.filter((val) =>
+        workCenterIds.includes(val.UniqueId)
+      );
 
-            workplaces.value = filteredResponse;
-        } else {
-            console.log('Unexpected response structure or status code:', response);
-        }
-    } catch (error) {
-        console.error(error);
-        return { workcenters: [] };
+      workplaces.value = filteredResponse;
+    } else {
+      console.log("Unexpected response structure or status code:", response);
     }
-}
+  } catch (error) {
+    console.error(error);
+    return { workcenters: [] };
+  }
+};
 
 function formatDate(date: Date): string {
-  return format(date, 'yyyy-MM-dd HH:mm:ss');
+  return format(date, "yyyy-MM-dd HH:mm:ss");
 }
 
-const revision=async()=>{
-  if(props.selectedPartInstace!=null){
-    // console.log("meth dfadsf");
-    const response = await useApiFetch(`/api/materials/parts/parts/revision?instanceIdForRevision=${props.selectedPartInstace}&id=${props.selectedParts}`, {
+const revision = async () => {
+  if (props.selectedPartInstace != null) {
+    const response = await useApiFetch(
+      `/api/materials/parts/parts/revision?instanceIdForRevision=${props.selectedPartInstace}&id=${props.selectedParts}`,
+      {
         method: "PUT",
         onResponse({ response }) {
           if (response.status === 200) {
-            // console.log("status is",response.status);
             toast.add({
               title: "Success",
               description: "Revision Add",
@@ -506,22 +499,16 @@ const revision=async()=>{
             });
           }
         },
-    });
-}
+      }
+    );
+  }
 
-getRevisions();
-}
-
+  getRevisions();
+};
 
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  // if (!files.value.some(file => file)) {
-  //   // console.log('No files to upload.');
-  //   alert('Please upload at least one file.');
-  //   return;
-  // }
-
   const formData = new FormData();
-  const fileTypes = ['Drawing/Manual', 'PDS', 'SDS'];
+  const fileTypes = ["Drawing/Manual", "PDS", "SDS"];
 
   files.value.forEach((file, index) => {
     if (file) {
@@ -529,52 +516,49 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     }
   });
 
-  try {    
-    const response = await fetch('/api/file', {
-      method: 'POST',
+  try {
+    const response = await fetch("/api/file", {
+      method: "POST",
       body: formData,
     });
 
     if (response.ok) {
-      const responseData = await response.json(); 
-      // alert('Files uploaded successfully!');
+      const responseData = await response.json();
 
-      responseData.files.forEach(file => {
-        if(file.fileType==='Drawing/Manual'){
-          event.data.DRAWINGCUSTOM=file.url;
+      responseData.files.forEach((file) => {
+        if (file.fileType === "Drawing/Manual") {
+          event.data.DRAWINGCUSTOM = file.url;
         }
-        if(file.fileType==='PDS'){
-          event.data.SPECSHEET=file.url;
+        if (file.fileType === "PDS") {
+          event.data.SPECSHEET = file.url;
         }
-        if(file.fileType==='SDS'){
-          event.data.sds=file.url;
+        if (file.fileType === "SDS") {
+          event.data.sds = file.url;
         }
-        
       });
 
       files.value = [null, null, null];
     } else {
-      throw new Error('Upload failed!');
+      throw new Error("Upload failed!");
     }
   } catch (error) {
-    console.error('Error uploading files:', error);
-    alert('An error occurred while uploading the files. Please try again.');
+    console.error("Error uploading files:", error);
+    alert("An error occurred while uploading the files. Please try again.");
   }
 
-  if(props.selectedParts != null){
+  if (props.selectedParts != null) {
     const now = new Date();
     const isoString = now.toISOString();
-    event.data.TODAY =isoString;
+    event.data.TODAY = isoString;
 
-    console.log('Edit data===========', event.data);
+    console.log("Edit data===========", event.data);
 
     await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
       method: "PUT",
       body: event.data,
       onResponse({ response }) {
         if (response.status === 200) {
-
-          console.log("Edit res---",response);
+          console.log("Edit res---", response);
 
           toast.add({
             title: "Success",
@@ -585,15 +569,13 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       },
     });
-  }
-  else{
+  } else {
     await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
       method: "POST",
       body: event.data,
       onResponse({ response }) {
+        console.log("Add res---", response);
 
-        console.log("Add res---",response);
-        
         if (response.status === 200) {
           toast.add({
             title: "Success",
@@ -605,7 +587,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       },
     });
   }
-  emit('save');
+  emit("save");
 };
 
 const selectedFiles = ref([]);
@@ -613,7 +595,6 @@ const selectedFiles = ref([]);
 const onFileSelected = (event) => {
   const files = Array.from(event.target.files);
   selectedFiles.value.push(...files);
-  // console.log('Selected files:', selectedFiles.value);
 };
 
 const logFormData = (formData) => {
@@ -626,19 +607,18 @@ const logFormData = (formData) => {
   }
 };
 
-const handleUpload  = async () => {
+const handleUpload = async () => {
   if (selectedFiles.value.length === 0) {
-    console.error('No files selected');
+    console.error("No files selected");
     return;
   }
   const formData = new FormData();
-  selectedFiles.value.forEach(file => {
-    formData.append('files[]', file);
-    // console.log('Selected files xxx:', file);
+  selectedFiles.value.forEach((file) => {
+    formData.append("files[]", file);
     logFormData(formData);
   });
 
- try {
+  try {
     await useApiFetch(`/api/materials/parts/parts/`, {
       method: "POST",
       body: formData,
@@ -662,10 +642,7 @@ const handleUpload  = async () => {
     });
   }
 };
-
 </script>
-
-
 
 <template>
   <div class="vl-parent">
@@ -684,25 +661,19 @@ const handleUpload  = async () => {
       :to="'/materials/parts'"
     />
   </template>
-  <template v-else>
-    <UForm
-      :state="formData"
-      class="space-y-4"
-      @submit="onSubmit"
-    >
-      <div class="overflow-auto">
 
-        
+  <template v-else>
+    <UForm :state="formData" class="space-y-4" @submit="onSubmit">
+      <div class="overflow-auto">
         <div class="space-y-4">
-          <div class="gmsBlueTitlebar ps-2 py-1.5 text-white font-bold">Part Information</div>
+          <div class="gmsBlueTitlebar ps-2 py-1.5 text-white font-bold">
+            Part Information
+          </div>
 
           <div class="flex flex-row space-x-4">
             <div class="basis-1/4 space-y-1">
               <label>Category</label>
-              <UInputMenu
-                v-model="formData.PARTTYPE"
-                :options="category"
-              />
+              <UInputMenu v-model="formData.PARTTYPE" :options="category" />
             </div>
             <div class="basis-1/4 space-y-1">
               <label>Sub Category</label>
@@ -713,9 +684,7 @@ const handleUpload  = async () => {
             </div>
             <div class="basis-1/4 space-y-1">
               <label>Stock Number</label>
-              <UInput
-                v-model="formData.MODEL"
-              />
+              <UInput v-model="formData.MODEL" />
             </div>
             <div class="basis-1/4 space-y-1">
               <label>Inspection</label>
@@ -772,81 +741,131 @@ const handleUpload  = async () => {
 
           <div class="flex flex-row space-x-4 mb-3">
             <div class="basis-1/4">
-              <!-- <UFormGroup label="Drawing/Mannul" name="DRAWINGCUSTOM"> -->
-                <div class="mb-2">Drawing/Mannul</div>
-                <label class="" for="DRAWINGCUSTOM">
-                  <span v-if="files[0]?.name || formData.DRAWINGCUSTOM" class="bg-gray-400 text-white px-2 py-2 rounded cursor-pointer me-3">
-                    Upload
-                  </span>
-                  <span :class="!files[0]?.name && !formData.DRAWINGCUSTOM ? 'bg-gray-400 text-white px-3 text-center py-2 rounded' : ''">
-                    {{ (files[0]?.name?.length > 20 ? '...' + files[0]?.name.slice(-20) : files[0]?.name) || (formData.DRAWINGCUSTOM?.length > 20 ? '...' + formData.DRAWINGCUSTOM.slice(-20) : formData.DRAWINGCUSTOM) || 'Upload a file' }}
-                  </span>
-                </label>
-                <input
-                  id="DRAWINGCUSTOM" 
-                  type="file"
-                  @change="(e) => handleFileChange(e, 0)"
-                  accept="application/pdf"
-                  class="hidden"
-                />
+              <div class="mb-2">Drawing/Mannul</div>
+              <label class="" for="DRAWINGCUSTOM">
+                <span
+                  v-if="files[0]?.name || formData.DRAWINGCUSTOM"
+                  class="bg-gray-400 text-white px-2 py-2 rounded cursor-pointer me-3"
+                >
+                  Upload
+                </span>
+                <span
+                  :class="
+                    !files[0]?.name && !formData.DRAWINGCUSTOM
+                      ? 'bg-gray-400 text-white px-3 text-center py-2 rounded'
+                      : ''
+                  "
+                >
+                  {{
+                    (files[0]?.name?.length > 20
+                      ? "..." + files[0]?.name.slice(-20)
+                      : files[0]?.name) ||
+                    (formData.DRAWINGCUSTOM?.length > 20
+                      ? "..." + formData.DRAWINGCUSTOM.slice(-20)
+                      : formData.DRAWINGCUSTOM) ||
+                    "Upload a file"
+                  }}
+                </span>
+              </label>
+              <input
+                id="DRAWINGCUSTOM"
+                type="file"
+                @change="(e) => handleFileChange(e, 0)"
+                accept="application/pdf"
+                class="hidden"
+              />
               <!-- </UFormGroup> -->
             </div>
             <div class="basis-1/4">
               <!-- <UFormGroup label="PDS" name="PDS"> -->
-                <div class="mb-2">PDS</div>
-                <label class="" for="PDS">
-                  <span v-if="files[1]?.name || formData.SPECSHEET" class="bg-gray-400 text-white px-2 py-2 rounded cursor-pointer me-3">
-                    Upload
-                  </span>
-                  <span :class="!files[1]?.name && !formData.SPECSHEET ? 'bg-gray-400 text-white px-3 text-center py-2 rounded' : ''">
-                    {{ (files[1]?.name?.length > 20 ? '...' + files[1]?.name.slice(-20) : files[1]?.name) || (formData.SPECSHEET?.length > 20 ? '...' + formData.SPECSHEET.slice(-20) : formData.SPECSHEET) || 'Upload a file' }}
-                  </span>
-                </label>
-                <input
-                  id="PDS"
-                  type="file"
-                  @change="(e) => handleFileChange(e, 1)"
-                  accept="application/pdf"
-                  class="hidden"
-                />
+              <div class="mb-2">PDS</div>
+              <label class="" for="PDS">
+                <span
+                  v-if="files[1]?.name || formData.SPECSHEET"
+                  class="bg-gray-400 text-white px-2 py-2 rounded cursor-pointer me-3"
+                >
+                  Upload
+                </span>
+                <span
+                  :class="
+                    !files[1]?.name && !formData.SPECSHEET
+                      ? 'bg-gray-400 text-white px-3 text-center py-2 rounded'
+                      : ''
+                  "
+                >
+                  {{
+                    (files[1]?.name?.length > 20
+                      ? "..." + files[1]?.name.slice(-20)
+                      : files[1]?.name) ||
+                    (formData.SPECSHEET?.length > 20
+                      ? "..." + formData.SPECSHEET.slice(-20)
+                      : formData.SPECSHEET) ||
+                    "Upload a file"
+                  }}
+                </span>
+              </label>
+              <input
+                id="PDS"
+                type="file"
+                @change="(e) => handleFileChange(e, 1)"
+                accept="application/pdf"
+                class="hidden"
+              />
               <!-- </UFormGroup> -->
             </div>
             <div class="basis-1/4">
               <!-- <UFormGroup label="sds" name="sds"> -->
-                <div class="mb-2">SDS</div>
-                <label class="" for="sds">
-                  <span v-if="files[2]?.name || formData.sds" class="bg-gray-400 text-white px-2 py-2 rounded cursor-pointer me-3">
-                    Upload
-                  </span>
-                  <span :class="!files[2]?.name && !formData.sds ? 'bg-gray-400 text-white px-3 text-center py-2 rounded' : ''">
-                    {{ (files[2]?.name?.length > 20 ? '...' + files[2]?.name.slice(-20) : files[2]?.name) || (formData.sds?.length > 20 ? '...' + formData.sds.slice(-20) : formData.sds) || 'Upload a file' }}
-                  </span>
-                </label>
-                <input
-                  id="sds"
-                  type="file"
-                  @change="(e) => handleFileChange(e, 2)"
-                  accept="application/pdf"
-                  class="hidden"
-                />
+              <div class="mb-2">SDS</div>
+              <label class="" for="sds">
+                <span
+                  v-if="files[2]?.name || formData.sds"
+                  class="bg-gray-400 text-white px-2 py-2 rounded cursor-pointer me-3"
+                >
+                  Upload
+                </span>
+                <span
+                  :class="
+                    !files[2]?.name && !formData.sds
+                      ? 'bg-gray-400 text-white px-3 text-center py-2 rounded'
+                      : ''
+                  "
+                >
+                  {{
+                    (files[2]?.name?.length > 20
+                      ? "..." + files[2]?.name.slice(-20)
+                      : files[2]?.name) ||
+                    (formData.sds?.length > 20
+                      ? "..." + formData.sds.slice(-20)
+                      : formData.sds) ||
+                    "Upload a file"
+                  }}
+                </span>
+              </label>
+              <input
+                id="sds"
+                type="file"
+                @change="(e) => handleFileChange(e, 2)"
+                accept="application/pdf"
+                class="hidden"
+              />
               <!-- </UFormGroup> -->
             </div>
             <div class="basis-1/4 space-y-1">
               <label>Description</label>
-              <UInput
-                v-model="formData.DESCRIPTION"
-              />
+              <UInput v-model="formData.DESCRIPTION" />
             </div>
           </div>
         </div>
 
         <div class="space-y-4 mt-8">
-          <div class="gmsBlueTitlebar ps-2 py-1.5 text-white font-bold">Primary Vendor</div>
-          
+          <div class="gmsBlueTitlebar ps-2 py-1.5 text-white font-bold">
+            Primary Vendor
+          </div>
+
           <div class="grid grid-cols-3 gap-5 mt-2">
             <!-- Left Grid Section -->
             <div class="grid grid-cols-2 gap-5">
-              <div class="col-span-2  space-y-1">
+              <div class="col-span-2 space-y-1">
                 <label>Manufacturer</label>
                 <UInputMenu
                   v-model="formData.PRIMARYMANTXT"
@@ -873,7 +892,7 @@ const handleUpload  = async () => {
             <div class="grid grid-cols-1 gap-5">
               <div class="space-y-1">
                 <label>Part Number</label>
-                <UInput v-model="formData.PRIMARYMANNUM"  />
+                <UInput v-model="formData.PRIMARYMANNUM" />
               </div>
               <div class="space-y-1">
                 <label>Part Number</label>
@@ -908,8 +927,16 @@ const handleUpload  = async () => {
         </div>
 
         <div class="flex flex-row gap-5 mt-8 mb-5">
-          <div class="basis-1/2 gmsBlueTitlebar text-white font-bold ps-2 py-1.5">Alternative Vendor #1</div>
-          <div class="basis-1/2 gmsBlueTitlebar text-white font-bold ps-2 py-1.5">Alternative Vendor #2</div>
+          <div
+            class="basis-1/2 gmsBlueTitlebar text-white font-bold ps-2 py-1.5"
+          >
+            Alternative Vendor #1
+          </div>
+          <div
+            class="basis-1/2 gmsBlueTitlebar text-white font-bold ps-2 py-1.5"
+          >
+            Alternative Vendor #2
+          </div>
         </div>
 
         <div class="flex flex-row space-x-5 mt-2">
@@ -950,7 +977,7 @@ const handleUpload  = async () => {
                     </div>
                     <div>
                       <label class="mb-1">UL Number</label>
-                      <UInput v-model="formData.ALTER1UL"/>
+                      <UInput v-model="formData.ALTER1UL" />
                     </div>
                   </div>
                 </div>
@@ -1052,94 +1079,120 @@ const handleUpload  = async () => {
           </div>
         </div>
 
-        <div class="gmsBlueTitlebar text-white font-bold ps-2 py-1.5 mt-8 mb-5">Inventory</div>
+        <div class="gmsBlueTitlebar text-white font-bold ps-2 py-1.5 mt-8 mb-5">
+          Inventory
+        </div>
 
-        <div class="flex flex-row space-x-3 ">
-          <div class="basis-1/4 h-96 overflow-auto">
-            <UTable :rows="jobDetails" :columns="jobDetailsColumns" class="h-96 w-full" />
+        <div class="flex flex-row space-x-8">
+          <div class="basis-3/5">
+            <UTable
+              :rows="poDetails"
+              :columns="poDetailsColumns"
+              class="h-96 w-full"
+            />
           </div>
 
-          <div class="basis-1/4">
-              <label class="mb-1">Comments</label>
-              <UTextarea class="w-full h-full" :rows="18" v-model="formData.COMMENT"/>
-          </div>
-
-          <div class="basis-2/4">
-            <UTable :rows="poDetails" :columns="poDetailsColumns" class="h-96 w-full" />
+          <div class="basis-2/5">
+            <UTable
+              :columns="InventoryTransactionsColumns"
+              :rows="InventoryTransactions"
+              class="h-96 w-full"
+            />
           </div>
         </div>
 
-        <!-- Right Side - Inputs and People Table -->
-        <div class="flex flex-row   p-3">
-          <div class="space-y-2 mr-2 mt-4  basis-1/2">
-            <div class="flex items-center space-x-2">
-              <label>On Order</label>
-              <UInput class="flex-1" />
+        <div class="gmsBlueTitlebar h-8 w-full my-5"></div>
+
+        <div class="grid grid-cols-5 gap-5">
+          <div class="col-span-1 mt-2">
+            <div class="mb-2">
+              <label class>On Order</label>
+              <UInput />
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="mb-2">
               <label>On Hand</label>
-              <UInput class="flex-1" v-model="formData.OnHand" />
+              <UInput v-model="formData.OnHand" />
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="mb-2">
               <label>Required</label>
-              <UInput class="flex-1" />
+              <UInput />
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="mb-2">
               <label>Available</label>
-              <UInput class="flex-1" />
+              <UInput />
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="mb-2">
               <label>Minimum</label>
-              <UInput class="flex-1" v-model="formData.minimum" />
+              <UInput v-model="formData.minimum" />
             </div>
           </div>
 
-          <div class="ml-4 basis-1/2">
-            <UTable :rows="workplaces" :columns="workplacesColumns" class="h-48 w-full" />
+          <div class="col-span-1 mt-2">
+            <label class="">Comments</label>
+            <UTextarea
+              class="w-full h-full mt-3"
+              :rows="13"
+              v-model="formData.COMMENT"
+            />
+          </div>
+
+          <div class="col-span-1">
+            <UTable
+              :rows="workplaces"
+              :columns="workplacesColumns"
+              class="h-80 w-full"
+            />
+          </div>
+
+          <div class="col-span-2 overflow-auto">
+            <UTable
+              :rows="jobDetails"
+              :columns="jobDetailsColumns"
+              class="h-80 w-full"
+            />
           </div>
         </div>
 
-        <div class="space-x-3 mt-6">
-          <!-- Left Side - Inventory Transactions Table -->
-          <div class="gmsBlueTitlebar  ">
-            <div class=" pl-2 text-white font-bold">Inventory Transactions</div>
-          </div>
-          <div class="basis-1/2 h-96 overflow-auto">
-            <UTable :columns="InventoryTransactionsColumns" :rows="InventoryTransactions" />
-          </div>
+        <div class="gmsBlueTitlebar text-white font-bold ps-2 py-1.5 mt-8 mb-5">
+          Revision History
         </div>
 
-        <div class="gmsBlueTitlebar mt-4 ">
-          <div class=" pl-2 text-white font-bold">Revision History</div>
-        </div>
-        <div class="flex flex-row space-x-3">
-          <!-- Left Side - Revisions Table -->
-          <div class="basis-1/2 h-32 overflow-auto">
-            <UTable :columns="revisionsColumns" :rows="revisions" />
+        <div class="grid grid-cols-2 gap-8">
+          <div class="col-span-1 overflow-auto">
+            <UTable
+              :columns="revisionsColumns"
+              :rows="revisions"
+              class="h-80 w-full"
+            />
           </div>
 
-          <!-- Right Side - Revised By Input -->
-          <div class=basis-1/2> 
-            <UFormGroup label="Revised By" name="fname" class="basis-1/2">
-              <UInputMenu  />
-            </UFormGroup>
-
-            <UFormGroup  class="basis-1/2 mt-2 ">
-              <UButton 
-                color="cyan" 
-                :disabled="props.selectedPartInstace==null" 
-                variant="outline" 
-                @click="revision" 
-                label="Revision" 
+          <div class="col-span-1 flex flex-col justify-between">
+            <div>
+              <div class="mb-2">Revised By</div>
+              <div class="flex gap-8">
+                <UInputMenu class="w-full" />
+                <UButton
+                  color="cyan"
+                  :disabled="props.selectedPartInstace == null"
+                  variant="outline"
+                  @click="revision"
+                  label="Revision"
+                  class="px-7"
+                />
+              </div>
+            </div>
+            <div class="flex justify-center">
+              <UButton
+                color="cyan"
+                variant="outline"
+                type="submit"
+                label="Save"
+                class="px-10"
               />
-            </UFormGroup>
+            </div>
           </div>
-        </div>
-
-        <div class="flex justify-end gap-3">
-          <UButton color="cyan" variant="outline" type="submit" label="Save" />
         </div>
       </div>
-    </UForm> 
+    </UForm>
   </template>
 </template>
