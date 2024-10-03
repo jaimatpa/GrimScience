@@ -52,7 +52,7 @@ const props = defineProps({
     </div>
   </template>
   <template v-else>
-    <div class="flex justify-center text-center px-[10px] py-[6px]">
+    <div class="flex justify-start px-[10px] py-[6px]">
       {{ props.label }}
     </div>
   </template>

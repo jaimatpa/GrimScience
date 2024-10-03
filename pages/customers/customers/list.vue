@@ -391,28 +391,19 @@ const onDblClick = async () => {
       <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
           <div class="flex flex-row space-x-3" style="max-width:930px;">
-            <template
-              v-for="[key, value] in Object.entries(headerFilters)"
-              :key="key"
-            >
+            <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
               <template v-if="value.options.length > 1">
                 <div class="basis-1/7 max-w-[200px]">
                   <UFormGroup :label="value.label" :name="key">
-                    <USelect
-                      v-model="filterValues[`${value.filter}`]"
-                      :options="value.options"
-                      @change="handleFilterChange()"
-                    />
+                    <USelect v-model="filterValues[`${value.filter}`]" :options="value.options"
+                      @change="handleFilterChange()" />
                   </UFormGroup>
                 </div>
               </template>
             </template>
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup label="Zip" name="zip">
-                <UInput
-                  v-model="filterValues.zip"
-                  @update:model-value="handleFilterChange()"
-                />
+                <UInput v-model="filterValues.zip" @update:model-value="handleFilterChange()" />
               </UFormGroup>
             </div>
             <div class="basis-1/7 max-w-[200px]">
@@ -425,69 +416,41 @@ const onDblClick = async () => {
           </div>
         </template>
         <template #right>
-          <UButton
-            color="green"
-            variant="outline"
-            :loading="exportIsLoading"
-            label="Export to Excel"
-            trailing-icon="i-heroicons-document-text"
-            @click="excelExport"
-          >
+          <UButton color="green" variant="outline" :loading="exportIsLoading" label="Export to Excel"
+            trailing-icon="i-heroicons-document-text" @click="excelExport">
           </UButton>
-          <UButton
-            color="green"
-            variant="outline"
-            label="New customer"
-            trailing-icon="i-heroicons-plus"
-            @click="onCreate()"
-          />
+          <UButton color="green" variant="outline" label="New customer" trailing-icon="i-heroicons-plus"
+            @click="onCreate()" />
         </template>
       </UDashboardToolbar>
 
       <div class="px-4 py-2 gmsPurpleTitlebar">
         <h2>Lookup</h2>
       </div>
-      <UTable
-        :rows="gridMeta.customers"
-        :columns="columns"
-        :loading="gridMeta.isLoading"
-        class="w-full"
-        :ui="{
-          divide: 'divide-gray-200 dark:divide-gray-800',
-          th: {
-            base: 'sticky top-0 z-10',
-            padding: 'pb-0',
-          },
-          td: {
-            padding: 'py-1',
-          },
-        }"
-        :empty-state="{
+      <UTable :rows="gridMeta.customers" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
+        divide: 'divide-gray-200 dark:divide-gray-800',
+        th: {
+          base: 'sticky top-0 z-10',
+          padding: 'pb-0',
+        },
+        td: {
+          padding: 'py-1',
+        },
+      }" :empty-state="{
           icon: 'i-heroicons-circle-stack-20-solid',
           label: 'No items.',
-        }"
-        @select="onSelect"
-        @dblclick="onDblClick"
-      >
+        }" @select="onSelect" @dblclick="onDblClick">
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
             <div class="">
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
+              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
                     ? noneIcon
                     : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
-              />
+                      ? ascIcon
+                      : descIcon
+                  " :filterable="column.filterable" :filter-key="column.key" />
             </div>
           </template>
           <template v-else>
@@ -584,93 +547,64 @@ const onDblClick = async () => {
 
 
   <!-- New Customer Detail Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isCustomerModalOpen"
-    :title="modalMeta.modalTitle"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1000px] sm:max-w-7xl',
-    }"
-  >
-    <CustomersForm
-      @close="handleModalClose"
-      @save="handleModalSave"
-      :selected-customer="gridMeta.selectedCustomerId"
-      :is-modal="true"
-    />
+  <UDashboardModal v-model="modalMeta.isCustomerModalOpen" :title="modalMeta.modalTitle" :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[1000px] sm:max-w-7xl',
+  }">
+    <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"
+      :is-modal="true" />
   </UDashboardModal>
   <!-- Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isOrderDetailModalOpen"
-    title="Invoice"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
-  >
-    <InvoiceDetail
-      :selected-customer="gridMeta.selectedCustomerId"
-      @close="modalMeta.isOrderDetailModalOpen = false"
-    />
+  <UDashboardModal v-model="modalMeta.isOrderDetailModalOpen" title="Invoice" :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[1800px] sm:max-w-9xl',
+  }">
+    <InvoiceDetail :selected-customer="gridMeta.selectedCustomerId" @close="modalMeta.isOrderDetailModalOpen = false" />
   </UDashboardModal>
   <!-- Quote Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isQuoteDetailModalOpen"
-    title="Quote"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1000px] sm:max-w-7xl',
-    }"
-  >
+  <UDashboardModal v-model="modalMeta.isQuoteDetailModalOpen" title="Quote" :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[1000px] sm:max-w-7xl',
+  }">
     <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId" />
   </UDashboardModal>
   <!-- Service Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isServiceOrderDetailModalOpen"
-    title="Service Order"
-    :ui="{
-      title: 'text-lg text-white',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
-      },
-      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
-      width: 'w-[1250px] sm:max-w-9xl',
-    }"
-  >
+  <UDashboardModal v-model="modalMeta.isServiceOrderDetailModalOpen" title="Service Order" :ui="{
+    title: 'text-lg text-white',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+    },
+    body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+    width: 'w-[1250px] sm:max-w-9xl',
+  }">
     <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId" />
   </UDashboardModal>
   <!-- Site Visit Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isSiteVisitModalOpen"
-    title="Site Visit"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
-  >
-    <CustomersSiteVisitDetail
-      :selected-customer="gridMeta.selectedCustomerId"
-    />
+  <UDashboardModal v-model="modalMeta.isSiteVisitModalOpen" title="Site Visit" :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[1800px] sm:max-w-9xl',
+  }">
+    <CustomersSiteVisitDetail :selected-customer="gridMeta.selectedCustomerId" />
   </UDashboardModal>
 </template>
 <style scoped></style>

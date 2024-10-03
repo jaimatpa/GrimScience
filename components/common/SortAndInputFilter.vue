@@ -27,7 +27,7 @@ const props = defineProps({
 </script>
 <template>
   <template v-if="props.filterable">
-    <div class="flex justify-center">
+    <div class="flex justify-start">
       <UInput
         :model-value="props.value"
         @update:model-value="event => emit('handleInputChange', event, props.filterKey)"

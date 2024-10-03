@@ -1,5 +1,5 @@
 import { applyPermissions } from '~/server/controller/engineering/Approvals'
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 export default eventHandler(async (event) => {
   try {
@@ -13,7 +13,7 @@ export default eventHandler(async (event) => {
         const token: string = authHeader.split(' ')[1]
         let decodedToken = null
         if (token) {
-          decodedToken = jwt_decode(token)
+          decodedToken = jwtDecode(token)
           // console.log('Decoded Token:', decodedToken)
         } else {
           console.warn('No JWT token found in cookies.')

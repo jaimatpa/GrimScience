@@ -3,8 +3,8 @@ import { getStateList } from "~/server/controller/common";
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
         const stateList = await getStateList()
         return { body: stateList, message: '' }

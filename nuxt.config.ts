@@ -60,9 +60,9 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/login': {ssr: false},
-    '/customers/:id': {ssr: false}, 
-    'service/serviceordersorders/:id': {ssr: false}
+    '/login': { ssr: false },
+    '/customers/:id': { ssr: false },
+    'service/serviceordersorders/:id': { ssr: false }
   },
 
   compatibilityDate: '2024-07-14'
