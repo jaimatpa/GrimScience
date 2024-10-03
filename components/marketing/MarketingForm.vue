@@ -257,6 +257,7 @@ const modalMeta = ref({
     isServiceOrderDetailModalOpen: false,
     isSiteVisitModalOpen: false,
     manuFactureModal:false,
+    selectedJobId: null,
     modalTitle: "New Customer",
   })
 
@@ -702,13 +703,14 @@ await useApiFetch(`/api/projects/linkedJob/${props.selectedCustomer}`, {
   }
 
   const onSelect = async (row) => {
-    operation.value=row.uniqueID;
-    console.log("operation id is",operation.value);
+    operation.value = row.uniqueID;
+    gridMeta.value.selectedJobId = row.JobID;
   }
 
-const  handleRowDoubleClick=()=>{
-  modalMeta.value.manuFactureModal=true; 
-}
+  const  handleRowDoubleClick= (row) => {
+    modalMeta.value.manuFactureModal=true; 
+  }
+
  const deleteOperation=async(row)=>{
   console.log("row id in operations",row);
   await useApiFetch(`/api/projects/operations/${row.uniqueID}`, {
@@ -1033,10 +1035,10 @@ else
          
               <UTable :rows="weekly" :columns="gridMeta.defaultColumns"  @select="onSelect" @click="handleRowClick"  @dblclick="handleRowDoubleClick">
                 <template #delete-data="{row}">
-          <UTooltip text="Delete" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="deleteOperation(row)"/>
-          </UTooltip>
-        </template>
+                  <UTooltip text="Delete" class="flex justify-center">
+                    <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="deleteOperation(row)"/>
+                  </UTooltip>
+                </template>
               </UTable>
 
 
@@ -1278,7 +1280,8 @@ else
       width: 'w-[1500px] sm:max-w-9xl', 
     }"
   >
-  <MarketingManuFactureList :selected-customer="selectedCustomer"  v-model="modalMeta.manuFactureModal" />
+  <!-- <MarketingManuFactureList :selected-customer="selectedCustomer"  v-model="modalMeta.manuFactureModal" /> -->
+  <JobManufacturingSequenceForm :selected-job="gridMeta.selectedJobId" />
 
   </UDashboardModal> 
 
