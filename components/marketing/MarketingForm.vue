@@ -86,17 +86,6 @@ const jobColumns = [{
 
 const employeeHours= ref([{}]);
 
-const columnemployeeHours= [{
-  key: 'StartTime',
-  label: 'Date'
-}, {
-  key: 'Name',
-  label: 'Employee'
-}, {
-  key: 'Hours',
-  label: 'Hrs.'
-}]
-
 
 
 
@@ -158,50 +147,6 @@ const gridMeta1 = ref({
 
 
 
-const orders = [{
-  po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}, {
-    po: 'PO54654',
-  date:5/5/12,
-  ordered:'2',
-  recieved:'54',
-  Price: '',
- vender:'dfkalsdf',
-}]
 
 
 const onUsed = () => {
@@ -237,7 +182,6 @@ const addInventory = () => {
 
 const toast = useToast()
 const router = useRouter()
-const customersFormInstance = getCurrentInstance();
 
 const loadingOverlay = ref(false)
 const customerExist = ref(true)
@@ -313,6 +257,7 @@ const modalMeta = ref({
     isServiceOrderDetailModalOpen: false,
     isSiteVisitModalOpen: false,
     manuFactureModal:false,
+    selectedJobId: null,
     modalTitle: "New Customer",
   })
 
@@ -675,7 +620,7 @@ const handleClose = async () => {
 }
 
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  console.log("insert function calling",form.PART);
+  console.log("insert function calling",form);
   form.PerType=selectedInventory.value;
   form.ProjectType=form.Catagory;
   form.InstanceID=form.PART.value;
@@ -758,13 +703,14 @@ await useApiFetch(`/api/projects/linkedJob/${props.selectedCustomer}`, {
   }
 
   const onSelect = async (row) => {
-    operation.value=row.uniqueID;
-    console.log("operation id is",operation.value);
+    operation.value = row.uniqueID;
+    gridMeta.value.selectedJobId = row.JobID;
   }
 
-const  handleRowDoubleClick=()=>{
-  modalMeta.value.manuFactureModal=true; 
-}
+  const  handleRowDoubleClick= (row) => {
+    modalMeta.value.manuFactureModal=true; 
+  }
+
  const deleteOperation=async(row)=>{
   console.log("row id in operations",row);
   await useApiFetch(`/api/projects/operations/${row.uniqueID}`, {
@@ -1089,10 +1035,10 @@ else
          
               <UTable :rows="weekly" :columns="gridMeta.defaultColumns"  @select="onSelect" @click="handleRowClick"  @dblclick="handleRowDoubleClick">
                 <template #delete-data="{row}">
-          <UTooltip text="Delete" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="deleteOperation(row)"/>
-          </UTooltip>
-        </template>
+                  <UTooltip text="Delete" class="flex justify-center">
+                    <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="deleteOperation(row)"/>
+                  </UTooltip>
+                </template>
               </UTable>
 
 
@@ -1319,7 +1265,7 @@ else
       width: 'w-[1500px] sm:max-w-9xl', 
     }"
   >
-    <PartsList @close="modalMeta.isPartLisingModalOpen = true"/>
+    <MarketingPartList :selectedProduct="selectedCustomer"  @close="modalMeta.isPartLisingModalOpen = true"/>
   </UDashboardModal> 
 
 
@@ -1334,7 +1280,8 @@ else
       width: 'w-[1500px] sm:max-w-9xl', 
     }"
   >
-  <MarketingManuFactureList :selected-customer="selectedCustomer"  v-model="modalMeta.manuFactureModal" />
+  <!-- <MarketingManuFactureList :selected-customer="selectedCustomer"  v-model="modalMeta.manuFactureModal" /> -->
+  <JobManufacturingSequenceForm :selected-job="gridMeta.selectedJobId" />
 
   </UDashboardModal> 
 

@@ -261,7 +261,7 @@ else
       <div class="flex flex-row space-x-3">
         <div class="basis-1/5">
           <UFormGroup
-            label="Frist"
+            label="First"
             name="fname"
           >
             <UInput
@@ -271,7 +271,7 @@ else
         </div>
         <div class="basis-1/5">
           <UFormGroup
-            label="Middle"
+            label="MI"
             name="md"
           >
             <UInput
@@ -373,22 +373,22 @@ else
       </div>
   
       <div class="flex flex-row">
-        <div class="basis-1/2 text-center">
+        <div class="basis-1/2 text-center underline font-semibold font-lg">
           Shipping Information
         </div>
-        <div class="basis-1/2 text-center">
+        <div class="basis-1/2 text-center underline font-semibold font-lg">
           Billing Information
         </div>
       </div>
   
       <div class="flex flex-row space-x-5">
-        <div class="basis-1/2">
+        <div class="basis-1/2 border-r border-black pr-5">
           <!-- Shipping Information -->
           <div class="flex flex-col space-y-2">
             <div class="flex flex-row space-x-3">
               <div class="basis-1/2">
                 <UFormGroup
-                  label="Company1"
+                  label="Company 1"
                   name="company1"
                 >
                   <UInput
@@ -398,7 +398,7 @@ else
               </div>
               <div class="basis-1/2">
                 <UFormGroup
-                  label="Company2"
+                  label="Company 2"
                   name="company2"
                 >
                   <UInput
@@ -691,7 +691,7 @@ else
   
       <div class="flex justify-start gap-3">
         <UButton 
-          color="cyan" 
+          color="primary" 
           variant="outline"
           type="submit"
           :icon="selectedCustomer !== null ? 'i-heroicons-pencil-square': 'i-heroicons-plus'"
@@ -710,7 +710,7 @@ else
             <h2>Serial Record</h2>
           </div>
           <div class="w-[180px] mt-4">
-            <UButton label="View Serial Record" color="green" variant="outline" icon="i-heroicons-eye" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}"/>
+            <UButton label="View Serial Record" color="primary" variant="outline" icon="i-heroicons-eye" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}"/>
           </div>
         </div>
         <div class="flex flex-col w-full">
@@ -743,23 +743,27 @@ else
       v-model="modalMeta.isOrderDetailModalOpen"
       title="Invoice"
       :ui="{
-        title: 'text-lg',
-        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-        width: 'w-[1800px] sm:max-w-9xl', 
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
       }"
     >
       <InvoiceDetail :selected-customer="selectedCustomer" @close="modalMeta.isOrderDetailModalOpen = false"/>
     </UDashboardModal>      
-    <!-- Quote Modal -->
-    <UDashboardModal
+<!-- Quote Modal -->
+<UDashboardModal
       v-model="modalMeta.isQuoteDetailModalOpen"
       title="Quote"
       :ui="{
-        title: 'text-lg',
-        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-        width: 'w-[1000px] sm:max-w-7xl'
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
       }"
     >
       <CustomersQuoteDetail :selected-customer="selectedCustomer"/>
@@ -769,10 +773,12 @@ else
       v-model="modalMeta.isServiceOrderDetailModalOpen"
       title="Service Order"
       :ui="{
-        title: 'text-lg',
-        header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' }, 
-        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-        width: 'w-[1800px] sm:max-w-9xl'
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
       }"
     >
       <ServiceOrderDetail :selected-customer="selectedCustomer" :form-action ="action" :selected-complaint="null" :selected-order="null" :selected-serial="null" />

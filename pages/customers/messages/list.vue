@@ -268,7 +268,7 @@
     <h2>Lookup</h2>
       </div>
 
-      <UDashboardToolbar class="gmsPurpleToolbar">
+      <UDashboardToolbar class="bg-gms-gray-100">
         <template #right>
           <UButton color="green" variant="outline"
             label="New message"
@@ -286,7 +286,7 @@
           divide: 'divide-gray-200 dark:divide-gray-800', 
           th: { 
             base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
+            padding: 'pb-0',
           }, 
           td: {
             padding: 'py-1'
@@ -327,11 +327,11 @@
           <UButton color="gray" variant="ghost" icon="i-heroicons-trash-20-solid" class="ml-2" @click="onDelete(row)"/>
         </template>
       </UTable>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1" >
           <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfMessages | 0" v-model="gridMeta.page" @update:model-value="handlePageChange()"/>
         </div>
-      </div>
+      </div> -->
     </UDashboardPanel>
   </UDashboardPage>
   <!-- New Modal -->

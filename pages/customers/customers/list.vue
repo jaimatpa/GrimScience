@@ -102,41 +102,41 @@ const gridMeta = ref({
       sortDirection: "none",
       filterable: true,
     },
-    {
-      key: "label",
-      label: "Label",
-      kind: "actions",
-    },
-    {
-      key: "order",
-      label: "Order",
-      kind: "actions",
-    },
-    {
-      key: "quote",
-      label: "Quote",
-      kind: "actions",
-    },
-    {
-      key: "serviceOrder",
-      label: "Service Order",
-      kind: "actions",
-    },
-    {
-      key: "siteVisit",
-      label: "Site Visit",
-      kind: "actions",
-    },
-    {
-      key: "edit",
-      label: "Edit",
-      kind: "actions",
-    },
-    {
-      key: "delete",
-      label: "Del",
-      kind: "actions",
-    },
+    // {
+    //   key: "label",
+    //   label: "Label",
+    //   kind: "actions",
+    // },
+    // {
+    //   key: "order",
+    //   label: "Order",
+    //   kind: "actions",
+    // },
+    // {
+    //   key: "quote",
+    //   label: "Quote",
+    //   kind: "actions",
+    // },
+    // {
+    //   key: "serviceOrder",
+    //   label: "Service Order",
+    //   kind: "actions",
+    // },
+    // {
+    //   key: "siteVisit",
+    //   label: "Site Visit",
+    //   kind: "actions",
+    // },
+    // {
+    //   key: "edit",
+    //   label: "Edit",
+    //   kind: "actions",
+    // },
+    // {
+    //   key: "delete",
+    //   label: "Del",
+    //   kind: "actions",
+    // },
   ],
   page: 1,
   pageSize: 50,
@@ -388,9 +388,9 @@ const onDblClick = async () => {
         <h2>Sort</h2>
       </div>
 
-      <UDashboardToolbar>
+      <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
-          <div class="flex flex-row space-x-3">
+          <div class="flex flex-row space-x-3" style="max-width:930px;">
             <template
               v-for="[key, value] in Object.entries(headerFilters)"
               :key="key"
@@ -456,8 +456,7 @@ const onDblClick = async () => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
-            padding: 'p-0',
+            padding: 'pb-0',
           },
           td: {
             padding: 'py-1',
@@ -472,7 +471,7 @@ const onDblClick = async () => {
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
-            <div class="px-4 py-3.5">
+            <div class="">
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange"
@@ -491,16 +490,16 @@ const onDblClick = async () => {
               />
             </div>
           </template>
-          <template v-else class="bg-slate-400">
-            <div class="flex justify-center text-center w-[53px]">
+          <template v-else>
+            <div class="flex w-[53px]">
               {{ column.label }}
             </div>
           </template>
         </template>
-        <template #label-data="{ row }">
+        <!-- <template #label-data="{ row }">
           <UTooltip text="Label" class="flex justify-center">
             <UButton
-              color="gray"
+              color="black"
               variant="ghost"
               icon="i-heroicons-tag"
               @click=""
@@ -510,7 +509,7 @@ const onDblClick = async () => {
         <template #order-data="{ row }">
           <UTooltip text="Order" class="flex justify-center">
             <UButton
-              color="gray"
+              color="black"
               variant="ghost"
               icon="i-heroicons-shopping-cart"
               @click="onOrderDetail(row)"
@@ -520,7 +519,7 @@ const onDblClick = async () => {
         <template #quote-data="{ row }">
           <UTooltip text="Quote" class="flex justify-center">
             <UButton
-              color="gray"
+              color="black"
               variant="ghost"
               icon="i-heroicons-currency-dollar"
               @click="onQuoteDetail(row)"
@@ -530,7 +529,7 @@ const onDblClick = async () => {
         <template #serviceOrder-data="{ row }">
           <UTooltip text="Service Order" class="flex justify-center">
             <UButton
-              color="gray"
+              color="black"
               variant="ghost"
               icon="i-heroicons-chat-bubble-left-ellipsis"
               @click="onServiceOrderDetail(row)"
@@ -540,14 +539,14 @@ const onDblClick = async () => {
         <template #siteVisit-data="{ row }">
           <UTooltip text="Site Visit" class="flex justify-center">
             <UButton
-              color="gray"
+              color="black"
               variant="ghost"
               icon="i-heroicons-clipboard-document-list"
               @click="onSiteVisitDetail(row)"
             />
           </UTooltip>
-        </template>
-        <template #edit-data="{ row }">
+        </template> -->
+        <!-- <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
             <UButton
               color="gray"
@@ -566,9 +565,9 @@ const onDblClick = async () => {
               @click="onDelete(row)"
             />
           </UTooltip>
-        </template>
+        </template> -->
       </UTable>
-      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
           <UPagination
             :max="7"
@@ -578,9 +577,12 @@ const onDblClick = async () => {
             @update:model-value="handlePageChange()"
           />
         </div>
-      </div>
+      </div> -->
     </UDashboardPanel>
   </UDashboardPage>
+
+
+
   <!-- New Customer Detail Modal -->
   <UDashboardModal
     v-model="modalMeta.isCustomerModalOpen"
@@ -642,13 +644,12 @@ const onDblClick = async () => {
     v-model="modalMeta.isServiceOrderDetailModalOpen"
     title="Service Order"
     :ui="{
-      title: 'text-lg',
+      title: 'text-lg text-white',
       header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
       },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
     }"
   >
     <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId" />

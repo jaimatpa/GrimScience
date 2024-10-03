@@ -675,13 +675,13 @@
     @submit="onSubmit"
   >
     <div class="flex flex-row">
-      <div class="basis-4/6 border-[1px] border-slate-600 border-t-0 border-l-0 border-b-0">
+      <div class="basis-4/6 border-r-[3px] border-black">
         <div class="!my-0 flex flex-row">
           <div class="basis-2/5">
-            <div class="w-full bg-slate-400 px-3 py-1">
+            <div class="w-full px-3 py-1 gmsPurpleTitlebar">
               Order Information
             </div>
-            <div class="flex flex-col p-3 pr-6 space-y-2">
+            <div class="flex flex-col p-3 space-y-2">
               <div class="flex flex-row">
                  <div class="basis-1/2">
                   <UFormGroup
@@ -767,10 +767,10 @@
             </div>
           </div>
           <div class="basis-3/5 border-[1px] border-slate-600 border-b-0 border-r-0 border-t-0">
-            <div class="w-full bg-slate-400 px-3 py-1">
+            <div class="w-full px-3 py-1 gmsPurpleTitlebar">
               Customer Informaton
             </div>
-            <div class="flex flex-col py-3 px-6 space-y-2">
+            <div class="flex flex-col p-3 space-y-2">
               <div>
                 Customer# {{ customerData.number?customerData.number:'' }}
               </div>
@@ -837,12 +837,21 @@
             </div>
           </div>
         </div>
-        <div class="w-full px-3 py-1 bg-slate-400">
+        <div class="w-full px-3 py-1 gmsPurpleTitlebar">
           Items Ordered
         </div>
-        <div class="w-full p-3 pr-8">
+        <div class="w-full p-3">
           <div class="flex flex-col space-y-2">
-            <div class="flex flex-row justify-between">
+              <div class="flex flex-row justify-end">
+                <div class="flex space-x-3">
+                  <div>
+                    Show Only Available
+                  </div>
+                  <div>
+                    <UCheckbox name="fix"/>
+                  </div>
+                </div>
+              </div>
               <div class="flex flex-1 flex-row space-x-3">
                 <div class="basis-1/5">
                   <UFormGroup
@@ -901,17 +910,7 @@
                 </div>
   
               </div>
-              <div class="flex pl-10">
-                <div class="flex justify-between items-center space-x-3">
-                  <div>
-                    Show Only Available  Inventory
-                  </div>
-                  <div>
-                    <UCheckbox name="fix"/>
-                  </div>
-                </div>
-              </div>
-            </div>
+
             <div>
               <UTable 
                 :columns="productColumns"
@@ -964,11 +963,7 @@
                   </div>
                 </div>
               </div>
-              <div class="flex flex-row space-x-3 ml-4">
-                <UButton label="Add" :ui="{base: 'min-w-[125px] justify-center'}" @click="handleAddBtnClick"/>
-                <UButton label="Remove" :ui="{base: 'min-w-[125px] justify-center'}" @click="handleRemoveBtnClick"/>
-                <UButton label="Update Price" :ui="{base: 'min-w-[125px] justify-center'}" @click="handleUpdateBtnClick"/>
-              </div>
+
             </div>
             <div>
               <UTable 
@@ -996,8 +991,8 @@
                 </template>
               </UTable>
             </div>
-            <div class="flex flex-row justify-between items-end pt-4">
-              <div class="flex-1">              
+            <div class="flex flex-row justify-between space-x-4">
+              <div class="basis-2/3 border border-gray-400 dark:border-gray-700 py-1 px-3">              
                 <UFormGroup
                   label="Special Instrutions(40 Characters MAX Each Line)"
                   name="stock"
@@ -1016,12 +1011,24 @@
                   </div>
                 </UFormGroup>
               </div>
+              <div class="flex flex-col space-y-2 basis-1/3">
+                <div class="flex flex-row space-x-3">
+                  <div class="basis-1/2 w-full"><UButton label="Add" color="gms-purple" class="w-full flex justify-center items-center" @click="handleAddBtnClick"/></div>
+                  <div class="basis-1/2 w-full"><UButton label="Remove" color="gms-purple" class="w-full flex justify-center items-center" @click="handleRemoveBtnClick"/></div>
+                
+                </div>
+                <div class="flex flex-row space-x-3">
+                  <div class="basis-1/2"><UButton label="Update Price" color="gms-purple" class="w-full flex justify-center items-center" @click="handleUpdateBtnClick"/></div>
+                
+              </div>
+              
+              </div>
             </div>
           </div>
         </div>
-        <div class="w-full p-3 border-[1px] border-slate-600 border-l-0 border-b-0 border-r-0 mt-4">
+        <div class="w-full p-3 border-t-[3px] border-black pb-3">
           <div class="flex flex-row space-x-3">
-            <div class="basis-1/2">
+            <div class="basis-1/2 space-y-1">
               <div class="flex flex-row space-x-3">
                 <div class="basis-7/12 flex flex-row space-x-3">
                   <div class="basis-1/5">
@@ -1063,7 +1070,7 @@
               <div class="flex flex-row space-x-3">
                 <div class="basis-7/12 flex items-end justify-end">
                   <div class="">
-                    <UButton label="Calculate" :ui="{base: 'justify-center'}"/>
+                    <UButton label="Calculate" color="gms-purple" :ui="{base: 'justify-center'}"/>
                   </div>
                 </div>
                 <div class="basis-5/12">
@@ -1088,6 +1095,7 @@
                 <UTextarea
                   :rows="4"
                   v-model="formData.Notes"
+
                 />
               </UFormGroup>
             </div>
@@ -1095,10 +1103,10 @@
         </div>
       </div>
       <div class="basis-2/6 w-full">
-        <div class="w-full px-3 py-1 bg-slate-400">
+        <div class="w-full px-3 py-1 gmsPurpleTitlebar">
           Order Information
         </div>
-        <div class="flex flex-col space-y-4 w-full p-3 pl-8">
+        <div class="flex flex-col space-y-4 w-full p-3">
           <div class="flex flex-col space-y-2">
             <div class="flex flex-row space-x-2 w-full">
               <div class="basis-1/2">
@@ -1170,7 +1178,7 @@
                 <div class="flex flex-row space-x-1">
                   <div class="flex-1">
                     <UFormGroup
-                      label="Back Order"
+                      label="Back Order?"
                       name="backOrder"
                     >
                       <USelect
@@ -1181,19 +1189,21 @@
                     </UFormGroup>
                   </div>
                   <div class="flex items-end">
-                    <UButton label="Calculate" :ui="{base: 'justify-center'}"/>
+                    <UButton label="Ship" color="gms-purple" :ui="{base: 'justify-center'}"/>
                   </div>
                 </div> 
               </div>
             </div>
           </div>
           <UFormGroup
-            label="Order Total"
+            class="border border-gray-400 dark:border-gray-700 p-3"
           >
+          <div class="font-bold pb-2">Order Total</div>
             <div class="flex flex-col space-y-2">
               <div class="flex flex-row space-x-2">
-                <div class="basis-1/2 flex items-center">
+                <div class="basis-1/2 flex items-end">
                   Items Total
+                  <div class="flex-1 ms-1" style="border-bottom: 2px dotted black;"></div>
                 </div>
                 <div class="basis-1/2">
                   <UInput
@@ -1207,8 +1217,9 @@
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
-                <div class="basis-1/2 flex items-center">
+                <div class="basis-1/2 flex items-end">
                   Less Discount
+                  <div class="flex-1 ms-1" style="border-bottom: 2px dotted black;"></div>
                 </div>
                 <div class="basis-1/2">
                   <UInput
@@ -1228,8 +1239,9 @@
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
-                <div class="basis-1/2 flex items-center">
+                <div class="basis-1/2 flex items-end">
                   Less Down
+                  <div class="flex-1 ms-1" style="border-bottom: 2px dotted black;"></div>
                 </div>
                 <div class="basis-1/2">
                   <UInput
@@ -1249,12 +1261,12 @@
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
-                <div class="basis-1/2 flex items-center">
-                  <div class="flex flex-row space-x-4 w-full">
-                    <div class="basis-1/2">
+                <div class="basis-1/2 flex items-end">
+                  <div class="flex flex-row space-x-1 w-full">
+                    <div class="flex-auto">
                       Sales Tax
                     </div>
-                    <div class="basis-1/2">
+                    <div class="flex-auto">
                       <div class="flex flex-row items-center space-x-1">
                         <div>
                           <UCheckbox name="tax"/>
@@ -1264,6 +1276,7 @@
                         </div>
                       </div>
                     </div>
+                    <div class="flex-1 ms-1" style="border-bottom: 2px dotted black;"></div>
                   </div>
                 </div>
                 <div class="basis-1/2">
@@ -1284,12 +1297,12 @@
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
-                <div class="basis-1/2 flex items-center">
-                  <div class="flex flex-row space-x-4 w-full">
-                    <div class="basis-1/2">
+                <div class="basis-1/2 flex items-end">
+                  <div class="flex flex-row space-x-1 w-full">
+                    <div class="flex-auto">
                       MDET 2.3 %
                     </div>
-                    <div class="basis-1/2">
+                    <div class="flex-auto">
                       <div class="flex flex-row items-center space-x-1">
                         <div>
                           <UCheckbox name="mdet" v-model:model-value="mdetChecked" @change="onCalculateInvoiceValues"/>
@@ -1299,6 +1312,7 @@
                         </div>
                       </div>
                     </div>
+                    <div class="flex-1 ms-1" style="border-bottom: 2px dotted black;"></div>
                   </div>
                 </div>
                 <div class="basis-1/2">
@@ -1319,8 +1333,9 @@
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
-                <div class="basis-1/2 flex items-center">
+                <div class="basis-1/2 flex items-end">
                   COD
+                  <div class="flex-1 ms-1" style="border-bottom: 2px dotted black;"></div>
                 </div>
                 <div class="basis-1/2">
                   <UInput
@@ -1340,8 +1355,9 @@
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
-                <div class="basis-1/2 flex items-center">
+                <div class="basis-1/2 flex items-end">
                   Shipping
+                  <div class="flex-1 ms-1" style="border-bottom: 2px dotted black;"></div>
                 </div>
                 <div class="basis-1/2">
                   <UInput
@@ -1361,8 +1377,9 @@
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
-                <div class="basis-1/2 flex items-center">
+                <div class="basis-1/2 flex items-end">
                   Subtotal
+                  <div class="flex-1 ms-1" style="border-bottom: 2px dotted black;"></div>
                 </div>
                 <div class="basis-1/2">
                   <UInput
@@ -1376,8 +1393,9 @@
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
-                <div class="basis-1/2 flex items-center">
+                <div class="basis-1/2 flex items-end">
                   Total
+                  <div class="flex-1 ms-1" style="border-bottom: 2px dotted black;"></div>
                 </div>
                 <div class="basis-1/2">
                   <UInput
@@ -1426,16 +1444,17 @@
             </div>
           </div>
           <UFormGroup
-            label="Credit Card"
+          class="border border-gray-400 dark:border-gray-700 p-3"
           >
+          <div class="font-bold pb-2">Credit Card</div>
             <div class="flex flex-row space-x-2 w-full items-center">
               <div class="basis-1/2 w-full flex justify-center">
-                <UButton label="Process Credit Card" :ui="{base: 'justify-center w-full'}" @click="onProcessCreditCardBtnClick"/>
+                <UButton label="Process Credit Card" color="gms-purple":ui="{base: 'justify-center w-full'}" @click="onProcessCreditCardBtnClick"/>
               </div>
               <div class="basis-1/2">
                 <div class="flex justify-between items-center">
                   <div class="basis-1/2">
-                    Last 4 Digitals
+                    Last 4 Digits
                   </div>
                   <div class="basis-1/2">
                     <UInput
@@ -1457,17 +1476,17 @@
           </UFormGroup>
           <div class="flex flex-row space-x-3 w-full">
             <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-check-badge" label="Receive Checks" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="handleReceiveChecksBtnClick"/>
+              <UButton icon="i-heroicons-check-badge" label="Receive Checks" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="handleReceiveChecksBtnClick"/>
             </div>
             <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate @click="onSubmit"/>
+              <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline" :ui="{base: 'w-full', truncate: 'flex justify-center w-full'}" truncate @click="onSubmit"/>
             </div>
           </div>
         </div>
-        <div class="w-full px-3 py-1 bg-slate-400">
+        <div class="w-full px-3 py-1 gmsPurpleTitlebar">
           Printing Options
         </div>
-        <div class="flex flex-col space-y-3 w-full p-3 pl-6">
+        <div class="flex flex-col space-y-2 w-full p-3">
           <div class="flex flex-row space-x-4">
             <div class="basis-1/2">
               <UButton icon="i-heroicons-eye" label="Preview Invoice" variant="outline" :ui="{base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full'}" truncate/>

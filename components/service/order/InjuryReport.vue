@@ -216,13 +216,13 @@
         </div>
         <div class="w-full">
           <UFormGroup label="Patient's Description of Injury">
-            <UTextarea :rows="3" v-model="formData.INJURYDESC"/>
+            <UTextarea :rows="2" v-model="formData.INJURYDESC"/>
           </UFormGroup>
         </div>
       </div>
-      <div  class="px-4 pt-2 border-[1px] border-slate-600 border-l-0 border-b-0 border-r-0 mt-1 flex flex-col space-y-2">
+      <div  class="px-4 pt-2 border-[2px] border-black border-l-0 border-b-0 border-r-0 mt-1 flex flex-col space-y-2">
         <div class="flex flex-row space-x-4">
-          <div class="basis-5/12 h-[186px]">
+          <div class="basis-5/12">
             <div class="border-[1px] border-slate-300 p-2 pt-1 h-full">
               <UFormGroup label="1. Was patient treated at hospital?">
                 <div class="p-2">
@@ -245,7 +245,7 @@
           </div>
           <div class="basis-7/12">
             <div class="border-[1px] border-slate-300 p-3 pt-1 pb-0">
-              <UFormGroup label="2. Did physician trean injured patient?">
+              <UFormGroup label="2. Did physician treat injured patient?">
                 <div class="p-2 flex flex-row space-x-3">
                   <div class="basis-1/2">
                     <div class="flex flex-row space-x-5">
@@ -304,11 +304,11 @@
               </UFormGroup>
             </div>
           </div>
-          <div class="basis-7/12 h-[126px]">
+          <div class="basis-7/12">
             <div class="border-[1px] border-slate-300 p-3 pt-1 pb-0 h-full">
               <UFormGroup label="4. Indicate Nature of Injury">
-                <div class="p-2 flex flex-row">
-                  <div class="basis-1/2 space-y-2">
+                <div class="p-2 w-full">
+                  <div class="space-y-2">
                     <URadio 
                       v-for="injury of injuryGroup"
                       :key = 'injury.value'
@@ -316,8 +316,8 @@
                       v-bind="injury"
                     />
                   </div>
-                  <div class="flex items-end">
-                    <UPopover :popper="{ placement: 'bottom-start' }" :ui="{trigger: 'ml-[-370px] pt-[50px]'}">
+                  <div class="ml-[68px] mt-[-28px]">
+                    <UPopover :popper="{ placement: 'bottom-start' }" :ui="{trigger: 'ml-[0px] mt-[0px]'}">
                       <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.DEATH && format(formData.DEATH, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-[250px]'}"/>
                       <template #panel="{ close }">
                         <CommonDatePicker v-model="formData.DEATH" is-required @close="close" />
@@ -333,13 +333,14 @@
           <UFormGroup label="IMPORTANT!">
             <div class="p-2">
               <p class="font-semibold">Device related death, serious injury, or malfunctions must be reported to FDA within 30 calendar days from becoming aware of the event. Notify Grimm Scientifics' President within 1 hour of any patient injury.</p>
-              <div class="flex justify-between mt-2">
+              <div class="flex justify-between space-x-4 mt-2">
+                <div class="basis-1/2">
                 <UFormGroup label="Received By">
-                  <div class="flex flex-row space-x-4">
-                    <div class="min-w-[350px]">
+                  <div class="flex flex-row space-x-1">
+                    <div class="basis-1/2">
                       <USelect v-model="formData.REPORTBY" :options="employees"/>
                     </div>
-                    <div class="min-w-[350px]">
+                    <div class="basis-1/2">
                       <UPopover :popper="{ placement: 'bottom-start' }">
                         <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.REPORTBYDATE && format(formData.REPORTBYDATE, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full'}"/>
                         <template #panel="{ close }">
@@ -349,12 +350,14 @@
                     </div>
                   </div>
                 </UFormGroup>
+              </div>
+              <div class="basis-1/2">
                 <UFormGroup label="Reviewed By">
-                  <div class="flex flex-row space-x-4">
-                    <div class="min-w-[350px]">
+                  <div class="flex flex-row space-x-1">
+                    <div class="basis-1/2">
                       <USelect v-model="formData.REVIEWBY" :options="employees"/>
                     </div>
-                    <div class="min-w-[350px]">
+                    <div class="basis-1/2">
                       <UPopover :popper="{ placement: 'bottom-start' }">
                         <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.REVIEWBYDATE && format(formData.REVIEWBYDATE, 'dd/MM/yyyy')" variant="outline" :ui="{base: 'w-full'}"/>
                         <template #panel="{ close }">
@@ -364,6 +367,7 @@
                     </div>
                   </div>
                 </UFormGroup>
+              </div>
               </div>
             </div>
           </UFormGroup>
