@@ -1,4 +1,4 @@
-import { orderExistByID, getOrderByID, updateOrder, creteOrderDetail, updateOrderDetail  } from '~/server/controller/invoices';
+import { orderExistByID, getOrderByID, updateOrder, creteOrderDetail, updateOrderDetail } from '~/server/controller/invoices';
 
 export default eventHandler(async (event) => {
   try {
@@ -6,9 +6,9 @@ export default eventHandler(async (event) => {
     const method = event._method;
 
     const idExist = await orderExistByID(id);
-    switch(method.toUpperCase()){
+    switch (method.toUpperCase()) {
       case 'GET':
-        if (idExist){
+        if (idExist) {
           const detail = await getOrderByID(id)
           return { body: detail, message: '' };
         } else {
@@ -18,16 +18,16 @@ export default eventHandler(async (event) => {
       case 'PUT':
         if (idExist) {
           const data = await readBody(event);
-          const { orderDetail, ...orderData  } = data
+          const { orderDetail, ...orderData } = data
           const updatedID: any = await updateOrder(id, orderData)
           let formattedOrderDetail = [];
-          if(orderDetail){
+          if (orderDetail) {
             orderDetail.forEach(order => {
               const tmp = {
-                quantity: order.quantity, 
+                quantity: order.quantity,
                 name: order.DESCRIPTION,
                 price: order.PRIMARYPRICE1,
-                serial: order?.serial??'',
+                serial: order?.serial ?? '',
                 orderid: id,
                 bpid: order.bdid,
                 UniqueID: order.UniqueID
@@ -35,7 +35,7 @@ export default eventHandler(async (event) => {
               formattedOrderDetail.push(tmp)
             });
             formattedOrderDetail.map(async (order) => {
-              if(order.UniqueID === null){
+              if (order.UniqueID === null) {
                 await creteOrderDetail(order)
               } else {
                 await updateOrderDetail(order.UniqueID, order)
@@ -48,13 +48,13 @@ export default eventHandler(async (event) => {
           return { error: 'The customer does not exist' }
         }
       case 'DELETE':
-        const updatedID: any = await updateOrder(id, {status: 'Closed'})
-        return {body: updatedID, message: "Order deleted successfully" }
+        const updatedID: any = await updateOrder(id, { status: 'Closed' })
+        return { body: updatedID, message: "Order deleted successfully" }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
-    
+
   } catch (error) {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }

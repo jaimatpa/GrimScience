@@ -1,59 +1,57 @@
 <script lang="ts" setup>
-  useSeoMeta({
-    title: 'Grimm-Customers'
-  })
-  const toast= useToast()
-  const route = useRoute()
-  const selectedOrder = ref(null)
-  selectedOrder.value = route.params.id
-  const title = "Customers / " + route.params.id
+useSeoMeta({
+  title: 'Grimm-Customers'
+})
+const toast = useToast()
+const route = useRoute()
+const selectedOrder = ref(null)
+selectedOrder.value = route.params.id
+const title = "Customers / " + route.params.id
 
-  const handleClose = async () => {
-    await navigateTo('/service/order');
-  }
-  const handleSave = async (data) => {
-    if(selectedOrder.value === null) { // Create Customer
-      await useApiFetch('/api/customers', {
-        method: 'POST',
-        body: data, 
-        onResponse({ response }) {
-          if(response.status === 200) {
-            toast.add({
-              title: "Success",
-              description: response._data.message,
-              icon: 'i-heroicons-check-circle',
-              color: 'green'
-            })
-          }
+const handleClose = async () => {
+  await navigateTo('/service/order');
+}
+const handleSave = async (data) => {
+  if (selectedOrder.value === null) { // Create Customer
+    await useApiFetch('/api/customers', {
+      method: 'POST',
+      body: data,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-check-circle',
+            color: 'green'
+          })
         }
-      })
-    } else { // Update Customer
-      await useApiFetch(`/api/customers/${selectedOrder.value}`, {
-        method: 'PUT',
-        body: data, 
-        onResponse({ response }) {
-          if (response.status === 200) {
+      }
+    })
+  } else { // Update Customer
+    await useApiFetch(`/api/customers/${selectedOrder.value}`, {
+      method: 'PUT',
+      body: data,
+      onResponse({ response }) {
+        if (response.status === 200) {
 
-            toast.add({
-              title: "Success",
-              description: response._data.message,
-              icon: 'i-heroicons-check-circle',
-              color: 'green'
-            })
-          }
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: 'i-heroicons-check-circle',
+            color: 'green'
+          })
         }
-      })
-    }
+      }
+    })
   }
-  
+}
+
 </script>
 
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar
-        :title = title
-      >
+      <UDashboardNavbar :title=title>
       </UDashboardNavbar>
       <UDashboardPanelContent>
         <div class="p-6 overflow-x-auto">
@@ -63,5 +61,4 @@
     </UDashboardPanel>
   </UDashboardPage>
 </template>
-<style scoped>
-</style>
+<style scoped></style>

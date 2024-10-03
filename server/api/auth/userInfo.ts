@@ -13,7 +13,7 @@ export default eventHandler(async (event) => {
     }
     const UniqueID = verifyResult.UniqueID;
     const userInfo = await getUserInfo(UniqueID);
-    if(userInfo){
+    if (userInfo) {
       return { body: userInfo, message: '' }
     } else {
       setResponseStatus(event, 404);

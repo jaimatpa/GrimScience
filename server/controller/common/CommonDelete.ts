@@ -10,7 +10,7 @@ interface deleteTableRowsProps {
   where: object;
 }
 
-export const deleteTableRow = async ({tblName, id}: deleteTableRowProps) => {
+export const deleteTableRow = async ({ tblName, id }: deleteTableRowProps) => {
   try {
     if (models[tblName]) {
       const primaryKey = models[tblName].primaryKeyAttribute;
@@ -28,10 +28,10 @@ export const deleteTableRow = async ({tblName, id}: deleteTableRowProps) => {
   }
 }
 
-export const deleteTableRows = async ({tblName, where}: deleteTableRowsProps) => {
+export const deleteTableRows = async ({ tblName, where }: deleteTableRowsProps) => {
   try {
     if (models[tblName]) {
-      const deleteResult = await models[tblName].destroy({where});
+      const deleteResult = await models[tblName].destroy({ where });
       return deleteResult;
     } else {
       throw new Error(`${tblName} is not defined`);

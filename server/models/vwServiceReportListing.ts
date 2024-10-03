@@ -20,7 +20,7 @@ const vwServiceReportListing = sequelize.define('vwServiceReportListing', {
    'SO Date': {
       type: DataTypes.DATE,
    },
-   'Cust #':{
+   'Cust #': {
       type: DataTypes.DATE,
    },
    Company: {
@@ -34,7 +34,7 @@ const vwServiceReportListing = sequelize.define('vwServiceReportListing', {
    },
    'SO Type': {
       type: DataTypes.STRING,
-   }, 
+   },
    'Failure Comment': {
       type: DataTypes.STRING,
    },

@@ -27,8 +27,8 @@ export const getProductLines = async () => {
 export const getProductCategories = async (filterParams) => {
   const { productline, partflag } = filterParams
   let where = {}
-  if(productline) where['PRODUCTLINE'] = productline
-  if(partflag) where['partflag'] = partflag
+  if (productline) where['PRODUCTLINE'] = productline
+  if (partflag) where['partflag'] = partflag
   const distinctProductCategories = await tblBP.findAll({
     attributes: [
       [Sequelize.fn('DISTINCT', Sequelize.col('PARTTYPE')), 'PARTTYPE']
@@ -44,7 +44,7 @@ export const getProductCategories = async (filterParams) => {
       ['PARTTYPE', 'ASC'],
     ]
   });
-  
+
   const productLineValues = distinctProductCategories.map(result => result.get('PARTTYPE'));
 
   return productLineValues;
@@ -53,9 +53,9 @@ export const getProductCategories = async (filterParams) => {
 export const getProductSubCategories = async (filterParams) => {
   const { productline, category, partflag } = filterParams
   let where = {}
-  if(productline !== undefined) where['PRODUCTLINE'] = productline
-  if(category !== undefined) where['PARTTYPE'] = category
-  if(partflag) where['partflag'] = partflag
+  if (productline !== undefined) where['PRODUCTLINE'] = productline
+  if (category !== undefined) where['PARTTYPE'] = category
+  if (partflag) where['partflag'] = partflag
   const distinctProductSubCategories = await tblBP.findAll({
     attributes: [
       [Sequelize.fn('DISTINCT', Sequelize.col('SUBCATEGORY')), 'SUBCATEGORY']
@@ -116,14 +116,14 @@ export const getProductInfos = async (params) => {
 }
 
 export const getParts = async (filterParams) => {
-  console.log("param for part",filterParams);
+  console.log("param for part", filterParams);
   const { UniqueID, PARTTYPE, SUBCATEGORY, MODEL, DESCRIPTION } = filterParams
   let where = {}
-  if(UniqueID) where['UniqueID'] = UniqueID
-  if(PARTTYPE) where['PARTTYPE'] = PARTTYPE
-  if(SUBCATEGORY) where['SUBCATEGORY'] = SUBCATEGORY
-  if(MODEL) where['MODEL'] = {[Op.like]: `%${MODEL}%`}
-  if(DESCRIPTION) where['DESCRIPTION'] = {[Op.like]: `%${DESCRIPTION}%`}
+  if (UniqueID) where['UniqueID'] = UniqueID
+  if (PARTTYPE) where['PARTTYPE'] = PARTTYPE
+  if (SUBCATEGORY) where['SUBCATEGORY'] = SUBCATEGORY
+  if (MODEL) where['MODEL'] = { [Op.like]: `%${MODEL}%` }
+  if (DESCRIPTION) where['DESCRIPTION'] = { [Op.like]: `%${DESCRIPTION}%` }
 
   const productInfos = await tblBP.findAll({
     attributes: [
@@ -154,11 +154,11 @@ export const getParts = async (filterParams) => {
 export const getDistinctParts = async (filterParams) => {
   const { UniqueID, PARTTYPE, SUBCATEGORY, MODEL, DESCRIPTION } = filterParams
   let where = {}
-  if(UniqueID) where['UniqueID'] = UniqueID
-  if(PARTTYPE) where['PARTTYPE'] = PARTTYPE
-  if(SUBCATEGORY) where['SUBCATEGORY'] = SUBCATEGORY
-  if(MODEL) where['MODEL'] = {[Op.like]: `%${MODEL}%`}
-  if(DESCRIPTION) where['DESCRIPTION'] = {[Op.like]: `%${DESCRIPTION}%`}
+  if (UniqueID) where['UniqueID'] = UniqueID
+  if (PARTTYPE) where['PARTTYPE'] = PARTTYPE
+  if (SUBCATEGORY) where['SUBCATEGORY'] = SUBCATEGORY
+  if (MODEL) where['MODEL'] = { [Op.like]: `%${MODEL}%` }
+  if (DESCRIPTION) where['DESCRIPTION'] = { [Op.like]: `%${DESCRIPTION}%` }
 
   const getDistinctByModelNumber = (data) => {
     const uniquePrices = new Map();
@@ -168,7 +168,7 @@ export const getDistinctParts = async (filterParams) => {
         uniquePrices.set(item.MODEL, item);
       }
     });
-  
+
     return Array.from(uniquePrices.values());
   };
 
@@ -243,7 +243,7 @@ export const getAllParts = async (page, pageSize, sortBy, sortOrder, filterParam
 // Helper function to create the 'where' clause for filtering
 const applyPartFilters = (params) => {
   // List of fields that can be filtered
-  const filterParams = ['UniqueID', 'PARTTYPE', 'SUBCATEGORY', 'MODEL', 'DESCRIPTION','OnHand','ETLCriticalComponent'];
+  const filterParams = ['UniqueID', 'PARTTYPE', 'SUBCATEGORY', 'MODEL', 'DESCRIPTION', 'OnHand', 'ETLCriticalComponent'];
   const whereClause = {};
 
   // Iterate over each filterable field
@@ -373,7 +373,7 @@ export const createParts = async (data: any) => {
   const columns = Object.keys(filteredData).join(', ');
   const values = Object.keys(filteredData).map(key => `:${key}`).join(', ');
 
-console.log("data a is",data);
+  console.log("data a is", data);
   // Step 1: Get the next instanceID
   let instanceID;
   try {
@@ -430,7 +430,7 @@ export const deleteParts = async (id) => {
 
 
 export const getPOPartsDetailsByUniqueId = async (UniqueID) => {
-  console.log("unique id is",UniqueID)
+  console.log("unique id is", UniqueID)
   try {
     const query = `
       SELECT *
@@ -520,7 +520,7 @@ export async function deletePODetailByStockNumber(stockNumber) {
 
 
 
-export const getPODetailsByInstanceId = async (instanceId:any) => {
+export const getPODetailsByInstanceId = async (instanceId: any) => {
   try {
     // Execute raw SQL query
     const results = await sequelize.query(
@@ -552,7 +552,7 @@ export const getPODetailsByInstanceId = async (instanceId:any) => {
 
 
 export const getInventoryTransactionsByModel = async (model: any) => {
-  console.log('modle is ',model);
+  console.log('modle is ', model);
   try {
     const query = `
           SELECT tblInventoryTransactions.*, 
@@ -601,26 +601,26 @@ export const getVendorNames = async () => {
     throw error;
   }
 };
-export const getRevisions = async (instanceId:any) => {
+export const getRevisions = async (instanceId: any) => {
   try {
-      const bpList = await tblBP.findAll({
-          attributes: ['uniqueid', 'today', 'code', 'revisedby'],
-          where: {
-              instanceid: instanceId
-          },
-          order: [
-              [Sequelize.literal('CAST(today AS DATETIME)'), 'DESC']
-          ],
-          raw: true
-      });
-      return bpList;
+    const bpList = await tblBP.findAll({
+      attributes: ['uniqueid', 'today', 'code', 'revisedby'],
+      where: {
+        instanceid: instanceId
+      },
+      order: [
+        [Sequelize.literal('CAST(today AS DATETIME)'), 'DESC']
+      ],
+      raw: true
+    });
+    return bpList;
   } catch (error) {
-      throw new Error(`Error fetching data for instanceId ${instanceId} from table tblBP: ${error.message}`);
+    throw new Error(`Error fetching data for instanceId ${instanceId} from table tblBP: ${error.message}`);
   }
 };
 
 
-export const getTotalRequiredByModel = async (model:any) => {
+export const getTotalRequiredByModel = async (model: any) => {
   try {
     const query = `
       SELECT number, ROUND(SUM(required), 0) AS TotalRequired
@@ -644,22 +644,22 @@ export const getTotalRequiredByModel = async (model:any) => {
 
 export const getAccountList = async () => {
   try {
-      const accountList = await tblAccounts.findAll({
-          attributes: [
-              [Sequelize.fn('DISTINCT', Sequelize.col('AcctNumber')), 'AcctNumber'],
-              'Description'
-          ],
-          order: [['AcctNumber', 'ASC']],
-          raw: true
-      });
-      // Format the results into an array of strings
-      const formattedList = accountList.map(account =>
-          `#${account.AcctNumber}  ${account.Description}`
-      );
+    const accountList = await tblAccounts.findAll({
+      attributes: [
+        [Sequelize.fn('DISTINCT', Sequelize.col('AcctNumber')), 'AcctNumber'],
+        'Description'
+      ],
+      order: [['AcctNumber', 'ASC']],
+      raw: true
+    });
+    // Format the results into an array of strings
+    const formattedList = accountList.map(account =>
+      `#${account.AcctNumber}  ${account.Description}`
+    );
 
-      return formattedList;
+    return formattedList;
   } catch (error) {
-      throw new Error(`Error fetching data from table tblAccounts: ${error.message}`);
+    throw new Error(`Error fetching data from table tblAccounts: ${error.message}`);
   }
 };
 
@@ -680,8 +680,8 @@ export const updatePartsByRevisionID = async (data: any, instanceId: any) => {
 
   const now = new Date();
   const isoString = now.toISOString();
-  filteredData.TODAY =isoString;
-  filteredData.CODE='Revision';
+  filteredData.TODAY = isoString;
+  filteredData.CODE = 'Revision';
 
 
   // Extract column names and values for the insert statement
