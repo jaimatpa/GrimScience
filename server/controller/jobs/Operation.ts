@@ -52,7 +52,7 @@ export const getAllOperation = async (jobId, model) => {
     replacements: { jobId: jobId, instanceid: result.instanceID },
     type: QueryTypes.SELECT
   });
-  console.log(list)
+
   return list;
 }
 
@@ -65,7 +65,6 @@ export const refreshJobOperations = async (lngJob, instanceid, model) => {
       type: QueryTypes.SELECT
     });
     const recJOainstanceID = result.instanceID
-    console.log(lngJob, instanceid, recJOainstanceID)
     // Fetch the existing job operations
     const jobOperationDt = await sequelize.query(`
       SELECT * FROM tblJobOperations
@@ -100,7 +99,6 @@ export const refreshJobOperations = async (lngJob, instanceid, model) => {
       
       if (newOperationAddDT.length > 0) {
         const newOpDataRow = newOperationAddDT[0];
-        console.log('newOpDataRow',newOpDataRow)
         // Insert new job operation
         await sequelize.query(`
           INSERT INTO tblJobOperations (JobID, PlanID, instanceid, Operation, WorkCenter, Hours, Number, week)
@@ -421,7 +419,6 @@ export const getWorkCenter = async () => {
 
 export const reScheduledOp = async (lngJobOperationID, txtScheduled) => {
   try {
-    console.log(txtScheduled)
     // Query to fetch the existing job operation record
     const jobOperation = await sequelize.query(`
       SELECT * 
@@ -463,7 +460,7 @@ export const reScheduledOp = async (lngJobOperationID, txtScheduled) => {
 
 export const moveToOperation = async (operationId, listItems) => {
   try {
-    console.log(operationId, listItems)
+
     if(!operationId) {
       return
     }
@@ -492,8 +489,11 @@ export const moveToOperation = async (operationId, listItems) => {
 
 
 export const verifyAndCloseOperation = async (lngJob, lngJobOperationID, txtReworkHoursProduct, glob_StrEmployee, recJoaPerType, recJOnQuantity) => {
-  console.log(lngJob, lngJobOperationID, txtReworkHoursProduct, glob_StrEmployee, recJoaPerType, recJOnQuantity)
+  
   try {
+    if(!reworkHrs){
+      reworkHrs = 0
+    }
     // Fetch the job record
     const jobDT = await sequelize.query(`
       SELECT * 
@@ -523,10 +523,10 @@ export const verifyAndCloseOperation = async (lngJob, lngJobOperationID, txtRewo
     }
 
     let dr = jobOperationDT[0]; // The first record from the result
-
+    const date = formatDate(new Date())
     // Update relevant fields in the job operation record
     dr.reworkhrs = Number(txtReworkHoursProduct);  // Assuming this comes as a number
-    dr.verified = new Date().toISOString().split('T')[0]; // Format as short date (YYYY-MM-DD)
+    dr.verified = date; // Format as short date (YYYY-MM-DD)
     dr.verifiedby = glob_StrEmployee;
 
     // Update the record in the database
@@ -558,6 +558,60 @@ export const verifyAndCloseOperation = async (lngJob, lngJobOperationID, txtRewo
     console.log("Product verification and close operation completed successfully.");
   } catch (error) {
     console.error("Error during product verification:", error.message);
+    throw new Error(error.message);
+  }
+};
+
+export const reOpenOperation = async (lngJob, lngJobOperationID, jobCostText, glob_StrEmployee, quantityText) => {
+  try {
+
+    // Fetch job operation details
+    const jobOperation = await sequelize.query(`
+      SELECT * 
+      FROM tblJobOperations 
+      WHERE uniqueID = :lngJobOperationID
+    `, {
+      replacements: { lngJobOperationID },
+      type: QueryTypes.SELECT
+    });
+
+    if (jobOperation.length === 0) {
+      throw new Error("Job operation not found");
+    }
+
+    let quantity = parseInt(quantityText, 10);
+    if (isNaN(quantity)) quantity = 0;
+
+    // Calculate operation cost
+    const operationCost = await calculateOperationCosts(lngJobOperationID, quantity, );
+
+    // Calculate job cost from the input (jobCostText should be a currency string)
+    let jobCost = parseFloat(jobCostText.replace(/[^0-9.-]+/g, ""));
+    if (isNaN(jobCost)) jobCost = 0;
+
+    // Update the latest unit cost
+    const updatedCost = jobCost - operationCost;
+
+    // Clear the verified status in the job operation record
+    const jobOpRecord = jobOperation[0];
+    await sequelize.query(`
+      UPDATE tblJobOperations 
+      SET verified = '', verifiedby = '' 
+      WHERE uniqueID = :lngJobOperationID
+    `, {
+      replacements: { lngJobOperationID },
+      type: QueryTypes.UPDATE
+    });
+    const today = formatDateForSQLServer(new Date())
+    console.log("", today, glob_StrEmployee, { jobID:lngJob, jobOperationID: lngJobOperationID})
+    // Process inventory transaction verification and clearing
+    const lngTransID = await verifyInventoryTransaction("", today, glob_StrEmployee, { jobID:lngJob, jobOperationID: lngJobOperationID});
+    await clearInventoryTransactionDetails(lngTransID);
+
+    console.log(`Operation reopened successfully. Updated cost: ${updatedCost}`);
+
+  } catch (error) {
+    console.error("Error reopening operation:", error.message);
     throw new Error(error.message);
   }
 };
@@ -840,10 +894,13 @@ export const calculateUnitCosts = async (lngJob, qty, OperationID = 0) => {
 
 export const reworkCostCalculate = async (lngJob, lngJobOperationID, reworkHrs) => {
   try {
-    console.log(reworkHrs)
+    
     // Fetch data from the database
     const settings = await tblSettings.findOne();
     const glob_laborrate = settings.dataValues.laborrate
+    if(!reworkHrs){
+      reworkHrs = 0
+    }
 
     const dtRS = await sequelize.query(
         `SELECT qty, tblBP.InventoryCost 
@@ -864,6 +921,7 @@ export const reworkCostCalculate = async (lngJob, lngJobOperationID, reworkHrs) 
     });
     console.log(parts)
     // Calculate and format rework costs
+    console.log(reworkHrs)
     const reworkCost = (parseFloat(reworkHrs) * glob_laborrate + parts).toFixed(2);
     console.log(reworkCost)
     // Assuming you need to update these labels in the frontend, here we're just returning the values

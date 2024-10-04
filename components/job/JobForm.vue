@@ -26,6 +26,7 @@ const JobExist = ref(true);
 const isLoading = ref(false);
 const categories = ref([]);
 const subCategories = ref([]);
+const part = ref([]);
 const closedByUsers = ref([]);
 const jobTypes = ref(["Product","Sub Assembly"]);
 const perTypes = ref([]);
@@ -35,6 +36,8 @@ const jobCat = ref([]);
 const jobsubcat = ref([]);
 const productLines = ref([]);
 const models = ref([]);
+const begPRSerial = ref(null);
+const begSBSerial = ref(null);
 const prodDesOperations = ref([]);
 const subDesOperations = ref([]);
 const prodScheduleHrs = ref("0");
@@ -78,12 +81,37 @@ const formData = reactive({
   InstanceID: null,
 });
 
-// Watch for changes to PRODUCTLINE
+
 watch(() => formData.PRODUCTLINE, async (newProductLine) => {
   if (newProductLine) {
     await fetchModels(newProductLine);
   }
 });
+
+watch(() => formData.MODEL, async (newModel) => {
+  if (newModel) {
+    await getPRSerial(newModel);
+  }
+});
+
+watch(() => formData.Catagory, async (newCategory) => {
+  if (newCategory) {
+    await fetchSubCategory(newCategory);
+  }
+});
+
+watch(() => formData.SubCatagory, async (newSubCategory) => {
+  if (newSubCategory) {
+    await fetchPart(newSubCategory);
+  }
+});
+
+watch(() => formData.PART, async (newPart) => {
+  if (newPart) {
+    await getSBSerial(newPart);
+  }
+});
+
 
 let date = new Date();
 const editInit = async () => {
@@ -95,7 +123,6 @@ const editInit = async () => {
         JobExist.value = true;
 
         for (const key in response._data.body) {
-          console.log(response._data.body)
           if (response._data.body[key] !== undefined) {
             // formData[key] = response._data.body[key];
             if (key === "Cost") {
@@ -124,18 +151,7 @@ const editInit = async () => {
       categories.value = [];
     },
   });
-  // get sub categories list
-  await useApiFetch("/api/jobs/subCategories", {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        subCategories.value = response._data.body;
-      }
-    },
-    onResponseError() {
-      subCategories.value = [];
-    },
-  });
+  
 
   // get closedby users list
   await useApiFetch("/api/jobs/users", {
@@ -234,6 +250,72 @@ const fetchModels = async (productLine) => {
   });
 };
 
+const getPRSerial = async (newModel) => {
+  await useApiFetch("/api/jobs/getBegSerial", {
+    method: "GET",
+    params: { model: newModel },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        begPRSerial.value = response._data.body.recJOaBegSerial
+        formData.InstanceID = response._data.body.recJOainstanceID
+      }
+    },
+    onResponseError() {
+      models.value = [];
+    },
+  });
+}
+
+
+
+const fetchSubCategory = async (category) => {
+  await useApiFetch("/api/jobs/subCategories", {
+    method: "GET",
+    params: {category: category},
+    onResponse({ response }) {
+      if (response.status === 200) {
+        subCategories.value = response._data.body.distinctSubCategories;
+        part.value = response._data.body.distinctPart
+      }
+    },
+    onResponseError() {
+      subCategories.value = [];
+      part.value = []
+    },
+  });
+}
+
+const fetchPart = async (subCategory) => {
+  await useApiFetch("/api/jobs/parts", {
+    method: "GET",
+    params: {category: formData.Catagory, subCategory:subCategory},
+    onResponse({ response }) {
+      if (response.status === 200) {
+        part.value = response._data.body
+      }
+    },
+    onResponseError() {
+      part.value = [];
+    },
+  });
+}
+
+const getSBSerial = async (newPart) => {
+  await useApiFetch("/api/jobs/getBegSerial", {
+    method: "GET",
+    params: { model: newPart },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        begSBSerial.value = response._data.body.recJOaBegSerial
+        formData.InstanceID = response._data.body.recJOainstanceID
+      }
+    },
+    onResponseError() {
+      models.value = [];
+    },
+  });
+}
+
 const getLinkedJobs = async () => {
   await useApiFetch(`/api/jobs/linkjob`, {
     method: "GET",
@@ -255,7 +337,6 @@ const getSerial = async () => {
     params: { ...jobFilters.value },
     onResponse({ response }) {
       if (response.status === 200) {
-
         if (formData.JobType === "Product") {
           productsSerialGridMeta.value.products = response._data.body;
         } else {
@@ -521,7 +602,7 @@ const handleClearCick = () => {
   });
 };
 
-const handleProdOperationSelect = (row) => {
+const handleProdOperationSelect = async (row) => {
   prodOperationGridMeta.value.selectedOperation = { ...row, class: "" };
   prodOperationGridMeta.value.operations.forEach((c) => {
     if (c.uniqueID === row.uniqueID) {
@@ -535,7 +616,15 @@ const handleProdOperationSelect = (row) => {
   reScheduleOp.value = prodOperationGridMeta.value.selectedOperation.DateScheduled
   operationHourInputDisable.value = !prodOperationGridMeta.value.selectedOperation.verified
   prodHrs.value = prodOperationGridMeta.value.selectedOperation.reworkhrs ? prodOperationGridMeta.value.selectedOperation.reworkhrs : 0
-  onReworkHrsChange();
+  await useApiFetch(`/api/jobs/operations/reworkcost/`, {
+    method: "GET",
+    params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHrs: prodHrs.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        reworkCost.value = response._data.body
+      }
+    },
+  });
   getSchedules();
 };
 
@@ -806,6 +895,7 @@ const productsSerialGridMeta = ref({
     {
       key: "CostPerUnit",
       label: "Material Cost",
+
     },
   ],
   products: [],
@@ -816,21 +906,18 @@ const productsSerialGridMeta = ref({
 const productsSBSerialGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "select",
-      label: "Select",
-      kind: "actions",
-    },
-    {
-      key: "Serial",
-      label: "Serial",
+      key: "Quantity",
+      label: "#",
     },
     {
       key: "dateEntered",
-      label: "Date Serialized",
+      label: "Date Completed",
     },
     {
-      key: "material_cost",
+      key: "CostPerUnit",
       label: "Material Cost",
+      sortable: true,
+      direction: 'asc' as const
     },
   ],
   products: [],
@@ -906,7 +993,7 @@ const handleUpdateQty = async () => {
   loadingOverlay.value = true
   await useApiFetch(`/api/jobs/updateSerial/`, {
     method: "PUT",
-    params: { jobId:props.selectedJob, jobQty: formData.QUANTITY, model: formData.MODEL },
+    params: { jobId:props.selectedJob, jobQty: formData.QUANTITY, begSerial: begPRSerial.value },
     onResponse({ response }) {
       if (response.status === 200) {
         toast.add({
@@ -1106,40 +1193,38 @@ const verifyAndCloseOperation = async () => {
   loadingOverlay.value = true
   await useApiFetch(`/api/jobs/operations/verifyAndCloseOp/`, {
     method: "PUT",
-    // params: { serialList: JSON.stringify(multipleSerialSelect.value), instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, model: formData.MODEL, date:date },
     params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHours: prodHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY },
     onResponse({ response }) {
       
     },
   });
 
+  operationHourInputDisable.value = false
   await fetchJobOperation()
-
   loadingOverlay.value = false
 }
 
 const reOpenOperation = async () => {
   loadingOverlay.value = true
-  await useApiFetch(`/api/jobs/operations/verifyAndCloseOp/`, {
+  await useApiFetch(`/api/jobs/operations/reOpenOp/`, {
     method: "PUT",
-    // params: { serialList: JSON.stringify(multipleSerialSelect.value), instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, model: formData.MODEL, date:date },
-    params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHours: prodHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY },
+    params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, unitCost: unitCost, employee: username, quantity: formData.QUANTITY },
     onResponse({ response }) {
       
     },
   });
-
+  operationHourInputDisable.value = true
   await fetchJobOperation()
-
   loadingOverlay.value = false
 }
 
-const onReworkHrsChange = async () => {
+const onReworkHrsChange = async (event) => {
+  console.log(event.target.value)
   console.log(prodHrs)
   if( prodOperationGridMeta.value.selectedOperation !== null){
     await useApiFetch(`/api/jobs/operations/reworkcost/`, {
       method: "GET",
-      params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHrs: prodHrs.value },
+      params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHrs: event.target.value },
       onResponse({ response }) {
         if (response.status === 200) {
           reworkCost.value = response._data.body
@@ -1499,7 +1584,7 @@ else propertiesInit();
               </div>
               <div class="w-1/4">
                 <UFormGroup label="Beginning SN#" name="Beginning SN#">
-                  <UInput />
+                  <UInput v-model="begPRSerial" />
                 </UFormGroup>
               </div>
             </div>
@@ -1642,7 +1727,11 @@ else propertiesInit();
               </div>
               <div class="w-1/4">
                 <UFormGroup label="Part" name="Part">
-                  <UInput v-model="formData.PART" />
+                <UInputMenu
+                  v-model="formData.PART"
+                  v-model:query="formData.PART"
+                  :options="part"
+                />
                 </UFormGroup>
               </div>
             </div>
@@ -1696,7 +1785,7 @@ else propertiesInit();
                 icon="i-heroicons-plus"
                 variant="outline"
                 color="green"
-                label="Pull into Serial Record"
+                label="Pull into Inventory"
                 :ui="{
                   base: 'w-fit',
                   truncate: 'flex justify-center w-full',
@@ -1737,7 +1826,7 @@ else propertiesInit();
                   icon="i-heroicons-arrow-path"
                   variant="outline"
                   color="purple"
-                  label="Convert Inventory"
+                  label="Correct Inventory"
                   :ui="{
                     base: 'w-fit',
                     truncate: 'flex justify-center w-full',

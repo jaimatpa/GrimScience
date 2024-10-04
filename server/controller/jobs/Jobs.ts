@@ -2,8 +2,9 @@ import { tblJobDetail, tblJobs, tblSettings } from "~/server/models";
 import { Sequelize, Op } from "sequelize";
 import  sequelize  from '../../utils/databse';  
 import { QueryTypes } from 'sequelize';
-import fs from 'fs';
-import path from 'path'; 
+import { calculateUnitCosts } from "./Operation";
+// import fs from 'fs';
+// import path from 'path'; 
 
 const formatDate = (date) => {
   const today = new Date(date);
@@ -118,10 +119,12 @@ export const getAllJobDetail = async (sortBy, sortOrder, filterParams) => {
   const whereClause = applyCusFilters(filterParams);
 
   const list = await tblJobDetail.findAll({
-    attributes: ['UniqueID', 'JobID', 'PartsList', 'Serial', 'ShipDate', 'SingleMaterialCost', 'dateEntered', 'ScheduledDate', 'SingleLaborCost', 'CostPerUnit'],
+    attributes: ['UniqueID', 'JobID', 'PartsList', 'Serial', 'Quantity', 'ShipDate', 'SingleMaterialCost', 'dateEntered', 'ScheduledDate', 'SingleLaborCost', 'CostPerUnit'],
     where: whereClause,
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
   });
+
+  console.log(list)
 
   return list;
 }
@@ -153,24 +156,78 @@ export const createNewJob = async (data) => {
   return newCustomer
 }
 
+export const getBegSerial = async (recJOaModelText) => {
+  try {
+    console.log(recJOaModelText)
+    // Guard clause if recJOaModelText is empty
+    if (!recJOaModelText || recJOaModelText.length < 1) return;
 
-export const updateJobSerial = async (jobId, jobQuantity, model) => {
+    let recJOainstanceID = 0;
+    let recJOaBegSerial = '';
+
+    // Split model and take the first part (before space)
+    const model = recJOaModelText.split(" ")[0];
+
+    // Fetch instanceID from tblBP where model matches
+    const rs12 = await sequelize.query(
+      `SELECT instanceID FROM tblBP WHERE model = :model`,
+      {
+        replacements: { model },
+        type: QueryTypes.SELECT
+      }
+    );
+
+    // Update recJOainstanceID based on query result
+    if (rs12.length > 0) {
+      recJOainstanceID = rs12[0].instanceID;
+    } else {
+      recJOainstanceID = 0;
+    }
+
+    // Extract the model name up to the first space
+    let x = recJOaModelText.indexOf(" ");
+    let strmodel = recJOaModelText.substring(0, x > 0 ? x : recJOaModelText.length);
+
+    // Fetch the next serial number based on the model
+    const dt = await sequelize.query(
+      `SELECT MAX(CAST(serial AS BIGINT)) + 1 AS nextSerial 
+       FROM vwSerialData 
+       WHERE Model = :strmodel`,
+      {
+        replacements: { strmodel },
+        type: QueryTypes.SELECT
+      }
+    );
+
+    // Update recJOaBegSerial with the next serial number
+    recJOaBegSerial = dt[0]?.nextSerial;
+
+    // Handle leading "0" case in recJOaModelText
+    
+
+    console.log({
+      recJOainstanceID,
+      recJOaBegSerial
+    })
+    // Return the updated values for instanceID and BegSerial
+    return {
+      recJOainstanceID,
+      recJOaBegSerial
+    };
+    
+  } catch (error) {
+    console.error("Error handling model selection change:", error.message);
+    throw new Error("Error handling model selection change", error.message);
+  }
+};
+
+export const updateJobSerial = async (jobId, jobQuantity, begSerial) => {
 
   if (!jobId) {
     throw new Error('No Job ID provided');
   }
-
-  const spaceIndex = model.indexOf(" ");
-  const strModel = model.substring(0, spaceIndex); 
-
-  const [serialResult] = await sequelize.query(`
-    SELECT max(cast(serial as bigint)) + 1 AS nextSerial FROM vwSerialData WHERE Model = :strModel
-  `, {
-    replacements: { strModel },
-    type: QueryTypes.SELECT
-  });
-
-  let begSerial = parseInt(serialResult ? serialResult.nextSerial : 0)
+  
+  begSerial = parseInt(begSerial ? begSerial : 0)
 
   await sequelize.query(`
     DELETE FROM tblJobDetail WHERE JobID = :jobId
@@ -189,6 +246,7 @@ export const updateJobSerial = async (jobId, jobQuantity, model) => {
     });
     const dateEntered = dateResult.dateEntered ? formatDate(dateResult.dateEntered) : null;
     // Insert new record into tblJobDetail
+
     await sequelize.query(`
       INSERT INTO tblJobDetail (JobID, dateEntered, serial)
       VALUES (:jobId, :dateEntered, :serialNumber)
@@ -319,6 +377,107 @@ export const pullIntoSerial = async (serialItems, instanceId, employee, perType,
   return {serialItems, message: "Serials have been added and the inventory has been updated."}
 };
 
+export const pullIntoInventory = async ({
+  lvwSubAssembly,
+  instanceId,
+  recJoaPerType,
+  quantityInput, // TextBox2
+  dateInput, // DateTimePicker1.Value
+  recJOnQuantity, // Total job quantity
+  txtLatestUnitCost,
+  lngJob,
+  recJOaPart, // Selected part
+  glob_StrEmployee
+}) => {
+  try {
+      if (recJoaPerType === "Serial/Unit") {
+          const qty = parseFloat(quantityInput);
+          const jobQty = parseFloat(recJOnQuantity);
+
+          if (qty === 0) {
+              throw new Error("Invalid Zero Quantity.");
+          }
+
+          // Ensure entered quantity doesn't exceed the job quantity
+          let subAssemblyTotal = 0;
+          for (const li of lvwSubAssembly) { 
+              subAssemblyTotal += parseFloat(li.Quanitity);
+          }
+
+          if (subAssemblyTotal + qty > jobQty) {
+              throw new Error("Entered Quantity exceeds Job Quantity. Please correct the quantity to add to inventory and try again.");
+          }
+
+          // Create new sub-assembly item
+          const newItem = {
+              qty,
+              dateEntered: formatDate(dateInput)
+          };
+
+          // Insert new job detail record
+          
+          const newRecord = {
+              Jobid: lngJob,
+              Quantity: qty,
+              dateEntered: newItem.dateEntered,
+              CostPerUnit: parseFloat(txtLatestUnitCost)
+          };
+
+          // Add new job detail record to the database
+          await sequelize.query(
+              `INSERT INTO tblJobDetail (Jobid, Quantity, dateEntered, CostPerUnit) VALUES (:Jobid, :Quantity, :dateEntered, :CostPerUnit)`,
+              {
+                  replacements: newRecord,
+                  type: QueryTypes.INSERT
+              }
+          );
+          const today = formatDateForSQLServer(new Date())
+          // Fetch the max uniqueID from tblJobDetail
+          const [{ maxUniqueID }] = await sequelize.query(`SELECT MAX(UniqueID) AS maxUniqueID FROM tblJobDetail`, { type: QueryTypes.SELECT });
+
+          // Verify inventory transaction
+          const lngTransID = await verifyInventoryTransaction("", today, glob_StrEmployee, {jobID:lngJob, jobDetailID:parseFloat(maxUniqueID)} );
+
+          // Add to inventory
+          await AddToInventory(qty, lngTransID);
+          await clearInventoryTransactionDetails(lngTransID);
+
+          // Remove from inventory plan
+          await removePlanFromInventory(qty, lngTransID, lngJob);
+
+          // Add inventory transaction detail
+          recJOaPart = recJOaPart == "" ? "" : recJOaPart.trim().split(" ")[0]
+          await addInventoryTransactionDetail(lngTransID, recJOaPart, qty);
+
+          // Add item to inventory transaction
+          await addItemToInventoryTransaction(qty, lngTransID, instanceId);
+
+          // Remove from inventory using custom function
+          await removeFromInventory2(parseInt(maxUniqueID), instanceId, qty);
+
+          // Update percentage completion
+          await await updatePercentage(lngJob);
+
+          // Update unit cost calculation
+          let jobCost = parseFloat(txtLatestUnitCost.replace(/[^0-9.-]+/g, ""));
+          const unitsToAdd = parseFloat(quantityInput);
+          const newUnitCost = await calculateUnitCosts(unitsToAdd, lngJob);
+          txtLatestUnitCost = (jobCost + newUnitCost).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+
+          console.log("Sub Assemblies have been added. Job has been saved.");
+
+      } else {
+          throw new Error("Job is set to be completed via Operations. If you wish to complete by unit, please reopen operations and switch the type.");
+      }
+
+      // LoadSubAssemblyItems(); // Implement this function if needed
+
+  } catch (error) {
+      console.error("Error in handleAddSubAssembly:", error.message);
+      throw new Error(error.message);
+  }
+};
+
 const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, jobId, recJoaPerType, recJOaPart, date) => {
   try {
     // Step 1: Set quantity
@@ -348,7 +507,7 @@ const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, j
     if (!bpId) throw new Error('BP ID not found');
 
     // Step 4: Insert the record into tblInventory
-    const today = formatDateForSQLServer(new Date(date))
+    const dateInput = formatDateForSQLServer(new Date(date))
     // Fetch the max instanceID from tblInventory and increment it
     const instanceResult = await sequelize.query(`
       SELECT MAX(instanceID) + 1 AS nextInstanceId FROM tblInventory
@@ -366,11 +525,11 @@ const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, j
         newInstanceID,
         serialNo,
         bpId,
-        today: today
+        today: dateInput
       },
       type: QueryTypes.INSERT
     });
-
+    const today = formatDateForSQLServer(new Date(date))
     // Step 5: Handle inventory transactions
     const transId = await verifyInventoryTransaction("", today, employee, {jobID:jobId, jobDetailID:jobDetailId});
     await clearInventoryTransactionDetails(transId);
@@ -392,6 +551,30 @@ const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, j
     throw new Error('Error adding serial record: '+error.message)
   }
 }
+
+export const AddToInventory = async (qty, recJOainstanceID) => {
+  try {
+      // Update the `onhand` quantity in the `tblBP` table
+      await sequelize.query(
+          `UPDATE tblBP 
+           SET onhand = onhand + :qty
+           WHERE uniqueid IN (
+              SELECT MAX(uniqueid) 
+              FROM tblBP 
+              WHERE instanceID = :recJOainstanceID 
+              GROUP BY instanceID
+           )`,
+          {
+              replacements: { qty, recJOainstanceID },
+              type: QueryTypes.UPDATE
+          }
+      );
+
+  } catch (error) {
+      console.error("Error in AddToInventory:", error.message);
+      throw new Error(error.message);
+  }
+};
 
 export const verifyInventoryTransaction = async (manual = '', date, createdBy, options = {}) => {
   try {
@@ -425,9 +608,9 @@ export const verifyInventoryTransaction = async (manual = '', date, createdBy, o
     `, {
       type: QueryTypes.SELECT
     });
-
+    console.log("tranx",existingTransaction)
     if (existingTransaction.length > 0) {
-      transID = existingTransaction[0].uniqueid;
+      transID = existingTransaction[0].uniqueID;
     }
 
     let strType = 'Transaction';
@@ -437,7 +620,7 @@ export const verifyInventoryTransaction = async (manual = '', date, createdBy, o
     if (serviceReportID > 0) strType = 'Service Report';
     if (vendorInvoiceID > 0) strType = 'Vendor Invoice';
     if (orderID > 0) strType = 'Sales Invoice';
-
+    
     // If transaction does not exist, insert a new record
     if (transID === 0) {
 
@@ -694,6 +877,244 @@ const updateOnhandByModel = async (strModel) => {
   }
 }
 
+const removeFromInventory2 = async (jobDetailID, instanceID, recJOnQuantity) => {
+  try {
+      let dblcost = 0;
+      let dblLaborcost = 0;
+      let strParts = "";
+
+      // Query for parts information based on instanceID
+      const dt = await sequelize.query(
+          `SELECT tblbp.uniqueid, tblbpparts.qty, tblbp.model, tblbp.description 
+           FROM tblbp 
+           INNER JOIN tblBPParts ON tblbp.uniqueid = tblbpparts.partid 
+           INNER JOIN tblsteps ON tblsteps.uniqueid = tblbpparts.stepid 
+           INNER JOIN tblplan ON tblplan.uniqueid = tblsteps.planid 
+           WHERE tblPlan.instanceid = :instanceID`,
+          {
+              replacements: { instanceID },
+              type: QueryTypes.SELECT
+          }
+      );
+
+      // Iterate through parts and calculate costs
+      for (const row of dt) {
+          const partID = row.uniqueid;
+
+          // Fetch instanceID based on uniqueid
+          const dt2 = await sequelize.query(
+              `SELECT instanceid 
+               FROM tblbp 
+               WHERE uniqueid = :partID`,
+              {
+                  replacements: { partID },
+                  type: QueryTypes.SELECT
+              }
+          );
+
+          if (dt2.length > 0) {
+              const instanceID2 = dt2[0].instanceid;
+
+              // Fetch max uniqueid and inventorycost for the part
+              const dt3 = await sequelize.query(
+                  `SELECT uniqueid, inventorycost 
+                   FROM tblbp 
+                   WHERE uniqueid IN 
+                         (SELECT MAX(uniqueid) 
+                          FROM tblbp 
+                          GROUP BY instanceid) 
+                         AND instanceid = :instanceID2`,
+                  {
+                      replacements: { instanceID2 },
+                      type: QueryTypes.SELECT
+                  }
+              );
+
+              if (dt3.length > 0) {
+                  const partUniqueID = dt3[0].uniqueid;
+                  const inventoryCost = dt3[0].inventorycost;
+
+                  // Fetch onhand and model for the part
+                  const dt4 = await sequelize.query(
+                      `SELECT onhand, model 
+                       FROM tblbp 
+                       WHERE uniqueid = :partUniqueID`,
+                      {
+                          replacements: { partUniqueID },
+                          type: QueryTypes.SELECT
+                      }
+                  );
+
+                  if (dt4.length > 0) {
+                      const partModel = dt4[0].model;
+                      const qtyUsed = parseFloat(row.qty) * parseFloat(recJOnQuantity);
+
+                      strParts += `UniqueID:${partUniqueID}//Part#:${partModel}//Inventory Cost:${inventoryCost}//Qty Used:${qtyUsed}==`;
+                      console.log(`UniqueID:${partUniqueID}//Part#:${partModel}//Inventory Cost:${inventoryCost}//Qty Used:${qtyUsed}==`);
+
+                      dblcost += parseFloat(inventoryCost) * qtyUsed;
+                  }
+              }
+          }
+      }
+
+      // Get labor hours and calculate labor cost
+      const laborHours = await getLaborHours(instanceID);
+      const settings = await tblSettings.findOne();
+      dblLaborcost = parseFloat(laborHours) * settings.dataValues.laborrate;
+
+      // Update job detail with material cost, labor cost, labor hours, and parts list
+      const jobDetail = await sequelize.query(
+          `SELECT * 
+           FROM tblJobDetail 
+           WHERE uniqueID = :jobDetailID`,
+          {
+              replacements: { jobDetailID },
+              type: QueryTypes.SELECT
+          }
+      );
+
+      if (jobDetail.length > 0) {
+          const jobRow = jobDetail[0];
+
+          const totalCost = dblLaborcost + dblcost;
+          jobRow.SingleMaterialCost = dblcost;
+          jobRow.SingleLaborCost = dblLaborcost;
+          jobRow.SingleLaborHours = laborHours;
+          jobRow.PartsList = strParts;
+
+          // Update the job detail record
+          await sequelize.query(
+              `UPDATE tblJobDetail 
+               SET SingleMaterialCost = :SingleMaterialCost, 
+                   SingleLaborCost = :SingleLaborCost, 
+                   SingleLaborHours = :SingleLaborHours, 
+                   PartsList = :PartsList 
+               WHERE uniqueID = :jobDetailID`,
+              {
+                  replacements: {
+                      SingleMaterialCost: dblcost,
+                      SingleLaborCost: dblLaborcost,
+                      SingleLaborHours: laborHours,
+                      PartsList: strParts,
+                      jobDetailID
+                  },
+                  type: QueryTypes.UPDATE
+              }
+          );
+
+          // Update inventory cost in tblBP
+          const total = parseFloat((dblLaborcost + dblcost).toFixed(2));
+          const sellingPrice = total / (1 - settings.dataValues.upsellrate);
+
+          await sequelize.query(
+              `UPDATE tblBP 
+               SET inventorycost = :total, 
+                   ordercost = :total, 
+                   sellingprice = :sellingPrice 
+               WHERE uniqueid IN 
+                     (SELECT MAX(uniqueid) 
+                      FROM tblbp 
+                      WHERE instanceID = :instanceID 
+                      GROUP BY instanceid)`,
+              {
+                  replacements: { total, sellingPrice, instanceID },
+                  type: QueryTypes.UPDATE
+              }
+          );
+
+          console.log("Inventory and job detail updated successfully.");
+      }
+
+  } catch (error) {
+      console.error("Error in removeFromInventory2:", error.message);
+      throw new Error(error.message);
+  }
+};
+
+const getLaborHours = async (lngInstanceID, depth = 0, includeTopLevelLabor = true) => {
+    depth += 1;
+    let hrs = 0;
+
+    try {
+        // Check if the item is in-house or not
+        const rs = await sequelize.query(
+            `SELECT builtinhouse 
+             FROM tblBP 
+             WHERE instanceID = :lngInstanceID 
+             ORDER BY uniqueID DESC 
+             LIMIT 1`,
+            {
+                replacements: { lngInstanceID },
+                type: QueryTypes.SELECT
+            }
+        );
+
+        if (rs.length > 0) {
+            const builtInHouse = rs[0].builtinhouse;
+
+            // If it's not in-house (or value is empty), calculate labor hours
+            if (builtInHouse === "False" || builtInHouse === "") {
+                // Include top-level labor hours if requested
+                if (includeTopLevelLabor) {
+                    const topLevelLabor = await sequelize.query(
+                        `SELECT hours 
+                         FROM tblPlan 
+                         WHERE instanceID = :lngInstanceID`,
+                        {
+                            replacements: { lngInstanceID },
+                            type: QueryTypes.SELECT
+                        }
+                    );
+
+                    // Sum the top-level labor hours
+                    for (const row of topLevelLabor) {
+                        hrs += parseFloat(row.hours);
+                    }
+                }
+
+                // Recursively calculate labor hours for sub-components
+                const subComponents = await sequelize.query(
+                    `SELECT (SELECT tblBP.instanceID 
+                             FROM tblBP 
+                             WHERE tblBP.UniqueID = tblBPParts.partid 
+                             ORDER BY tblBP.uniqueID DESC 
+                             LIMIT 1) AS instanceID 
+                     FROM tblBPParts 
+                     INNER JOIN tblSteps ON tblSteps.uniqueID = tblBPParts.stepID 
+                     INNER JOIN tblPlan ON tblPlan.uniqueID = tblSteps.PlanID 
+                     WHERE (SELECT COUNT(tblPlan.uniqueID) 
+                            FROM tblPlan 
+                            WHERE tblPlan.instanceID = 
+                                  (SELECT tblBP.instanceID 
+                                   FROM tblBP 
+                                   WHERE tblBP.UniqueID = tblBPParts.partid 
+                                   ORDER BY tblBP.uniqueID DESC 
+                                   LIMIT 1)) > 0 
+                           AND tblPlan.instanceID = :lngInstanceID`,
+                    {
+                        replacements: { lngInstanceID },
+                        type: QueryTypes.SELECT
+                    }
+                );
+
+                // Recursively calculate labor hours for each sub-component instance
+                for (const component of subComponents) {
+                    hrs += await getLaborHours(parseFloat(component.instanceID));
+                }
+            }
+        }
+
+        depth -= 1;
+        return hrs;
+
+    } catch (error) {
+        depth -= 1;
+        console.error("Error in getLaborHours:", error.message);
+        throw new Error(error.message);
+    }
+};
+
 const removePlanFromInventory = async (qty, lngTransID, lngJob, strModel = '') => {
   try {
     let rs;
@@ -859,6 +1280,80 @@ export const addInventoryTransactionDetail = async (lngTransactionalID, strModel
   }
 }
 
+const addItemToInventoryTransaction = async (qty, transactionID, instanceID) => {
+  try {
+    // Fetch from tblInventoryTransactionDetails with a condition uniqueID = -1
+    const transactionDetails = await sequelize.query(
+        `SELECT * FROM tblInventoryTransactionDetails WHERE uniqueID = -1`,
+        { type: QueryTypes.SELECT }
+    );
+
+    if (transactionDetails.length !== 0) {
+        throw new Error("ERROR! Please contact Paradynamix!");
+    } else {
+        // Prepare new transaction detail record
+        const newTransactionDetail = {
+            InventoryTransactionID: transactionID,
+            InstanceID: instanceID,
+            QtyChange: qty
+        };
+
+        // Fetch latest uniqueID from tblbp based on instanceID
+        const bpResult = await sequelize.query(
+            `SELECT uniqueid, instanceID, model 
+              FROM tblbp 
+              WHERE uniqueid IN 
+                    (SELECT MAX(uniqueid) 
+                    FROM tblbp 
+                    GROUP BY instanceid) 
+                    AND instanceid = :instanceID`,
+            {
+                replacements: { instanceID },
+                type: QueryTypes.SELECT
+            }
+        );
+
+        if (bpResult.length > 0) {
+            newTransactionDetail.BPID = bpResult[0].uniqueid;
+        }
+
+        // Fetch the latest on-hand quantity
+        const onHandResult = await sequelize.query(
+            `SELECT onhand 
+              FROM tblBP 
+              WHERE uniqueid IN 
+                    (SELECT MAX(uniqueid) 
+                    FROM tblbp 
+                    WHERE instanceID = :instanceID 
+                    GROUP BY instanceID)`,
+            {
+                replacements: { instanceID },
+                type: QueryTypes.SELECT
+            }
+        );
+
+        if (onHandResult.length > 0) {
+            newTransactionDetail.OnHand = onHandResult[0].onhand;
+        }
+
+        // Insert the new transaction detail record
+        await sequelize.query(
+            `INSERT INTO tblInventoryTransactionDetails 
+              (InventoryTransactionID, InstanceID, QtyChange, BPID, OnHand) 
+              VALUES (:InventoryTransactionID, :InstanceID, :QtyChange, :BPID, :OnHand)`,
+            {
+                replacements: newTransactionDetail,
+                type: QueryTypes.INSERT
+            }
+        );
+
+    }
+  } catch (error) {
+    console.error("Error in addItemToInventoryTransaction:", error.message);
+    throw new Error(error.message);
+  }
+};
+
 const updatePercentage = async (lngJob) => {
   try {
     let x = 0;
@@ -1001,13 +1496,14 @@ const calculateJobCost = async (lngJob) => {
   }
 };
 
-export const calculateLatestUnitCost = async (lngJob) => {
+export const calculateLatestUnitCost = async (lngJob, operationId=0) => {
   let cost = 0.00;
   let laborCost = 0.00;
-
+  let jobOperations
   try {
     // Fetch Job Operations
-    const jobOperations = await sequelize.query(
+  
+    jobOperations = await sequelize.query(
       `SELECT * FROM tblJobOperations WHERE JobID = :lngJob`,
       { replacements: { lngJob }, type: QueryTypes.SELECT }
     );
@@ -1154,44 +1650,49 @@ export const deleteLinkedJob = async (jobId, linkedJobId) => {
   }
 }
 
-
 export const getJobCategories = async () => {
-  const result = await tblJobs.findAll({
-    attributes: [
-      [Sequelize.fn('DISTINCT', Sequelize.col('Catagory')), 'Catagory']
-    ],
-    where: {
-      [Op.and]: [
-        { 'Catagory': { [Op.ne]: null } },
-        { 'Catagory': { [Op.ne]: '' } }
-      ]
-    },
-    order: [['Catagory', 'ASC']],
-    raw: true
+  const result =  await sequelize.query(`
+    Select distinct parttype from tblBP order by parttype
+  `, {
+    type: QueryTypes.SELECT
   });
+  
+  const distinctCategories = result.map((item: any) => item['parttype']).filter((parttype) => parttype !== null);
 
-  const distinctCategories = result.map((item: any) => item['Catagory']);
   return distinctCategories;
 }
 
-export const getJobSubCategories = async () => {
-  const result = await tblJobs.findAll({
-    attributes: [
-      [Sequelize.fn('DISTINCT', Sequelize.col('SubCatagory')), 'SubCatagory']
-    ],
-    where: {
-      [Op.and]: [
-        { 'SubCatagory': { [Op.ne]: null } },
-        { 'SubCatagory': { [Op.ne]: '' } }
-      ]
-    },
-    order: [['SubCatagory', 'ASC']],
-    raw: true
+export const getJobSubCategories = async (category) => {
+  const resultSubCategories =  await sequelize.query(`
+    Select distinct subcategory from tblBP where uniqueid In (Select max(uniqueID) from tblBP group by instanceID) And parttype = :category order by subcategory
+  `, {
+    replacements: { category },
+    type: QueryTypes.SELECT
   });
 
-  const distinctSubCategories = result.map((item: any) => item['SubCatagory']);
+  const resultPart =  await sequelize.query(`
+    select distinct model  + ' ' + description, instanceID from tblBP where uniqueid in (Select max(uniqueID) from tblBP group by instanceID) and  parttype = :category order by model  + ' ' + description
+  `, {
+    replacements: { category },
+    type: QueryTypes.SELECT
+  });
 
-  return distinctSubCategories;
+  const distinctSubCategories = resultSubCategories.map((item: any) => item['subcategory']).filter((subCategory) => subCategory !== null);
+  const distinctPart = resultPart.map((item: any) => item['']).filter((part) => part !== null);
+  return { distinctSubCategories, distinctPart } ;
+}
+
+export const getJobParts = async(category, subCategory) => {
+ 
+  const resultPart =  await sequelize.query(`
+    select distinct model  + ' ' + description, instanceID from tblBP where uniqueid in (Select max(uniqueID) from tblBP group by instanceID) and  parttype = :category and SubCategory = :subCategory order by model  + ' ' + description 
+  `, {
+    replacements: { category, subCategory },
+    type: QueryTypes.SELECT
+  });
+
+  const distinctPart = resultPart.map((item: any) => item['']).filter((part) => part !== null);
+  return distinctPart;
 }
 
 export const getClosesByUsers = async () => {
@@ -1354,14 +1855,14 @@ export const getJobSubCat = async () => {
 
 export const getModels = async (productline) => {
   
-    const result =  await sequelize.query(`
-      Select distinct model + ' ' + description, instanceID from tblBP where uniqueid in (Select max(uniqueID) from tblBP group by instanceID) and productline = :productline order by model + ' ' + description
-    `, {
-      replacements: { productline: productline },
-      type: QueryTypes.SELECT
-    });
+  const result =  await sequelize.query(`
+    Select distinct model + ' ' + description, instanceID from tblBP where uniqueid in (Select max(uniqueID) from tblBP group by instanceID) and productline = :productline order by model + ' ' + description
+  `, {
+    replacements: { productline: productline },
+    type: QueryTypes.SELECT
+  });
   
-  const distinctMODEL = result.map((item: any) => item['']);
+  const distinctMODEL = result.map((item: any) => item['']).filter((model) => model !== null);
 
   return distinctMODEL;
 }

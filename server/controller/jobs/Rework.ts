@@ -50,7 +50,6 @@ export const getReworkSubCategories = async () => {
   const subCategory = result
         .map((item) => item['subcategory'])
         .filter((subcategory) => subcategory !== null);
-  console.log(subCategory)
   return subCategory;
 }
 

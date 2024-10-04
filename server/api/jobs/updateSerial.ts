@@ -2,12 +2,12 @@ import { updateJobSerial } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
-    const {  jobId, jobQty, model } = getQuery(event);
+    const {  jobId, jobQty, begSerial } = getQuery(event);
     const method = event._method;
     
     switch(method.toUpperCase()){
       case 'PUT':
-        const newSerials = await updateJobSerial( jobId, jobQty, model)
+        const newSerials = await updateJobSerial( jobId, jobQty, begSerial)
         return { body: newSerials, message: '' }
       default:
         setResponseStatus(event, 405);
