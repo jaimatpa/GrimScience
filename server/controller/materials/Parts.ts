@@ -1,5 +1,5 @@
 import { Op, QueryTypes, Sequelize } from "sequelize";
-import { tblAccounts, tblBP } from "~/server/models";
+import { tblAccounts, tblBP, tblVendors } from "~/server/models";
 import sequelize from "~/server/utils/databse";
 
 export const getProductLines = async () => {
@@ -90,12 +90,14 @@ export const getCategoryList = async () => {
 
 
 export const getSubCategoryForCategory = async (category) => {
+  const decodedCategory = decodeURIComponent(category);
+
   const subcategoryList = await tblBP.findAll({
     attributes: [
       [Sequelize.fn('DISTINCT', Sequelize.col('SUBCATEGORY')), 'SUBCATEGORY']
     ],
     where: {
-      PARTTYPE: category,
+      PARTTYPE: decodedCategory,  
     },
     raw: true,
   });
@@ -104,6 +106,7 @@ export const getSubCategoryForCategory = async (category) => {
     .map(item => item.SUBCATEGORY)
     .filter(subcategory => subcategory !== null && subcategory.trim() !== ''); 
 }
+
 
 export const getProductInfos = async (params) => {
   const { productline, category, subcategory, model, stock } = params;
@@ -577,13 +580,17 @@ export const getInventoryTransactionsByModel = async (model: any) => {
 
 export const getVendorNames = async () => {
   try {
-    const query = "SELECT DISTINCT Name FROM tblVendors";
-
-    const results = await sequelize.query(query, {
-      type: QueryTypes.SELECT,
+    const vendorList = await tblVendors.findAll({
+      attributes: [
+        [Sequelize.fn('DISTINCT', Sequelize.col('Name')), 'Name']
+      ],
+      order: [["Name", "ASC"]],
+      raw: true,
     });
 
-    const names = results.map((result) => result.Name);
+    const names = vendorList
+      .map((vendor) => vendor.Name)
+      .filter((name) => name !== null && name.trim() !== '');
 
     return names;
   } catch (error) {
@@ -591,6 +598,7 @@ export const getVendorNames = async () => {
     throw error;
   }
 };
+
 export const getRevisions = async (instanceId: any) => {
   try {
     const bpList = await tblBP.findAll({

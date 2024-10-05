@@ -285,12 +285,9 @@ const editInit = async () => {
 };
 
 const subCategoryList = async () => {
-    // await useApiFetch("/api/materials/subcategories", {${props.selectedPartModel}
     await useApiFetch(`/api/materials/parts/${formData.PARTTYPE}`, {
     method: "GET",
     onResponse({ response }) {
-      console.log('formData.PARTTYPE', formData.PARTTYPE);
-      
       if (response.status === 200) {
         subCategory.value = response._data.body;
       }
@@ -304,7 +301,6 @@ const subCategoryList = async () => {
 const propertiesInit = async () => {
   loadingOverlay.value = true;
 
-  // await useApiFetch("/api/materials/categories", {
     await useApiFetch("/api/materials/parts/categoryList", {
     method: "GET",
     onResponse({ response }) {
@@ -315,21 +311,6 @@ const propertiesInit = async () => {
     },
     onResponseError() {
       category.value = [];
-    },
-  });
-
-
-  await useApiFetch("/api/common/partUnit", {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        partUnit.value = response._data.body
-          .map((item) => item.unit)
-          .filter((unit) => unit !== null && unit !== undefined);
-      }
-    },
-    onResponseError() {
-      partUnit.value = [];
     },
   });
 
@@ -345,6 +326,20 @@ const propertiesInit = async () => {
     },
   });
 
+  await useApiFetch("/api/common/partUnit", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        partUnit.value = response._data.body
+          .map((item) => item.unit)
+          .filter((unit) => unit !== null && unit !== undefined);
+      }
+    },
+    onResponseError() {
+      partUnit.value = [];
+    },
+  });
+
   await useApiFetch("/api/common/inventoryList", {
     method: "GET",
     onResponse({ response }) {
@@ -354,6 +349,18 @@ const propertiesInit = async () => {
     },
     onResponseError() {
       inventoryList.value = [];
+    },
+  });
+
+  await useApiFetch("/api/materials/parts/getVendor", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        vendorList.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      vendorList.value = []
     },
   });
 
@@ -367,22 +374,12 @@ const propertiesInit = async () => {
         }
       },
       onResponseError() {
-        // orders = []
+        InventoryTransactions.value = []
       },
     }
   );
 
-  await useApiFetch("/api/materials/parts/getVendor", {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        vendorList.value = response._data.body;
-      }
-    },
-    onResponseError() {
-      // orders = []
-    },
-  });
+
 
   await useApiFetch(
     `/api/materials/parts/getJobsTotal?instanceId=${props.selectedPartInstace}`,
@@ -659,6 +656,16 @@ const handleUpload = async () => {
     });
   }
 };
+
+watch(
+  () => formData.PARTTYPE,
+  (newVal) => {
+    if (newVal) {
+      subCategoryList(); 
+    }
+  }
+);
+
 </script>
 
 <template>
