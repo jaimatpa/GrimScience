@@ -3,7 +3,13 @@ import type { UTableColumn } from "~/types";
 
 const emit = defineEmits(["rowSelectedProduct", "close"]);
 
-console.log(emit);
+
+
+const handleSelect = ()=>{
+  emit("rowSelectedProduct",  gridMeta.value.selectProduct);
+  emit("close");
+}
+
 
 onMounted(() => {
   init();
@@ -233,10 +239,8 @@ const onSelect = async (row) => {
   gridMeta.value.selectProduct = row;
 
 };
-const handleSelect = ()=>{
-  
-  emit("rowSelectedProduct",  gridMeta.value.selectProduct);
-}
+
+
 const onDblClick = async () => {
   if (gridMeta.value.selectedProductId) {
     modalMeta.value.modalTitle = "Edit";

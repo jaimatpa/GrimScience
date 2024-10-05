@@ -19,6 +19,7 @@ import tblJobs from "~/server/models/tblJobs";
 import sequelize from "~/server/utils/databse";
 
 const applyFilters = (params) => {
+ 
   console.log("Received params:", params);
 
   const filterParams = [

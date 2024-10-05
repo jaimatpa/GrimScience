@@ -24,11 +24,14 @@ const handleSelect = ()=>{
 }
 
 const props = defineProps({
-
   isPage: {
     type: Boolean,
     default:false,
   },
+  isSelectButton:{
+    type: Boolean,
+    default:false,
+  }
 });
 
 const headerFilters = ref({
@@ -96,7 +99,7 @@ const gridMeta = ref({
   customers: [],
   selectedCustomerId: null,
   selectedPartInstanceId:null,
-    selectProduct: null,
+  selectProduct: null,
   selectedPartModdel:null,
   sort: {
     column: "UniqueID",
@@ -462,7 +465,7 @@ const onDblClick = async () => {
         </div>
       </div>
      
-      <div v-if="!props.isPage">
+      <div v-if="props.isSelectButton">
           <div class="mt-3 w-[120px]">
             <UButton
               icon="i-heroicons-cursor-arrow-ripple"
@@ -479,6 +482,8 @@ const onDblClick = async () => {
             </UButton>
           </div>
         </div>
+
+        
     </UDashboardPanel>
   </UDashboardPage>
   <!-- Parts Detail Modal -->

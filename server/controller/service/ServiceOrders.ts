@@ -3,6 +3,7 @@ import { tblCustomers, tblComplaints, tblServiceReport, tblInventoryTransactions
 import { format } from 'date-fns';
 
 export const getServiceTotalBuilt = async (filterParams) => {
+ 
   tblInventory.belongsTo(tblBP, { foreignKey: 'BPID', targetKey: 'UniqueID' });
   tblBP.hasMany(tblInventory, { foreignKey: 'BPID', sourceKey: 'UniqueID' });
 
@@ -28,6 +29,7 @@ export const getServiceTotalBuilt = async (filterParams) => {
 };
 
 export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filterParams) => {
+
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
   let whereClause = {}
@@ -202,6 +204,7 @@ export const getAllServiceOrders = async (sortBy, sortOrder, filterParams) => {
 }
 
 export const getNumberOfServiceOrders = async (filterParams) => {
+
   let whereClause = {}
   let customerWhereClause = {}
   if(filterParams.COMPLAINTNUMBER) whereClause['COMPLAINTNUMBER'] = {[Op.like]: `%${filterParams.COMPLAINTNUMBER}%`};

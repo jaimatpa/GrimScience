@@ -172,6 +172,8 @@
       })
     }
   }
+
+  
   const fetchGridData = async () => {
     gridMeta.value.isLoading = true
     await useApiFetch('/api/service/orders/numbers', {

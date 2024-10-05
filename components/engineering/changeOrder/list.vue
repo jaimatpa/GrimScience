@@ -7,11 +7,11 @@ import PartsModalPage from "../../../pages/materials/parts.vue";
 //   fetchEmployeeData();
 //   fetchReasonForChangeData();
 // });
-
+const toast = useToast();
 onMounted(async () => {
- await fetchEmployeeData();
+  await fetchEmployeeData();
   await Promise.all([
-  fetchEmployeeData(),
+    fetchEmployeeData(),
     fetchSignature(),
     fetchReasonForChangeData(),
     init(),
@@ -49,17 +49,14 @@ const partsMeta = ref({
 const onPrevieOrderBtnClick = () => {
   if (uniqueIDP.value) {
     const queryString = new URLSearchParams({ id: uniqueIDP.value }).toString();
-
     const fetchData = async (id) => {
       const pdfUrl = `/api/engineering/changeorder/pdf/${id}`;
       try {
         const response = await fetch(pdfUrl);
         console.log(response);
-
         if (!response.ok) {
           throw new Error("Failed to fetch PDF");
         }
-
         const blob = await response.blob();
         const pdfContentUrl = URL.createObjectURL(blob);
         window.open(pdfContentUrl, "_blank");
@@ -97,46 +94,45 @@ const props = defineProps({
 });
 
 const clearFields = () => {
-
-  selectedRowProducts.value={
-    productsDetails:""
-  },
-  selectedRowParts.value={
-    partsDetails:""
-  },
-  selectedRowData.value = {
-    uniqueID: "",
-    DESCRIPTION: "",
-    REASONFORCHANGE: "",
-    ISSUE: "",
-    SOLUTION: "",
-    DetailReason: "",
-    PRODUCT: "",
-    FromModel: "",
-    ToModel: "",
-    PARTS: "",
-    ENGAPPROVER: "",
-    MARAPPROVER: "",
-    ORIGINATOR: "",
-    MANAPPROVER: "",
-    ENGAPPROVAL: "",
-    MARAPPROVAL: "",
-    MANAPPROVAL: "",
-    ENGDATEAPPROVED: "",
-    MARDATEAPPROVED: "",
-    MANDATEAPPROVED: "",
-    ORIGINATORDATE: "",
-    MANCOMMENTS: "",
-    MARCOMMENTS: "",
-    ENGCOMMENTS: "",
-    COMMENTS: "",
-    PRODUCTS: "",
-    VandVNotRequired: "",
-    MANUFACTURING: "",
-    ENGINEERING: "",
-    ProductsDetails: "",
-    PartsDetails: "",
-  };
+  (selectedRowProducts.value = {
+    productsDetails: "",
+  }),
+    (selectedRowParts.value = {
+      partsDetails: "",
+    }),
+    (selectedRowData.value = {
+      uniqueID: "",
+      DESCRIPTION: "",
+      REASONFORCHANGE: "",
+      ISSUE: "",
+      SOLUTION: "",
+      DetailReason: "",
+      PRODUCT: "",
+      FromModel: "",
+      ToModel: "",
+      PARTS: "",
+      ENGAPPROVER: "",
+      MARAPPROVER: "",
+      ORIGINATOR: "",
+      MANAPPROVER: "",
+      ENGAPPROVAL: "",
+      MARAPPROVAL: "",
+      MANAPPROVAL: "",
+      ENGDATEAPPROVED: "",
+      MARDATEAPPROVED: "",
+      MANDATEAPPROVED: "",
+      ORIGINATORDATE: "",
+      MANCOMMENTS: "",
+      MARCOMMENTS: "",
+      ENGCOMMENTS: "",
+      COMMENTS: "",
+      PRODUCTS: "",
+      VandVNotRequired: "",
+      MANUFACTURING: "",
+      ENGINEERING: "",
+      ProductsDetails: "",
+      partsDetail: "",
+    });
 
   Description.value = "";
   IssueDetails.value = "";
@@ -169,7 +165,7 @@ const clearFields = () => {
   manufacturingDate.value = "";
   engineeringDate.value = "";
   productsDetails.value = "";
-  partsDetails.value = "";
+  partsDetail.value = "";
   CompleteDate.value = "";
   verificationNotRequired.value = false;
 };
@@ -185,6 +181,8 @@ const selectedRowData = ref({
   FromModel: "",
   ToModel: "",
   PARTS: "",
+  ProductsDetails: "",
+  PartsDetails: "",
   ENGAPPROVER: "",
   MARAPPROVER: "",
   ORIGINATOR: "",
@@ -207,8 +205,6 @@ const selectedRowData = ref({
   MANUFACTURING: "",
   MARKETING: "",
   ENGINEERING: "",
-  ProductsDetails: "",
-  PartsDetails: "",
 });
 
 const formatDate = (date) => {
@@ -257,11 +253,10 @@ const handleRowSelected = (row) => {
     VandVNotRequired: row.VandVNotRequired,
     ENGINEERING: row.ENGINEERING,
     MANUFACTURING: row.MANUFACTURING,
-   ProductsDetails: row.ProductsDetails,
+    ProductsDetails: row.ProductsDetails,
     PRODUCTS: row.PRODUCTS,
-    //  PartsDetails: row.PARTS,
+    PartsDetails: row.PartsDetails,
   };
-
   Description.value = row.DESCRIPTION;
   IssueDetails.value = row.ISSUE;
   solutionOrder.value = row.SOLUTION;
@@ -294,9 +289,11 @@ const handleRowSelected = (row) => {
   marketingDate.value = formatDate(row.MARDATEAPPROVED);
   originatorDate.value = row.ORIGINATORDATE;
   engineeringDate.value = formatDate(row.ENGDATEAPPROVED);
-  productsDetails.value = row.PRODUCTS;
-  partsDetails.value = row.PARTS;
-  
+  products.value = row.PRODUCTS;
+  productsDetails.value = row.ProductsDetails;
+  parts.value = row.PARTS;
+  partsDetail.value = row.PartsDetails;
+
   // Handle PRODUCTS field
   if (typeof row.PRODUCTS === "string" && row.PRODUCTS.trim()) {
     selectedRowProducts.value.productsArray = row.PRODUCTS.split(",").map(
@@ -315,7 +312,7 @@ const handleRowSelected = (row) => {
 
   updateProductsDetails();
 
-// ok code 
+  // ok code
   if (typeof row.PARTS === "string" && row.PARTS.trim()) {
     selectedRowParts.value.partsArray = row.PARTS.split(",").map((part) => {
       const [model, ...descriptionParts] = part.trim().split(" ");
@@ -331,11 +328,10 @@ const handleRowSelected = (row) => {
   updatePartsDetails();
 };
 
-
 // start list of PRODUCT
 const selectedRowProducts = ref({
   productsArray: [],
-  productsDetails: "",
+  productsData: "",
   selectedIndex: null,
 });
 
@@ -355,9 +351,12 @@ const handleRowSelectedProduct = (row) => {
   }
 };
 
+const closeProductModal = () => {
+  modalMeta.value.isCustomerModalOpen = false;
+};
 
 const updateProductsDetails = () => {
-  selectedRowProducts.value.productsDetails =
+  selectedRowProducts.value.productsData =
     selectedRowProducts.value.productsArray
       .map((product) => `${product.UniqueID} ${product.PRODUCTLINE}`)
       .join(", ");
@@ -370,7 +369,6 @@ const handleSelectProduct = (index) => {
 
 const handleRemoveProduct = () => {
   const indexToRemove = selectedRowProducts.value.selectedIndex;
-
   if (indexToRemove !== null) {
     selectedRowProducts.value.productsArray.splice(indexToRemove, 1);
     selectedRowProducts.value.selectedIndex = null;
@@ -378,16 +376,14 @@ const handleRemoveProduct = () => {
   }
 };
 
-// start list of parts
-
 const selectedRowParts = ref({
   partsArray: [],
-  partsDetails: "",
+  partsData: "",
   selectedIndex: null,
 });
 
 const handleSelectedPart = (row) => {
-  console.log(row)
+  console.log(row);
   const partExists = selectedRowParts.value.partsArray.some(
     (part) => part.MODEL === row.MODEL && part.DESCRIPTION === row.DESCRIPTION
   );
@@ -401,10 +397,12 @@ const handleSelectedPart = (row) => {
   }
 };
 
-
+const closePartsModal = () => {
+  partsMeta.value.isPartsModalOpen = false;
+};
 
 const updatePartsDetails = () => {
-  selectedRowParts.value.partsDetails = selectedRowParts.value.partsArray
+  selectedRowParts.value.partsData = selectedRowParts.value.partsArray
     .map((part) => `${part.MODEL} ${part.DESCRIPTION}`)
     .join(", ");
 };
@@ -416,7 +414,6 @@ const handleSelectPart = (index) => {
 
 const handleRemovePart = () => {
   const indexToRemove = selectedRowParts.value.selectedIndex;
-
   if (indexToRemove !== null) {
     selectedRowParts.value.partsArray.splice(indexToRemove, 1);
     selectedRowParts.value.selectedIndex = null;
@@ -424,6 +421,9 @@ const handleRemovePart = () => {
   }
 };
 
+const partsSelectButton = ref(true);
+const shouldRefresh = ref(false);
+const fetchInterval = ref(null);
 const uniqueIDP = ref(null);
 const selectedRow = ref(null);
 const SignatureList = ref([]);
@@ -432,7 +432,9 @@ const changeReason = ref([]);
 const originatorData = ref("");
 const originatorDate = ref("");
 const productsDetails = ref("");
-const partsDetails = ref("");
+const products = ref("");
+const partsDetail = ref("");
+const parts = ref("");
 const engineeringCheck = ref(false);
 const engineeringData = ref("");
 const engineeringDate = ref("");
@@ -471,14 +473,16 @@ const submitInsertForm = async () => {
     REASONFORCHANGE: changeReasonData.value,
     PRODUCT: productLineOption.value,
     // PRODUCTS: productsDetails.value,
-    PRODUCTS: selectedRowProducts.value.productsDetails,
+    PRODUCTS: selectedRowProducts.value.productsData,
     SOLUTION: solutionOrder.value,
     DESCRIPTION: Description.value,
     DetailReason: DetailsReasonChange.value,
     FromModel: fromModel.value,
     ToModel: toModel.value,
-    // PARTS: partsDetails.value,
-    PARTS: selectedRowParts.value.partsDetails,
+    // PARTS: parts.value,
+    PARTS: selectedRowParts.value.partsData,
+    ProductsDetails: productsDetails.value,
+    PartsDetails: partsDetail.value,
     ISSUE: IssueDetails.value,
     VandVNotRequired: verificationNotRequired.value ? "0" : "-1",
     // VandVNotRequired: verificationNotRequired.value,
@@ -490,8 +494,8 @@ const submitInsertForm = async () => {
     ENGAPPROVAL: engineeringBoolean.value,
     ENGCOMMENTS: engineeringComments.value,
     MARKETING: marketingCheck.value,
-    MARAPPROVER: marketingData.value.label || "", 
-    MARDATEAPPROVED: marketingDate.value ,
+    MARAPPROVER: marketingData.value.label || "",
+    MARDATEAPPROVED: marketingDate.value,
     MARAPPROVAL: marketingBoolean.value,
     MARCOMMENTS: marketingComments.value,
     MANUFACTURING: manufacturingCheck.value,
@@ -505,10 +509,8 @@ const submitInsertForm = async () => {
     COMMENTS: commentsComplete.value,
   };
 
-  const toast = useToast();
-
-  console.log(formData);
-  debugger;
+  // console.log(formData);
+  // debugger
   try {
     const response = await useApiFetch(
       "/api/engineering/changeorder/postOrder",
@@ -525,7 +527,9 @@ const submitInsertForm = async () => {
         icon: "i-heroicons-check-circle",
         color: "green",
       });
+
       clearFields();
+      shouldRefresh.value = true;
     } else {
       console.error("Submission failed:", response.body.message);
     }
@@ -533,8 +537,6 @@ const submitInsertForm = async () => {
     console.error("Error during form submission:", error);
   }
 };
-
-const fetchInterval = ref(null);
 
 const fetchEmployeeData = async () => {
   try {
@@ -691,20 +693,21 @@ const init = async () => {
   }
 };
 
-const handleChange = (field, newValue) => {
-  formState[field] = newValue;
-};
+// const handleChange = (field, newValue) => {
+//   formState[field] = newValue;
+// };
 </script>
 <template>
   <!-- Top product line search option start-->
   <EngineeringChangeOrderDetail
     :is-page="true"
     @row-selected="handleRowSelected"
+    :shouldRefresh="shouldRefresh"
   />
   <!-- Top product line search option End-->
-
   <UCard class="mb-6">
-    <UForm :schema="formSchema" :state="formState" class="space-y-6">
+    <!-- <UForm :schema="formSchema" :state="formState" class="space-y-6"> -->
+    <UForm class="space-y-6">
       <div class="flex flex-row space-x-6">
         <div class="basis-1/10 max-w-[300px] min-w-[150px]">
           <p
@@ -713,8 +716,6 @@ const handleChange = (field, newValue) => {
             {{ uniqueIdNumber || 0 }}
           </p>
         </div>
-
-        <!-- Right side select dropdown -->
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <UFormGroup label="Product Line" name="productLine">
             <USelect
@@ -727,7 +728,6 @@ const handleChange = (field, newValue) => {
       </div>
 
       <div class="flex flex-row space-x-3 pb-4">
-        <!-- Left side select dropdown -->
         <div class="basis-1/5 max-w-[300px] min-w-[150px] mr-4">
           <UFormGroup label="Reason For Change" name="changeReason">
             <USelect
@@ -737,8 +737,6 @@ const handleChange = (field, newValue) => {
             />
           </UFormGroup>
         </div>
-
-        <!-- Right side textarea -->
         <div class="w-full">
           <UFormGroup
             label="Action/ Description (40 Characters )"
@@ -765,7 +763,6 @@ const handleChange = (field, newValue) => {
       </div>
 
       <div class="flex flex-row space-x-4 mt-[4px]">
-        <!-- Left side: Textarea for Solution -->
         <div class="w-1/2">
           <UFormGroup
             label="Solution( 100 characters or Less)"
@@ -774,8 +771,6 @@ const handleChange = (field, newValue) => {
             <UTextarea v-model="solutionOrder" />
           </UFormGroup>
         </div>
-
-        <!-- Right side: Checkbox -->
         <div class="w-1/2 mt-[30px] ml-[20px]">
           <UCheckbox
             v-model="verificationNotRequired"
@@ -784,21 +779,17 @@ const handleChange = (field, newValue) => {
           />
         </div>
       </div>
-
       <div class="flex flex-row space-x-4 mt-[4px]">
-        <!-- First input field -->
         <div class="w-1/4">
           <UFormGroup label="From Model" name="fromModel">
             <UInput v-model="fromModel" />
           </UFormGroup>
         </div>
-
         <div class="w-1/4">
           <UFormGroup label="To Model" name="toModel">
             <UInput v-model="toModel" />
           </UFormGroup>
         </div>
-
         <div class="w-1/2">
           <UFormGroup
             label="Please Details Reason For Change"
@@ -808,31 +799,29 @@ const handleChange = (field, newValue) => {
           </UFormGroup>
         </div>
       </div>
-
       <div class="flex flex-row space-x-4">
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup
               class="flex-1"
-              label="Parts and Affect"
+              label="Parts and Affected"
               name="PartsAffect"
             >
               <UInput class="h-full" />
             </UFormGroup>
             <UButton
               @click="onOpenParts()"
-              class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[30px] ml-[10px]"
+              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[30px] ml-[10px]"
             >
               Find
             </UButton>
           </div>
         </div>
-
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <h2 class="text-left">Products Affected</h2>
             <UButton
-              class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[30px]"
+              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[30px]"
               @click="onOpenProduct()"
             >
               Find
@@ -840,7 +829,6 @@ const handleChange = (field, newValue) => {
           </div>
         </div>
       </div>
-
       <div class="flex flex-row space-x-4">
         <div class="w-3/4 flex flex-col">
           <div
@@ -849,13 +837,16 @@ const handleChange = (field, newValue) => {
             <div
               v-for="(part, index) in selectedRowParts.partsArray"
               :key="index"
-              class="flex items-center"
+              class="flex items-center pl-[8px] pt-[5px]"
             >
               <div
                 @click="handleSelectPart(index)"
                 :class="[
                   'cursor-pointer',
-                  { 'bg-green-100 ': selectedRowParts.selectedIndex === index },
+                  {
+                    'bg-sky-200 px-[10px] ':
+                      selectedRowParts.selectedIndex === index,
+                  },
                 ]"
               >
                 #{{ part.MODEL }} {{ part.DESCRIPTION }}
@@ -863,7 +854,6 @@ const handleChange = (field, newValue) => {
             </div>
           </div>
         </div>
-
         <div class="w-3/4 flex flex-col">
           <div
             class="h-[70px] overflow-y-auto border-2 border-gray-300 rounded-md"
@@ -871,58 +861,52 @@ const handleChange = (field, newValue) => {
             <div
               v-for="(product, index) in selectedRowProducts.productsArray"
               :key="index"
-              class="flex items-center"
+              class="flex items-center pl-[8px] pt-[5px]"
             >
               <div
                 @click="handleSelectProduct(index)"
                 :class="[
                   'cursor-pointer',
                   {
-                    'bg-green-100': selectedRowProducts.selectedIndex === index,
+                    'bg-sky-200 px-[10px] ':
+                      selectedRowProducts.selectedIndex === index,
                   },
                 ]"
               >
-                #{{product.UniqueID}} {{product.PRODUCTLINE}}
+                #{{ product.UniqueID }} {{ product.PRODUCTLINE }}
               </div>
             </div>
           </div>
         </div>
-        <!-- <div class="w-3/4 flex flex-col">
-          <UTextarea v-model="productsDetails" class="w-full" readonly/>
-        </div> -->
       </div>
-
       <div class="flex flex-row space-x-4">
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup class="flex-1" name="firstInput">
-              <UInput class="h-full" />
+              <UInput v-model="partsDetail" class="h-full" />
             </UFormGroup>
-
             <UButton
               @click="handleRemovePart"
-              class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
+              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[10px] ml-[10px]"
             >
               Remove
             </UButton>
           </div>
         </div>
-
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup class="flex-1" name="firstInput">
-              <UInput class="h-full" />
+              <UInput v-model="productsDetails" class="h-full" />
             </UFormGroup>
             <UButton
               @click="handleRemoveProduct"
-              class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
+              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[10px] ml-[10px]"
             >
               Remove
             </UButton>
           </div>
         </div>
       </div>
-
       <div class="px-[20px] pb-[20px]">
         <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-8">
           <div
@@ -1089,15 +1073,16 @@ const handleChange = (field, newValue) => {
           </div>
         </div>
       </div>
-
       <div class="flex justify-end space-x-4">
         <UButton
+          class="px-[30px]"
           @click="submitInsertForm"
           color="green"
           label="Add"
           icon="i-heroicons-plus"
         />
         <UButton
+          class="px-[30px]"
           @click="submitInsertForm"
           color="blue"
           label="Modify"
@@ -1105,6 +1090,7 @@ const handleChange = (field, newValue) => {
         />
 
         <UButton
+          class="px-[30px]"
           @click="clearFields"
           color="red"
           label="Clear Form"
@@ -1113,6 +1099,7 @@ const handleChange = (field, newValue) => {
 
         <div>
           <UButton
+            class="px-[30px]"
             color="gray"
             label="Preview ECO"
             icon="i-heroicons-eye"
@@ -1135,7 +1122,6 @@ const handleChange = (field, newValue) => {
           />
         </div>
       </div>
-
       <UDivider />
     </UForm>
   </UCard>
@@ -1156,7 +1142,10 @@ const handleChange = (field, newValue) => {
       width: 'w-[3000px] sm:max-w-7xl',
     }"
   >
-    <ProductsProductList @rowSelectedProduct="handleRowSelectedProduct" />
+    <ProductsProductList
+      @rowSelectedProduct="handleRowSelectedProduct"
+      @close="closeProductModal"
+    />
   </UDashboardModal>
 
   <UDashboardModal
@@ -1175,6 +1164,10 @@ const handleChange = (field, newValue) => {
       width: 'w-[4000px] sm:max-w-7xl',
     }"
   >
-    <PartsModalPage @rowSelectedParts="handleSelectedPart" />
+    <PartsModalPage
+      @rowSelectedParts="handleSelectedPart"
+      @close="closePartsModal"
+      :isSelectButton="partsSelectButton"
+    />
   </UDashboardModal>
 </template>

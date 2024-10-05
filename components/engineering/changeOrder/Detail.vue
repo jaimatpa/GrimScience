@@ -5,11 +5,25 @@ import { defineEmits } from "vue";
 onMounted(() => {
   init();
   fetchGridData();
-
 });
 
 useSeoMeta({
   title: "Grimm-Service Orders",
+});
+
+const props = defineProps({
+  shouldRefresh: {
+    type: Boolean,
+  },
+  isPage: {
+    type: [Boolean, null],
+  },
+});
+
+watchEffect(() => {
+  if (props.shouldRefresh) {
+    fetchGridData();
+  }
 });
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
@@ -28,7 +42,7 @@ const headerFilters = ref({
 const headerCheckboxes = ref({
   open: {
     label: "Show Open Only",
-    filterKey: "OPENCASE",
+    filterKey: "YES",
     isChecked: true,
   },
 });
@@ -86,6 +100,15 @@ const gridMeta = ref({
   isLoading: false,
 });
 
+const formattedOrders = computed(() => {
+  return gridMeta.value.orders.map((order) => {
+    return {
+      ...order,
+      DESCRIPTION: order.DESCRIPTION.split(" ").slice(0, 5).join(" "),
+    };
+  });
+});
+
 const modalMeta = ref({
   isServiceOrderModalOpen: false,
 });
@@ -101,14 +124,19 @@ const filterValues = ref({
   APPROVAL: null,
 });
 
-const handleCheckboxChange = (key, isChecked) => {
-  filterValues.value[key] = isChecked ? "Yes" : "No";
+const handleCheckboxChange = () => {
+  filterValues.value.APPROVAL =
+    filterValues.value.APPROVAL === "No" ? "Yes" : "No";
 };
-const props = defineProps({
-  isPage: {
-    type: [Boolean, null],
+
+watch(
+  filterValues,
+  (newVal) => {
+    fetchGridData();
   },
-});
+  { deep: true }
+);
+
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
 const columns = computed(() =>
@@ -186,10 +214,12 @@ const handleModalSave = async () => {
 const handlePageChange = async () => {
   fetchGridData();
 };
-const handleFilterChange = () => {
-  gridMeta.value.page = 1;
-  fetchGridData();
-};
+
+// const handleFilterChange = () => {
+//   gridMeta.value.page = 1;
+//   fetchGridData();
+// };
+
 const handleSortingButton = async (btnName: string) => {
   gridMeta.value.page = 1;
   for (const column of columns.value) {
@@ -248,12 +278,10 @@ const excelExport = () => {
 };
 
 const emit = defineEmits(["rowSelected", "rowDoubleClicked"]);
-
 const onSelect = (row) => {
   console.log(row);
   emit("rowSelected", row);
 };
-
 const onDblClick = () => {
   emit("rowDoubleClicked");
 };
@@ -276,7 +304,7 @@ const onDblClick = () => {
                 <USelect
                   v-model="filterValues.PRODUCT"
                   :options="headerFilters.productLines.options"
-                  @change="handleFilterChange()"
+                  @change="() => handleCheckboxChange()"
                 />
               </UFormGroup>
             </div>
@@ -307,8 +335,8 @@ const onDblClick = () => {
                     color="green"
                     variant="outline"
                     :label="checkbox.label"
-                    :modelValue="filterValues[checkbox.filterKey] === 'Yes'"
-                     @change="handleFilterChange()"
+                    :modelValue="filterValues[checkbox.filterKey] === 'No'"
+                    @change="() => handleCheckboxChange(checkbox.filterKey)"
                   />
                 </div>
               </template>
@@ -316,9 +344,9 @@ const onDblClick = () => {
           </div>
         </template>
       </UDashboardToolbar>
-
+      <!-- :rows="gridMeta.orders" -->
       <UTable
-        :rows="gridMeta.orders"
+        :rows="formattedOrders"
         :columns="columns"
         :loading="gridMeta.isLoading"
         class="w-full"
@@ -326,10 +354,10 @@ const onDblClick = () => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            padding: 'pb-0',
+            padding:'pb-0',
           },
           td: {
-            padding: 'py-1',
+            padding:'py-1',
           },
         }"
         :empty-state="{
@@ -341,7 +369,7 @@ const onDblClick = () => {
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.key === 'failure'">
-            <div class="">
+            <div>
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange"
@@ -362,7 +390,7 @@ const onDblClick = () => {
           </template>
 
           <template v-else>
-            <div class="">
+            <div>
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange"

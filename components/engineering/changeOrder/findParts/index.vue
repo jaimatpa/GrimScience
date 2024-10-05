@@ -1,4 +1,4 @@
-<script>
+<!-- <script>
 import FindPartsPage from "../../../../pages/materials/parts.vue"
 </script>
 
@@ -7,4 +7,4 @@ import FindPartsPage from "../../../../pages/materials/parts.vue"
     
 <FindPartsPage />
 
-</template>
+</template> -->
