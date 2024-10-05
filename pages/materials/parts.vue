@@ -192,8 +192,6 @@ const fetchGridData = async () => {
     },
     onResponse({ response }) {
       if (response.status === 200) {
-        console.log("response._data.body", response._data.body);
-
         gridMeta.value.partsList = response._data.body;
       }
       gridMeta.value.isLoading = false;

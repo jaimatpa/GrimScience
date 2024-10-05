@@ -23,6 +23,10 @@ const props = defineProps({
     required: true,
   },
 });
+console.log('props.selectedParts', props.selectedParts);
+
+console.log('props.selectedPartInstace', props.selectedPartInstace);
+
 
 const accountList = ref([]);
 const revisions = ref([]);
@@ -175,7 +179,7 @@ const formData = reactive({
   PARTTYPE: null,
   SPECIFICATIONS: null,
   DESCRIPTION: null,
-  // STOCKNUMBER: null,
+  STOCKNUMBER: null,  //find qtyordered from MRP2 
   UNIT: null,
   MULTIPLE: null,
   CODE: null,
@@ -220,7 +224,6 @@ const formData = reactive({
   PARADYNAMIXCATEGORY: null,
   CRYOTHERMWARMTANKSWITCHABLE: null,
   VariablePricing: null,
-  BuiltInHouse: null,
   minimum: null,
   CryothermCorianNumber: null,
   CryothermPcoatNumber: null,
@@ -237,14 +240,15 @@ const formData = reactive({
   InspectionLevel: null,
   MDET: null,
   MDET1: null,
+  SubassemblyInventoried: null,
+  ETLCriticalComponent: null,
   override: null,
+  BuiltInHouse: null,
   grossprofit: null,
   CryoThermControlPanelNumber: null,
   CryoThermHeaterNumber: null,
   amps: null,
-  ETLCriticalComponent: null,
   sds: null,
-  SubassemblyInventoried: null,
   LeftTankAssembly: null,
   RightTankAssembly: null,
   RevisedBy: null,
@@ -280,24 +284,13 @@ const editInit = async () => {
   fetchWorkCentersBy();
 };
 
-const propertiesInit = async () => {
-  loadingOverlay.value = true;
-
-  await useApiFetch("/api/materials/categories", {
+const subCategoryList = async () => {
+    // await useApiFetch("/api/materials/subcategories", {${props.selectedPartModel}
+    await useApiFetch(`/api/materials/parts/${formData.PARTTYPE}`, {
     method: "GET",
     onResponse({ response }) {
-      if (response.status === 200) {
-        category.value = response._data.body;
-      }
-    },
-    onResponseError() {
-      category.value = [];
-    },
-  });
-
-  await useApiFetch("/api/materials/subcategories", {
-    method: "GET",
-    onResponse({ response }) {
+      console.log('formData.PARTTYPE', formData.PARTTYPE);
+      
       if (response.status === 200) {
         subCategory.value = response._data.body;
       }
@@ -306,6 +299,25 @@ const propertiesInit = async () => {
       subCategory.value = [];
     },
   });
+}
+
+const propertiesInit = async () => {
+  loadingOverlay.value = true;
+
+  // await useApiFetch("/api/materials/categories", {
+    await useApiFetch("/api/materials/parts/categoryList", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        category.value = response._data.body;
+        subCategoryList();
+      }
+    },
+    onResponseError() {
+      category.value = [];
+    },
+  });
+
 
   await useApiFetch("/api/common/partUnit", {
     method: "GET",
@@ -324,7 +336,6 @@ const propertiesInit = async () => {
   await useApiFetch("/api/common/getInspectionNumbers", {
     method: "GET",
     onResponse({ response }) {
-      console.log("insepctionList", response);
       if (response.status === 200) {
         insepctionList.value = response._data.body;
       }
@@ -337,7 +348,6 @@ const propertiesInit = async () => {
   await useApiFetch("/api/common/inventoryList", {
     method: "GET",
     onResponse({ response }) {
-      console.log("insepctionList", response);
       if (response.status === 200) {
         inventoryList.value = response._data.body;
       }
@@ -493,7 +503,7 @@ const revision = async () => {
           if (response.status === 200) {
             toast.add({
               title: "Success",
-              description: "Revision Add",
+              description: "Revision Added successfully!",
               icon: "i-heroicons-check-circle",
               color: "green",
             });
@@ -544,6 +554,13 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   } catch (error) {
     console.error("Error uploading files:", error);
     alert("An error occurred while uploading the files. Please try again.");
+  }
+
+  if (event.data.SubassemblyInventoried === true) {
+    event.data.SubassemblyInventoried = -1;
+  }
+  if (event.data.override === true) {
+    event.data.override = -1;
   }
 
   if (props.selectedParts != null) {
@@ -668,6 +685,13 @@ const handleUpload = async () => {
         <div class="space-y-4">
           <div class="gmsBlueTitlebar ps-2 py-1.5 text-white font-bold">
             Part Information
+          </div>
+
+          <div class="flex flex-row space-x-4">
+            <UCheckbox v-model="formData.SubassemblyInventoried" :checked="formData.SubassemblyInventoried === '-1'" label="Job Subassembly" class="basis-1/4"/>
+            <UCheckbox v-model="formData.ETLCriticalComponent" :checked="formData.ETLCriticalComponent === true" label="ETL Critical Component" class="basis-1/4"/>
+            <UCheckbox v-model="formData.override" :checked="formData.override === '-1'" label="Selling Price Override" class="basis-1/4"/>
+            <UCheckbox v-model="formData.BuiltInHouse" :checked="formData.BuiltInHouse === true" label="Ignore Manufacturing Cost" class="basis-1/4"/>
           </div>
 
           <div class="flex flex-row space-x-4">

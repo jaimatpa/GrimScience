@@ -49,22 +49,6 @@ export const getProductCategories = async (filterParams) => {
   return productLineValues;
 };
 
-export const getSubCategoryForCategory = async (category) => {
-  const subcategoryList = await tblBP.findAll({
-    attributes: [
-      [Sequelize.fn('DISTINCT', Sequelize.col('SUBCATEGORY')), 'SUBCATEGORY']
-    ],
-    where: {
-      PARTTYPE: category,
-    },
-    raw: true,
-  });
-
-  return subcategoryList
-    .map(item => item.SUBCATEGORY)
-    .filter(subcategory => subcategory !== null && subcategory.trim() !== ''); 
-}
-
 export const getProductSubCategories = async (filterParams) => {
   const { productline, category, partflag } = filterParams;
   let where = {};
@@ -91,6 +75,35 @@ export const getProductSubCategories = async (filterParams) => {
 
   return productLineValues;
 };
+
+export const getCategoryList = async () => {
+  const partCategories = await tblBP.findAll({
+    attributes: [
+      [Sequelize.fn("DISTINCT", Sequelize.col("PARTTYPE")), "PARTTYPE"],
+    ],
+  });
+
+  return partCategories
+    .map(item => item.PARTTYPE)
+    .filter(category => category !== null && category.trim() !== ''); 
+};
+
+
+export const getSubCategoryForCategory = async (category) => {
+  const subcategoryList = await tblBP.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('SUBCATEGORY')), 'SUBCATEGORY']
+    ],
+    where: {
+      PARTTYPE: category,
+    },
+    raw: true,
+  });
+
+  return subcategoryList
+    .map(item => item.SUBCATEGORY)
+    .filter(subcategory => subcategory !== null && subcategory.trim() !== ''); 
+}
 
 export const getProductInfos = async (params) => {
   const { productline, category, subcategory, model, stock } = params;
