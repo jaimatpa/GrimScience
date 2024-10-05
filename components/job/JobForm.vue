@@ -48,11 +48,12 @@ const multipleSerialSelect = ref([]);
 const multipleEmployeeSelect = ref([]);
 const prodHrs = ref(0);
 const subHrs = ref(0);
-const unitCost = ref();
+const unitCost = ref(null);
 const reScheduleOp = ref(null)
 const destOp = ref(null)
 const operationHourInputDisable = ref(true)
 const reworkCost = ref(0)
+const sbQty = ref(null)
 const formData = reactive({
   ReportsTo: null,
   Title: null,
@@ -114,6 +115,7 @@ watch(() => formData.PART, async (newPart) => {
 
 
 let date = new Date();
+let sbDate = new Date();
 const editInit = async () => {
   loadingOverlay.value = true;
   await useApiFetch(`/api/jobs/${props.selectedJob}`, {
@@ -229,7 +231,7 @@ const editInit = async () => {
   await fetchModels(formData.PRODUCTLINE)
   await getLinkedJobs()
   await getSerial()
-  // await calculateLatestUnitCost()
+  await calculateLatestUnitCost()
 
   await propertiesInit();
   loadingOverlay.value = false;
@@ -1031,6 +1033,36 @@ const handlePullIntoSerial = async () => {
   loadingOverlay.value = false
 }
 
+const handlePullIntoInventory = async () => {
+  if(sbQty.value){
+    loadingOverlay.value = true
+    await useApiFetch(`/api/jobs/pullintoinventory/`, {
+      method: "PUT",
+      body: { subSerialList: productsSBSerialGridMeta.value.products , instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, jobQty: formData.QUANTITY, qty:sbQty.value, latestUnitCost: unitCost.value, date:sbDate },
+
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
+    await getSerial()
+    loadingOverlay.value = false
+  }else{
+    toast.add({
+      title: "Success",
+      description: "Please put a quantity",
+      icon: "i-heroicons-check-circle",
+      color: "red",
+    });
+  }
+}
+
 const handleFixSerialIssue = async () => {
   loadingOverlay.value = true
   await useApiFetch(`/api/jobs/fixSerialIssue/`, {
@@ -1050,6 +1082,23 @@ const handleFixSerialIssue = async () => {
   await getSerial()
   await calculateLatestUnitCost()
   loadingOverlay.value = false
+}
+
+const correctInventory = async () => {
+  if(productsSBSerialGridMeta.value.selectedProduct !== null){
+    await useApiFetch(`/api/jobs/correctInventory/`, {
+      method: "PUT",
+      params: { jobId:props.selectedJob, employee: username, jobDetailId: productsSBSerialGridMeta.value.selectedProduct.UniqueID },
+    });
+  }else{
+    toast.add({
+      title: "Select",
+      description: "Please select a serial",
+      icon: "i-heroicons-check-circle",
+      color: "red",
+    });
+  }
+  
 }
 
 const onMultipleSerialSelect = (row) => {
@@ -1116,6 +1165,17 @@ const onSelectLinkedJob = (row) => {
       jobs.class = "bg-gray-200";
     } else {
       delete jobs.class;
+    }
+  });
+}
+
+const onSelectSBSerial = (row) => {
+  productsSBSerialGridMeta.value.selectedProduct = row
+  productsSBSerialGridMeta.value.products.forEach((product) => {
+    if (product.UniqueID === row.UniqueID) {
+      product.class = "bg-gray-200";
+    } else {
+      delete product.class;
     }
   });
 }
@@ -1757,6 +1817,7 @@ else propertiesInit();
                       padding: 'px-2 py-0',
                     },
                   }"
+                  @select="onSelectSBSerial"
                 >
                   <template #empty-state>
                     <div></div>
@@ -1790,13 +1851,14 @@ else propertiesInit();
                   base: 'w-fit',
                   truncate: 'flex justify-center w-full',
                 }"
+                @click="handlePullIntoInventory"
                 truncate
               />
             </div>
             <div class="flex space-x-3 mt-4">
               <div class="basis-1/6">
                 <UFormGroup label="Qty" name="Qty">
-                  <UInput type="number" />
+                  <UInput type="number" v-model="sbQty" />
                 </UFormGroup>
               </div>
 
@@ -1804,7 +1866,7 @@ else propertiesInit();
                 <UPopover :popper="{ placement: 'bottom-start' }">
                   <UButton
                     icon="i-heroicons-calendar-days-20-solid"
-                    :label="date && format(date, 'MM/dd/yyyy')"
+                    :label="date && format(sbDate, 'MM/dd/yyyy')"
                     variant="outline"
                     :ui="{
                       base: 'w-full',
@@ -1814,7 +1876,7 @@ else propertiesInit();
                   />
                   <template #panel="{ close }">
                     <CommonDatePicker
-                      v-model="date"
+                      v-model="sbDate"
                       is-required
                       @close="close"
                     />
@@ -1831,6 +1893,7 @@ else propertiesInit();
                     base: 'w-fit',
                     truncate: 'flex justify-center w-full',
                   }"
+                  @click="correctInventory"
                   truncate
                 />
               </div>

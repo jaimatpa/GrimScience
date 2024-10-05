@@ -124,8 +124,6 @@ export const getAllJobDetail = async (sortBy, sortOrder, filterParams) => {
     order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
   });
 
-  console.log(list)
-
   return list;
 }
 
@@ -377,106 +375,114 @@ export const pullIntoSerial = async (serialItems, instanceId, employee, perType,
   return {serialItems, message: "Serials have been added and the inventory has been updated."}
 };
 
-export const pullIntoInventory = async ({
+export const pullIntoInventory = async (
   lvwSubAssembly,
   instanceId,
+  glob_StrEmployee,
   recJoaPerType,
-  quantityInput, // TextBox2
-  dateInput, // DateTimePicker1.Value
-  recJOnQuantity, // Total job quantity
-  txtLatestUnitCost,
+  quantityInput,
+  recJOnQuantity, 
+  LatestUnitCost,
   lngJob,
-  recJOaPart, // Selected part
-  glob_StrEmployee
-}) => {
+  recJOaPart,
+  dateInput,
+  
+) => {
   try {
       if (recJoaPerType === "Serial/Unit") {
-          const qty = parseFloat(quantityInput);
-          const jobQty = parseFloat(recJOnQuantity);
+        const qty = parseFloat(quantityInput);
+        const jobQty = parseFloat(recJOnQuantity);
 
-          if (qty === 0) {
-              throw new Error("Invalid Zero Quantity.");
-          }
+        if (qty === 0 || qty === null) {
+            throw new Error("Invalid Zero Quantity.");
+        }
 
-          // Ensure entered quantity doesn't exceed the job quantity
-          let subAssemblyTotal = 0;
-          for (const li of lvwSubAssembly) { 
-              subAssemblyTotal += parseFloat(li.Quanitity);
-          }
+        lvwSubAssembly = lvwSubAssembly.filter(item => {
+          return (item.Quantity !== null && item.Quantity !== "") || item.dateEntered !== null ;
+        });
 
-          if (subAssemblyTotal + qty > jobQty) {
-              throw new Error("Entered Quantity exceeds Job Quantity. Please correct the quantity to add to inventory and try again.");
-          }
+        // Ensure entered quantity doesn't exceed the job quantity
+        let subAssemblyTotal = 0;
+        for (const li of lvwSubAssembly) { 
+          subAssemblyTotal += parseFloat(li.Quantity);
+        }
+        // if (subAssemblyTotal + qty > jobQty) {
+        //     throw new Error("Entered Quantity exceeds Job Quantity. Please correct the quantity to add to inventory and try again.");
+        // }
 
-          // Create new sub-assembly item
-          const newItem = {
-              qty,
-              dateEntered: formatDate(dateInput)
-          };
+        // Create new sub-assembly item
+        const newItem = {
+            qty,
+            dateEntered: formatDate(dateInput)
+        };
 
-          // Insert new job detail record
-          
-          const newRecord = {
-              Jobid: lngJob,
-              Quantity: qty,
-              dateEntered: newItem.dateEntered,
-              CostPerUnit: parseFloat(txtLatestUnitCost)
-          };
+        // Insert new job detail record
+        
+        const newRecord = {
+            Jobid: lngJob,
+            Quantity: qty,
+            dateEntered: newItem.dateEntered,
+            CostPerUnit: parseFloat(LatestUnitCost)
+        };
 
-          // Add new job detail record to the database
-          await sequelize.query(
-              `INSERT INTO tblJobDetail (Jobid, Quantity, dateEntered, CostPerUnit) VALUES (:Jobid, :Quantity, :dateEntered, :CostPerUnit)`,
-              {
-                  replacements: newRecord,
-                  type: QueryTypes.INSERT
-              }
-          );
-          const today = formatDateForSQLServer(new Date())
-          // Fetch the max uniqueID from tblJobDetail
-          const [{ maxUniqueID }] = await sequelize.query(`SELECT MAX(UniqueID) AS maxUniqueID FROM tblJobDetail`, { type: QueryTypes.SELECT });
+        // Add new job detail record to the database
+        // await sequelize.query(
+        //     `INSERT INTO tblJobDetail (Jobid, Quantity, dateEntered, CostPerUnit) VALUES (:Jobid, :Quantity, :dateEntered, :CostPerUnit)`,
+        //     {
+        //         replacements: newRecord,
+        //         type: QueryTypes.INSERT
+        //     }
+        // );
+        const today = formatDateForSQLServer(new Date())
+        // Fetch the max uniqueID from tblJobDetail
+        const [{ maxUniqueID }] = await sequelize.query(`SELECT MAX(UniqueID) AS maxUniqueID FROM tblJobDetail`, { type: QueryTypes.SELECT });
+        console.log( maxUniqueID )
+        // Verify inventory transaction
+        const lngTransID = await verifyInventoryTransaction("", today, glob_StrEmployee, {jobID:lngJob, jobDetailID:parseFloat(maxUniqueID)} );
 
-          // Verify inventory transaction
-          const lngTransID = await verifyInventoryTransaction("", today, glob_StrEmployee, {jobID:lngJob, jobDetailID:parseFloat(maxUniqueID)} );
+        // Add to inventory
+        await AddToInventory(qty, lngTransID);
+        await clearInventoryTransactionDetails(lngTransID);
 
-          // Add to inventory
-          await AddToInventory(qty, lngTransID);
-          await clearInventoryTransactionDetails(lngTransID);
+        // Remove from inventory plan
+        await removePlanFromInventory(qty, lngTransID, lngJob);
 
-          // Remove from inventory plan
-          await removePlanFromInventory(qty, lngTransID, lngJob);
+        // Add inventory transaction detail
+        recJOaPart = recJOaPart == "" ? "" : recJOaPart.trim().split(" ")[0]
+        await addInventoryTransactionDetail(lngTransID, recJOaPart, qty);
 
-          // Add inventory transaction detail
-          recJOaPart = recJOaPart == "" ? "" : recJOaPart.trim().split(" ")[0]
-          await addInventoryTransactionDetail(lngTransID, recJOaPart, qty);
+        // Add item to inventory transaction
+        await addItemToInventoryTransaction(qty, lngTransID, instanceId);
 
-          // Add item to inventory transaction
-          await addItemToInventoryTransaction(qty, lngTransID, instanceId);
+        // Remove from inventory using custom function
+        await removeFromInventory2(parseInt(maxUniqueID), instanceId, qty);
 
-          // Remove from inventory using custom function
-          await removeFromInventory2(parseInt(maxUniqueID), instanceId, qty);
+        // Update percentage completion
+        await await updatePercentage(lngJob);
 
-          // Update percentage completion
-          await await updatePercentage(lngJob);
+        // Update unit cost calculation
+        let jobCost = parseFloat(LatestUnitCost.replace(/[^0-9.-]+/g, ""));
+        const unitsToAdd = parseFloat(quantityInput);
+        const newUnitCost = await calculateUnitCosts(unitsToAdd, lngJob);
+        LatestUnitCost = (jobCost + newUnitCost)
 
-          // Update unit cost calculation
-          let jobCost = parseFloat(txtLatestUnitCost.replace(/[^0-9.-]+/g, ""));
-          const unitsToAdd = parseFloat(quantityInput);
-          const newUnitCost = await calculateUnitCosts(unitsToAdd, lngJob);
-          txtLatestUnitCost = (jobCost + newUnitCost).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-
-          console.log("Sub Assemblies have been added. Job has been saved.");
+        return { LatestUnitCost, message:"Sub Assemblies have been added. Job has been saved."};
 
       } else {
           throw new Error("Job is set to be completed via Operations. If you wish to complete by unit, please reopen operations and switch the type.");
       }
-
-      // LoadSubAssemblyItems(); // Implement this function if needed
 
   } catch (error) {
       console.error("Error in handleAddSubAssembly:", error.message);
       throw new Error(error.message);
   }
 };
+
+export const correctInventory = async (jobId, glob_StrEmployee, jobDetailId)=> {
+  const today = formatDateForSQLServer(new Date())
+  console.log("", today, glob_StrEmployee, {jobID:jobId, jobDetailID: jobDetailId} )
+  verifyInventoryTransaction("", today, glob_StrEmployee, {jobID:jobId, jobDetailID: jobDetailId} );
+}
 
 const addToSerialRecords = async (serialNo, jobDetailId, instanceId, employee, jobId, recJoaPerType, recJOaPart, date) => {
   try {
@@ -1168,8 +1174,8 @@ const removePlanFromInventory = async (qty, lngTransID, lngJob, strModel = '') =
     //   await IT_REMOVEPLANFROMINVENTORY(partQty, lngTransID, lngJob, model);
     // }
   } catch (error) {
-    console.log("Error in updateOnhand:",error)
-    throw new Error('Error in IT_REMOVEPLANFROMINVENTORY:', error.message);
+    console.log("Error in IT_REMOVEPLANFROMINVENTORY:",error.message)
+    throw new Error('Error in IT_REMOVEPLANFROMINVENTORY:', error);
   }
 }
 
