@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ref } from "vue";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
+import type { UTableColumn } from "~/types";
 
 const emit = defineEmits(["close", "save"]);
 const props = defineProps({
@@ -23,10 +24,11 @@ const props = defineProps({
     required: true,
   },
 });
-console.log('props.selectedParts', props.selectedParts);
+console.log('Parets ID-------', props.selectedParts);
 
-console.log('props.selectedPartInstace', props.selectedPartInstace);
+console.log('Part Instace--------', props.selectedPartInstace);
 
+console.log('Part Model--------', props.selectedPartModel);
 
 const accountList = ref([]);
 const revisions = ref([]);
@@ -53,50 +55,77 @@ const revisionsColumns = [
   },
 ];
 
-const poDetails = ref([]);
-const poDetailsColumns = [
-  {
+const purchaseGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
     key: "ponumber",
     label: "PO Number",
-  },
-  {
-    key: "uniqueid",
-    label: "Unique ID",
-  },
-  {
-    key: "date",
-    label: "Date",
-  },
-  {
-    key: "NAME",
-    label: "Name",
-  },
-  {
-    key: "ORDERED",
-    label: "Ordered",
-  },
-  {
-    key: "RECEIVED",
-    label: "Received",
-  },
-];
+    },
+    {
+      key: "uniqueid",
+      label: "Unique ID",
+    },
+    {
+      key: "date",
+      label: "Date",
+    },
+    {
+      key: "NAME",
+      label: "Name",
+    },
+    {
+      key: "ORDERED",
+      label: "Ordered",
+    },
+    {
+      key: "RECEIVED",
+      label: "Received",
+    },
+  ],
+  options: [],
+  selectedOption: null,
+  isLoading: false,
+});
 
-const InventoryTransactions = ref([]);
-const InventoryTransactionsColumns = [
-  {
+const inventoryGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
     key: "UID",
     label: "Unique ID",
-  },
-  {
-    key: "QtyChange",
-    label: "QTY",
-  },
-  {
-    key: "Dated",
-    label: "Date",
-    formatter: (value) => formatDate(value as string),
-  },
-];
+    },
+    {
+      key: "QtyChange",
+      label: "QTY",
+    },
+    {
+      key: "onhandITD",
+      label: "OnhandITD",
+    },
+    {
+      key: "Dated",
+      label: "Date",
+    },
+  ],
+  options: [],
+  selectedOption: null,
+  isLoading: false,
+});
+
+const jobDetailsGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "Expr1",
+      label: "Jobs",
+    },
+    {
+      key: "instanceID",
+      label: "Instance",
+    },
+  ],
+  options: [],
+  selectedOption: null,
+  isLoading: false,
+});
 
 const jobDetails = ref([]);
 const jobDetailsColumns = [
@@ -262,7 +291,7 @@ const editInit = async () => {
   await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
     method: "GET",
     onResponse({ response }) {
-      console.log("Get by ID----", response);
+      console.log("Get by ID ----", response);
 
       if (response.status === 200) {
         loadingOverlay.value = false;
@@ -306,7 +335,6 @@ const propertiesInit = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         category.value = response._data.body;
-        subCategoryList();
       }
     },
     onResponseError() {
@@ -352,6 +380,18 @@ const propertiesInit = async () => {
     },
   });
 
+  await useApiFetch("/api/materials/parts/accountsList", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        accountList.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      accountList.value = []
+    },
+  });
+
   await useApiFetch("/api/materials/parts/getVendor", {
     method: "GET",
     onResponse({ response }) {
@@ -370,29 +410,11 @@ const propertiesInit = async () => {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          InventoryTransactions.value = response._data.body;
+          inventoryGridMeta.value.options = response._data.body;
         }
       },
       onResponseError() {
-        InventoryTransactions.value = []
-      },
-    }
-  );
-
-
-
-  await useApiFetch(
-    `/api/materials/parts/getJobsTotal?instanceId=${props.selectedPartInstace}`,
-    {
-      method: "GET",
-      onResponse({ response }) {
-        if (response.status === 200) {
-          // console.log("jobdetails", response._data);
-          jobDetails.value = response._data;
-        }
-      },
-      onResponseError({ response }) {
-        console.error("Error fetching job details:", response);
+        inventoryGridMeta.value.options = []
       },
     }
   );
@@ -403,29 +425,34 @@ const propertiesInit = async () => {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          // console.log("the value of po", response._data.body);
-          poDetails.value = response._data.body;
+          purchaseGridMeta.value.options = response._data.body;
         }
       },
       onResponseError() {
-        // orders = []
+        purchaseGridMeta.value.options = []
+      },
+    }
+  );
+
+  await useApiFetch(
+    `/api/materials/parts/getJobsTotal?instanceId=${props.selectedPartInstace}`,
+    {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          jobDetailsGridMeta.value.options = response._data;
+          console.log("jobDetailsGridMeta.value.options", jobDetailsGridMeta.value.options);
+        }
+      },
+      onResponseError() {
+        jobDetailsGridMeta.value.options = []
       },
     }
   );
 
   getRevisions();
 
-  await useApiFetch("/api/materials/parts/accountsList", {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        accountList.value = response._data.body;
-      }
-    },
-    onResponseError() {
-      // orders = []
-    },
-  });
+
   loadingOverlay.value = false;
 };
 
@@ -439,7 +466,6 @@ const handleFileChange = (event, index) => {
   if (file && file.type === "application/pdf") {
     files.value[index] = file;
   } else {
-    // alert('Please select a PDF file.');
     event.target.value = "";
   }
 };
@@ -451,12 +477,11 @@ const getRevisions = async () => {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          // console.log("the value of revision", response._data.body);
           revisions.value = response._data.body;
         }
       },
       onResponseError() {
-        // orders = []
+        revisions.value = []
       },
     }
   );
@@ -509,7 +534,6 @@ const revision = async () => {
       }
     );
   }
-
   getRevisions();
 };
 
@@ -531,7 +555,6 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
 
     if (response.ok) {
       const responseData = await response.json();
-
       responseData.files.forEach((file) => {
         if (file.fileType === "Drawing/Manual") {
           event.data.DRAWINGCUSTOM = file.url;
@@ -565,15 +588,11 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     const isoString = now.toISOString();
     event.data.TODAY = isoString;
 
-    console.log("Edit data===========", event.data);
-
     await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
       method: "PUT",
       body: event.data,
       onResponse({ response }) {
         if (response.status === 200) {
-          console.log("Edit res---", response);
-
           toast.add({
             title: "Success",
             description: response._data.message,
@@ -656,6 +675,76 @@ const handleUpload = async () => {
     });
   }
 };
+
+const onInventorySelect = async (row) => {
+  inventoryGridMeta.value.selectedOption = row?.uniqueID;
+  console.log('inventoryGridMeta.uniqueID', row);
+
+  inventoryGridMeta.value.options.forEach((inventory) => {
+    inventory.class = inventory.uniqueID === row.uniqueID ? "bg-green-400" : undefined;
+  });
+};
+
+
+const onPurchaseSelect = async (row) => {
+  console.log('Purchase row=====', row);
+  purchaseGridMeta.value.selectedOption = row?.ponumber;
+  console.log('purchaseGridMeta.uniqueID', row);
+  purchaseGridMeta.value.options.forEach((purchase) => {
+    if (purchase.ponumber === row.ponumber) {
+        purchase.class = "bg-green-400";
+    } else {
+        delete purchase.class;
+    }
+  });
+};
+
+const onTableBtnClick = (name: string) => {  
+ if(name === 'inventory'){
+  const inventoryID = inventoryGridMeta.value.selectedOption;
+  if (inventoryID !== null) {
+      console.log("inventoryID", inventoryID);
+  } else {
+    toast.add({
+              title: "Failed",
+              description: "Please select an inventory item!",
+              icon: "i-heroicons-check-circle",
+              color: "red",
+            });
+  }
+ }
+ if(name === 'purchase'){
+  console.log('purchaseGridMeta.value.selectedOption', purchaseGridMeta.value.selectedOption);
+  const PurchaseId = purchaseGridMeta.value.selectedOption;
+  if (PurchaseId !== null) {
+      console.log("PurchaseId", PurchaseId);
+  } else {
+    toast.add({
+              title: "Failed",
+              description: "Please select a purchase item!",
+              icon: "i-heroicons-check-circle",
+              color: "red",
+            });
+  }
+ }
+};
+
+const optionOnhandITD = () => {
+  if (inventoryGridMeta.value.options.length > 0) {
+    inventoryGridMeta.value.options.forEach((inventory) => {
+      inventory.class = inventory.onhandITD > 0 ? "bg-orange-400" : undefined;
+    });
+  }
+};
+
+watch(
+  () => inventoryGridMeta.value.options,
+  (newVal) => {
+    if (newVal) {
+      optionOnhandITD(); 
+    }
+  }
+);
 
 watch(
   () => formData.PARTTYPE,
@@ -1116,19 +1205,80 @@ watch(
 
         <div class="flex flex-row space-x-8">
           <div class="basis-3/5">
+            <div class="-mt-2 flex justify-between">
+              <div class="font-bold">
+                Purchases
+              </div>
+              <UButton
+                color="cyan"
+                variant="outline"
+                label="View Purchases"
+                class="px-10"
+                @click="onTableBtnClick('purchase')"
+              />
+            </div>
+
             <UTable
-              :rows="poDetails"
-              :columns="poDetailsColumns"
-              class="h-96 w-full"
+              :rows="purchaseGridMeta.options"
+              :columns="purchaseGridMeta.defaultColumns"
+              class="h-60 w-full mt-2"
+              @select="onPurchaseSelect"
+              @dblclick="onPurchaseSelect"
+              :ui="{
+                    divide: 'divide-gray-200 dark:divide-gray-800',
+                    th: {
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                        padding: 'p-0 pb-2',
+                    },
+                    td: {
+                        padding: 'py-1',
+                    },
+                }"
+                :empty-state="{
+                    icon: 'i-heroicons-circle-stack-20-solid',
+                    label: 'No items.',
+                }"
             />
           </div>
 
           <div class="basis-2/5">
+            <div class="-mt-2 flex justify-between">
+              <div class="font-bold">
+                Inventory Transactions
+              </div>
+              <UButton
+                color="cyan"
+                variant="outline"
+                label="View Inventory Transactions"
+                class="px-10"
+                @click="onTableBtnClick('inventory')"
+              />
+            </div>
+
             <UTable
-              :columns="InventoryTransactionsColumns"
-              :rows="InventoryTransactions"
-              class="h-96 w-full"
+              :columns="inventoryGridMeta.defaultColumns"
+              :rows="inventoryGridMeta.options"
+              class="h-60 w-full mt-2"
+              @select="onInventorySelect"
+              @dblclick="onInventorySelect"
+              :ui="{
+                    divide: 'divide-gray-200 dark:divide-gray-800',
+                    th: {
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                        padding: 'p-0 pb-2',
+                    },
+                    td: {
+                        padding: 'py-1',
+                    },
+                }"
+                :empty-state="{
+                    icon: 'i-heroicons-circle-stack-20-solid',
+                    label: 'No items.',
+                }"
             />
+
           </div>
         </div>
 
@@ -1174,11 +1324,11 @@ watch(
               class="h-80 w-full"
             />
           </div>
-
+          <!-- Job Details Table -->
           <div class="col-span-2 overflow-auto">
             <UTable
-              :rows="jobDetails"
-              :columns="jobDetailsColumns"
+              :rows="jobDetailsGridMeta.options"
+              :columns="jobDetailsGridMeta.defaultColumns"
               class="h-80 w-full"
             />
           </div>

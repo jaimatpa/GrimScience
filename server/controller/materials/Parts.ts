@@ -1,3 +1,4 @@
+import { ModelLinkClass } from "@bryntum/gantt";
 import { Op, QueryTypes, Sequelize } from "sequelize";
 import { tblAccounts, tblBP, tblVendors } from "~/server/models";
 import sequelize from "~/server/utils/databse";
@@ -81,6 +82,7 @@ export const getCategoryList = async () => {
     attributes: [
       [Sequelize.fn("DISTINCT", Sequelize.col("PARTTYPE")), "PARTTYPE"],
     ],
+    order: [["PARTTYPE", "ASC"]],
   });
 
   return partCategories
@@ -99,6 +101,7 @@ export const getSubCategoryForCategory = async (category) => {
     where: {
       PARTTYPE: decodedCategory,  
     },
+    order: [["SUBCATEGORY", "ASC"]],
     raw: true,
   });
 
@@ -287,6 +290,7 @@ const applyPartFilters = (params) => {
 
   return whereClause;
 };
+
 export const getNumberOfParts = async (filterParams) => {
   const whereClause = applyPartFilters(filterParams);
 
@@ -299,6 +303,7 @@ export const getNumberOfParts = async (filterParams) => {
 
   return numberOfParts;
 };
+
 export const PartsExistByID = async (id) => {
   try {
     const count = await tblBP.count({
@@ -570,7 +575,6 @@ export const getInventoryTransactionsByModel = async (model: any) => {
       replacements: { model: model },
       type: QueryTypes.SELECT,
     });
-    console.log(results);
     return results;
   } catch (error) {
     console.error("Error fetching inventory transactions:", error);
@@ -618,6 +622,8 @@ export const getRevisions = async (instanceId: any) => {
 };
 
 export const getTotalRequiredByModel = async (model: any) => {
+  console.log('BBBBBBBBBBBBBBB', model);
+  
   try {
     const query = `
       SELECT number, ROUND(SUM(required), 0) AS TotalRequired
@@ -631,7 +637,7 @@ export const getTotalRequiredByModel = async (model: any) => {
       type: QueryTypes.SELECT,
       raw: true,
     });
-
+    console.log('RRRRRRRRRRRRR', results);
     return results;
   } catch (error) {
     throw new Error(
