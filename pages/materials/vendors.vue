@@ -8,7 +8,14 @@ import VendorTable from '~/components/materials/vendors/VendorTable.vue';
 import ViewOrderList from '~/components/materials/vendors/ViewOrderList.vue';
 // import ViewOrderList from '~/components/materials/vendors/ViewOrderList.vue';
 import type { UTableColumn } from '~/types';
-
+const props = defineProps({
+  isPage: {
+    type: Boolean,
+    required: false,
+    default: true
+  }
+});
+const emit = defineEmits(['handleSelect'])
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
 const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
@@ -54,7 +61,7 @@ const gridMeta = ref({
   pageSize: 50,
   numberOfVendors: 0,
   vendors: [],
-  selectedCustomerId: null,
+  selectedVendor: null,
   sort: {
     column: 'NUMBER',
     direction: 'asc'
@@ -165,7 +172,7 @@ const handleFilterInputChange = async (event, name) => {
 const onSelect = async (row) => {
   gridMeta.value.isLoadingDetails = true;
   gridMeta.value.modalData = row;
-
+  gridMeta.value.selectedVendor = row;
   try {
     await useApiFetch('/api/materials/vendors/vendorSuppliedParts', {
       method: 'GET',
@@ -248,6 +255,16 @@ const onPrintLabel = (row: any) => openModal('printLabel', row);
           @dblClick="onDblClick" @vendor-details-edit="onVendorDetailsEdit" @print-label="onPrintLabel"
           @parts-supplied-details="onPartsSuppliedDetails" @create-purchase-order="onCreatePurchaseOrder"
           @view-order-details="onViewOrderDetails" />
+
+        <div v-if="!props.isPage">
+          <div class="mt-3 w-[120px]">
+            <UButton icon="i-heroicons-cursor-arrow-ripple" variant="outline" color="green" label="Select" :ui="{
+              base: 'w-full',
+              truncate: 'flex justify-center w-full',
+            }" truncate @click="emit('handleSelect', gridMeta.selectedVendor)">
+            </UButton>
+          </div>
+        </div>
       </div>
       <UDashboardModal v-model="showVendorDetailsModal" title="Vendor Information" :ui="modalUIConfig">
         <Details :isVisible="showVendorDetailsModal" :data="gridMeta.modalData.vendorDetails"

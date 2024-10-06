@@ -285,6 +285,39 @@ const helpItems = [
 ];
 
 const links = [
+  // {
+  //   id: "installation-map",
+  //   label: "Installation Map",
+  //   icon: "i-heroicons-map-marker-alt",
+  //   to: "/installation-map",
+  //   backgroundClass: "bg-green-400",
+  //   activeClass: "!text-white before:!bg-green-600",
+  //   exact: true,
+  //   tooltip: {
+  //     text: "installation-map",
+  //     shortcuts: ["I", "M"],
+  //   }
+  // },
+  {
+    id: "installation-map",
+    label: "Installation Map",
+    icon: "i-heroicons-map-pin",
+    to: "/installation-map",
+    defaultOpen: route.path.startsWith("/installation-map"),
+    tooltip: {
+      text: "Installation Map",
+      shortcuts: ["I", "M"],
+    },
+    backgroundClass: "bg-green-800",
+    activeClass: "!text-white before:!bg-black/20",
+    children: [
+      {
+        label: "Map",
+        to: "/installation-map/map",
+        exact: true,
+      },
+    ],
+  },
   {
     id: "customers",
     label: "Customers",
@@ -865,13 +898,13 @@ onMounted(() => {
           <!-- <UDashboardSidebarLinks :links="footerLinks" /> -->
 
 
-          
-            <template #footer>
 
-              <!-- ~/components/UserDropdown.vue -->
-              <CommonUserDropdown class="border-t-[1px] border-white py-1 mt-[-8px]" />
-            </template>
-          
+          <template #footer>
+
+            <!-- ~/components/UserDropdown.vue -->
+            <CommonUserDropdown class="border-t-[1px] border-white py-1 mt-[-8px]" />
+          </template>
+
 
         </UDashboardSidebar>
       </UDashboardPanel>
@@ -886,9 +919,9 @@ onMounted(() => {
   </div>
 
   <UDashboardModal title="Time Entry" :ui="{
-      width: 'w-[1800px] sm:max-w-9xl',
-      body: { padding: 'py-0 sm:pt-0' },
-    }">
+    width: 'w-[1800px] sm:max-w-9xl',
+    body: { padding: 'py-0 sm:pt-0' },
+  }">
     <ServiceReportDetail :selected-complaint="null" />
   </UDashboardModal>
 

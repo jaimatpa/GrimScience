@@ -217,7 +217,7 @@ else
       </div>
       <div class="px-4 pt-2 border-[2px] border-black border-l-0 border-b-0 border-r-0 mt-1 flex flex-col space-y-2">
         <div class="flex flex-row space-x-4">
-          <div class="basis-5/12">
+          <div class="basis-5/12 h-[186px]">
             <div class="border-[1px] border-slate-300 p-2 pt-1 h-full">
               <UFormGroup label="1. Was patient treated at hospital?">
                 <div class="p-2">
@@ -236,7 +236,7 @@ else
           </div>
           <div class="basis-7/12">
             <div class="border-[1px] border-slate-300 p-3 pt-1 pb-0">
-              <UFormGroup label="2. Did physician treat injured patient?">
+              <UFormGroup label="2. Did physician trean injured patient?">
                 <div class="p-2 flex flex-row space-x-3">
                   <div class="basis-1/2">
                     <div class="flex flex-row space-x-5">
@@ -289,7 +289,7 @@ else
               </UFormGroup>
             </div>
           </div>
-          <div class="basis-7/12">
+          <div class="basis-7/12 h-[126px]">
             <div class="border-[1px] border-slate-300 p-3 pt-1 pb-0 h-full">
               <UFormGroup label="4. Indicate Nature of Injury">
                 <div class="p-2 w-full">

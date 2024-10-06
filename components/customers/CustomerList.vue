@@ -463,11 +463,7 @@ const routinesColumns = ref([
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar
-        v-if="props.isPage"
-        class="gmsPurpleHeader"
-        title="Customer List"
-      >
+      <UDashboardNavbar v-if="props.isPage" class="gmsPurpleHeader" title="Customer List">
       </UDashboardNavbar>
       <!-- {{ isPage }} -->
       <div v-if="props.isPage" class="px-4 py-2 gmsPurpleTitlebar">
@@ -477,28 +473,19 @@ const routinesColumns = ref([
       <UDashboardToolbar v-if="props.isPage">
         <template #left>
           <div class="flex flex-row space-x-3">
-            <template
-              v-for="[key, value] in Object.entries(headerFilters)"
-              :key="key"
-            >
+            <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
               <template v-if="value.options.length > 1">
                 <div class="basis-1/7 max-w-[200px]">
                   <UFormGroup :label="value.label" :name="key">
-                    <USelect
-                      v-model="filterValues[`${value.filter}`]"
-                      :options="value.options"
-                      @change="handleFilterChange()"
-                    />
+                    <USelect v-model="filterValues[`${value.filter}`]" :options="value.options"
+                      @change="handleFilterChange()" />
                   </UFormGroup>
                 </div>
               </template>
             </template>
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup label="Zip" name="zip">
-                <UInput
-                  v-model="filterValues.zip"
-                  @update:model-value="handleFilterChange()"
-                />
+                <UInput v-model="filterValues.zip" @update:model-value="handleFilterChange()" />
               </UFormGroup>
             </div>
             <div class="basis-1/7 max-w-[200px]">
@@ -511,54 +498,30 @@ const routinesColumns = ref([
           </div>
         </template>
         <template #right>
-          <UButton
-            color="green"
-            variant="outline"
-            :loading="exportIsLoading"
-            label="Export to Excel"
-            trailing-icon="i-heroicons-document-text"
-            @click="excelExport"
-          >
+          <UButton color="green" variant="outline" :loading="exportIsLoading" label="Export to Excel"
+            trailing-icon="i-heroicons-document-text" @click="excelExport">
           </UButton>
-          <UButton
-            color="green"
-            variant="outline"
-            label="New customer"
-            trailing-icon="i-heroicons-plus"
-            @click="onCreate()"
-          />
+          <UButton color="green" variant="outline" label="New customer" trailing-icon="i-heroicons-plus"
+            @click="onCreate()" />
         </template>
       </UDashboardToolbar>
 
       <div v-if="props.isPage" class="px-4 py-2 gmsPurpleTitlebar">
-        <button
-          :class="{
-            'bg-white text-black': activeTab === 'lookup',
-            gmsPurpleTitlebar: activeTab !== 'lookup',
-          }"
-          @click="setActiveTab('lookup')"
-          class="px-4 py-0.5 focus:outline-none rounded-md"
-        >
+        <button :class="{
+          'bg-white text-black': activeTab === 'lookup',
+          gmsPurpleTitlebar: activeTab !== 'lookup',
+        }" @click="setActiveTab('lookup')" class="px-4 py-0.5 focus:outline-none rounded-md">
           Lookup
         </button>
-        <button
-          :class="{
-            'bg-white text-black': activeTab === 'history',
-            gmsPurpleTitlebar: activeTab !== 'history',
-          }"
-          @click="setActiveTab('history')"
-          class="px-4 py-0.5 ml-2 focus:outline-none rounded-md"
-        >
+        <button :class="{
+          'bg-white text-black': activeTab === 'history',
+          gmsPurpleTitlebar: activeTab !== 'history',
+        }" @click="setActiveTab('history')" class="px-4 py-0.5 ml-2 focus:outline-none rounded-md">
           Customer History
         </button>
       </div>
-      <UTable
-        v-if="activeTab === 'lookup'"
-        :rows="gridMeta.customers"
-        :columns="columns"
-        :loading="gridMeta.isLoading"
-        class="w-full"
-        :ui="{
+      <UTable v-if="activeTab === 'lookup'" :rows="gridMeta.customers" :columns="columns" :loading="gridMeta.isLoading"
+        class="w-full" :ui="{
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
@@ -568,33 +531,21 @@ const routinesColumns = ref([
           td: {
             padding: 'py-1',
           },
-        }"
-        :empty-state="{
+        }" :empty-state="{
           icon: 'i-heroicons-circle-stack-20-solid',
           label: 'No items.',
-        }"
-        @select="onSelect"
-        @dblclick="onDblClick"
-      >
+        }" @select="onSelect" @dblclick="onDblClick">
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
             <div class="px-4 py-3.5">
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
-                    ? noneIcon
-                    : column?.sortDirection === 'asc'
+              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
+                  ? noneIcon
+                  : column?.sortDirection === 'asc'
                     ? ascIcon
                     : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
-              />
+                  " :filterable="column.filterable" :filter-key="column.key" />
             </div>
           </template>
           <template v-else class="bg-slate-400">
@@ -605,145 +556,95 @@ const routinesColumns = ref([
         </template>
         <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-pencil-square"
-              @click="onEdit(row)"
-            />
+            <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
           </UTooltip>
         </template>
         <template #delete-data="{ row }">
           <UTooltip text="Delete" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-trash"
-              @click="onDelete(row)"
-            />
+            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
           </UTooltip>
         </template>
       </UTable>
       <div v-else class="flex flex-col overflow-scroll">
         <div class="w-full mt-4 flex items-end justify-end pr-5">
-          <UButton
-            icon="i-f7-arrow-clockwise"
-            variant="outline"
-            color="green"
-            label="Refresh"
-            :ui="{ base: 'w-fit', truncate: 'flex justify-center w-full' }"
-            truncate
-          />
+          <UButton icon="i-f7-arrow-clockwise" variant="outline" color="green" label="Refresh"
+            :ui="{ base: 'w-fit', truncate: 'flex justify-center w-full' }" truncate />
         </div>
         <div class="grid grid-cols-2 gap-5 px-5">
           <div>
             <span>Service Order</span>
-            <UTable
-              :columns="routinesColumns"
-              :rows="[]"
-              :ui="{
-                wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'p-1',
-                },
-              }"
-            />
+            <UTable :columns="routinesColumns" :rows="[]" :ui="{
+              wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
+              th: {
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                padding: 'p-1',
+              },
+            }" />
           </div>
           <div>
             <span>Quotes</span>
-            <UTable
-              :columns="routinesColumns"
-              :rows="[]"
-              :ui="{
-                wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'p-1',
-                },
-              }"
-            />
+            <UTable :columns="routinesColumns" :rows="[]" :ui="{
+              wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
+              th: {
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                padding: 'p-1',
+              },
+            }" />
           </div>
           <div>
             <span>Invoices</span>
-            <UTable
-              :columns="invoicesGridMeta.defaultColumns"
-              :rows="invoicesGridMeta.invoices"
-              :ui="{
-                wrapper:
-                  'h-56 border-[1px] border-gray-400 dark:border-gray-700',
-                tr: {
-                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                },
-                th: {
-                  padding: 'p-1',
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                },
-                td: {
-                  padding: 'p-1',
-                },
-                checkbox: { padding: 'p-1 w-[10px]' },
-              }"
-              @select="onInvoicesSelect"
-              @dblclick="onDblInvoicesClick"
-            />
+            <UTable :columns="invoicesGridMeta.defaultColumns" :rows="invoicesGridMeta.invoices" :ui="{
+              wrapper:
+                'h-56 border-[1px] border-gray-400 dark:border-gray-700',
+              tr: {
+                active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+              },
+              th: {
+                padding: 'p-1',
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+              },
+              td: {
+                padding: 'p-1',
+              },
+              checkbox: { padding: 'p-1 w-[10px]' },
+            }" @select="onInvoicesSelect" @dblclick="onDblInvoicesClick" />
           </div>
           <div>
             <span>Site Visits</span>
-            <UTable
-              :columns="sitevisitGridMeta.defaultColumns"
-              :rows="sitevisitGridMeta.options"
-              :ui="{
-                wrapper:
-                  'h-56 border-[1px] border-gray-400 dark:border-gray-700',
-                tr: {
-                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                },
-                th: {
-                  padding: 'p-1',
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                },
-                td: {
-                  padding: 'p-1',
-                },
-                checkbox: { padding: 'p-1 w-[10px]' },
-              }"
-            />
+            <UTable :columns="sitevisitGridMeta.defaultColumns" :rows="sitevisitGridMeta.options" :ui="{
+              wrapper:
+                'h-56 border-[1px] border-gray-400 dark:border-gray-700',
+              tr: {
+                active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+              },
+              th: {
+                padding: 'p-1',
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+              },
+              td: {
+                padding: 'p-1',
+              },
+              checkbox: { padding: 'p-1 w-[10px]' },
+            }" />
           </div>
         </div>
       </div>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
-        <div
-          v-if="props.isPage && activeTab === 'lookup'"
-          class="flex flex-row justify-end mr-20 mt-1"
-        >
-          <UPagination
-            :max="7"
-            :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfCustomers | 0"
-            v-model="gridMeta.page"
-            @update:model-value="handlePageChange()"
-          />
+        <div v-if="props.isPage && activeTab === 'lookup'" class="flex flex-row justify-end mr-20 mt-1">
+          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfCustomers | 0"
+            v-model="gridMeta.page" @update:model-value="handlePageChange()" />
         </div>
 
         <div v-if="!props.isPage">
           <div class="mt-3 w-[120px]">
-            <UButton
-              icon="i-heroicons-cursor-arrow-ripple"
-              variant="outline"
-              color="green"
-              label="Select"
-              :ui="{
-                base: 'w-full',
-                truncate: 'flex justify-center w-full',
-              }"
-              truncate
-              @click="handleSelect"
-            >
+            <UButton icon="i-heroicons-cursor-arrow-ripple" variant="outline" color="green" label="Select" :ui="{
+              base: 'w-full',
+              truncate: 'flex justify-center w-full',
+            }" truncate @click="handleSelect">
             </UButton>
           </div>
         </div>
@@ -751,46 +652,31 @@ const routinesColumns = ref([
     </UDashboardPanel>
   </UDashboardPage>
   <!-- New Customer Detail Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isCustomerModalOpen"
-    :title="modalMeta.modalTitle"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1000px] sm:max-w-7xl',
-    }"
-  >
-    <CustomersForm
-      @close="handleModalClose"
-      @save="handleModalSave"
-      :selected-customer="gridMeta.selectedCustomerId"
-      :is-modal="true"
-    />
+  <UDashboardModal v-model="modalMeta.isCustomerModalOpen" :title="modalMeta.modalTitle" :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[1000px] sm:max-w-7xl',
+  }">
+    <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"
+      :is-modal="true" />
   </UDashboardModal>
 
   <!-- Order Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isOrderDetailModalOpen"
-    title="Order"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
-  >
-    <InvoiceDetail
-      :selected-customer="gridMeta.selectedCustomerId"
-      :selected-order="invoicesGridMeta.selectedInvoice.orderid"
-      @close="handleModalClose"
-    />
+  <UDashboardModal v-model="modalMeta.isOrderDetailModalOpen" title="Order" :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[1800px] sm:max-w-9xl',
+  }">
+    <InvoiceDetail :selected-customer="gridMeta.selectedCustomerId"
+      :selected-order="invoicesGridMeta.selectedInvoice.orderid" @close="handleModalClose" />
   </UDashboardModal>
 </template>
 <style scoped></style>
