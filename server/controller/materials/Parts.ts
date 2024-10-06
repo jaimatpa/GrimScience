@@ -621,30 +621,41 @@ export const getRevisions = async (instanceId: any) => {
   }
 };
 
-export const getTotalRequiredByModel = async (model: any) => {
-  console.log('BBBBBBBBBBBBBBB', model);
-  
-  try {
-    const query = `
-      SELECT number, ROUND(SUM(required), 0) AS TotalRequired
-      FROM MRP8
-      WHERE model = :model
-      GROUP BY number
-    `;
 
-    const [results, metadata] = await sequelize.query(query, {
-      replacements: { model: model },
+export const getTotalRequiredByModel = async (model: string) => {
+  try {
+    const queryForNumbers = `SELECT number, required FROM MRP8 WHERE model = :model`;
+    const jobs = await sequelize.query(queryForNumbers, {
+      replacements: { model },
       type: QueryTypes.SELECT,
       raw: true,
     });
-    console.log('RRRRRRRRRRRRR', results);
-    return results;
+
+    const queryForGrandTotal = `SELECT SUM(required) AS grandTotal FROM MRP8 WHERE model = :model`;
+    const grandTotalResult = await sequelize.query(queryForGrandTotal, {
+      replacements: { model },
+      type: QueryTypes.SELECT,
+      raw: true,
+    });
+    const totalRequired = grandTotalResult[0].grandTotal || 0;
+
+    const queryForOrdered = `SELECT SUM(qtyordered) AS ordered FROM MRP2 WHERE stocknumber = :model`;
+    const orderedResult = await sequelize.query(queryForOrdered, {
+      replacements: { model },
+      type: QueryTypes.SELECT,
+      raw: true,
+    });
+    const ordered = orderedResult[0].ordered || 0;
+
+    return { jobs, totalRequired, ordered };
   } catch (error) {
     throw new Error(
-      `Error fetching data for model ${model} from table MRP8: ${error.message}`
+      `Error fetching data for model ${model}: ${error.message}`
     );
   }
 };
+
+
 
 export const getAccountList = async () => {
   try {

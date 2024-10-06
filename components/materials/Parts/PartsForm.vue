@@ -114,30 +114,21 @@ const inventoryGridMeta = ref({
 const jobDetailsGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "Expr1",
-      label: "Jobs",
+      key: "number",
+      label: "Number",
     },
     {
-      key: "instanceID",
-      label: "Instance",
+      key: "required",
+      label: "Required",
     },
   ],
   options: [],
+  totalRequired: null,
+  ordered: null,
+  available: null,
   selectedOption: null,
   isLoading: false,
 });
-
-const jobDetails = ref([]);
-const jobDetailsColumns = [
-  {
-    key: "Expr1",
-    label: "Jobs",
-  },
-  {
-    key: "instanceID",
-    label: "Instance",
-  },
-];
 
 const toast = useToast();
 const loadingOverlay = ref(false);
@@ -330,7 +321,7 @@ const subCategoryList = async () => {
 const propertiesInit = async () => {
   loadingOverlay.value = true;
 
-    await useApiFetch("/api/materials/parts/categoryList", {
+  await useApiFetch("/api/materials/parts/categoryList", {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
@@ -434,14 +425,34 @@ const propertiesInit = async () => {
     }
   );
 
+  // await useApiFetch(
+  //   `/api/materials/parts/getJobsTotal?instanceId=${props.selectedPartInstace}`,
+  //   {
+  //     method: "GET",
+  //     onResponse({ response }) {
+  //       if (response.status === 200) {
+  //         jobDetailsGridMeta.value.options = response._data;
+  //         console.log("jobDetailsGridMeta.value.options", response._data);
+  //       }
+  //     },
+  //     onResponseError() {
+  //       jobDetailsGridMeta.value.options = []
+  //     },
+  //   }
+  // );
+
+
   await useApiFetch(
-    `/api/materials/parts/getJobsTotal?instanceId=${props.selectedPartInstace}`,
+    `/api/materials/parts/totalRequired?model=${props.selectedPartModel}`,
     {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          jobDetailsGridMeta.value.options = response._data;
-          console.log("jobDetailsGridMeta.value.options", jobDetailsGridMeta.value.options);
+          jobDetailsGridMeta.value.options = response._data.body.jobs;
+          jobDetailsGridMeta.value.ordered = response._data.body.ordered;
+          jobDetailsGridMeta.value.totalRequired = response._data.body.totalRequired;
+
+          jobDetailsGridMeta.value.available = formData.OnHand + jobDetailsGridMeta.value.ordered - jobDetailsGridMeta.value.totalRequired;
         }
       },
       onResponseError() {
@@ -450,9 +461,9 @@ const propertiesInit = async () => {
     }
   );
 
+
+
   getRevisions();
-
-
   loadingOverlay.value = false;
 };
 
@@ -1286,50 +1297,81 @@ watch(
 
         <div class="grid grid-cols-5 gap-5">
           <div class="col-span-1 mt-2">
-            <div class="mb-2">
-              <label class>On Order</label>
-              <UInput />
+            <div class="mb-2 grid grid-cols-2 gap-3">
+              <label class="ms-auto my-auto">On Order</label>
+              <UInput v-model="jobDetailsGridMeta.ordered"/>
             </div>
-            <div class="mb-2">
-              <label>On Hand</label>
+            <div class="mb-2 grid grid-cols-2 gap-3">
+              <label class="ms-auto my-auto">On Hand</label>
               <UInput v-model="formData.OnHand" />
             </div>
-            <div class="mb-2">
-              <label>Required</label>
-              <UInput />
+            <div class="mb-2 grid grid-cols-2 gap-3">
+              <label class="ms-auto my-auto">Required</label>
+              <UInput v-model="jobDetailsGridMeta.totalRequired" />
             </div>
-            <div class="mb-2">
-              <label>Available</label>
-              <UInput />
+            <div class="mb-2 grid grid-cols-2 gap-3">
+              <label class="ms-auto my-auto">Available</label>
+              <UInput v-model="jobDetailsGridMeta.available"/>
             </div>
-            <div class="mb-2">
-              <label>Minimum</label>
+            <div class="mb-2 grid grid-cols-2 gap-3">
+              <label class="ms-auto my-auto">Minimum</label>
               <UInput v-model="formData.minimum" />
             </div>
           </div>
 
           <div class="col-span-1 mt-2">
-            <label class="">Comments</label>
+            <label class="font-bold">Comments</label>
             <UTextarea
               class="w-full h-full mt-3"
-              :rows="13"
+              :rows="7"
               v-model="formData.COMMENT"
             />
           </div>
-
+          <!-- Location Table -->
           <div class="col-span-1">
             <UTable
               :rows="workplaces"
               :columns="workplacesColumns"
-              class="h-80 w-full"
+              class="h-[184px] w-full mt-2"
+              :ui="{
+                    divide: 'divide-gray-200 dark:divide-gray-800',
+                    th: {
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                        padding: 'p-0 pb-2',
+                    },
+                    td: {
+                        padding: 'py-1',
+                    },
+                }"
+                :empty-state="{
+                    icon: 'i-heroicons-circle-stack-20-solid',
+                    label: 'No items.',
+                }"
             />
           </div>
           <!-- Job Details Table -->
-          <div class="col-span-2 overflow-auto">
+          <div class="col-span-1">
+            <div class="font-bold">Jobs</div>
             <UTable
               :rows="jobDetailsGridMeta.options"
               :columns="jobDetailsGridMeta.defaultColumns"
-              class="h-80 w-full"
+              class="h-40 w-full mt-2"
+              :ui="{
+                    divide: 'divide-gray-200 dark:divide-gray-800',
+                    th: {
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                        padding: 'p-0 pb-2',
+                    },
+                    td: {
+                        padding: 'py-1',
+                    },
+                }"
+                :empty-state="{
+                    icon: 'i-heroicons-circle-stack-20-solid',
+                    label: 'No items.',
+                }"
             />
           </div>
         </div>
