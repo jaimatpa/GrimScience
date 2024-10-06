@@ -208,67 +208,67 @@ const updatedPrice = ref(null)
 const mdetChecked = ref(false)
 const processCreditCardSuccess = ref(false)
 
-const editInit = async () => {
-  loadingOverlay.value = true
-  await useApiFetch(`/api/invoices/${props.selectedOrder}`, {
-    method: 'GET',
-    onResponse({ response }) {
-      if (response.status === 200) {
-        for (const key in response._data.body) {
-          if (response._data.body[key] !== undefined && response._data.body[key] !== ' ') {
-            formData[key] = response._data.body[key]
+  const editInit = async () => {
+    loadingOverlay.value = true
+    await useApiFetch(`/api/invoices/${props.selectedOrder}`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          for (const key in response._data.body) {
+            if (response._data.body[key] !== undefined && response._data.body[key] !== ' ') {
+              formData[key] = response._data.body[key]
+            }
           }
         }
       }
-    }
-  })
-  await useApiFetch(`/api/tbl/tblSourceCodes?source=${formData.source}`, {
-    method: 'GET',
-    onResponse({ response }) {
-      if (response.status === 200) {
-        sourcedescriptionOptions.value = response._data.body.map((item) => item.description)
-      }
-    }
-  })
-  await useApiFetch(`/api/invoices/detail/`, {
-    method: 'GET',
-    params: {
-      orderid: props.selectedOrder
-    },
-    onResponse({ response }) {
-      if (response.status === 200) {
-        for (let i = 0; i < response._data.body.length; i++) {
-          let item = response._data.body[i];
-          const newOrder = {
-            UniqueID: item.UniqueID,
-            bpid: item.bpid,
-            quantity: item.quantity,
-            DESCRIPTION: item.name,
-            PRIMARYPRICE1: item.price,
-            serial: item.serial
-          }
-          orderList.value.push(newOrder)
+    })
+    await useApiFetch(`/api/tbl/tblSourceCodes?source=${formData.source}`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          sourcedescriptionOptions.value = response._data.body.map((item) => item.description)
         }
       }
-    }
-  })
-  await propertiesInit()
-}
-const propertiesInit = async () => {
-  loadingOverlay.value = true
-  await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
-    method: 'GET',
-    onResponse({ response }) {
-      if (response.status === 200) {
-        for (const key in response._data.body) {
-          if (response._data.body[key]) {
-            customerData[key] = response._data.body[key]
+    })
+    await useApiFetch(`/api/invoices/detail/`, {
+      method: 'GET',
+      params: {
+        orderid: props.selectedOrder
+      },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          for (let i = 0; i < response._data.body.length; i++) {
+            let item = response._data.body[i];
+            const newOrder = {
+              UniqueID: item.UniqueID,
+              bpid: item.bpid,
+              quantity: item.quantity,
+              DESCRIPTION: item.name,
+              PRIMARYPRICE1: item.price,
+              serial: item.serial
+            }
+            orderList.value.push(newOrder)
           }
         }
       }
-    }
-  })
-  !props.selectedOrder &&
+    })
+    await propertiesInit()
+  }
+  const propertiesInit = async () => {
+    loadingOverlay.value = true
+    await useApiFetch(`/api/customers/${props.selectedCustomer ? props.selectedCustomer : formData.customerid}`, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          for (const key in response._data.body) {
+            if (response._data.body[key]) {
+              customerData[key] = response._data.body[key]
+            }
+          }
+        }
+      }
+    })
+    !props.selectedOrder &&
     await useApiFetch(`/api/invoices/lastorderid`, {
       method: 'GET',
       onResponse({ response }) {
