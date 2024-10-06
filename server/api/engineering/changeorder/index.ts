@@ -2,8 +2,6 @@ import { getChangeOrders } from '~/server/controller/engineering';
 
 
 export default eventHandler(async (event) => {
-
-
   try {
     const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;

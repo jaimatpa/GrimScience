@@ -10,14 +10,15 @@ export default eventHandler(async (event) => {
   try {
     switch (method.toUpperCase()) {
       case "GET": {
-        const { sortBy, sortOrder, ...filterParams } = getQuery(event);
-        const list = await getAllPurchase(sortBy, sortOrder, filterParams);
+        const { offset, limit, sortBy, sortOrder, ...filterParams } = getQuery(event);
+        const list = await getAllPurchase(offset, limit, sortBy, sortOrder, filterParams);
         console.log(list);
         return { body: list, status: 200 };
       }
       case "DELETE": {
-        const { UniqueId } = getQuery(event);
-        const deleteConfirmation = await deletePurchase(UniqueId);
+        const { UniqueID } = getQuery(event);
+        console.log(UniqueID);
+        const deleteConfirmation = await deletePurchase(UniqueID);
         return {
           body: deleteConfirmation,
           status: 201,

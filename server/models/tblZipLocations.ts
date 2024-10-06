@@ -18,7 +18,8 @@ const tblZipLocations = sequelize.define('tblZipLocations', {
       type: DataTypes.STRING,
    },
 }, {
-   timestamps: false
+   timestamps: false,
+   tableName: 'tblZipLocations',
 });
 
 export default tblZipLocations;

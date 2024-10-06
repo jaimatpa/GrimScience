@@ -18,7 +18,7 @@ const applyFilters = (params) => {
 
 export const messageExistByID = async (id: number | string) => {
   const tableDetail = await tblMessages.findByPk(id);
-  if(tableDetail)
+  if (tableDetail)
     return true;
   else
     return false;
@@ -58,7 +58,7 @@ export const getNumberOfMessages = async (filterParams) => {
 
 export const customerMessageByID = async (id) => {
   const tableDetail = await tblMessages.findByPk(id);
-  if(tableDetail)
+  if (tableDetail)
     return true;
   else
     return false;
@@ -77,6 +77,6 @@ export const updateMessage = async (id, reqData) => {
 }
 
 export const deleteMessage = async (id) => {
-  await tblMessages.destroy({where: { UniqueID: id }});
+  await tblMessages.destroy({ where: { UniqueID: id } });
   return id;
 }

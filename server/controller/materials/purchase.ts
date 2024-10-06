@@ -1,10 +1,10 @@
 import { format } from "date-fns";
 import { Model, Op } from "sequelize";
 import type { QueryValue } from "ufo";
-import { tblPurchase, tblVendors } from "~/server/models";
+import { tblPO, tblPurchase, tblVendors } from "~/server/models";
 
 const applyFilters = (params: any) => {
-  const filterParams = ["UniqueId", "date", "vendor", "phone", "total"];
+  const filterParams = ["PONUMBER", "DATE", "NAME", "IRPHONE", "TOTAL", "OPENCLOSED"];
   const whereClause = {};
 
   filterParams.forEach((param) => {
@@ -18,28 +18,58 @@ const applyFilters = (params: any) => {
   return whereClause;
 };
 
-export const getAllPurchase = async (
-  sortBy: QueryValue | QueryValue[],
-  sortOrder: QueryValue | QueryValue[],
-  filterParams: any
-): Promise<Model<any, any>[]> => {
+// export const getAllPurchase = async (
+//   sortBy,
+//   sortOrder,
+//   filterParams
+// ) => {
+//   const whereClause = applyFilters(filterParams);
+
+//   const purchases = await sequelize.query("select * from tblPO")
+
+//   return purchases;
+// };
+export const getAllPurchase = async (page, pageSize, sortBy, sortOrder, filterParams) => {
+
+
+  const limit = parseInt(pageSize as string, 50) || 50;
+  const offset = ((parseInt(page as string, 50) - 1) || 0) * limit;
   const whereClause = applyFilters(filterParams);
 
-  const purchases = await tblPurchase.findAll({
-    attributes: ["UniqueId", "date", "vendor", "phone", "total", "open"],
+  const list = await tblPO.findAll({
     where: whereClause,
-    order: [[(sortBy as string) || "UniqueId", (sortOrder as string) || "ASC"]],
+    order: [[sortBy as string || 'PONUMBER', sortOrder as string || 'DESC']],
+    offset,
+    limit
   });
 
-  return purchases;
-};
+  // // Extract the unique vendor IDs from the list
+  // const vendorIds = [...new Set(list.map(po => po.VENDOR))];
 
+  // // Fetch vendor names based on the unique vendor IDs
+  // const vendors = await tblVendors.findAll({
+  //   where: {
+  //     UniqueID: vendorIds // Assuming UniqueID is the key in tblVendors
+  //   }
+  // });
+  // // Create a map of vendor IDs to vendor names for quick access
+  // const vendorMap = {};
+  // vendors.forEach(vendor => {
+  //   vendorMap[vendor.UniqueID] = vendor.NAME;
+  // });
+
+  // const combinedList = list.map(po => ({
+  //   ...po.dataValues,
+  //   VENDOR: vendorMap[po.VENDOR] || null
+  // }));
+  return { list, count: await tblPO.count() }
+}
 export const deletePurchase = async (
-  UniqueId: QueryValue | QueryValue[]
+  UniqueID: QueryValue | QueryValue[]
 ): Promise<number> => {
   const deleteResult = await tblPurchase.destroy({
     where: {
-      UniqueId,
+      UniqueID,
     },
   });
   console.log(deleteResult);

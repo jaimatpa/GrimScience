@@ -6,7 +6,7 @@ export default eventHandler(async (event) => {
     const method = event._method;
 
     let idExist;
-    switch(method.toUpperCase()){
+    switch (method.toUpperCase()) {
       case 'GET':
       case 'PUT':
         break;
@@ -23,7 +23,7 @@ export default eventHandler(async (event) => {
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
-    
+
   } catch (error) {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }
