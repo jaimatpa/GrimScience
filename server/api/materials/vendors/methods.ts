@@ -3,8 +3,8 @@ import { getShippingMethods } from "~/server/controller/materials";
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
         const shippingMethods = await getShippingMethods();
         return { body: shippingMethods, message: '' }

@@ -1,4 +1,4 @@
-import { orderDetailExistByUniqueID, deleteOrderDetail } from '~/server/controller/invoices';
+import { orderDetailExistByUniqueID, deleteOrderDetail  } from '~/server/controller/invoices';
 
 export default eventHandler(async (event) => {
   try {

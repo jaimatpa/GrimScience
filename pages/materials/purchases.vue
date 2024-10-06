@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import PurchaseDetails from "~/components/materials/vendors/PurchaseDetails.vue";
 import CreatePurchaseModal from "~/components/purchase/CreatePurchaseModal.vue";
 import type { UTableColumn } from "~/types";
 
@@ -236,9 +235,7 @@ const deletePurchase = async () => {
     });
 };
 
-const handlePageChange = async () => {
-  fetchPurchasesData();
-};
+const handlePageChange = () => { };
 
 fetchPurchasesData();
 </script>
@@ -271,10 +268,10 @@ fetchPurchasesData();
               <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
                 :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
-                  ? noneIcon
-                  : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
+                    ? noneIcon
+                    : column?.sortDirection === 'asc'
+                      ? ascIcon
+                      : descIcon
                   " :filterable="column.filterable" :filter-key="column.key" />
             </div>
           </template>
@@ -289,10 +286,10 @@ fetchPurchasesData();
         <div class="flex flex-row justify-end mx-10 mt-1 gap-5">
           <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-3">
-              <!-- <UButton color="gms-gray" variant="outline">
+              <UButton color="gms-gray" variant="outline">
                 Select Purchase Order
-              </UButton> -->
-              <!-- <UButton @click="triggerCreatePurchaseModal" color="gms-gray" variant="outline">
+              </UButton>
+              <UButton @click="triggerCreatePurchaseModal" color="gms-gray" variant="outline">
                 Create Purchase Order
               </UButton> -->
             </div>
@@ -353,8 +350,7 @@ fetchPurchasesData();
       width: 'w-[90%] sm:max-w-9xl',
       height: 'h-[500px]',
     }">
-    <PurchaseDetails :is-creating="false" :modal-data="gridMeta.selectedPO"></PurchaseDetails>
-
+    <ViewPurchaseModal :modalMeta="viewPurchaseModalMeta" :purchaseId="gridMeta.selectedPurchaseId" />
   </UDashboardModal>
 </template>
 <style scoped></style>

@@ -6,7 +6,7 @@ export default eventHandler(async (event) => {
     const method = event._method;
 
     const idExist = await serviceReportExistByID(id);
-    switch(method.toUpperCase()){
+    switch (method.toUpperCase()) {
       case 'PUT':
         if (idExist) {
           const reqData = await readBody(event);
@@ -20,7 +20,7 @@ export default eventHandler(async (event) => {
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
-    
+
   } catch (error) {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }

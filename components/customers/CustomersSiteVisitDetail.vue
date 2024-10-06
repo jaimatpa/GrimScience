@@ -389,90 +389,124 @@ else
       loader="dots" />
   </div>
   <UForm :validate="validate" :validate-on="['submit']" :state="formData" @submit="onSubmit">
-    <div class="w-full px-3 py-1 bg-slate-400 border-2 border-slate-600 border-l-0 border-b-0 border-r-0">
-      Sort
-    </div>
-    <div class="flex flex-row justify-between w-full p-3">
-      <div class="flex flex-row space-x-4">
-        <div class="min-w-[120px]">
-          <UFormGroup label="Market" name="market">
-            <USelect v-model="filterValues.market" :options="markets" />
-          </UFormGroup>
+
+    <div class="flex flex-col">
+      <div class="w-full">
+        <div class="flex justify-between px-4 py-2 gmsPurpleTitlebar">
+          <h2 class="flex items-center">Sort</h2>
         </div>
-        <div class="min-w-[120px]">
-          <UFormGroup label="Profession" name="profession">
-            <USelect v-model="filterValues.profession" :options="professions" />
-          </UFormGroup>
-        </div>
-        <div class="min-w-[120px]">
-          <UFormGroup label="Territory" name="territory">
-            <USelect v-model="filterValues.territory" :options="territories" />
-          </UFormGroup>
-        </div>
-        <div class="min-w-[120px]">
-          <UFormGroup label="State" name="state">
-            <USelect v-model="filterValues.state" :options="states" />
-          </UFormGroup>
+        <div class="flex flex-row justify-between w-full p-3">
+          <div class="flex flex-row space-x-2 w-1/2">
+            <div class="basis-1/4">
+              <UFormGroup label="Market" name="market">
+                <USelect v-model="filterValues.market" :options="markets" />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/4">
+              <UFormGroup label="Profession" name="profession">
+                <USelect v-model="filterValues.profession" :options="professions" />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/4">
+              <UFormGroup label="Territory" name="territory">
+                <USelect v-model="filterValues.territory" :options="territories" />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/4">
+              <UFormGroup label="State" name="state">
+                <USelect v-model="filterValues.state" :options="states" />
+              </UFormGroup>
+            </div>
+          </div>
+          <div class="w-1/4 flex justify-end items-end">
+            <div class="basis-3/4">
+              <UButton color="green" variant="outline" label="Export to Excel" icon="i-heroicons-document-text"
+                :loading="exportIsLoading" @click="" block />
+            </div>
+
+          </div>
         </div>
       </div>
-      <div class="flex items-end">
-        <UButton :loading="exportIsLoading" label="Export to Excel" color="gray" @click="">
-          <template #trailing>
-            <UIcon name="i-heroicons-document-text" class="text-green-500 w-5 h-5" />
-          </template>
-        </UButton>
-      </div>
-    </div>
-    <div class="w-full px-3 py-1 bg-slate-400 border-2 border-slate-600 border-l-0 border-b-0 border-r-0">
-      Lookup
-    </div>
-    <div class="w-full p-3">
-      <UTable :rows="gridMeta.customers" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
-        divide: 'divide-gray-200 dark:divide-gray-800',
-        th: {
-          base: 'sticky top-0 z-10',
-          color: 'bg-white dark:text-gray dark:bg-[#111827]',
-          padding: 'p-0'
-        },
-        td: {
-          padding: 'py-1'
-        }
-      }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }" @select="" @dblclick="">
-        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-          <template v-if="!column.filterOptions">
-            <div class="px-1 py-1">
-              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                :filterable="column.filterable" :filter-key="column.key" />
-            </div>
-          </template>
-          <template v-else>
-            <div class="px-1 py-1">
-              <CommonSortAndSelectFilter @handle-sorting-button="handleSortingButton"
-                @handle-select-change="handleSelectChange" :label="column.label" :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                :filterable="column.filterable" :filter-key="column.key" :filter-options="column.filterOptions" />
-            </div>
-          </template>
-        </template>
-      </UTable>
-    </div>
-    <div class="flex flex-row space-x-3 w-full p-3">
-      <div class="basis-1/3">
-        <div class="w-full px-3 py-1 bg-slate-400 border-2 border-slate-600 border-l-0 border-b-0 border-r-0">
-          Site Visit
+
+
+      <div class="w-full">
+        <div class="flex justify-between px-4 py-2 gmsPurpleTitlebar">
+          <h2 class="flex items-center">Lookup</h2>
         </div>
-        <div class="flex flex-col space-y-2 p-2">
-          <div class="flex flex-row space-x-5 ml-4">
+        <div class="w-full px-3 py-1 flex flex-col space-y-2">
+          <div class="flex flex-row space-x-5 justify-end">
+
+            <div>
+              <UCheckbox label="Open" />
+            </div>
+
+            <div>
+              <UCheckbox label="Closed" />
+            </div>
+
+          </div>
+          <div>
+            <UTable :rows="gridMeta.customers" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
+              wrapper: 'h-60 overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+              divide: 'divide-gray-200 dark:divide-gray-800',
+              th: {
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                padding: 'p-0'
+              },
+              td: {
+                padding: 'py-1'
+              }
+            }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }" @select=""
+              @dblclick="">
+              <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+                <template v-if="!column.filterOptions">
+                  <div class="px-1 py-1">
+                    <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                      @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                      :sort-key="column.key"
+                      :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
+                      :filterable="column.filterable" :filter-key="column.key" />
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="px-1 py-1">
+                    <CommonSortAndSelectFilter @handle-sorting-button="handleSortingButton"
+                      @handle-select-change="handleSelectChange" :label="column.label" :sortable="column.sortable"
+                      :sort-key="column.key"
+                      :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
+                      :filterable="column.filterable" :filter-key="column.key" :filter-options="column.filterOptions" />
+                  </div>
+                </template>
+              </template>
+            </UTable>
+          </div>
+
+        </div>
+      </div>
+
+
+    </div>
+
+
+
+
+    <div class="flex flex-row space-x-5 w-full px-3 py-1">
+      <div class="w-1/3">
+        <div class="flex justify-between p-2 gmsPurpleTitlebar">
+          <h2 class="flex items-center">Site Visit</h2>
+        </div>
+        <div class="flex flex-col space-y-3 p-2">
+          <div class="flex flex-row space-x-5">
             <URadio v-for="status of statusGroup" :key='status.value' v-model="formData.siteVisit" v-bind="status" />
           </div>
-          <UFormGroup label="Visit#">
-            <UInput v-model="formData.visit" disabled />
-          </UFormGroup>
+
           <div class="flex flex-row space-x-2">
+            <div class="basis-1/2">
+              <UFormGroup label="Visit#">
+                <UInput v-model="formData.visit" disabled />
+              </UFormGroup>
+            </div>
             <div class="basis-1/2">
               <UFormGroup label="Date">
                 <UPopover :popper="{ placement: 'bottom-start' }">
@@ -485,63 +519,72 @@ else
                 </UPopover>
               </UFormGroup>
             </div>
-            <div class="basis-1/2">
-              <UFormGroup label="By">
-                <USelect v-model="filterValues.by" :options="[]" />
-              </UFormGroup>
-            </div>
           </div>
+
+
           <div class="flex flex-row space-x-2">
             <div class="basis-1/2">
               <UFormGroup label="Reason">
                 <USelect v-model="filterValues.reason" :options="[]" />
               </UFormGroup>
             </div>
-            <div class="basis-1/2 space-x-2">
+            <div class="basis-1/2">
+              <UFormGroup label="By">
+                <USelect v-model="filterValues.by" :options="[]" />
+              </UFormGroup>
+            </div>
+
+          </div>
+
+          <div class="flex flex-row space-x-2">
+
+            <div class="basis-1/2">
               <UFormGroup label="Product Line">
                 <USelect v-model="filterValues.productline" :options="[]" />
               </UFormGroup>
             </div>
+
+            <div class="basis-1/2"></div>
+          </div>
+
+
+
+          <div class="flex flex-row space-x-2">
+            <div class="basis-1/2">
+              <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline" block />
+            </div>
+            <div class="basis-1/2">
+              <UButton icon="i-heroicons-eye" label="Preview" variant="outline" block />
+            </div>
           </div>
           <div class="flex flex-row space-x-2">
-            <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-document-text" label="Save" color="green" variant="outline"
-                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
+            <div class="basis-1/2">
+              <UButton icon="i-f7-rays" label="Clear" color="red" variant="outline" block />
             </div>
-            <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-eye" label="Preview" variant="outline"
-                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
-            </div>
-          </div>
-          <div class="flex flex-row space-x-2">
-            <div class="basis-1/2 w-full">
-              <UButton icon="i-f7-rays" label="Clear" color="red" variant="outline"
-                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
-            </div>
-            <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-minus-circle" label="Delete" color="red" variant="outline"
-                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
+            <div class="basis-1/2">
+              <UButton icon="i-heroicons-minus-circle" label="Delete" color="red" variant="outline" block />
             </div>
           </div>
         </div>
       </div>
-      <div class="basis-1/3">
-        <div class="w-full px-3 py-1 bg-slate-400 border-2 border-slate-600 border-l-0 border-b-0 border-r-0">
-          Location
+
+
+      <div class="w-1/3">
+        <div class="flex justify-between p-2 gmsPurpleTitlebar">
+          <h2 class="flex items-center">Location</h2>
         </div>
-        <div class="flex flex-col space-y-2 p-2">
-          <div class="flex flex-row space-x-3">
+        <div class="flex flex-col space-y-1 p-2">
+          <div class="flex flex-row space-x-2">
             <div class="basis-1/2">
               <UFormGroup label="Customer#">
                 <UInput v-model="formData.customerID" disabled />
               </UFormGroup>
             </div>
-            <div class="basis-1/2 flex justify-end">
-              <UButton icon="i-heroicons-cursor-arrow-ripple" label="Select/View Customer" variant="outline"
-                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
+            <div class="basis-1/2 self-end">
+              <UButton icon="i-heroicons-cursor-arrow-ripple" label="Select/View Customer" variant="outline" block />
             </div>
           </div>
-          <div class="flex flex-row space-x-3">
+          <div class="flex flex-row space-x-2">
             <div class="basis-1/2">
               <UFormGroup label="First">
                 <UInput v-model="formData.fname" />
@@ -553,16 +596,27 @@ else
               </UFormGroup>
             </div>
           </div>
-          <UFormGroup label="Position">
-            <UInput v-model="formData.position" />
-          </UFormGroup>
-          <UFormGroup label="Company 1">
-            <UInput v-model="formData.company1" />
-          </UFormGroup>
-          <UFormGroup label="Company 2">
-            <UInput v-model="formData.company2" />
-          </UFormGroup>
-          <div class="flex flex-row space-x-3">
+
+          <div class="w-full">
+            <UFormGroup label="Position">
+              <UInput v-model="formData.position" />
+            </UFormGroup>
+          </div>
+          <div class="w-full">
+            <UFormGroup label="Company 1">
+              <UInput v-model="formData.company1" />
+            </UFormGroup>
+          </div>
+          <div class="w-full">
+            <UFormGroup label="Company 2">
+              <UInput v-model="formData.company2" />
+            </UFormGroup>
+          </div>
+
+
+
+
+          <div class="flex flex-row space-x-2">
             <div class="basis-1/2">
               <UFormGroup label="Address">
                 <UInput v-model="formData.address" />
@@ -574,7 +628,7 @@ else
               </UFormGroup>
             </div>
           </div>
-          <div class="flex flex-row space-x-3">
+          <div class="flex flex-row space-x-2">
             <div class="basis-1/2">
               <UFormGroup label="City">
                 <UInput v-model="formData.city" />
@@ -591,7 +645,7 @@ else
               </UFormGroup>
             </div>
           </div>
-          <div class="flex flex-row space-x-3">
+          <div class="flex flex-row space-x-2">
             <div class="basis-1/2">
               <UFormGroup label="Work">
                 <UInput v-model="formData.workphone" />
@@ -605,12 +659,12 @@ else
           </div>
         </div>
       </div>
-      <div class="basis-1/3">
-        <div class="w-full px-3 py-1 bg-slate-400 border-2 border-slate-600 border-l-0 border-b-0 border-r-0">
-          Comments
+      <div class="w-1/3">
+        <div class="flex justify-between p-2 gmsPurpleTitlebar">
+          <h2 class="flex items-center">Comments</h2>
         </div>
         <div class="flex flex-col space-y-2 p-2">
-          <div class="flex flex-row space-x-3">
+          <div class="flex flex-row space-x-2">
             <div class="basis-1/3">
               <UFormGroup label="Invoice#">
                 <USelect v-model="formData.invoice" :options="[]" />
@@ -628,20 +682,28 @@ else
             </div>
           </div>
           <UTextarea :rows="8" v-model="formData.comment" />
-        </div>
-        <div class="flex flex-row space-x-5 mt-5 p-2 ">
-          <UFormGroup label="Created By">
-            <UInput v-model="formData.customerID" />
-          </UFormGroup>
-          <UFormGroup label="Date">
-            <UPopover :popper="{ placement: 'bottom-start' }">
-              <UButton icon="i-heroicons-calendar-days-20-solid" :label="format(formData.siteVisitDate, 'MM/dd/yyyy')"
-                variant="outline" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
-              <template #panel="{ close }">
-                <CommonDatePicker v-model="formData.siteVisitDate" is-required @close="close" />
-              </template>
-            </UPopover>
-          </UFormGroup>
+
+          <div class="flex flex-row space-x-2">
+            <div class="basis-1/2">
+              <UFormGroup label="Created By">
+                <UInput v-model="formData.customerID" />
+              </UFormGroup>
+            </div>
+            <div class="basis-1/2">
+              <UFormGroup label="Date">
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                  <UButton icon="i-heroicons-calendar-days-20-solid"
+                    :label="format(formData.siteVisitDate, 'MM/dd/yyyy')" variant="outline"
+                    :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+                  <template #panel="{ close }">
+                    <CommonDatePicker v-model="formData.siteVisitDate" is-required @close="close" />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+            </div>
+
+          </div>
+
         </div>
       </div>
     </div>
