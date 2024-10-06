@@ -1,14 +1,14 @@
-<!-- VendorInvoiceModal.vue -->
 <template>
     <UCard>
 
         <div class="grid grid-cols-2 gap-4">
-            <!-- Vendor Invoice Record -->
             <UCard>
                 <template #header>
                     <h4 class="font-bold mb-2">Details</h4>
                 </template>
-                <UTable :ui="uiConfig" :rows="rows" :columns="columns" />
+                <UTable :rows="rows" :columns="columns" :loading="isLoading"
+                    :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }" :ui="uiConfig"
+                    @select="handleRowSelect" />
             </UCard>
             <UCard>
                 <template #header>
@@ -24,12 +24,10 @@
                 </div>
                 <template #footer>
                     <div class="flex gap-2 justify-end">
-
                         <UButton @click="refresh" variant="outline" color="green" icon="i-heroicons-arrow-path">Refresh
                         </UButton>
                         <UButton @click="updatePricing" variant="outline" icon="i-heroicons-arrow-path" color="teal">
-                            Update
-                            Pricing</UButton>
+                            Update Pricing</UButton>
                     </div>
 
                 </template>
@@ -43,16 +41,15 @@
                     <UTable :ui="uiConfig" :rows="poRows" :columns="poColumns" />
                     <template #footer>
                         <div>
-                            <UButton @click="syncToQB" color="green" variant="outline" class="mr-2">Sync To QB</UButton>
+                            <!-- <UButton @click="syncToQB" color="green" variant="outline" class="mr-2">Sync To QB</UButton>
                             <UButton @click="createAsset" color="teal" variant="outline" class="mr-2">Create Asset
-                            </UButton>
+                            </UButton> -->
                             <UButton @click="recalcAllReceivings" variant="outline" color="blue">Recalc All Receivings
                             </UButton>
                         </div>
                     </template>
                 </UCard>
             </div>
-            <!-- Payable -->
             <div class="col-span-2">
                 <UCard>
 
@@ -62,75 +59,69 @@
                     </template>
                     <div class="grid grid-cols-3 gap-2">
                         <UFormGroup label="Invoice #:">
-                            <UInput v-model="invoiceNumber" />
-                        </UFormGroup>
-
-                        <UFormGroup label="Invoice Date:">
-                            <UInput v-model="invoiceDate" type="date" />
+                            <UInput v-model="formData.invoiceNumber" />
                         </UFormGroup>
 
                         <UFormGroup label="Terms:">
-                            <UInput v-model="terms" />
+                            <UInput v-model="formData.terms" />
                         </UFormGroup>
 
                         <UFormGroup label="Discount:">
-                            <UInput v-model="discount" />
+                            <UInput v-model="formData.discount" />
+                        </UFormGroup>
+                        <UFormGroup label="Date Received:">
+                            <UInput type="date"
+                                :value="formData.Received ? new Date(formData.Received).toISOString().substr(0, 10) : ''"
+                                @input="event => formData.Received = event.target.value" />
                         </UFormGroup>
 
-                        <UFormGroup label="Date Received:">
-                            <UInput v-model="dateReceived" type="date" />
-                        </UFormGroup>
 
                         <UFormGroup label="Entered By:">
-                            <USelect v-model="enteredBy" :options="enteredByOptions" />
+                            <USelectMenu v-model="formData.Employee" :options="enteredByOptions" />
                         </UFormGroup>
 
-                        <UFormGroup label="Sub Total:">
-                            <div class="flex gap-2">
-                                <div class="basis-2/3">
-                                    <USelect v-model="qbAcct" :options="qbAcctOptions" />
-                                </div>
-                                <UInput v-model="subTotal" readonly />
-                            </div>
-                        </UFormGroup>
+                        <div class="flex gap-2">
+                            <!-- <div class="basis-1.5/3"> -->
+
+                            <UFormGroup label="Sub Total:">
+                                <UInput v-model="formData.subtotal" readonly />
+                            </UFormGroup>
+                            <!-- </div> -->
+                            <!-- <div class="basis-1.5/3"> -->
+                            <UFormGroup label="QB Acct:">
+                                <USelect v-model="formData.qbAcct" :options="qbAcctOptions" />
+                            </UFormGroup>
+                            <!-- </div> -->
+                        </div>
 
                         <UFormGroup label="Tax:">
-                            <UInput v-model="tax" />
+                            <UInput v-model="formData.taxamt" />
                         </UFormGroup>
 
                         <UFormGroup label="Freight:">
-                            <UInput v-model="freight" />
+                            <UInput v-model="formData.freightAmt" />
                         </UFormGroup>
 
                         <UFormGroup label="Other:">
-                            <UInput v-model="other" />
+                            <UInput v-model="formData.Other" />
                         </UFormGroup>
 
                         <UFormGroup label="Total:">
-                            <UInput v-model="total" readonly />
+                            <UInput v-model="formData.invoicetotal" readonly />
                         </UFormGroup>
 
                         <UFormGroup label="Due Date:">
-                            <UInput v-model="dueDate" type="date" />
+                            <UInput type="date" :value="formatDate(formData.duedate)"
+                                @input="event => formData.duedate = event.target.value" />
                         </UFormGroup>
+
 
                         <UFormGroup label="Amount Due:">
-                            <div class="flex gap-2">
-                                <div class="basis-2/3">
-                                    <USelect v-model="techOption" :options="techOptions" />
-                                </div>
-                                <UInput v-model="amountDue" readonly />
-                            </div>
+                            <UInput v-model="formData.invoicetotal" readonly />
                         </UFormGroup>
 
-                        <UFormGroup label="Price">
-                            <UInput v-model="price" icon="i-heroicons-envelope" />
-                        </UFormGroup>
-
-                        <UFormGroup label="Ship To">
-                            <USelect v-model="shipTo" :options="shipToOptions" />
-                        </UFormGroup>
                     </div>
+
                 </UCard>
             </div>
 
@@ -138,14 +129,13 @@
 
         <div class="mt-4">
             <label>
-                <input type="checkbox" v-model="overrideReceiving"> Override Receiving (Ignore Received)
+                <input type="checkbox" v-model="formData.overrideReceiving"> Override Receiving (Ignore Received)
             </label>
         </div>
 
         <div class="mt-4 flex justify-between">
 
             <div>
-                <!-- <UButton @click="viewPO" color="blue" class="mr-2">View PO</UButton> -->
                 <UButton @click="save" color="gms-blue" class="mr-2">Save</UButton>
                 <UButton @click="deleteInvoice" variant="outline" color="red">Delete</UButton>
             </div>
@@ -155,95 +145,107 @@
         <CreateAssets />
     </UDashboardModal>
 </template>
-
 <script setup>
+
 import { ref } from 'vue';
 import CreateAssets from './CreateAssets.vue';
 const showCreateAssetModal = ref(false);
-
-const quantity = ref(1)
-const price = ref(326.95000)
-const invoiceNumber = ref('')
-const invoiceDate = ref('2024-08-19')
-const terms = ref('')
-const discount = ref('')
-const dateReceived = ref('2024-08-19')
-const enteredBy = ref('')
-const subTotal = ref('0.00')
-const qbAcct = ref('')
-const tax = ref('')
-const freight = ref('')
-const other = ref('')
-const total = ref('0.00')
-const dueDate = ref('2024-08-19')
-const amountDue = ref('0.00')
-const techOption = ref('3B Tech')
-const overrideReceiving = ref(false)
-const poColumns = [
-    { key: 'quantity', label: 'Qty.' },
-    { key: 'received', label: 'Rec.' },
-    { key: 'totalReceived', label: 'Total R...' },
-    { key: 'stockNumber', label: 'Stock #' },
-    { key: 'partNumber', label: 'Part #' },
-    { key: 'inspection', label: 'Insp.' },
-    { key: 'description', label: 'Description' },
-    { key: 'price', label: 'Price' },
-    { key: 'unit', label: 'Unit' },
-    { key: 'amount', label: 'Amount' },
-    { key: 'inspectionDetails', label: 'Inspec...' }
-]
-const poRows = [
-    {
-        quantity: 1,
-        received: 1,
-        totalReceived: '030603',
-        stockNumber: '5466771',
-        partNumber: '0',
-        inspection: 'Personal Computer',
-        description: '326.9',
-        price: 0,
-        unit: '0.00',
-        amount: '',
-        inspectionDetails: ''
+const props = defineProps({
+    ponum: {
+        type: String,
+        required: true
     }
+});
+const toast = useToast();
+
+const formData = ref({
+    uniqueid: 0,
+    dateStamp: '',
+    PONum: '',
+    discount: '',
+    terms: '',
+    Other: '',
+    Employee: '',
+    subtotal: '',
+    invoicetotal: '',
+    freightAmt: '',
+    taxamt: '',
+    invoiceNumber: '',
+    Received: '',
+    vOpenClosed: null,
+    checknumber: null,
+    duedate: '',
+    checkdate: null,
+    CheckID: null
+});
+
+function formatDate(dateString) {
+    if (!dateString) return '';
+
+    // Extract the date part by splitting on space
+    const datePart = dateString.split(' ')[0]; // Get "8/21/2017"
+    const [month, day, year] = datePart.split('/');
+
+    // Format and return the date in YYYY-MM-DD format
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+}
+
+
+
+const poColumns = [
+    { key: 'ORDERED', label: 'Qty.' },
+    { key: 'RECEIVED', label: 'Total Rec.' },
+    { key: 'STOCKNUMBER', label: 'Stock #' },
+    { key: 'PARTNUMBER', label: 'Part #' },
+    { key: 'InspectionLevel', label: 'Insp.' },
+    { key: 'DESCRIPTION', label: 'Description' },
+    { key: 'UNITPRICE', label: 'Price' },
+    { key: 'UNIT', label: 'Unit' },
+    { key: 'AMOUNT', label: 'Amount' },
 ]
+const poRows = ref([]);
 const refresh = () => {
-    // Implement refresh logic
+    init();
 }
 
 const updatePricing = () => {
-    // Implement update pricing logic
-}
-
-const syncToQB = () => {
-    // Implement sync to QB logic
-}
-
-const createAsset = () => {
-    // Implement create asset logic
-    showCreateAssetModal.value = true
+    init();
 }
 
 const recalcAllReceivings = () => {
-    // Implement recalc all receivings logic
-}
-
-const viewPO = () => {
-    // Implement view PO logic
 }
 
 const save = () => {
-    // Implement save logic
+    useApiFetch(`/api/materials/vendors/invoice?vin=${formData.value.uniqueid}`, {
+        method: 'PUT',
+        data: formData.value,
+        onResponse({ response }) {
+            console.log(response);
+             toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: "i-heroicons-check-circle-solid",
+          color: "green",
+        });
+        }
+    })
 }
 
 const deleteInvoice = () => {
-    // Implement delete logic
+    useApiFetch(`/api/materials/vendors/invoice?vin=${formData.value.uniqueid}`, {
+        method: 'DELETE',
+        onResponse({ response }) {
+            console.log(response);
+             toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: "i-heroicons-trash-solid",
+          color: "green",
+        });
+        }
+    })
 }
 
-const close = () => {
-    // Emit an event to close the modal
-    emit('close')
-}
 
 const emit = defineEmits(['close']);
 const columns = [
@@ -252,25 +254,20 @@ const columns = [
         label: 'Invoice #'
     },
     {
-        key: 'invoiceDate',
+        key: 'Received',
         label: 'Invoice Date'
     },
     {
-        key: 'amount',
+        key: 'invoicetotal',
         label: 'Amount'
     },
     {
-        key: 'receivedBy',
+        key: 'Employee',
         label: 'Received By'
     }
 ];
 
-const rows = [
-    { invoiceNumber: 'INV-001', invoiceDate: '2024-08-01', amount: 1500.00, receivedBy: 'John Doe' },
-    { invoiceNumber: 'INV-002', invoiceDate: '2024-08-05', amount: 2300.00, receivedBy: 'Jane Smith' },
-    { invoiceNumber: 'INV-003', invoiceDate: '2024-08-10', amount: 980.00, receivedBy: 'Michael Johnson' },
-    { invoiceNumber: 'INV-004', invoiceDate: '2024-08-15', amount: 1250.00, receivedBy: 'Emily Davis' }
-];
+const rows = ref([]);
 const uiConfig = {
     divide: 'divide-gray-200 dark:divide-gray-800',
     th: {
@@ -282,35 +279,34 @@ const uiConfig = {
         padding: 'p-1'
     }
 }
-const enteredByOptions = ['Option 1', 'Option 2']
+const enteredByOptions = ['Peggy Grimm', 'Esteal Hendricks', ""]
 const qbAcctOptions = ['Account 1', 'Account 2']
-const techOptions = ['3B Tech', "3B Tech Info"]
-const shipToOptions = [
-    'Atlanta, GA',
-    'Boston, MA',
-    'Miami, FL',
-    'Nashville, TN',
-    'Orlando, FL',
-    'Portland, OR',
-    'San Jose, CA',
-    'Las Vegas, NV',
-    'Baltimore, MD',
-    'Milwaukee, WI',
-    'Cleveland, OH',
-    'Kansas City, MO',
-    'Omaha, NE',
-    'New Orleans, LA',
-    'Minneapolis, MN',
-    'Salt Lake City, UT',
-    'Raleigh, NC',
-    'Richmond, VA',
-    'Louisville, KY',
-    'Buffalo, NY'
-];
 const modalUIConfig = {
     title: 'text-lg',
     header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
     body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
     width: 'w-[1800px] sm:max-w-9xl',
 };
+async function init() {
+    useApiFetch(`/api/materials/vendors/invoice?ponum=${props.ponum}`, {
+        method: 'GET',
+        onResponse({ response }) {
+            if (response.status === 200) {
+                console.log(response._data.body)
+                rows.value = response._data.body.rows
+                poRows.value = response._data.body.poDetails
+            }
+        }
+    })
+
+}
+init();
+const handleRowSelect = (row) => {
+    console.log(row)
+    Object.keys(row).forEach((key) => {
+        if (formData.value.hasOwnProperty(key)) {
+            formData.value[key] = row[key];
+        }
+    });
+}
 </script>

@@ -1,307 +1,717 @@
 <script setup lang="ts">
-import type { FormError, FormSubmitEvent } from '#ui/types'
-import Loading from 'vue-loading-overlay'
-import 'vue-loading-overlay/dist/css/index.css';
+import type { FormError, FormSubmitEvent } from "#ui/types";
+import { format } from "date-fns";
+import { ref } from 'vue';
+import Loading from "vue-loading-overlay";
+import "vue-loading-overlay/dist/css/index.css";
+
+const accountList = ref([]);
+const revisions = ref([]);
+const workplaces = ref([]);
+const workplacesColumns = [
+  {
+    key: "location",
+    label: "Location",
+  }
+];
 
 
-const people = [{
-  name: 'Lindsay Walton',
+const revisionsColumns = [
+  {
+    key: "code",
+    label: "Action",
+  },
+  {
+    key: "today",
+    label: "Date",
+  },
+  {
+    key: "revisedby",
+    label: "Revision By",
+  },
+];
 
-}, {
-  name: 'Lindsay Walton',
+const poDetails = ref([]);
+const poDetailsColumns = [
+  {
+    key: "ponumber",
+    label: "PO Number",
+  },
+  {
+    key: "uniqueid",
+    label: "Unique ID",
+  },
+  {
+    key: "date",
+    label: "Date",
+  },
+  {
+    key: "NAME",
+    label: "Name",
+  },
+  {
+    key: "ORDERED",
+    label: "Ordered",
+  },
+  {
+    key: "RECEIVED",
+    label: "Received",
+  },
+];
 
-}, {
-  name: 'Lindsay Walton',
-}, {
-  name: 'Lindsay Walton',
-}, {
-  name: 'Lindsay Walton',
-}, {
-  name: 'Lindsay Walton',
-}]
+const InventoryTransactions = ref([]);
+const InventoryTransactionsColumns = [
+  {
+    key: "UID",
+    label: "Unique ID",
+  },
+  {
+    key: "QtyChange",
+    label: "QTY",
+  },
+  {
+    key: "Dated",
+    label: "Date",
+    formatter: (value) => formatDate(value as string),
+  },
+];
 
-const InventoryTransactions = [{
-  id: '5645',
-  date: 5 / 5 / 12,
-  Qty: '2',
-}, {
-  id: '5645',
-  date: 5 / 5 / 12,
-  Qty: '2',
+const jobDetails = ref([]);
+const jobDetailsColumns = [
+  {
+    key: "Expr1",
+    label: "Jobs",
+  },
+  {
+    key: "instanceID",
+    label: "instance",
+  },
+];
 
-}, {
-  id: '5645',
-  date: 5 / 5 / 12,
-  Qty: '2',
-}, {
-  id: '5645',
-  date: 5 / 5 / 12,
-  Qty: '2',
-}, {
-  id: '5645',
-  date: 5 / 5 / 12,
-  Qty: '2',
-}, {
-  id: '5645',
-  date: 5 / 5 / 12,
-  Qty: '2',
-}]
-
-const orders = [{
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-}, {
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-
-}, {
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-}, {
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-}, {
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-}, {
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-}]
-
-
-
-
-
-const emit = defineEmits(['close', 'save'])
+const emit = defineEmits(["close", "save"]);
 const props = defineProps({
   selectedCustomer: {
     type: [String, Number, null],
-    required: true
+    required: true,
   },
   isModal: {
-    type: [Boolean]
-  }
-})
+    type: [Boolean],
+  },
+  selectedPartInstace: {
+    type: [String, Number, null],
+    required: true,
+  },
+  selectedPartModel: {
+    type: [String, Number, null],
+    required: true,
+  },
+});
 
-const toast = useToast()
-const router = useRouter()
+const toast = useToast();
+const router = useRouter();
 const customersFormInstance = getCurrentInstance();
 
-const loadingOverlay = ref(false)
-const customerExist = ref(true)
-const markets = ref([])
-const professions = ref([])
-const categories = ref([])
-const conferences = ref([])
-const usstates = ref([])
+const loadingOverlay = ref(false);
+const customerExist = ref(true);
+const category = ref([]);
+const subCategory = ref([]);
+const professions = ref([]);
+const vendorList = ref();
+const partUnit = ref([]);
+const insepctionList = ref([]);
+const usstates = ref([]);
 const formData = reactive({
   UniqueID: null,
-  market: null,
-  number: null,
-  source: professions[0],
-  sourcedescription: null,
-  SourceConfrence: null,
-  fname: null,
-  mi: null,
-  lname: null,
-  title: null,
-  position: null,
-  company1: null,
-  company2: null,
-  country: null,
-  address: null,
-  city: null,
-  state: null,
-  zip: null,
-  workphone: null,
-  homephone: null,
-  cellphone: null,
-  fax: null,
-  email: null,
-  website: null,
-  notes: null,
-  billcompany1: null,
-  billcompany2: null,
-  billcountry: null,
-  billaddress: null,
-  billcity: null,
-  billstate: null,
-  billzip: null,
-  billphone: null,
-  billfax: null,
-  attn: null,
-  adddate: null,
-  ParadynamixCatagory: null,
-  fullname: null,
-  Extension: null,
-  ExtensionBill: null,
-})
+  instanceID: null,
+  oldproductid: null,
+  oldpartid: null,
+  partflag: 1,
+  subassemblyflag: null,
+  productflag: null,
+  supplyflag: null,
+  ALTER2LEADTIME: null,
+  ALTER2MANTXT: null,
+  ALTER2MANNUM: null,
+  ALTER2DEATXT: null,
+  ALTER2DEANUM: null,
+  ALTER2QTY1: null,
+  ALTER2QTY2: null,
+  ALTER2QTY4: null,
+  ALTER2QTY3: null,
+  ALTER2PRICE1: null,
+  ALTER2PRICE4: null,
+  ALTER2PRICE3: null,
+  ALTER2PRICE2: null,
+  ALTER2PRICE5: null,
+  ALTER2QTY5: null,
+  ALTER1LEADTIME: null,
+  ALTER1MANTXT: null,
+  ALTER1MANNUM: null,
+  ALTER1DEATXT: null,
+  ALTER1DEANUM: null,
+  ALTER1QTY1: null,
+  ALTER1QTY2: null,
+  ALTER1QTY4: null,
+  ALTER1QTY3: null,
+  ALTER1PRICE1: null,
+  ALTER1PRICE4: null,
+  ALTER1PRICE3: null,
+  ALTER1PRICE2: null,
+  ALTER1PRICE5: null,
+  ALTER1QTY5: null,
+  PRIMARYQTY5: null,
+  PRIMARYPRICE5: null,
+  PRIMARYPRICE2: null,
+  PRIMARYPRICE3: null,
+  PRIMARYPRICE4: null,
+  PRIMARYPRICE1: null,
+  PRIMARYQTY3: null,
+  PRIMARYQTY4: null,
+  PRIMARYQTY2: null,
+  PRIMARYQTY1: null,
+  PRIMARYDEANUM: null,
+  PRIMARYDEATXT: null,
+  PRIMARYMANNUM: null,
+  PRIMARYMANTXT: null,
+  PRIMARYLEADTIME: null,
+  SELLINGPRICE: null,
+  SUBCATEGORY: null,
+  PARTTYPE: null,
+  SPECIFICATIONS: null,
+  DESCRIPTION: null,
+  STOCKNUMBER: null,
+  UNIT: null,
+  MULTIPLE: null,
+  CODE: null,
+  TODAY: null, // YYYY-MM-DD HH:MM:SS
+  PRODUCTLINE: null,
+  MODEL: null,
+  WARRENTY: null,
+  SHIPWEIGHT: null,
+  NETWEIGHTFULL: null,
+  ELECTRICAL: null,
+  NETWEIGHT: null,
+  OnHand: null,
+  AdjustedAmount: null,
+  Reason: null,
+  COMMENT: null,
+  ORDERCOST: null,
+  WORKCENTERS: null,
+  ALTER2UL: null,
+  ALTER1UL: null,
+  PRIMARYUL: null,
+  DRAWINGCUSTOM: null,
+  EQUIPMENTFLAG: null,
+  PlanID: null,
+  GeneralType: null,
+  AccountNumber: null,
+  InventoryUnit: null,
+  InventoryCost: null,
+  HEIGHT: null,
+  WIDTH: null,
+  LENGTH: null,
+  SPECSHEET: null,
+  TANKDEPTH: null,
+  WAXCAPACITY: null,
+  CRYOTHERMSECTIONS: null,
+  CRYOTHERMWALLS: null,
+  CRYTHERMGALLONSLEFT: null,
+  CRYOTHERMGALLONSRIGHT: null,
+  CRYTHERMCATEGORY: null,
+  DURALASTSUBCATEGORY: null,
+  DURALASTCATEGORY: null,
+  PARADYNAMIXSUBCATEGORY: null,
+  PARADYNAMIXCATEGORY: null,
+  CRYOTHERMWARMTANKSWITCHABLE: null,
+  VariablePricing: null,
+  BuiltInHouse: null,
+  minimum: null,
+  CryothermCorianNumber: null,
+  CryothermPcoatNumber: null,
+  CryothermLeftFrame: null,
+  CryothermLeftTank: null,
+  CryothermLeftPump: null,
+  CryothermLeftJets: null,
+  CryothermLeftCunitNumber: null,
+  CryothermRightFrame: null,
+  CryothermRightTank: null,
+  CryothermRightPump: null,
+  CryothermRightJets: null,
+  CrythermRightCunitnumber: null,
+  InspectionLevel: null,
+  MDET: null,
+  MDET1: null,
+  override: null,
+  grossprofit: null,
+  CryoThermControlPanelNumber: null,
+  CryoThermHeaterNumber: null,
+  amps: null,
+  ETLCriticalComponent: null,
+  sds: null,
+  SubassemblyInventoried: null,
+  LeftTankAssembly: null,
+  RightTankAssembly: null,
+  RevisedBy: null,
+  Recommendations: null,
+  StatementOfNeed: null,
+  SupportorProject: null,
+});
+
+
+
+
+
+
+
+
 
 const editInit = async () => {
-  loadingOverlay.value = true
-  await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
-    method: 'GET',
+  loadingOverlay.value = true;
+  await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
+    method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        loadingOverlay.value = false
-        customerExist.value = true
+        loadingOverlay.value = false;
+        customerExist.value = true;
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
-            formData[key] = response._data.body[key]
+            formData[key] = response._data.body[key];
           }
         }
       }
     },
     onResponseError({ }) {
-      customerExist.value = false
-    }
-  })
-  propertiesInit()
-  loadingOverlay.value = false
-}
+      customerExist.value = false;
+    },
+  });
+  propertiesInit();
+  loadingOverlay.value = false;
+  fetchWorkCentersBy();
+};
 const propertiesInit = async () => {
-  loadingOverlay.value = true
-  await useApiFetch('/api/customers/markets', {
-    method: 'GET',
+  loadingOverlay.value = true;
+  await useApiFetch("/api/materials/categories", {
+    method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        markets.value = response._data.body;
+        category.value = response._data.body;
+        console.log("category is ", response._data.body);
       }
     },
     onResponseError() {
-      markets.value = []
-    }
-  })
-  await useApiFetch('/api/customers/conferences', {
-    method: 'GET',
+      category.value = [];
+    },
+  });
+  await useApiFetch("/api/materials/subcategories", {
+    method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        conferences.value = response._data.body;
+        subCategory.value = response._data.body;
       }
     },
     onResponseError() {
-      conferences.value = []
-    }
-  })
-  await useApiFetch('/api/customers/categories', {
-    method: 'GET',
+      subCategory.value = [];
+    },
+  });
+  await useApiFetch("/api/common/partUnit", {
+    method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        categories.value = response._data.body;
+        console.log("order unit is", response._data.body.unit);
+        partUnit.value = response._data.body
+          .map((item) => item.unit)
+          .filter((unit) => unit !== null && unit !== undefined);
       }
     },
     onResponseError() {
-      categories.value = []
-    }
-  })
-  await useApiFetch('/api/customers/professions', {
-    method: 'GET',
+      partUnit.value = [];
+    },
+  });
+  await useApiFetch("/api/common/getInspectionNumbers", {
+    method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        professions.value = response._data.body;
+        insepctionList.value = response._data.body;
+        console.log("insepction ", response._data.body);
       }
     },
     onResponseError() {
-      professions.value = []
+      insepctionList.value = [];
+    },
+  });
+
+
+  await useApiFetch(
+    `/api/materials/parts/parts/transactions?model=${props.selectedPartModel}`,
+    {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          console.log("transation vlau eis", response._data.body);
+          InventoryTransactions.value = response._data.body;
+        }
+      },
+      onResponseError() {
+        // orders = []
+      },
     }
-  })
-  await useApiFetch('/api/common/usstates', {
-    method: 'GET',
+  );
+
+  await useApiFetch("/api/materials/parts/getVendor", {
+    method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        usstates.value = response._data.body;
+        vendorList.value = response._data.body;
+
+        console.log("v", vendorList.value);
       }
     },
     onResponseError() {
-      usstates.value = [
-        "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
-        "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
-        "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
-        "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
-        "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
-      ];
+      // orders = []
+    },
+  });
+  await useApiFetch(
+    `/api/materials/parts/getJobsTotal?instanceId=${props.selectedPartInstace}`,
+    {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          console.log("jobdetails", response._data);
+          jobDetails.value = response._data;
+        }
+      },
+      onResponseError({ response }) {
+        console.error("Error fetching job details:", response);
+        // Handle error, maybe reset jobDetails or show a notification
+      },
     }
-  })
-  loadingOverlay.value = false
-}
-const validate = (state: any): FormError[] => {
-  const errors = []
-  if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
-  if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
-  if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
-  return errors
-}
+  );
+
+
+  await useApiFetch(
+    `/api/materials/parts/parts/podetails?instanceId=${props.selectedPartInstace}`,
+    {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          console.log("the value of po", response._data.body);
+          poDetails.value = response._data.body;
+        }
+      },
+      onResponseError() {
+        // orders = []
+      },
+    }
+  );
+
+  getRevisions();
+
+
+
+  await useApiFetch("/api/materials/parts/accountsList",
+    {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          console.log("the value of accountlist", response._data.body);
+          accountList.value = response._data.body;
+        }
+      },
+      onResponseError() {
+        // orders = []
+      },
+    }
+  );
+
+
+
+  loadingOverlay.value = false;
+};
+
 const handleClose = async () => {
-  if (customersFormInstance?.vnode?.props.onClose) {
-    emit('close')
+  // Check if props.selectedPartInstace is defined and has vnode with onClose
+  if (props.selectedPartInstace?.vnode?.props?.onClose) {
+    emit("close");
   } else {
-    router.go(-1)
+    // Fallback to go back in the router history
+    router.go(-1);
   }
-}
-const onSubmit = async (event: FormSubmitEvent<any>) => {
-  if (props.selectedCustomer === null) { // Create Customer
-    await useApiFetch('/api/customers', {
-      method: 'POST',
-      body: event.data,
+};
+
+const files = ref([null, null, null]);
+const errorMessage = ref('');
+const uploadedFiles = ref([]);
+
+const handleFileChange = (event, index) => {
+  console.log("file", event.target.files[0]);
+  const file = event.target.files[0];
+  if (file && file.type === 'application/pdf') {
+    files.value[index] = file;
+  } else {
+    alert('Please select a PDF file.');
+    event.target.value = '';
+  }
+};
+const getRevisions = async () => {
+  await useApiFetch(
+    `/api/materials/parts/revisions?instanceId=${props.selectedPartInstace}`,
+    {
+      method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: 'i-heroicons-check-circle',
-            color: 'green'
-          })
+          console.log("the value of revision", response._data.body);
+          revisions.value = response._data.body;
         }
-      }
-    })
-  } else { // Update Customer
-    await useApiFetch(`/api/customers/${props.selectedCustomer}`, {
-      method: 'PUT',
-      body: event.data,
-      onResponse({ response }) {
-        if (response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: 'i-heroicons-check-circle',
-            color: 'green'
-          })
-        }
-      }
-    })
-  }
-  emit('save')
+      },
+      onResponseError() {
+        // orders = []
+      },
+    }
+  );
+
 }
 
-if (props.selectedCustomer !== null)
-  editInit()
-else
-  propertiesInit()
+const fetchWorkCentersBy = async () => {
+  try {
+    const response = await useApiFetch('/api/materials/workcenter', {
+      method: 'GET',
+    });
+    if (response) {
+      console.log(response)
+      const workCenterIds = formData.WORKCENTERS
+        .split(',')
+        .map(id => id.trim())
+        .filter(id => id !== "");
+
+      const filteredResponse = response.filter(val => workCenterIds.includes(val.UniqueId));
+
+      workplaces.value = filteredResponse;
+      console.log("work center is", filteredResponse);
+    } else {
+      console.log('Unexpected response structure or status code:', response);
+    }
+  } catch (error) {
+    console.error(error);
+    return { workcenters: [] };
+  }
+}
+
+function formatDate(date: Date): string {
+  return format(date, 'yyyy-MM-dd HH:mm:ss');
+}
+
+const revision = async () => {
+  if (props.selectedPartInstace != null) {
+    console.log("meth dfadsf");
+
+    const response = await useApiFetch(`/api/materials/parts/parts/revision?instanceIdForRevision=${props.selectedPartInstace}&id=${props.selectedCustomer}`, {
+      method: "PUT",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          console.log("status is", response.status);
+          toast.add({
+            title: "Success",
+            description: "Revision Add",
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+
+
+    });
+
+
+  }
+
+
+  getRevisions();
+
+
+}
+
+
+const onSubmit = async (event: FormSubmitEvent<any>) => {
+  console.log("files are", files.value);
+
+  // Check if there are any files to upload
+  if (!files.value.some(file => file)) {
+    console.log('No files to upload.');
+    alert('Please upload at least one file.');
+    return;
+  }
+
+  const formData = new FormData();
+  const fileTypes = ['Drawing/Manual', 'PDS', 'SDS'];
+
+  // Loop through files and append only if a file exists
+  files.value.forEach((file, index) => {
+    if (file) {
+      formData.append(fileTypes[index], file);
+    }
+  });
+  try {
+    // Replace '/api/upload' with your actual upload endpoint
+    const response = await fetch('/api/file', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const responseData = await response.json(); // Parse the JSON response
+      console.log('Files uploaded successfully! Response:', responseData);
+      alert('Files uploaded successfully!');
+
+      // You can print individual file details
+      responseData.files.forEach(file => {
+        console.log(`File uploaded: ${file.originalName}, URL: ${file.url}`);
+        if (file.fileType === 'SDS') {
+          event.data.sds = file.url;
+        }
+        if (file.fileType === 'Drawing/Manual') {
+          event.data.DRAWINGCUSTOM = file.url;
+        }
+
+
+      });
+
+      files.value = [null, null, null];
+    } else {
+      throw new Error('Upload failed');
+    }
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    alert('An error occurred while uploading the files. Please try again.');
+  }
+
+  if (props.selectedCustomer != null) {
+    console.log("event is", event.data);
+    const now = new Date();
+    const isoString = now.toISOString();
+    event.data.TODAY = isoString;
+
+
+
+    console.log("form data is", event.data)
+    await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
+      method: "PUT",
+      body: event.data,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          console.log("status is", response.status);
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
+
+
+  }
+  else {
+    console.log("file value is", event.data)
+    await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {
+      method: "POST",
+      body: event.data,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
+  }
+  emit('save');
+
+};
+
+if (props.selectedCustomer !== null) editInit();
+else propertiesInit();
+
+
+
+
+// Ref to store selected files
+const selectedFiles = ref([]);
+
+// Handler for file selection
+const onFileSelected = (event) => {
+  const files = Array.from(event.target.files);
+  selectedFiles.value.push(...files);
+  console.log('Selected files:', selectedFiles.value);
+
+
+};
+
+
+
+const logFormData = (formData) => {
+  for (const [key, value] of formData.entries()) {
+    if (value instanceof File) {
+      console.log(`${key}: File(${value.name}, ${value.size} bytes)`);
+    } else {
+      console.log(`${key}: ${value}`);
+    }
+  }
+};
+
+const handleUpload = async () => {
+
+  if (selectedFiles.value.length === 0) {
+    console.error('No files selected');
+    return;
+  }
+
+  const formData = new FormData();
+
+  // Append each file to the FormData object
+  selectedFiles.value.forEach(file => {
+    formData.append('files[]', file);
+    console.log('Selected files xxx:', file);
+    logFormData(formData);
+
+  });
+
+  try {
+
+    console.log('Selected files:', formData);
+
+    await useApiFetch(`/api/materials/parts/parts/`, {
+      method: "POST",
+      body: formData,
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
+
+
+  } catch (error) {
+
+    toast.add({
+      title: "Error",
+      description: "Failed to upload files.",
+      icon: "i-heroicons-x-circle",
+      color: "red",
+    });
+
+  }
+};
 </script>
+
 
 <template>
   <div class="vl-parent">
@@ -313,485 +723,765 @@ else
       :to="'/customers/customers/list'" />
   </template>
   <template v-else>
+
     <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
-      <div class="flex flex-row">
-        <div>
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/5">
-              <UFormGroup label="Category" name="fname">
-                <UInputMenu v-model="formData.fname" placeholder="Category" />
-              </UFormGroup>
-            </div>
+      <div class="flex flex-col">
 
-            <div class="basis-1/5">
-              <UFormGroup label="Sub Category" name="lname">
-                <UInputMenu v-model="formData.lname" placeholder="Sub Category" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Stock Number" name="title">
-                <UInput v-model="formData.title" placeholder="Stock Number" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Inspection" name="position">
-                <UInput v-model="formData.position" placeholder="Inspection" />
-              </UFormGroup>
-            </div>
-          </div>
-
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/5">
-              <UFormGroup label="Order Unit" name="market">
-                <UInputMenu v-model="formData.market" v-model:query="formData.market" :options="markets" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Multiple" name="number">
-                <UInput v-model="formData.number" placeholder="" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Inventory Unit" name="profession">
-                <UInputMenu v-model="formData.source" v-model:query="formData.source" :options="professions" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Account#" name="Account">
-                <UInputMenu v-model="formData.ParadynamixCatagory" v-model:query="formData.ParadynamixCatagory"
-                  :options="categories" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Description" name="Description">
-                <UInputMenu v-model="formData.SourceConfrence" v-model:query="formData.SourceConfrence"
-                  :options="conferences" />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/5">
-              <UFormGroup label="Order Cost" name="Order Cost">
-                <UInputMenu v-model="formData.market" v-model:query="formData.market" :options="markets" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Inventory Cost" name="Inventory Cost">
-                <UInput v-model="formData.number" placeholder="" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Selling Price" name="Selling Price">
-                <UInput />
-              </UFormGroup>
-            </div>
-            <div class="basis-2/5">
-              <UFormGroup label="Specification" name="Account">
-                <UInput />
-              </UFormGroup>
-            </div>
-
-          </div>
-          <div class="flex flex-row space-x-5">
-            <div class="basis-1.2/5">
-              <UFormGroup label="Drawing/Mannul" name="Drawing/Mannul">
-                <UInput type="file" size="sm" icon="i-heroicons-folder" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1.2/5">
-              <UFormGroup label="PDS" name="PDS">
-                <UInput type="file" size="sm" icon="i-heroicons-folder" />
-
-              </UFormGroup>
-            </div>
-            <div class="basis-1.2/5">
-              <UFormGroup label="SDS" name="SDS">
-                <UInput type="file" size="sm" icon="i-heroicons-folder" />
-
-              </UFormGroup>
-            </div>
-
-
-          </div>
-        </div>
-        <div>
-
-          <div class="grid grid-cols-1 h-48">
-            <UTable :rows="people" />
-
-          </div>
-          <div class="space-y-2 mt-2">
-            <div class="flex items-center space-x-2">
-              <label>On Order</label>
-              <UInput class="flex-1" />
-            </div>
-
-            <div class="flex items-center space-x-2">
-              <label>On Hand</label>
-              <UInput class="flex-1" />
-            </div>
-
-            <div class="flex items-center space-x-2">
-              <label>Required</label>
-              <UInput class="flex-1" />
-            </div>
-
-            <div class="flex items-center space-x-2">
-              <label>Available</label>
-              <UInput class="flex-1" />
-            </div>
-            <div class="flex items-center space-x-2">
-              <label>Minimum</label>
-              <UInput class="flex-1" />
-            </div>
-          </div>
-          <div class="grid grid-cols-1 mt-6 h-48">
-            <UTable :rows="people" />
-
-          </div>
-
-
-        </div>
-        <div>
-
-          <div class="grid grid-cols-1 mt-6 h-48 w-72">
-            <UTable :rows="orders" />
-
-          </div>
-          <div class="flex flex-row space-x-3">
-            <div class="grid grid-cols-1 mt-6 h-48">
-              <UTable :rows="people" />
-
-            </div>
-            <div class="">
-              <UFormGroup label="Comments" name="Comments">
-                <UTextarea class="w-48 " />
-              </UFormGroup>
-            </div>
-
-          </div>
-
-
-        </div>
-        <div class="grid grid-cols-1 mt-6 h-48 w-60">
-          <UTable :rows="InventoryTransactions" />
-
-        </div>
-
-      </div>
-
-
-      <div class="flex flex-row space-x-5">
-        <!-- First Grid Section -->
-        <div class="grid grid-cols-1 gap-5">
-          <div>
-            <UFormGroup label="Manufacturer" name="Manufacturer">
-              <UInput placeholder="Garmin" />
-            </UFormGroup>
-          </div>
-          <div>
-            <UFormGroup label="Dealer" name="Dealer">
-              <UInput placeholder="Walmart.com" />
-            </UFormGroup>
-          </div>
-          <div>
-            <UFormGroup label="Lead Time" name="Lead Time">
-              <UInput placeholder="1" />
-            </UFormGroup>
-          </div>
-        </div>
-        <!-- Second Grid Section -->
-        <div class="grid grid-cols-1 gap-5">
-
-          <div>
-            <UFormGroup label="Part Number" name="Part Number">
-              <UInput placeholder="" />
-            </UFormGroup>
-          </div>
-          <div>
-            <UFormGroup label="Part Number" name="Part Number">
-              <UInput placeholder="1" />
-            </UFormGroup>
-          </div>
-          <div>
-            <UFormGroup label="UL Number" name="UL Number">
-              <UInput placeholder="14.56" />
-            </UFormGroup>
-          </div>
-
-        </div>
-
-        <div class="flex flex-row space-x-2">
-          <div class="grid grid-cols-1 gap-1">
-            <div class="basis-1/2 text-center">
-              Qty
-            </div>
-            <div>
-              <UFormGroup>
-                <UInput />
-              </UFormGroup>
-            </div>
-            <div>
-              <UFormGroup>
-                <UInput />
-              </UFormGroup>
-            </div>
-            <div>
-              <UFormGroup>
-                <UInput />
-              </UFormGroup>
-            </div>
-            <div>
-              <UFormGroup>
-                <UInput />
-              </UFormGroup>
-            </div>
-            <div>
-              <UFormGroup>
-                <UInput />
-              </UFormGroup>
-            </div>
-          </div>
-          <!-- Second Grid Section -->
-          <div class="grid grid-cols-1 ">
-            <div class="basis-1/2 text-center">
-              Price
-            </div>
-            <div>
-              <UFormGroup>
-                <UInput />
-              </UFormGroup>
-            </div>
-            <div>
-              <UFormGroup>
-                <UInput />
-              </UFormGroup>
-            </div>
-            <div>
-              <UFormGroup>
-                <UInput />
-              </UFormGroup>
-            </div>
-            <div>
-              <UFormGroup>
-                <UInput />
-              </UFormGroup>
-            </div>
-            <div>
-              <UFormGroup>
-                <UInput />
-              </UFormGroup>
-            </div>
-
-          </div>
-
-
-
-
-        </div>
-
-        <div class="grid grid-cols-1 gap-5">
-          <div>
-            <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
-              <UInput />
-            </UFormGroup>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="flex flex-row">
-        <div class="basis-1/2 text-center">
-          Shipping Information
-        </div>
-        <div class="basis-1/2 text-center">
-          Billing Information
-        </div>
-      </div>
-
-      <div class="flex flex-row space-x-5">
-        <div class="basis-1/2">
-          <!-- Shipping Information -->
-          <div class="flex flex-col space-y-2">
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup label="Company1" name="company1">
-                  <UInput v-model="formData.company1" placeholder="Company1" />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/2">
-                <UFormGroup label="Company2" name="company2">
-                  <UInput v-model="formData.company2" placeholder="Company2" />
-                </UFormGroup>
+        <div class="flex">
+          <div class="basis-1/2 border-r-[3px] border-black">
+            <div class="w-full px-3 py-1 gmsBlueTitlebar flex flex-row justify-between">
+              <div>Part Lookup</div>
+              <div class="bg-gms-gray-100">
+                <UCheckbox label="Show ETL Critical Components" />
               </div>
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup label="Country" name="country">
-                  <UInput v-model="formData.country" placeholder="Country" />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup label="Address" name="address">
-                  <UInput v-model="formData.address" placeholder="Address" />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup label="City" name="city">
-                  <UInput v-model="formData.city" placeholder="Dallas" />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/4">
-                <UFormGroup label="State" name="state">
-                  <UInputMenu v-model="formData.state" :options="usstates" />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/4">
-                <UFormGroup label="Zip" name="zip">
-                  <UInput v-model="formData.zip" placeholder="65254" />
-                </UFormGroup>
+            <div class="w-full p-3 border-b-[3px] border-black">
+
+
+              <div class="flex flex-col space-y-2">
+                <div>
+                  <UTable :rows="orders" class="w-full" :ui="{
+                    wrapper: 'h-[115px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+                    divide: 'divide-gray-200 dark:divide-gray-800',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white',
+                      padding: 'py-0'
+                    },
+                    td: {
+                      base: 'h-[22px]',
+                      padding: 'py-0'
+                    }
+                  }" />
+                </div>
+
+                <div class="flex flex-row justify-between">
+                  <div>
+                    <UButton color="green" variant="outline" label="Export Window to Excel"
+                      icon="i-heroicons-document-text" />
+                  </div>
+
+                  <div>
+                    <UFormGroup label="Quantity">
+                      <div class="text-center text-bold">
+                        0
+                      </div>
+                    </UFormGroup>
+                  </div>
+
+                  <div>
+                    <UButton color="green" variant="outline" label="Export All Inventory"
+                      icon="i-heroicons-arrow-right-start-on-rectangle" />
+                  </div>
+
+                </div>
+
               </div>
             </div>
 
 
+            <div class="w-full px-3 py-1 gmsBlueTitlebar">
+              Part Information
+            </div>
+            <div class="flex flex-col p-3 space-y-2 border-b-[3px] border-black">
+              <div class="flex flex-row justify-between">
 
+                <div>
+                  <UCheckbox label="Job Subassembly" />
+                </div>
 
+                <div>
+                  <UCheckbox label="ETL Critical Component" />
+                </div>
 
+                <div>
+                  <UCheckbox label="Selling Price Override" />
+                </div>
 
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup label="Fax" name="fax">
-                  <UInput v-model="formData.fax" placeholder="Fax" />
-                </UFormGroup>
+                <div>
+                  <UCheckbox label="Ignore Manufacturing Cost" />
+                </div>
+
               </div>
-              <div class="basis-1/2">
-                <UFormGroup label="Homephone" name="homephone">
-                  <UInput v-model="formData.homephone" placeholder="(564)-324-2342" />
+
+              <div class="flex flex-row space-x-2">
+
+                <div class="">
+                  <UFormGroup label="Category" name="fname">
+                  <UInputMenu v-model="formData.PARTTYPE" :options="category" />
                 </UFormGroup>
+                </div>
+
+                <div class="">
+                  <UFormGroup label="Sub Category" name="lname">
+                  <UInputMenu v-model="formData.SUBCATEGORY" :options="subCategory" />
+                </UFormGroup>
+                </div>
+                <div class="">
+                  <UFormGroup label="Stock Number" name="title">
+                  <UInput v-model="formData.STOCKNUMBER" />
+                </UFormGroup>
+                </div>
+                <div class="">
+                  <UFormGroup label="Inspection" name="position">
+                  <UInputMenu v-model="formData.InspectionLevel" :options="insepctionList" />
+                </UFormGroup>
+                </div>
+              </div>
+
+              <div class="flex flex-row space-x-2">
+                <div class="basis-2/12">
+                  <UFormGroup label="Order Unit" name="market">
+                  <UInputMenu v-model="formData.UNIT" :options="partUnit" />
+                </UFormGroup>
+                </div>
+                <div class="basis-1/12">
+                  <UFormGroup label="Multiple" name="number">
+                  <UInput v-model="formData.MULTIPLE" placeholder="" />
+                </UFormGroup>
+                </div>
+                <div class="basis-2/12">
+                  <UFormGroup label="Inventory Unit" name="profession">
+                  <UInputMenu v-model="formData.InventoryUnit" :options="partUnit" />
+                </UFormGroup>
+                </div>
+                <div class="basis-3/12">
+                  <UFormGroup label="Account#" name="Account">
+                  <UInputMenu v-model="formData.AccountNumber" :options="accountList" />
+                </UFormGroup>
+                </div>
+                <div class="basis-4/12">
+                  <UFormGroup label="Description" name="Description">
+                  <UInput v-model="formData.DESCRIPTION" :options="insepctionList" />
+                </UFormGroup>
+                </div>
+              </div>
+              <div class="flex flex-row space-x-2">
+                <div class="basis-2/12">
+                  <UFormGroup label="Order Cost" name="Order Cost">
+                  <UInput v-model="formData.ORDERCOST" />
+                </UFormGroup>
+                </div>
+                <div class="basis-2/12">
+                  <UFormGroup label="Inventory Cost" name="Inventory Cost">
+                  <UInput v-model="formData.InventoryCost" placeholder="" />
+                </UFormGroup>
+                </div>
+                <div class="basis-2/12">
+                  <UFormGroup label="Selling Price" name="Selling Price">
+                  <UInput v-model="formData.SELLINGPRICE" />
+                </UFormGroup>
+                </div>
+                <div class="basis-6/12">
+                  <UFormGroup label="Specification" name="Account">
+                  <UInput v-model="formData.SPECIFICATIONS" />
+                </UFormGroup>
+                </div>
+
+              </div>
+              <div class="flex flex-row space-x-5">
+                <div class="">
+                  <UFormGroup label="Drawing/Manual" name="SPECSHEET">
+                    <UInput type="file" size="sm" icon="i-heroicons-folder" @change="(e) => handleFileChange(e, 0)" accept="application/pdf" />
+                  </UFormGroup>
+                </div>
+                <div class="">
+                  <UFormGroup label="PDS" name="PDS">
+                    <UInput type="file" size="sm" icon="i-heroicons-folder" @change="(e) => handleFileChange(e, 1)" accept="application/pdf" />
+
+                  </UFormGroup>
+                </div>
+                <div class="">
+                  <UFormGroup label="SDS" name="SDS">
+                    <UInput type="file" size="sm" icon="i-heroicons-folder" @change="(e) => handleFileChange(e, 2)" accept="application/pdf" />
+
+                  </UFormGroup>
+                </div>
+
+
               </div>
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-6/12">
-                <UFormGroup label="Email" name="email">
-                  <UInput v-model="formData.email" type="email" placeholder="email" />
-                </UFormGroup>
-              </div>
-              <div class="basis-5/12">
-                <UFormGroup label="Workphone" name="workphone">
-                  <UInput v-model="formData.workphone" placeholder="(564)-324-2342" />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/12">
-                <UFormGroup label="Ext" name="ext">
-                  <UInput v-model="formData.Extension" placeholder="1" />
-                </UFormGroup>
-              </div>
+          </div>
+
+          <div class="w-1/2">
+            <div class="w-full px-3 py-1 gmsBlueTitlebar">
+              Inventory
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup label="Website" name="website">
-                  <UInput v-model="formData.website" placeholder="website" />
-                </UFormGroup>
+            <div class="w-full flex flex-row p-3 space-x-3 border-b-[3px] border-black">
+              <div class="w-3/12">
+                <div class="flex flex-col space-y-2">
+
+
+                  <div>
+                    <UTable :rows="workplaces" :columns="workplacesColumns" :ui="{
+                      wrapper: 'h-[160px] border-[1px] border-gray-400 dark:border-gray-700',
+                      tr: {
+                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                      },
+                      th: {
+                        padding: 'p-1',
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                      },
+                      td: {
+                        padding: 'py-0 px-1'
+                      },
+                      checkbox: { padding: 'p-1 w-[10px]' }
+                    }" />
+                  </div>
+
+                  <div>
+                    <div class="space-y-2 mt-2">
+                      <div class="flex items-center space-x-2">
+                        <label>On Order</label>
+                        <UInput class="flex-1 sm-field" />
+                      </div>
+
+                      <div class="flex items-center space-x-2">
+                        <label>On Hand</label>
+                        <UInput class="flex-1 sm-field" />
+                      </div>
+
+                      <div class="flex items-center space-x-2">
+                        <label>Required</label>
+                        <UInput class="flex-1 sm-field" />
+                      </div>
+
+                      <div class="flex items-center space-x-2">
+                        <label>Available</label>
+                        <UInput class="flex-1 sm-field" />
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <label>Minimum</label>
+                        <UInput class="flex-1 sm-field" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <UTable :rows="people" :ui="{
+                      wrapper: 'h-[158px] border-[1px] border-gray-400 dark:border-gray-700',
+                      tr: {
+                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                      },
+                      th: {
+                        padding: 'p-1',
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                      },
+                      td: {
+                        padding: 'py-0 px-1'
+                      },
+                      checkbox: { padding: 'p-1 w-[10px]' }
+                    }" />
+                  </div>
+
+                </div>
               </div>
-              <div class="basis-1/2">
-                <UFormGroup label="Cellphone" name="cellphone">
-                  <UInput v-model="formData.cellphone" placeholder="(564)-324-2342" />
-                </UFormGroup>
+
+
+              <div class="w-5/12">
+                <div class="flex flex-col space-y-2">
+
+                  <div>
+                    <UTable :rows="poDetails" :columns="poDetailsColumns" :ui="{
+                      wrapper: 'h-[328px] overflow-y-auto border-[1px] border-gray-400 dark:border-gray-700',
+                      tr: {
+                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                      },
+                      th: {
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                      padding: 'py-0 px-1'
+                    },
+                    td: {
+                      base: 'h-[22px]',
+                      padding: 'py-0 px-1'
+                    },
+                      checkbox: { padding: 'p-1 w-[10px]' }
+                    }" />
+                  </div>
+
+                  <div class="flex flex-row space-x-3">
+                    <div class="w-2/5">
+                      <UTable :rows="jobDetails" :columns="jobDetailsColumns" :ui="{
+                        wrapper: 'h-[158px] border-[1px] border-gray-400 dark:border-gray-700',
+                        tr: {
+                          active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                        },
+                        th: {
+                          padding: 'p-1',
+                          base: 'sticky top-0 z-10',
+                          color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                        },
+                        td: {
+                          padding: 'py-0 px-1'
+                        },
+                        checkbox: { padding: 'p-1 w-[10px]' }
+                      }" />
+                    </div>
+                    <div class="w-3/5 h-full">
+                      <UFormGroup label="Comments" name="Comments" class="">
+                        <UTextarea :rows="6" />
+                      </UFormGroup>
+                    </div>
+
+                  </div>
+
+                </div>
+
               </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup label="Comment" name="comment">
-                  <UTextarea v-model="formData.notes" :rows="3" type="text" placeholder="" />
-                </UFormGroup>
+
+
+              <div class="w-4/12 flex flex-col space-y-2">
+                <div>
+                  <UFormGroup label="Inventory Transactions">
+                    <UTable :rows="InventoryTransactions" :ui="{
+                      wrapper: 'overflow-auto h-[430px] border-[1px] border-gray-400 dark:border-gray-700',
+                      tr: {
+                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                      },
+                      th: {
+                        padding: 'p-1',
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                      },
+                      td: {
+                        padding: 'p-1'
+                      },
+                      checkbox: { padding: 'p-1 w-[10px]' }
+                    }" />
+                  </UFormGroup>
+                </div>
+                <div class="w-full">
+                  <UButton icon="i-heroicons-check-badge" label="View Inventory Transations" variant="outline"
+                    block />
+                </div>
               </div>
+
             </div>
           </div>
         </div>
-        <div class="basis-1/2">
-          <!-- Billing Information -->
-          <div class="flex flex-col space-y-2">
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup label="Company1" name="billcompany1">
-                  <UInput v-model="formData.billcompany1" placeholder="Bill Company1" />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/2">
-                <UFormGroup label="Company2" name="billcompany2">
-                  <UInput v-model="formData.billcompany2" placeholder="Bill Company2" />
-                </UFormGroup>
-              </div>
+
+
+
+        <div class="flex">
+          <div class="basis-1/2 border-r-[3px] border-black">
+            <div class="w-full px-3 py-1 gmsBlueTitlebar">
+              Primary Vendor
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup label="Country" name="country">
-                  <UInput v-model="formData.billcountry" placeholder="Bill Country" />
+            <div class="w-full p-3 flex flex-row space-x-3 border-b-[3px] border-black">
+
+              <div class="basis-6/12 flex flex-col space-y-2">
+                <div class="flex flex-row space-x-1 items-end">
+                  <UFormGroup name="Manufacturer">
+                    <UButton block label="Manufacturer" color="gms-blue" />
+                    <UInput v-model="formData.PRIMARYMANTXT" />
+                  </UFormGroup>
+
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput v-Model="formData.PRIMARYMANNUM" />
+                  </UFormGroup>
+                </div>
+
+                <div class="flex flex-row space-x-1 items-end">
+                  <UFormGroup name="Dealer">
+                    <UButton block label="Dealer" color="gms-blue" />
+                    <UInput v-model="formData.PRIMARYDEATXT" />
+                  </UFormGroup>
+
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput v-model="formData.PRIMARYDEANUM" />
+                  </UFormGroup>
+                </div>
+                <div class="flex flex-row space-x-1 items-end">
+                  <UFormGroup label="Lead Time" name="Lead Time">
+                    <UInput v-model="formData.PRIMARYLEADTIME" />
+                  </UFormGroup>
+                  <UFormGroup label="UL Number" name="UL Number">
+                    <UInput v-model="formData.PRIMARYUL" />
+                  </UFormGroup>
+                </div>
+              </div>
+
+              <div class="basis-4/12 flex flex-col space-y-2">
+                <div class="flex flex-row justify-around ms-6">
+                  <div>Qty</div>
+                  <div>Price</div>
+                </div>
+                <div class="flex flex-row space-x-2">
+                  <div class="mt-2">Min</div>
+                  <div class="flex flex-col space-y-2">
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.PRIMARYQTY1" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.PRIMARYPRICE1" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.PRIMARYQTY2" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.PRIMARYPRICE2" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.PRIMARYQTY3" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.PRIMARYPRICE3" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.PRIMARYQTY4" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.PRIMARYPRICE4" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.PRIMARYQTY5" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.PRIMARYPRICE5" />
+                      </UFormGroup>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="basis-2/12">
+                <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
+                  <UInput />
                 </UFormGroup>
               </div>
+
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup label="Address" name="address">
-                  <UInput v-model="formData.billaddress" placeholder="Bill Address" />
-                </UFormGroup>
-              </div>
+          </div>
+
+
+          <div class="basis-1/2">
+            <div class="w-full px-3 py-1 gmsBlueTitlebar">
+              Revision History
             </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup label="City" name="billcity">
-                  <UInput v-model="formData.billcity" placeholder="Dallas" />
-                </UFormGroup>
+            <div class="w-full flex flex-row p-3 space-x-3 border-b-[3px] border-black">
+              <div class="basis-2/5 flex flex-col space-y-2">
+                <div>
+                  <UButton label="Show Rev's" color="gms-blue" />
+                </div>
+
+                <div>
+                  <UTable :rows="people" :ui="{
+                    wrapper: 'h-[176px] border-[1px] border-gray-400 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      padding: 'p-1',
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    },
+                    td: {
+                      padding: 'py-0 px-1'
+                    },
+                    checkbox: { padding: 'p-1 w-[10px]' }
+                  }" />
+                </div>
               </div>
-              <div class="basis-1/4">
-                <UFormGroup label="State" name="billstate">
-                  <UInputMenu v-model="formData.billstate" :options="usstates" />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/4">
-                <UFormGroup label="Zip" name="billzip">
-                  <UInput v-model="formData.billzip" placeholder="65254" />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="basis-1/2">
-                <UFormGroup label="Fax" name="billfax">
-                  <UInput v-model="formData.billfax" placeholder="Fax" />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/2">
-                <UFormGroup label="Phone" name="billphone">
-                  <UInput v-model="formData.billphone" placeholder="(564)-324-2342" />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup label="Ext" name="ExtensionBill">
-                  <UInput v-model="formData.ExtensionBill" placeholder="" />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-3">
-              <div class="w-full">
-                <UFormGroup label="Attn" name="attn">
-                  <UInput v-model="formData.attn" placeholder="Attn" />
-                </UFormGroup>
+
+
+              <div class="basis-3/5 flex flex-col space-y-2">
+                <div class="">
+                  <UFormGroup label="Revised By">
+                    <UInputMenu v-model="formData.lname" disabled />
+                  </UFormGroup>
+                </div>
+                <div class="flex flex-row space-x-2">
+
+                  <div class="basis-1/4">
+                    <UButton label="Add" color="gms-blue" block />
+                  </div>
+                  <div class="basis-1/4">
+                    <UButton label="Modify" color="gms-blue" block />
+                  </div>
+                  <div class="basis-1/4">
+                    <UButton label="Revision" color="gms-blue" block />
+                  </div>
+                  <div class="basis-1/4">
+                    <UButton label="DELETE" color="BLACK" variant="outline" block />
+                  </div>
+                </div>
+
+                <div class="flex flex-col space-y-2">
+                  <div class="flex flex-row space-x-2">
+                    <div class="basis-1/3">
+                      <UButton label="Obsolete" color="red" variant="outline" icon="i-heroicons-minus-circle" block />
+                    </div>
+                    <div class="basis-1/3">
+                      <UButton label="Active" variant="outline" icon="i-heroicons-check-badge" block />
+                    </div>
+                    <div class="basis-1/3">
+                      <UButton label="Print Label" variant="outline" icon="i-heroicons-tag" block />
+                    </div>
+                  </div>
+                  <div class="flex flex-row space-x-2">
+                    <div class="basis-1/3">
+                      <UButton label="Clear Form" color="red" variant="outline" icon="i-f7-rays" block />
+                    </div>
+
+                    <div class="basis-1/3"></div>
+                    <div class="basis-1/3"></div>
+
+                  </div>
+
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="flex justify-end gap-3">
-        <UButton color="red" variant="outline" :label="!isModal ? 'Go back' : 'Cancel'" @click="handleClose" />
-        <UButton color="cyan" variant="outline" type="submit" label="Save" />
+        <div class="flex">
+          <div class="basis-1/2 border-r-[3px] border-black">
+            <div class="w-full px-3 py-1 gmsBlueTitlebar">
+              Alternate Vendor
+            </div>
+            <div class="w-full p-3 flex flex-row space-x-3">
+
+              <div class="basis-6/12 flex flex-col space-y-2">
+                <div class="flex flex-row space-x-1 items-end">
+                  <UFormGroup name="Manufacturer">
+                    <UButton block label="Manufacturer" color="gms-blue" />
+                    <UInput v-model="formData.ALTER1MANTXT" />
+                  </UFormGroup>
+
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput v-model="formData.ALTER1MANNUM" />
+                  </UFormGroup>
+                </div>
+
+                <div class="flex flex-row space-x-1 items-end">
+                  <UFormGroup name="Dealer">
+                    <UButton block label="Dealer" color="gms-blue" />
+                    <UInput v-model="formData.ALTER1DEATXT"  />
+                  </UFormGroup>
+
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput v-model="formData.ALTER1DEANUM" />
+                  </UFormGroup>
+                </div>
+                <div class="flex flex-row space-x-1 items-end">
+                  <UFormGroup label="Lead Time" name="Lead Time">
+                    <UInput v-model="formData.ALTER1LEADTIME" />
+                  </UFormGroup>
+                  <UFormGroup label="UL Number" name="UL Number">
+                    <UInput />
+                  </UFormGroup>
+                </div>
+              </div>
+
+              <div class="basis-4/12 flex flex-col space-y-2">
+                <div class="flex flex-row justify-around ms-6">
+                  <div>Qty</div>
+                  <div>Price</div>
+                </div>
+                <div class="flex flex-row space-x-2">
+                  <div class="mt-2">Min</div>
+                  <div class="flex flex-col space-y-2">
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER1QTY1" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER1PRICE1" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER1QTY2" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER1PRICE2" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER1QTY3" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER1PRICE3" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER1QTY4" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER1PRICE4" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER1QTY5" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER1PRICE5" />
+                      </UFormGroup>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="basis-2/12">
+                <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
+                  <UInput />
+                </UFormGroup>
+              </div>
+
+
+
+
+
+
+
+
+            </div>
+
+
+
+          </div>
+
+
+          <div class="basis-1/2">
+
+
+
+
+
+
+            <div class="w-full px-3 py-1 gmsBlueTitlebar">
+              Alternate Vendor
+            </div>
+            <div class="w-full p-3 flex flex-row space-x-3">
+
+              <div class="basis-6/12 flex flex-col space-y-2">
+                <div class="flex flex-row space-x-1 items-end">
+                  <UFormGroup name="Manufacturer">
+                    <UButton block label="Manufacturer" color="gms-blue" />
+                    <UInput v-model="formData.ALTER2MANTXT" />
+                  </UFormGroup>
+
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput v-model="formData.ALTER2MANNUM" />
+                  </UFormGroup>
+                </div>
+
+                <div class="flex flex-row space-x-1 items-end">
+                  <UFormGroup name="Dealer">
+                    <UButton block label="Dealer" color="gms-blue" />
+                    <UInput v-model="formData.ALTER2DEATXT" />
+                  </UFormGroup>
+
+                  <UFormGroup label="Part Number" name="Part Number">
+                    <UInput v-model="formData.ALTER2DEANUM" />
+                  </UFormGroup>
+                </div>
+                <div class="flex flex-row space-x-1 items-end">
+                  <UFormGroup label="Lead Time" name="Lead Time">
+                    <UInput v-model="formData.ALTER2LEADTIME" />
+                  </UFormGroup>
+                  <UFormGroup label="UL Number" name="UL Number">
+                    <UInput v-model="formData.ALTER2UL" />
+                  </UFormGroup>
+                </div>
+              </div>
+
+              <div class="basis-4/12 flex flex-col space-y-2">
+                <div class="flex flex-row justify-around ms-6">
+                  <div>Qty</div>
+                  <div>Price</div>
+                </div>
+                <div class="flex flex-row space-x-2">
+                  <div class="mt-2">Min</div>
+                  <div class="flex flex-col space-y-2">
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER2QTY1" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER2PRICE1" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER2QTY2" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER2PRICE2" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER2QTY3" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER2PRICE3" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER2QTY4" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER2PRICE4" />
+                      </UFormGroup>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER2QTY5" />
+                      </UFormGroup>
+                      <UFormGroup>
+                        <UInput v-model="formData.ALTER2PRICE5" />
+                      </UFormGroup>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="basis-2/12">
+                <UFormGroup label="Last Ordered Date:" name="Last Ordered Date">
+                  <UInput />
+                </UFormGroup>
+              </div>
+
+
+
+
+            </div>
+          </div>
+        </div>
       </div>
     </UForm>
+
+
+
+
+
+
+
+
+
+
   </template>
 </template>

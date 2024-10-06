@@ -3,8 +3,8 @@ import { getLastCusomterID } from '~/server/controller/invoices';
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
         const markets = await getLastCusomterID()
         return { body: markets, message: '' }

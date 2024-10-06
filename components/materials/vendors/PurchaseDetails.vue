@@ -159,7 +159,7 @@
     </UCard>
 
     <UDashboardModal v-model="showVendorInvoice" title="Vendor Invoice" :ui="modalUIConfig">
-        <VendorInvoice />
+        <VendorInvoice :ponum="modalData.UniqueID" />
     </UDashboardModal>
     <UDashboardModal v-model="addNewPoItemModal.isOpen" title="Order PO Items" :ui="confirmationModalUIConfig">
 

@@ -4,8 +4,8 @@ export default eventHandler(async (event) => {
   try {
     const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
         const list = await getNumberOfMessages(filterParams);
         return { body: list, message: '' }

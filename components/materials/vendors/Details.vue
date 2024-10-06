@@ -153,8 +153,6 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, reactive, onMounted } from 'vue';
-import { defineProps, defineEmits } from 'vue';
 
 const props = defineProps({
     isVisible: Boolean,

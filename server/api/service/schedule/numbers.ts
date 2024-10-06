@@ -4,8 +4,8 @@ export default eventHandler(async (event) => {
   try {
     const filterParams = getQuery(event);
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
         const numberOfCustomers = await getNumberOfSchedules(filterParams);
         return { body: numberOfCustomers, message: '' }

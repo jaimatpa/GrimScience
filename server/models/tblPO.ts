@@ -81,8 +81,7 @@ const tblPO = sequelize.define('tblPO', {
       type: DataTypes.STRING,
    },
 }, {
-   timestamps: false,
-   tableName: 'tblPO'
+   timestamps: false
 });
 
 export default tblPO;

@@ -1,6 +1,5 @@
 {
-  "name": "nuxt-ui-pro-template-dashboard",
-  "private": true,
+  "name": "grimm-management-system",
   "type": "module",
   "scripts": {
     "build": "nuxt build",
@@ -12,27 +11,25 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "@bryntum/calendar": "npm:@bryntum/calendar-trial@^6.0.1",
-    "@bryntum/calendar-vue-3": "^6.0.1",
-    "@bryntum/calendar-vue-3-thin": "^6.0.1",
-    "@bryntum/core-vue-3-thin": "^6.0.1",
-    "@bryntum/scheduler": "npm:@bryntum/scheduler-trial@6.0.1",
-    "@bryntum/scheduler-vue-3": "6.0.1",
-    "@bryntum/scheduler-vue-3-thin": "^6.0.1",
+    "@bryntum/gantt": "npm:@bryntum/gantt-trial@^6.0.1",
+    "@bryntum/gantt-vue-3": "^6.0.1",
     "@iconify-json/f7": "^1.1.0",
     "@iconify-json/heroicons": "^1.1.21",
     "@iconify-json/simple-icons": "^1.1.101",
     "@nuxt/fonts": "^0.7.0",
     "@nuxt/ui-pro": "^1.2.0",
-    "@syncfusion/ej2-vue-schedule": "^26.1.41",
     "@unovis/ts": "^1.4.0",
     "@unovis/vue": "^1.4.0",
     "@vueuse/nuxt": "^10.9.0",
     "axios": "^1.7.1",
     "date-fns": "^3.6.0",
     "exceljs": "^4.4.0",
+    "formidable": "^3.5.1",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
+    "maska": "^3.0.0",
     "msnodesqlv8": "^4.2.1",
+    "multer": "^1.4.5-lts.1",
     "nuxt": "^3.11.2",
     "puppeteer": "^22.12.1",
     "sequelize": "^6.37.3",
@@ -45,6 +42,7 @@
     "@nuxt/eslint": "^0.3.10",
     "@types/google.maps": "^3.58.1",
     "eslint": "^9.2.0",
+    "nuxt-file-storage": "^0.2.7",
     "vue-tsc": "^2.0.16"
   }
 }

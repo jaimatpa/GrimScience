@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import InvoiceDetail from "~/components/invoice/InvoiceDetail.vue";
-import { useMap } from "../composables/useMap";
+import { useMap } from "../../composables/useMap";
 const {
   mapRef,
   filters,

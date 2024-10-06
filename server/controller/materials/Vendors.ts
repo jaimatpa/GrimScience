@@ -117,65 +117,65 @@ export const getVendorSuppliedParts = async (searchTerm: string, page: number = 
     throw error;
   }
 };
-export const getInventoryTransactionsByModel = async (model: string) => {
-  try {
-    const query = `
-          SELECT tblInventoryTransactions.*, 
-          tblInventoryTransactions.UniqueID AS UID, 
-          tblInventoryTransactionDetails.onhand AS onhandITD, 
-          QtyChange, 
-          tblBP.Description, 
-          tblBP.model
-          FROM tblInventoryTransactionDetails
-          LEFT JOIN tblInventoryTransactions ON tblInventoryTransactionDetails.InventoryTransactionID = tblInventoryTransactions.UniqueID
-          LEFT JOIN tblBP ON tblBP.UniqueID = tblInventoryTransactionDetails.BPID
-          WHERE tblBP.model = :model
-          ORDER BY tblInventoryTransactions.dated DESC;
-`;
+// export const getInventoryTransactionsByModel = async (model: string) => {
+//   try {
+//     const query = `
+//           SELECT tblInventoryTransactions.*, 
+//           tblInventoryTransactions.UniqueID AS UID, 
+//           tblInventoryTransactionDetails.onhand AS onhandITD, 
+//           QtyChange, 
+//           tblBP.Description, 
+//           tblBP.model
+//           FROM tblInventoryTransactionDetails
+//           LEFT JOIN tblInventoryTransactions ON tblInventoryTransactionDetails.InventoryTransactionID = tblInventoryTransactions.UniqueID
+//           LEFT JOIN tblBP ON tblBP.UniqueID = tblInventoryTransactionDetails.BPID
+//           WHERE tblBP.model = :model
+//           ORDER BY tblInventoryTransactions.dated DESC;
+// `;
 
-    const results = await sequelize.query(query, {
-      replacements: { model: model },
-      type: QueryTypes.SELECT,
-    });
-    console.log(results);
-    return results;
+//     const results = await sequelize.query(query, {
+//       replacements: { model: model },
+//       type: QueryTypes.SELECT,
+//     });
+//     console.log(results);
+//     return results;
 
-  } catch (error) {
-    console.error('Error fetching inventory transactions:', error);
-    throw error;
-  }
-};
+//   } catch (error) {
+//     console.error('Error fetching inventory transactions:', error);
+//     throw error;
+//   }
+// };
 
 
-export const getPODetailsByInstanceId = async (instanceId) => {
-  try {
-    // Execute raw SQL query
-    const results = await sequelize.query(
-      `SELECT
-        tblpo.ponumber,
-        tblpo.uniqueid,
-        tblpo.date,
-        tblpo.NAME,
-        tblpodetail.ORDERED,
-        tblpodetail.RECEIVED
-        FROM tblpo
-        INNER JOIN tblpodetail ON tblpodetail.pouid = tblpo.uniqueid
-        INNER JOIN tblbp ON tblbp.uniqueid = tblpodetail.ptnum
-        WHERE tblbp.instanceid = :instanceId
-        ORDER BY CAST(tblpo.date AS DATETIME) DESC;
-`,
-      {
-        replacements: { instanceId },
-        type: QueryTypes.SELECT,
-      }
-    );
+// export const getPODetailsByInstanceId = async (instanceId) => {
+//   try {
+//     // Execute raw SQL query
+//     const results = await sequelize.query(
+//       `SELECT
+//         tblpo.ponumber,
+//         tblpo.uniqueid,
+//         tblpo.date,
+//         tblpo.NAME,
+//         tblpodetail.ORDERED,
+//         tblpodetail.RECEIVED
+//         FROM tblpo
+//         INNER JOIN tblpodetail ON tblpodetail.pouid = tblpo.uniqueid
+//         INNER JOIN tblbp ON tblbp.uniqueid = tblpodetail.ptnum
+//         WHERE tblbp.instanceid = :instanceId
+//         ORDER BY CAST(tblpo.date AS DATETIME) DESC;
+// `,
+//       {
+//         replacements: { instanceId },
+//         type: QueryTypes.SELECT,
+//       }
+//     );
 
-    return results;
-  } catch (error) {
-    console.error('Error fetching PO details:', error);
-    throw error;
-  }
-};
+//     return results;
+//   } catch (error) {
+//     console.error('Error fetching PO details:', error);
+//     throw error;
+//   }
+// };
 
 export const createVendor = async (vendorData) => {
   try {
@@ -258,124 +258,124 @@ export const getPOPartsDetails = async (model) => {
     throw error;
   }
 };
-export const getPOPartsDetailsByUniqueId = async (UniqueID) => {
-  console.log(UniqueID)
-  try {
-    const query = `
-      SELECT *
-      FROM tblPODetail
-      WHERE POUID = :UniqueID
-    `;
+// export const getPOPartsDetailsByUniqueId = async (UniqueID) => {
+//   console.log(UniqueID)
+//   try {
+//     const query = `
+//       SELECT *
+//       FROM tblPODetail
+//       WHERE POUID = :UniqueID
+//     `;
 
-    const results = await sequelize.query(query, {
-      replacements: { UniqueID },
-      type: QueryTypes.SELECT,
-    });
+//     const results = await sequelize.query(query, {
+//       replacements: { UniqueID },
+//       type: QueryTypes.SELECT,
+//     });
 
-    if (results.length > 0) {
-      return results;
-    }
+//     if (results.length > 0) {
+//       return results;
+//     }
 
-    throw new Error('PODetail not found');
-  } catch (error) {
-    console.error('Error querying PO parts details:', error);
-    throw error;
-  }
-};
-export async function savePODetailByUniqueId(data) {
-  // Validate data
-  const requiredFields = [
-    'ORDERED', 'RECEIVED', 'DESCRIPTION', 'STOCKNUMBER',
-    'PARTNUMBER', 'UNITPRICE', 'UNIT', 'AMOUNT',
-    'POUID', 'PTNUM'
-  ];
+//     throw new Error('PODetail not found');
+//   } catch (error) {
+//     console.error('Error querying PO parts details:', error);
+//     throw error;
+//   }
+// };
+// export async function savePODetailByUniqueId(data) {
+//   // Validate data
+//   const requiredFields = [
+//     'ORDERED', 'RECEIVED', 'DESCRIPTION', 'STOCKNUMBER',
+//     'PARTNUMBER', 'UNITPRICE', 'UNIT', 'AMOUNT',
+//     'POUID', 'PTNUM'
+//   ];
 
-  for (const field of requiredFields) {
-    if (data[field] === undefined) {
-      throw new Error(`Missing required field: ${field}`);
-    }
-  }
+//   for (const field of requiredFields) {
+//     if (data[field] === undefined) {
+//       throw new Error(`Missing required field: ${field}`);
+//     }
+//   }
 
-  // Function to create a PO entry if vendor is present
-  const createPOEntry = async () => {
-    try {
-      const PO = await createNewPOEntry({
-        VENDORTERMS: data.vendor.TERMS,
-        PONUMBER: data.POUID,
-        VENDORFOB: data.vendor.FOB,
-        IREMAIL: data.vendor.IREMAIL,
-        IREXT: data.vendor.IREXT,
-        RejectReason: data.vendor.RejectReason,
-        IRFAX: data.vendor.IRFAX,
-        IRPHONE: data.vendor.IRPHONE,
-        IRNAME: data.vendor.IRNAME,
-        NAME: data.vendor.NAME,
-        ADDESS: data.vendor.ADDESS,
-        CITYSTATEZIP: `${data.vendor.CITY} ${data.vendor.STATE} ${data.vendor.ZIP}`,
-        VENDOR: data.vendor.NUMBER,
-        TOTAL: data.vendor.AMOUNT,
-        VENDORCUSTOMERNUMBER: data.vendor.CUSTNUMBER,
-        AuthorizedBy: data.vendor.ApprovedBy,
-        DATE: data.vendor.TODAY,
-        WEBSITE: data.vendor.WEBSITE,
-        SALESORDER: data.SALESORDER,
-        Notes: data.notes,
-        AMOUNT: data.AMOUNT,
-        VENDORDATE: data.VENDORDATE,
-        Shipto: data.Shipto,
-        OPENCLOSED: data.OPENCLOSED,
-      });
-      return PO.data;
-    } catch (e) {
-      console.error('Error creating new PO entry:', e);
-      throw new Error('Creating new PO failed: ' + e.message);
-    }
-  };
+//   // Function to create a PO entry if vendor is present
+//   const createPOEntry = async () => {
+//     try {
+//       const PO = await createNewPOEntry({
+//         VENDORTERMS: data.vendor.TERMS,
+//         PONUMBER: data.POUID,
+//         VENDORFOB: data.vendor.FOB,
+//         IREMAIL: data.vendor.IREMAIL,
+//         IREXT: data.vendor.IREXT,
+//         RejectReason: data.vendor.RejectReason,
+//         IRFAX: data.vendor.IRFAX,
+//         IRPHONE: data.vendor.IRPHONE,
+//         IRNAME: data.vendor.IRNAME,
+//         NAME: data.vendor.NAME,
+//         ADDESS: data.vendor.ADDESS,
+//         CITYSTATEZIP: `${data.vendor.CITY} ${data.vendor.STATE} ${data.vendor.ZIP}`,
+//         VENDOR: data.vendor.NUMBER,
+//         TOTAL: data.vendor.AMOUNT,
+//         VENDORCUSTOMERNUMBER: data.vendor.CUSTNUMBER,
+//         AuthorizedBy: data.vendor.ApprovedBy,
+//         DATE: data.vendor.TODAY,
+//         WEBSITE: data.vendor.WEBSITE,
+//         SALESORDER: data.SALESORDER,
+//         Notes: data.notes,
+//         AMOUNT: data.AMOUNT,
+//         VENDORDATE: data.VENDORDATE,
+//         Shipto: data.Shipto,
+//         OPENCLOSED: data.OPENCLOSED,
+//       });
+//       return PO.data;
+//     } catch (e) {
+//       console.error('Error creating new PO entry:', e);
+//       throw new Error('Creating new PO failed: ' + e.message);
+//     }
+//   };
 
-  // Function to save PO detail in a transaction
-  const savePODetail = async () => {
-    const transaction = await sequelize.transaction();
+//   // Function to save PO detail in a transaction
+//   const savePODetail = async () => {
+//     const transaction = await sequelize.transaction();
 
-    try {
-      await sequelize.query(
-        `INSERT INTO tblPODetail (ORDERED, RECEIVED, DESCRIPTION, STOCKNUMBER, PARTNUMBER, UNITPRICE, UNIT, AMOUNT, POUID, PTNUM)
-         VALUES (:ORDERED, :RECEIVED, :DESCRIPTION, :STOCKNUMBER, :PARTNUMBER, :UNITPRICE, :UNIT, :AMOUNT, :POUID, :PTNUM)`,
-        {
-          replacements: data,
-          type: QueryTypes.INSERT,
-          transaction
-        }
-      );
+//     try {
+//       await sequelize.query(
+//         `INSERT INTO tblPODetail (ORDERED, RECEIVED, DESCRIPTION, STOCKNUMBER, PARTNUMBER, UNITPRICE, UNIT, AMOUNT, POUID, PTNUM)
+//          VALUES (:ORDERED, :RECEIVED, :DESCRIPTION, :STOCKNUMBER, :PARTNUMBER, :UNITPRICE, :UNIT, :AMOUNT, :POUID, :PTNUM)`,
+//         {
+//           replacements: data,
+//           type: QueryTypes.INSERT,
+//           transaction
+//         }
+//       );
 
-      const [result] = await sequelize.query(
-        `SELECT * FROM tblPODetail WHERE POUID = :POUID AND PTNUM = :PTNUM`,
-        {
-          replacements: {
-            POUID: data.POUID,
-            PTNUM: data.PTNUM
-          },
-          type: QueryTypes.SELECT,
-          transaction
-        }
-      );
+//       const [result] = await sequelize.query(
+//         `SELECT * FROM tblPODetail WHERE POUID = :POUID AND PTNUM = :PTNUM`,
+//         {
+//           replacements: {
+//             POUID: data.POUID,
+//             PTNUM: data.PTNUM
+//           },
+//           type: QueryTypes.SELECT,
+//           transaction
+//         }
+//       );
 
-      await transaction.commit();
-      return { success: true, message: 'PO detail saved successfully', data: result };
-    } catch (error) {
-      await transaction.rollback();
-      console.error('Error saving PO detail:', error);
-      throw new Error(`Error saving PO detail: ${error.message}`);
-    }
-  };
+//       await transaction.commit();
+//       return { success: true, message: 'PO detail saved successfully', data: result };
+//     } catch (error) {
+//       await transaction.rollback();
+//       console.error('Error saving PO detail:', error);
+//       throw new Error(`Error saving PO detail: ${error.message}`);
+//     }
+//   };
 
-  // If vendor data is present, create PO entry and return its data
-  if (data.vendor) {
-    return await createPOEntry();
-  }
+//   // If vendor data is present, create PO entry and return its data
+//   if (data.vendor) {
+//     return await createPOEntry();
+//   }
 
-  // Otherwise, save PO detail and return the result
-  return await savePODetail();
-}
+//   // Otherwise, save PO detail and return the result
+//   return await savePODetail();
+// }
 
 export async function createNewPOEntry(poData) {
   try {
@@ -401,23 +401,23 @@ export async function updatePOEntry(id, poData) {
     throw error; // Rethrow the error if you want to handle it elsewhere
   }
 }
-export async function deletePODetailByStockNumber(stockNumber) {
-  console.log(stockNumber);
-  try {
-    // Raw SQL query to delete data from tblPODetail by STOCKNUMBER
-    const result = await sequelize.query(
-      `DELETE FROM tblPODetail WHERE STOCKNUMBER = :stockNumber`,
-      {
-        replacements: { stockNumber },
-        type: QueryTypes.DELETE
-      }
-    );
+// export async function deletePODetailByStockNumber(stockNumber) {
+//   console.log(stockNumber);
+//   try {
+//     // Raw SQL query to delete data from tblPODetail by STOCKNUMBER
+//     const result = await sequelize.query(
+//       `DELETE FROM tblPODetail WHERE STOCKNUMBER = :stockNumber`,
+//       {
+//         replacements: { stockNumber },
+//         type: QueryTypes.DELETE
+//       }
+//     );
 
-    return { success: true, message: 'PO detail deleted successfully', result };
-  } catch (error) {
-    throw new Error(`Error deleting PO detail: ${error.message}`);
-  }
-}
+//     return { success: true, message: 'PO detail deleted successfully', result };
+//   } catch (error) {
+//     throw new Error(`Error deleting PO detail: ${error.message}`);
+//   }
+// }
 export const fetchWorkCenters = async () => {
   try {
     const query = `
