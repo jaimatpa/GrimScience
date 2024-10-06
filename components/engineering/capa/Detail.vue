@@ -5,6 +5,8 @@ import "vue-loading-overlay/dist/css/index.css";
 import type { UTableColumn } from "~/types";
 import { format } from "date-fns";
 import PartsComponent from "~/pages/materials/parts.vue";
+import Vendors from "~/pages/materials/vendors.vue";
+import ChangeOrderPage from "../../../components/engineering/changeOrder/list.vue";
 
 const emit = defineEmits(["close", "link"]);
 const props = defineProps({
@@ -385,7 +387,7 @@ const handleSelect = () => {
 const onWorkcenterChange = (index) => {
 
     //for workCenter length add 0 for each index in formData.WORKCENTERS string
-    if(formData.WORKCENTERS === null){
+    if (formData.WORKCENTERS === null) {
         formData.WORKCENTERS = "0".repeat(workCenters.value.length);
     }
     else if (formData.WORKCENTERS.length < workCenters.value.length) {
@@ -501,11 +503,13 @@ else propertiesInit();
 
 <template>
     <div class="vl-parent">
-        <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533" loader="dots" />
+        <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+            loader="dots" />
     </div>
 
     <UForm :validate="validate" :validate-on="['submit']" :state="formData" @submit="onSubmit">
-        <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader w-full" title="Corrective / Preventative Actions"> </UDashboardNavbar>
+        <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader w-full" title="Corrective / Preventative Actions">
+        </UDashboardNavbar>
         <div class="flex flex-row">
             <div class="basis-2/3 border-[1px] border-slate-600 border-l-0 border-b-0 border-t-0 pb-3">
                 <div class="w-full px-3 py-1 bg-slate-400">Lookup</div>
@@ -513,53 +517,39 @@ else propertiesInit();
                     <div class="flex justify-end">
                         <UCheckbox v-model="filterValues.chkOpenOnly" label="Show Open Only" class="pt-4" />
                     </div>
-                    <UTable
-                        :rows="capaGridMeta.capas"
-                        :columns="capaGridMeta.defaultColumns"
-                        class="w-full"
-                        :ui="{
-                            wrapper: 'overflow-auto h-60 border-2 border-gray-300 dark:border-gray-700 bg-white dark:text-gray dark:bg-[#111827]',
-                            divide: 'divide-gray-200 dark:divide-gray-800',
-                            tr: {
-                                active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                            },
-                            th: {
-                                base: 'sticky top-0 z-10',
-                                color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                                padding: 'px-2 py-0',
-                            },
-                            td: {
-                                base: 'h-[31px]',
-                                padding: 'px-2 py-0',
-                            },
-                        }"
-                        :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-                        @select="onCapaSelect"
-                        @dblclick="">
+                    <UTable :rows="capaGridMeta.capas" :columns="capaGridMeta.defaultColumns" class="w-full" :ui="{
+                        wrapper: 'overflow-auto h-60 border-2 border-gray-300 dark:border-gray-700 bg-white dark:text-gray dark:bg-[#111827]',
+                        divide: 'divide-gray-200 dark:divide-gray-800',
+                        tr: {
+                            active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                        },
+                        th: {
+                            base: 'sticky top-0 z-10',
+                            color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                            padding: 'px-2 py-0',
+                        },
+                        td: {
+                            base: 'h-[31px]',
+                            padding: 'px-2 py-0',
+                        },
+                    }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+                        @select="onCapaSelect" @dblclick="">
                         <template v-for="column in capaGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
                             <template v-if="column.kind !== 'actions'">
                                 <template v-if="column.key === 'PRODLINE'">
                                     <div class="min-w-[160px]">
                                         <div class="px-4 py-3.5">
-                                            <CommonSortAndInputFilter
-                                                @handle-input-change="handleFilterChange"
-                                                :label="column.label"
-                                                :sortable="column.sortable"
-                                                :sort-key="column.key"
-                                                :filterable="column.filterable"
-                                                :filter-key="column.key" />
+                                            <CommonSortAndInputFilter @handle-input-change="handleFilterChange"
+                                                :label="column.label" :sortable="column.sortable" :sort-key="column.key"
+                                                :filterable="column.filterable" :filter-key="column.key" />
                                         </div>
                                     </div>
                                 </template>
                                 <template v-else>
                                     <div class="px-4 py-3.5">
-                                        <CommonSortAndInputFilter
-                                            @handle-input-change="handleFilterChange"
-                                            :label="column.label"
-                                            :sortable="column.sortable"
-                                            :sort-key="column.key"
-                                            :filterable="column.filterable"
-                                            :filter-key="column.key" />
+                                        <CommonSortAndInputFilter @handle-input-change="handleFilterChange"
+                                            :label="column.label" :sortable="column.sortable" :sort-key="column.key"
+                                            :filterable="column.filterable" :filter-key="column.key" />
                                     </div>
                                 </template>
                             </template>
@@ -579,11 +569,8 @@ else propertiesInit();
                 <div class="w-full px-3 py-1 bg-slate-400">Complaints</div>
                 <div class="flex mt-11 px-3 pl-7">
                     <div class="">
-                        <UTable
-                            :rows="complaintGridMeta.complaints"
-                            :columns="complaintGridMeta.defaultColumns"
-                            class="w-[400px] overflow-y-auto"
-                            :ui="{
+                        <UTable :rows="complaintGridMeta.complaints" :columns="complaintGridMeta.defaultColumns"
+                            class="w-[400px] overflow-y-auto" :ui="{
                                 wrapper: 'overflow-auto h-60 border-2 border-gray-300 dark:border-gray-700',
                                 divide: 'divide-gray-200 dark:divide-gray-800',
                                 tr: {
@@ -598,31 +585,23 @@ else propertiesInit();
                                     base: 'h-[31px]',
                                     padding: 'py-0',
                                 },
-                            }"
-                            :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }">
-                            <template v-for="column in complaintGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
+                            }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }">
+                            <template v-for="column in complaintGridMeta.defaultColumns"
+                                v-slot:[`${column.key}-header`]>
                                 <template v-if="column.key === 'Shipdate'">
                                     <div class="min-w-[160px]">
                                         <div class="px-4 py-3.5">
-                                            <CommonSortAndInputFilter
-                                                @handle-input-change="handleComplaintFilterChange"
-                                                :label="column.label"
-                                                :sortable="column.sortable"
-                                                :sort-key="column.key"
-                                                :filterable="column.filterable"
-                                                :filter-key="column.key" />
+                                            <CommonSortAndInputFilter @handle-input-change="handleComplaintFilterChange"
+                                                :label="column.label" :sortable="column.sortable" :sort-key="column.key"
+                                                :filterable="column.filterable" :filter-key="column.key" />
                                         </div>
                                     </div>
                                 </template>
                                 <template v-else>
                                     <div class="px-4 py-3.5">
-                                        <CommonSortAndInputFilter
-                                            @handle-input-change="handleComplaintFilterChange"
-                                            :label="column.label"
-                                            :sortable="column.sortable"
-                                            :sort-key="column.key"
-                                            :filterable="column.filterable"
-                                            :filter-key="column.key" />
+                                        <CommonSortAndInputFilter @handle-input-change="handleComplaintFilterChange"
+                                            :label="column.label" :sortable="column.sortable" :sort-key="column.key"
+                                            :filterable="column.filterable" :filter-key="column.key" />
                                     </div>
                                 </template>
                             </template>
@@ -654,12 +633,10 @@ else propertiesInit();
                         <div class="min-w-[150px]">
                             <UFormGroup label="Date">
                                 <UPopover :popper="{ placement: 'bottom-start' }">
-                                    <UButton
-                                        icon="i-heroicons-calendar-days-20-solid"
+                                    <UButton icon="i-heroicons-calendar-days-20-solid"
                                         :label="formData.DIAGDATE && format(formData.DIAGDATE, 'MM/dd/yyyy HH:mm:ss')"
                                         variant="outline"
-                                        :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-                                        truncate />
+                                        :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
                                     <template #panel="{ close }">
                                         <CommonDatePicker v-model="formData.DIAGDATE" is-required @close="close" />
                                     </template>
@@ -717,7 +694,8 @@ else propertiesInit();
                         </div>
                         <div class="flex-1 mt-6">
                             <UFormGroup label="">
-                                <UButton color="gray" variant="outline" label="Find Vendor" @click="()=>modalMeta.isVendorModalOpen = true" />
+                                <UButton color="gray" variant="outline" label="Find Vendor"
+                                    @click="() => modalMeta.isVendorModalOpen = true" />
                             </UFormGroup>
                         </div>
                         <div class="mt-6 font-semibold">Implement to Correct/Prevent Problem</div>
@@ -728,7 +706,8 @@ else propertiesInit();
                             <!-- Create checkbox for each item in workcenters string array -->
                             <UFormGroup label="Problem Work">
                                 <div v-for="(workCenter, index) in workCenters" :key="index">
-                                    <input class="me-2" type="checkbox" :id="'workcenter-' + index" :value="workCenter" :checked="setWorkCenterChecked(index)" @change="onWorkcenterChange(index)" />
+                                    <input class="me-2" type="checkbox" :id="'workcenter-' + index" :value="workCenter"
+                                        :checked="setWorkCenterChecked(index)" @change="onWorkcenterChange(index)" />
                                     <label :for="'workcenter-' + index">{{ workCenter }}</label>
                                 </div>
                             </UFormGroup>
@@ -747,13 +726,15 @@ else propertiesInit();
                         </div>
                         <div class="flex-1 mt-6">
                             <UFormGroup label="">
-                                <UButton color="gray" variant="outline" label="Find ECO" @click="()=>modalMeta.isEcoModalOpen = true" />
+                                <UButton color="gray" variant="outline" label="Find ECO"
+                                    @click="() => modalMeta.isEcoModalOpen = true" />
                             </UFormGroup>
                         </div>
                     </div>
                     <div class="flex justify-between pt-4">
                         <div class="flex flex-row gap-5 p-2 border-[1px] border-slate-200">
-                            <URadio v-for="status of statusGroup" :key="status.value" v-model="formData.Status" v-bind="status" />
+                            <URadio v-for="status of statusGroup" :key="status.value" v-model="formData.Status"
+                                v-bind="status" />
                         </div>
                         <div class="flex flex-row gap-2">
                             <div class="flex items-center font-medium">Closed By</div>
@@ -768,12 +749,10 @@ else propertiesInit();
                             <div class="flex items-center min-w-[200px]">
                                 <div class="w-full">
                                     <UPopover :popper="{ placement: 'bottom-start' }">
-                                        <UButton
-                                            icon="i-heroicons-calendar-days-20-solid"
+                                        <UButton icon="i-heroicons-calendar-days-20-solid"
                                             :label="formData.IMPLEMENTDATE && format(formData.IMPLEMENTDATE, 'MM/dd/yyyy')"
                                             variant="outline"
-                                            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-                                            truncate />
+                                            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
                                         <template #panel="{ close }">
                                             <CommonDatePicker v-model="formData.IMPLEMENTDATE" @close="close" />
                                         </template>
@@ -786,11 +765,18 @@ else propertiesInit();
                         <div class="w-full">
                             <UFormGroup label="">
                                 <div>
-                                    <input class="me-2" type="checkbox" id="noNeedValidqationsChk" :value="noNeedValidationsChecked" :checked="noNeedValidationsChecked"  />
-                                    <label for="noNeedValidqationsChk">Verification & Validation - Not Required because product has been 100% and inspected for specification
-conformity & effectiveness including confirmation that there is no adverse affect on the finished device.</label>
+                                    <input class="me-2" type="checkbox" id="noNeedValidqationsChk"
+                                        :value="noNeedValidationsChecked" :checked="noNeedValidationsChecked" />
+                                    <label for="noNeedValidqationsChk">Verification & Validation - Not Required because
+                                        product
+                                        has been 100% and inspected for specification
+                                        conformity & effectiveness including confirmation that there is no adverse
+                                        affect on the
+                                        finished device.</label>
                                 </div>
-                                <div class="mt-2 text-gray-400">If box is unchecked above then Validation and/or Verification is requried. See SOP 10.1</div>
+                                <div class="mt-2 text-gray-400">If box is unchecked above then Validation and/or
+                                    Verification is
+                                    requried. See SOP 10.1</div>
                             </UFormGroup>
                         </div>
                     </div>
@@ -800,11 +786,8 @@ conformity & effectiveness including confirmation that there is no adverse affec
                 <div class="w-full px-3 py-1 bg-slate-400">Investigations</div>
                 <div class="flex flex-col p-3 pl-7 space-y-2">
                     <div class="">
-                        <UTable
-                            :rows="investigationGridMeta.investigations"
-                            :columns="investigationGridMeta.defaultColumns"
-                            class="w-[400px] overflow-y-auto"
-                            :ui="{
+                        <UTable :rows="investigationGridMeta.investigations"
+                            :columns="investigationGridMeta.defaultColumns" class="w-[400px] overflow-y-auto" :ui="{
                                 wrapper: 'overflow-auto h-[570px] border-2 border-gray-300 dark:border-gray-700',
                                 divide: 'divide-gray-200 dark:divide-gray-800',
                                 tr: {
@@ -819,20 +802,16 @@ conformity & effectiveness including confirmation that there is no adverse affec
                                     base: 'h-[31px]',
                                     padding: 'py-0',
                                 },
-                            }"
-                            :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+                            }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
                             @select="">
-                            <template v-for="column in investigationGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
+                            <template v-for="column in investigationGridMeta.defaultColumns"
+                                v-slot:[`${column.key}-header`]>
                                 <template>
                                     <div class="min-w-[160px]">
                                         <div class="px-4 py-3.5">
-                                            <CommonSortAndInputFilter
-                                                @handle-input-change=""
-                                                :label="column.label"
-                                                :sortable="column.sortable"
-                                                :sort-key="column.key"
-                                                :filterable="column.filterable"
-                                                :filter-key="column.key" />
+                                            <CommonSortAndInputFilter @handle-input-change="" :label="column.label"
+                                                :sortable="column.sortable" :sort-key="column.key"
+                                                :filterable="column.filterable" :filter-key="column.key" />
                                         </div>
                                     </div>
                                 </template>
@@ -842,7 +821,7 @@ conformity & effectiveness including confirmation that there is no adverse affec
                             </template>
                         </UTable>
                     </div>
-                    
+
                 </div>
             </div>
         </div>
@@ -850,49 +829,27 @@ conformity & effectiveness including confirmation that there is no adverse affec
             <div class="basis-2/3">
                 <div class="flex flex-row space-x-10">
                     <div class="min-w-[100px]">
-                        <UButton
-                            icon="i-heroicons-plus"
-                            label="Add"
-                            color="green"
-                            variant="outline"
-                            type="submit"
+                        <UButton icon="i-heroicons-plus" label="Add" color="green" variant="outline" type="submit"
                             :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
-                            :disabled="formData.uniqueID || permissionEnabled == false ? true : false"
-                            truncate />
+                            :disabled="formData.uniqueID || permissionEnabled == false ? true : false" truncate />
                     </div>
                     <div class="min-w-[150px]">
-                        <UButton
-                            icon="i-heroicons-pencil"
-                            label="Modify"
-                            variant="outline"
-                            type="submit"
+                        <UButton icon="i-heroicons-pencil" label="Modify" variant="outline" type="submit"
                             :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
-                            :disabled="formData.uniqueID && permissionEnabled == true ? false : true"
-                            truncate />
+                            :disabled="formData.uniqueID && permissionEnabled == true ? false : true" truncate />
                     </div>
                     <div class="min-w-[150px]">
-                        <UButton
-                            icon="i-f7-rays"
-                            label="Clear"
-                            color="red"
-                            variant="outline"
+                        <UButton icon="i-f7-rays" label="Clear" color="red" variant="outline"
                             :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
-                            @click="onClear"
-                            :disabled="!permissionEnabled"
-                            truncate />
+                            @click="onClear" :disabled="!permissionEnabled ? true : false" truncate />
                     </div>
                 </div>
             </div>
             <div v-if="!props.isPage" class="basis-1/3 flex justify-end">
                 <div class="min-w-[150px]">
-                    <UButton
-                        icon="i-heroicons-cursor-arrow-ripple"
-                        label="Select"
-                        variant="outline"
+                    <UButton icon="i-heroicons-cursor-arrow-ripple" label="Select" variant="outline"
                         :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
-                        :disabled="formData.uniqueID ? false : true"
-                        @click="handleSelect"
-                        truncate />
+                        :disabled="formData.uniqueID ? false : true" @click="handleSelect" truncate />
                 </div>
             </div>
         </div>
@@ -900,52 +857,51 @@ conformity & effectiveness including confirmation that there is no adverse affec
 
     <!-- Parts Modal -->
 
-    <UDashboardModal
-        v-model="modalMeta.isPartsModalOpen"
-        title="Select Part"
-        :ui="{
-            title: 'text-lg',
-            header: {
-                base: 'flex flex-row min-h-[0] items-center bg-white',
-                padding: 'pt-5 sm:px-9',
-            },
-            body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-            width: 'w-[1200px] sm:max-w-9xl',
-        }">
+    <UDashboardModal v-model="modalMeta.isPartsModalOpen" title="Select Part" :ui="{
+        title: 'text-lg',
+        header: {
+            base: 'flex flex-row min-h-[0] items-center bg-white',
+            padding: 'pt-5 sm:px-9',
+        },
+        body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1200px] sm:max-w-9xl',
+    }">
         <PartsComponent @onPartSelect="handleSelectedPart" />
     </UDashboardModal>
 
     <!-- Vendor Modal -->
 
-    <UDashboardModal
-        v-model="modalMeta.isVendorModalOpen"
-        title="Select Vendor"
-        :ui="{
-            title: 'text-lg',
-            header: {
-                base: 'flex flex-row min-h-[0] items-center bg-white',
-                padding: 'pt-5 sm:px-9',
-            },
-            body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-            width: 'w-[1200px] sm:max-w-9xl',
-        }">
-        <!-- <PartsComponent @onPartSelect="handleSelectedPart" /> -->
+    <UDashboardModal v-model="modalMeta.isVendorModalOpen" title="Select Vendor" :ui="{
+        title: 'text-lg',
+        header: {
+            base: 'flex flex-row min-h-[0] items-center bg-white',
+            padding: 'pt-5 sm:px-9',
+        },
+        body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1200px] sm:max-w-9xl',
+    }">
+        <Vendors :is-page="false" @handleSelect="v => {
+            formData.VENDOR = v.NAME;
+            modalMeta.isVendorModalOpen = false
+        }" />
     </UDashboardModal>
 
     <!-- ECO Modal -->
 
-    <UDashboardModal
-        v-model="modalMeta.isEcoModalOpen"
-        title="Select Change Order"
-        :ui="{
-            title: 'text-lg',
-            header: {
-                base: 'flex flex-row min-h-[0] items-center bg-white',
-                padding: 'pt-5 sm:px-9',
-            },
-            body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-            width: 'w-[1200px] sm:max-w-9xl',
-        }">
-        <!-- <PartsComponent @onPartSelect="handleSelectedPart" /> -->
+    <UDashboardModal v-model="modalMeta.isEcoModalOpen" title="Select Change Order" :ui="{
+        title: 'text-lg',
+        header: {
+            base: 'flex flex-row min-h-[0] items-center bg-white',
+            padding: 'pt-5 sm:px-9',
+        },
+        body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1200px] sm:max-w-9xl',
+    }">
+         <ChangeOrderPage :is-page="false" @close="modalMeta.isEcoModalOpen=false" @selectEco="v => {
+            formData.ECO = `#${v.NUMBER} ${v.DESCRIPTION}`;
+            // modalMeta.isVendorModalOpen = false
+
+    console.log(v)
+        }" />
     </UDashboardModal>
 </template>

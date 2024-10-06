@@ -354,19 +354,19 @@ const onDblClick = async () => {
           padding: 'py-1',
         },
       }" :empty-state="{
-          icon: 'i-heroicons-circle-stack-20-solid',
-          label: 'No items.',
-        }" @select="onSelect" @dblclick="onDblClick">
+        icon: 'i-heroicons-circle-stack-20-solid',
+        label: 'No items.',
+      }" @select="onSelect" @dblclick="onDblClick">
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
             <div class="">
               <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
                 :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
-                    ? noneIcon
-                    : column?.sortDirection === 'asc'
-                      ? ascIcon
-                      : descIcon
+                  ? noneIcon
+                  : column?.sortDirection === 'asc'
+                    ? ascIcon
+                    : descIcon
                   " :filterable="column.filterable" :filter-key="column.key" />
             </div>
           </template>
