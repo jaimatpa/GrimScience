@@ -31,12 +31,14 @@ const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const headerFilters = ref({
+
   productLines: {
     label: "Product Line",
     filter: "PRODUCT",
     api: "/api/materials/productlines",
     options: [],
   },
+
 });
 
 const headerCheckboxes = ref({
@@ -50,7 +52,7 @@ const headerCheckboxes = ref({
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "uniqueID",
+      key: "NUMBER",
       label: "#",
       sortable: true,
       sortDirection: "none",
@@ -186,6 +188,7 @@ const fetchGridData = async () => {
       Math.ceil(gridMeta.value.numberOfChangeOrders / gridMeta.value.pageSize) |
       1;
   }
+
   await useApiFetch("/api/engineering/changeorder/", {
     method: "GET",
     params: {
@@ -195,6 +198,7 @@ const fetchGridData = async () => {
       sortOrder: gridMeta.value.sort.direction,
       ...filterValues.value,
     },
+
     onResponse({ response }) {
       if (response.status === 200) {
         gridMeta.value.orders = response._data.body;
