@@ -25,8 +25,9 @@ export const getAllWorkCenters = async (sortBy, sortOrder, filterParams) => {
         where: whereClause,
         order: [[sortBy as string || 'NUMBER', sortOrder as string || 'ASC']],
     });
-
+console.log(list)
     return list;
+    
 }
 
 export const getResponsibilites = async () => {
