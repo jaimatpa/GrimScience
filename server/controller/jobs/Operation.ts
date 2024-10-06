@@ -38,37 +38,24 @@ const applyFilters = (params) => {
   return whereClause;
 };
 
-export const getAllOperation = async (jobId, model) => {
-  const modelNumber = model.trim().split(" ")[0];
-  const query = `SELECT TOP 1 instanceID FROM tblBP WHERE MODEL = :model`;
-  const [result] = await sequelize.query(query, {
-    replacements: { model: modelNumber },
-    type: QueryTypes.SELECT
-  });
+export const getAllOperation = async (jobId, instanceId, jobQty) => {
 
   const list = await sequelize.query(`
     Select distinct tblJobOperations.*, tblPlan.UniqueID as PID from tblJobOperations left join tblPlan on tblJobOperations.PlanID = tblPlan.uniqueID Where tblJobOperations.instanceid = :instanceid and jobID = :jobId order by number asc
   `, {
-    replacements: { jobId: jobId, instanceid: result.instanceID },
+    replacements: { jobId: jobId, instanceid: instanceId },
     type: QueryTypes.SELECT
   });
 
-  return list;
+  const modList = list.map(item =>{
+    return {...item, Hours: parseFloat(item.Hours) * parseFloat(jobQty)}
+  } )
+
+  return modList;
 }
 
-export const refreshJobOperations = async (lngJob, instanceid, model) => {
+export const refreshJobOperations = async (lngJob, instanceid, recJOainstanceID) => {
   try {
-    const modelNumber = model.trim().split(" ")[0];
-    const query = `SELECT TOP 1 instanceID FROM tblBP WHERE MODEL = :model`;
-    const [result] = await sequelize.query(query, {
-      replacements: { model: modelNumber },
-      type: QueryTypes.SELECT
-    });
-    const recJOainstanceID = result.instanceID
-    // Fetch the existing job operations
-    const jobOperationDt = await sequelize.query(`
-      SELECT * FROM tblJobOperations
-    `, { type: QueryTypes.SELECT });
 
     // Fetch the new operations from tblPlan excluding the ones already in tblJobOperations
     const newOperationDT = await sequelize.query(`
@@ -460,6 +447,8 @@ export const reScheduledOp = async (lngJobOperationID, txtScheduled) => {
 
 export const moveToOperation = async (operationId, listItems) => {
   try {
+
+    console.log(operationId, listItems)
 
     if(!operationId) {
       return

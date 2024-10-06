@@ -390,6 +390,7 @@ export const pullIntoInventory = async (
 ) => {
   try {
       if (recJoaPerType === "Serial/Unit") {
+
         const qty = parseFloat(quantityInput);
         const jobQty = parseFloat(recJOnQuantity);
 
@@ -406,33 +407,26 @@ export const pullIntoInventory = async (
         for (const li of lvwSubAssembly) { 
           subAssemblyTotal += parseFloat(li.Quantity);
         }
-        // if (subAssemblyTotal + qty > jobQty) {
-        //     throw new Error("Entered Quantity exceeds Job Quantity. Please correct the quantity to add to inventory and try again.");
-        // }
-
-        // Create new sub-assembly item
-        const newItem = {
-            qty,
-            dateEntered: formatDate(dateInput)
-        };
-
+        if (subAssemblyTotal + qty > jobQty) {
+            throw new Error("Entered Quantity exceeds Job Quantity. Please correct the quantity to add to inventory and try again.");
+        }
         // Insert new job detail record
         
         const newRecord = {
             Jobid: lngJob,
             Quantity: qty,
-            dateEntered: newItem.dateEntered,
+            dateEntered: formatDate(dateInput),
             CostPerUnit: parseFloat(LatestUnitCost)
         };
 
         // Add new job detail record to the database
-        // await sequelize.query(
-        //     `INSERT INTO tblJobDetail (Jobid, Quantity, dateEntered, CostPerUnit) VALUES (:Jobid, :Quantity, :dateEntered, :CostPerUnit)`,
-        //     {
-        //         replacements: newRecord,
-        //         type: QueryTypes.INSERT
-        //     }
-        // );
+        await sequelize.query(
+            `INSERT INTO tblJobDetail (Jobid, Quantity, dateEntered, CostPerUnit) VALUES (:Jobid, :Quantity, :dateEntered, :CostPerUnit)`,
+            {
+                replacements: newRecord,
+                type: QueryTypes.INSERT
+            }
+        );
         const today = formatDateForSQLServer(new Date())
         // Fetch the max uniqueID from tblJobDetail
         const [{ maxUniqueID }] = await sequelize.query(`SELECT MAX(UniqueID) AS maxUniqueID FROM tblJobDetail`, { type: QueryTypes.SELECT });

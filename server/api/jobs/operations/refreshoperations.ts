@@ -3,10 +3,10 @@ import { refreshJobOperations } from '~/server/controller/jobs';
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    const { jobId, instanceId, model } = getQuery(event);
+    const { jobId, instanceId, recJOainstanceID } = getQuery(event);
     switch(method.toUpperCase()){
       case 'GET':
-        await refreshJobOperations(jobId, instanceId, model)
+        await refreshJobOperations(jobId, instanceId, recJOainstanceID)
         return { body: '', message: '' }
       default:
         setResponseStatus(event, 405);

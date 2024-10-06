@@ -7,7 +7,7 @@ export default eventHandler(async (event) => {
     const method = event._method;
     switch(method.toUpperCase()){
       case 'PUT':
-        const { LatestUnitCost, message } = await pullIntoInventory(subSerialList, instanceId, employee, perType, qty, jobQty, latestUnitCost, jobId, jobPart, date.slice(1, -1))
+        const { LatestUnitCost, message } = await pullIntoInventory(subSerialList, instanceId, employee, perType, qty, jobQty, latestUnitCost, jobId, jobPart, date)
         return { body: LatestUnitCost, message }
       default: 
         setResponseStatus(event, 405);

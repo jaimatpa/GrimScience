@@ -46,6 +46,7 @@ const prodOperationIds = ref([]);
 const subOperationIds = ref([]);
 const multipleSerialSelect = ref([]);
 const multipleEmployeeSelect = ref([]);
+const multipleSubEmployeeSelect = ref([]);
 const prodHrs = ref(0);
 const subHrs = ref(0);
 const unitCost = ref(null);
@@ -54,6 +55,7 @@ const destOp = ref(null)
 const operationHourInputDisable = ref(true)
 const reworkCost = ref(0)
 const sbQty = ref(null)
+const instanceID = ref(0)
 const formData = reactive({
   ReportsTo: null,
   Title: null,
@@ -132,6 +134,7 @@ const editInit = async () => {
             } else {
               formData[key] = response._data.body[key];
             }
+            instanceID.value = response._data.body["InstanceID"]
           }
         }
       }
@@ -371,7 +374,7 @@ const fetchJobOperation = async () => {
   // get job operation
   await useApiFetch("/api/jobs/operations", {
     method: "GET",
-    params: { jobId:props.selectedJob, model:formData.MODEL },
+    params: { jobId:props.selectedJob, instanceId: formData.InstanceID, jobQty: formData.QUANTITY },
     onResponse({ response }) {
       if (response.status === 200) {
         if (formData.JobType === "Product") {
@@ -384,7 +387,9 @@ const fetchJobOperation = async () => {
         } else {
           subOperationGridMeta.value.subOperations = response._data.body;
           subDesOperations.value = response._data.body.map(
-            (item) => item.Operation
+            (item) => {
+              return {name: item.Operation, value: item.uniqueID }
+            }
           );
         }
       }
@@ -630,18 +635,29 @@ const handleProdOperationSelect = async (row) => {
   getSchedules();
 };
 
-const handleSubOperationSelect = (row) => {
+const handleSubOperationSelect = async (row) => {
   subOperationGridMeta.value.selectedSubOperation = { ...row, class: "" };
+
   subOperationGridMeta.value.subOperations.forEach((c) => {
-    if (c.UniqueID === row.UniqueID) {
+    if (c.uniqueID === row.uniqueID) {
       c.class = "bg-gray-200";
     } else {
       delete c.class;
     }
   });
 
-  emploeeFilterValues.value.OperationID =
-    subOperationGridMeta.value.selectedSubOperation.UniqueID;
+  emploeeFilterValues.value.OperationID = subOperationGridMeta.value.selectedSubOperation.uniqueID;
+  operationHourInputDisable.value = !subOperationGridMeta.value.selectedSubOperation.verified
+  subHrs.value = subOperationGridMeta.value.selectedSubOperation.reworkhrs ? subOperationGridMeta.value.selectedSubOperation.reworkhrs : 0
+  await useApiFetch(`/api/jobs/operations/reworkcost/`, {
+    method: "GET",
+    params: { jobId: props.selectedJob, operationId: subOperationGridMeta.value.selectedSubOperation.uniqueID, reworkHrs: subHrs.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        reworkCost.value = response._data.body
+      }
+    },
+  });
 
   getSchedules();
 };
@@ -681,7 +697,7 @@ const handleDeleteOperation = async () => {
 
       await useApiFetch(`/api/jobs/operations/deleteoperation`, {
         method: "DELETE",
-        params: {jobId:props.selectedJob, operationId:prodOperationGridMeta.value.selectedOperation.uniqueID, planId:prodOperationGridMeta.value.selectedOperation.PlanID },
+        params: {jobId:props.selectedJob, operationId:subOperationGridMeta.value.selectedSubOperation.uniqueID, planId:subOperationGridMeta.value.selectedSubOperation.PlanID },
         onResponse({ response }) {
           if (response.status === 200) {
             toast.add({
@@ -728,7 +744,6 @@ const handleDeleteOperation = async () => {
 };
 
 const handleDeleteAllOperation = async () => {
-
   loadingOverlay.value = true
   await useApiFetch(`/api/jobs/operations/deleteallrougeoperation`, {
     method: "DELETE",
@@ -746,7 +761,6 @@ const handleDeleteAllOperation = async () => {
   });
   await fetchJobOperation()
   loadingOverlay.value = false
-  
 };
 
 const prodOperationGridMeta = ref({
@@ -962,7 +976,8 @@ const modalMeta = ref({
   modalDescription: "View Parts Listing",
   isOperationModalOpen: false,
   isReworkPartsModalOpen: false,
-  isJobListModalOpen: false
+  isJobListModalOpen: false,
+  reworkModalOperationId: null
 });
 
 const onDblClick = () => {
@@ -977,6 +992,27 @@ const handleRWClick = () => {
   modalMeta.value.isReworkPartsModalOpen = true;
   modalMeta.value.modalTitle = "Parts Used";
   modalMeta.value.modalDescription = "";
+
+  if (
+    subOperationGridMeta.value.selectedSubOperation === null &&
+    prodOperationGridMeta.value.selectedOperation === null
+  ) {
+    toast.add({
+      title: "Failed",
+      description: "Please Select an Operation",
+      icon: "i-heroicons-check-circle",
+      color: "red",
+    });
+  }
+
+  if (subOperationGridMeta.value.selectedSubOperation !== null) {
+    modalMeta.value.reworkModalOperationId = subOperationGridMeta.value.selectedSubOperation.uniqueID
+  }
+
+  if (prodOperationGridMeta.value.selectedOperation !== null) {
+    modalMeta.value.reworkModalOperationId = prodOperationGridMeta.value.selectedOperation.uniqueID
+  }
+  
 };
 
 const handleModalClose = () => {
@@ -1184,7 +1220,7 @@ const handleRefreshOperation = async() => {
   loadingOverlay.value = true
   await useApiFetch("/api/jobs/operations/refreshoperations", {
     method: "GET",
-    params: { jobId:props.selectedJob, instanceId:formData.InstanceID, model:formData.MODEL },
+    params: { jobId:props.selectedJob, instanceId: instanceID.value, recJOainstanceID: formData.InstanceID },
   });
 
   await fetchJobOperation()
@@ -1224,21 +1260,66 @@ const onMultipleEmployeeSelect = (row) => {
   multipleEmployeeSelect.value = prodEmployeeGridMeta.value.employees
 }
 
-const moveSelectedEnteriesToOperation = async () => {
-  if(destOp !== null){
-    loadingOverlay.value = true
-    await useApiFetch("/api/jobs/operations/movetooperation", {
-      method: "PUT",
-      body: { operationId: destOp.value , employees: multipleEmployeeSelect.value },
-      onResponse({ response }) {
-      if (response.status === 200) {
-        prodEmployeeGridMeta.value.employees = prodEmployeeGridMeta.value.employees.filter(item => item.checked === false)
-      }
-    },
-    });
+const onMultipleSubEmployeeSelect = (row) => {
+  subEmployeeGridMeta.value.subEmployees.forEach(item => {
+    if(item.checked === undefined){
+      item.checked = false
+    }
+    if(item.UniqueID === row.UniqueID){
+      item.checked = item.checked ? false : true
+    }
+  })
+  multipleSubEmployeeSelect.value = subEmployeeGridMeta.value.subEmployees
+}
 
-    destOp.value = null
-    loadingOverlay.value = false
+const moveSelectedEnteriesToOperation = async () => {
+
+  if(destOp !== null){
+    
+
+    if (
+      subOperationGridMeta.value.selectedSubOperation === null &&
+      prodOperationGridMeta.value.selectedOperation === null
+    ) {
+      toast.add({
+        title: "Failed",
+        description: "Please Select an Operation",
+        icon: "i-heroicons-check-circle",
+        color: "red",
+      });
+    }
+
+    if (subOperationGridMeta.value.selectedSubOperation !== null) {
+      loadingOverlay.value = true
+      await useApiFetch("/api/jobs/operations/movetooperation", {
+        method: "PUT",
+        body: { operationId: destOp.value , employees: multipleSubEmployeeSelect.value },
+        onResponse({ response }) {
+        if (response.status === 200) {
+          subEmployeeGridMeta.value.subEmployees = subEmployeeGridMeta.value.subEmployees.filter(item => item.checked === false)
+        }
+      },
+      });
+
+      destOp.value = null
+      loadingOverlay.value = false
+    }
+
+    if (prodOperationGridMeta.value.selectedOperation !== null) {
+      loadingOverlay.value = true
+      await useApiFetch("/api/jobs/operations/movetooperation", {
+        method: "PUT",
+        body: { operationId: destOp.value , employees: multipleEmployeeSelect.value },
+        onResponse({ response }) {
+        if (response.status === 200) {
+          prodEmployeeGridMeta.value.employees = prodEmployeeGridMeta.value.employees.filter(item => item.checked === false)
+        }
+      },
+      });
+
+      destOp.value = null
+      loadingOverlay.value = false
+    }
   }else{
     toast.add({
       title: "Select",
@@ -1250,25 +1331,55 @@ const moveSelectedEnteriesToOperation = async () => {
 }
 
 const verifyAndCloseOperation = async () => {
-  loadingOverlay.value = true
-  await useApiFetch(`/api/jobs/operations/verifyAndCloseOp/`, {
-    method: "PUT",
-    params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHours: prodHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY },
-    onResponse({ response }) {
-      
-    },
-  });
+  if (
+    subOperationGridMeta.value.selectedSubOperation === null &&
+    prodOperationGridMeta.value.selectedOperation === null
+  ) {
+    toast.add({
+      title: "Failed",
+      description: "Please Select an Operation",
+      icon: "i-heroicons-check-circle",
+      color: "red",
+    });
+  }
 
-  operationHourInputDisable.value = false
-  await fetchJobOperation()
-  loadingOverlay.value = false
+  if (subOperationGridMeta.value.selectedSubOperation !== null) {
+    loadingOverlay.value = true
+    await useApiFetch(`/api/jobs/operations/verifyAndCloseOp/`, {
+      method: "PUT",
+      params: { jobId: props.selectedJob, operationId: subOperationGridMeta.value.selectedSubOperation.uniqueID, reworkHours: prodHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY },
+      onResponse({ response }) {
+        
+      },
+    });
+
+    operationHourInputDisable.value = false
+    await fetchJobOperation()
+    loadingOverlay.value = false
+  }
+
+  if (prodOperationGridMeta.value.selectedOperation !== null) {
+    loadingOverlay.value = true
+    await useApiFetch(`/api/jobs/operations/verifyAndCloseOp/`, {
+      method: "PUT",
+      params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHours: prodHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY },
+      onResponse({ response }) {
+        
+      },
+    });
+
+    operationHourInputDisable.value = false
+    await fetchJobOperation()
+    loadingOverlay.value = false
+  }
+
 }
 
 const reOpenOperation = async () => {
   loadingOverlay.value = true
   await useApiFetch(`/api/jobs/operations/reOpenOp/`, {
     method: "PUT",
-    params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, unitCost: unitCost, employee: username, quantity: formData.QUANTITY },
+    params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, unitCost: unitCost.value, employee: username, quantity: formData.QUANTITY },
     onResponse({ response }) {
       
     },
@@ -1279,9 +1390,31 @@ const reOpenOperation = async () => {
 }
 
 const onReworkHrsChange = async (event) => {
-  console.log(event.target.value)
-  console.log(prodHrs)
-  if( prodOperationGridMeta.value.selectedOperation !== null){
+  if (
+    subOperationGridMeta.value.selectedSubOperation === null &&
+    prodOperationGridMeta.value.selectedOperation === null
+  ) {
+    toast.add({
+      title: "Failed",
+      description: "Please Select an Operation",
+      icon: "i-heroicons-check-circle",
+      color: "red",
+    });
+  }
+
+  if (subOperationGridMeta.value.selectedSubOperation !== null) {
+    await useApiFetch(`/api/jobs/operations/reworkcost/`, {
+      method: "GET",
+      params: { jobId: props.selectedJob, operationId: subOperationGridMeta.value.selectedSubOperation.uniqueID, reworkHrs: event.target.value },
+      onResponse({ response }) {
+        if (response.status === 200) {
+          reworkCost.value = response._data.body
+        }
+      },
+    });
+  }
+
+  if (prodOperationGridMeta.value.selectedOperation !== null) {
     await useApiFetch(`/api/jobs/operations/reworkcost/`, {
       method: "GET",
       params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHrs: event.target.value },
@@ -1292,6 +1425,7 @@ const onReworkHrsChange = async (event) => {
       },
     });
   }
+
 }
 
 if (props.selectedJob !== null) editInit();
@@ -2137,8 +2271,13 @@ else propertiesInit();
                       },
                     }"
                   >
-                    <template #empty-state>
-                      <div></div>
+                  <template  #select-data="{ row }">
+                      <UTooltip text="Select" >
+                        <UCheckbox
+                        :model-value="row.checked"
+                          @change="onMultipleSubEmployeeSelect(row)"
+                        />
+                      </UTooltip>
                     </template>
                   </UTable>
                   <div class="w-full flex">
@@ -2185,6 +2324,7 @@ else propertiesInit();
                             @input="onReworkHrsChange"
                           />
                           <UInput v-else 
+                            :disabled="!operationHourInputDisable"
                             v-model="subHrs"
                             type="number"
                             @input="onReworkHrsChange"
@@ -2263,7 +2403,12 @@ else propertiesInit();
                         :options="prodDesOperations"
                         option-attribute="name"
                       />
-                      <USelect v-else :options="subDesOperations" />
+                      <USelect 
+                        v-else 
+                        v-model="destOp"
+                        :options="subDesOperations" 
+                        option-attribute="name"
+                      />
                     </UFormGroup>
                   </div>
                 </div>
@@ -2367,6 +2512,6 @@ else propertiesInit();
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobReworkParts :selected-job="selectedJob" :operationId="prodOperationGridMeta.selectedOperation.uniqueID" />
+    <JobReworkParts :selected-job="selectedJob" :operationId="modalMeta.reworkModalOperationId" />
   </UDashboardModal>
 </template>
