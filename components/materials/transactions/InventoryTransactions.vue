@@ -671,8 +671,9 @@ editInit();
                                         <CommonSortAndSelectFilter @handle-sorting-button="handleProductSortingButton"
                                             @handle-select-change="handleProductFilterInputChange" :label="column.label"
                                             :sortable="column.sortable" :sort-key="column.key" :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon
-                                                " :value="productFilterValues[column.key]" :filterable="column.filterable"
-                                            :filter-key="column.key" :filter-options="column.filterOptions" />
+                                                " :value="productFilterValues[column.key]"
+                                            :filterable="column.filterable" :filter-key="column.key"
+                                            :filter-options="column.filterOptions" />
                                     </div>
                                 </template>
                             </template>
