@@ -261,6 +261,7 @@ const handleRowSelected = (row) => {
   IssueDetails.value = row.ISSUE;
   solutionOrder.value = row.SOLUTION;
   uniqueIdNumber.value = row.uniqueID;
+  number.value = row.NUMBER;
   DetailsReasonChange.value = row.DetailReason;
   fromModel.value = row.FromModel;
   toModel.value = row.ToModel;
@@ -464,6 +465,7 @@ const toModel = ref("");
 const DetailsReasonChange = ref("");
 const PartsAffect = ref("");
 const ProductAffect = ref("");
+const number = ref("")
 const uniqueIdNumber = ref("");
 const verificationNotRequired = ref(false);
 
@@ -507,6 +509,7 @@ const submitInsertForm = async () => {
     DISTRIBUTIONDATE: CompleteDate.value,
     APPROVAL: CompleteBoolean.value || "",
     COMMENTS: commentsComplete.value,
+    NUMBER:number.value
   };
 
   // console.log(formData);
@@ -713,7 +716,7 @@ const init = async () => {
           <p
             class="mt-[15px] p-[7px] bg-gray-600 text-white border border-green-500 rounded-md"
           >
-            {{ uniqueIdNumber || 0 }}
+            {{ number || 0 }}
           </p>
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">

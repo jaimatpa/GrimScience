@@ -255,61 +255,8 @@ export const getJobOperationsById = async (params) => {
 
 
 
-// export const updateChangeOrderData = async (body) => {
-//   const { uniqueID, ENGDATEAPPROVED, MARDATEAPPROVED, MANDATEAPPROVED, ...updatedData } = body;
 
-//   const formatDate = (dateString) => {
-//     if (!dateString || dateString === "" || dateString === null) {
-//       return null; 
-//     }
-    
-//     const date = new Date(dateString);
-//     const year = date.getUTCFullYear();
-//     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-//     const day = String(date.getUTCDate()).padStart(2, '0');
-//     const hours = String(date.getUTCHours()).padStart(2, '0');
-//     const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-//     const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-  
-//     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-//   };
-
-//   const finalUpdatedData = {
-//     ...updatedData,
-//     ENGDATEAPPROVED: formatDate(ENGDATEAPPROVED),
-//     MARDATEAPPROVED: formatDate(MARDATEAPPROVED),
-//     MANDATEAPPROVED: formatDate(MANDATEAPPROVED),
-//   };
-
-//   try {
-//     const existingRecord = await tblECO.findOne({ where: { uniqueID } });
-    
-//     if (existingRecord) {
-//       await existingRecord.update(finalUpdatedData);
-//       return {
-//         success: true,
-//         message: "Record updated successfully",
-//         data: existingRecord,
-//       };
-//     } else {
-//       const newRecord = await tblECO.create(finalUpdatedData);
-//       return {
-//         success: true,
-//         message: "Record created successfully",
-//         data: newRecord,
-//       };
-//     }
-//   } catch (error) {
-//     console.error("Error in updateChangeOrderData:", error);
-//     return {
-//       success: false,
-//       message: "Error processing request",
-//       error: error.message,
-//     };
-//   }
-// };
-
-export const updateChangeOrderData = async (body) => {
+export const updateChangeOrderData = async (body) => { 
   const {
     uniqueID,
     ENGDATEAPPROVED,
@@ -344,8 +291,9 @@ export const updateChangeOrderData = async (body) => {
     DISTRIBUTIONDATE,
     APPROVAL,
     COMMENTS,
+    NUMBER
   } = body;
-
+ 
   const formatDate = (dateString) => {
     if (!dateString || dateString === "" || dateString === null) {
       return null; 
@@ -361,7 +309,6 @@ export const updateChangeOrderData = async (body) => {
   
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
-
 
   const finalData = {
     ENGDATEAPPROVED: formatDate(ENGDATEAPPROVED),
@@ -396,16 +343,25 @@ export const updateChangeOrderData = async (body) => {
     DISTRIBUTIONDATE,
     APPROVAL,
     COMMENTS,
+    NUMBER
   };
-
+  debugger
   try {
+ 
     const [[{ count }]] = await sequelize.query(`SELECT COUNT(*) as count FROM tblECO WHERE uniqueID = :uniqueID`, {
       replacements: { uniqueID },
     });
-
+if(count === 0){
+  const result = await sequelize.query(`SELECT COALESCE(MAX(NUMBER), 0) + 1 AS maxNumber FROM tblECO`, {
+    type: sequelize.QueryTypes.SELECT,
+});
+const maxNumber = result[0] ? result[0].maxNumber : 1; 
+finalData.NUMBER = maxNumber; 
+}
+   
     const query = count > 0 ? 
       `UPDATE tblECO SET ${Object.keys(finalData).map(key => `${key} = :${key}`).join(', ')} WHERE uniqueID = :uniqueID` :
-      `INSERT INTO tblECO (${Object.keys(finalData).join(', ')}) VALUES (${Object.keys(finalData).map(key => `:${key}`).join(', ')})`;
+      `INSERT INTO tblECO (${Object.keys(finalData).join(',')}) VALUES (${Object.keys(finalData).map(key => `:${key}`).join(', ')})`;
 
     await sequelize.query(query, {
       replacements: { ...finalData, uniqueID },
@@ -425,6 +381,7 @@ export const updateChangeOrderData = async (body) => {
     };
   }
 };
+
 
 
 // export const updateChangeOrderData = async (body) => {
