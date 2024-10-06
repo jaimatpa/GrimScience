@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^0.3.10",
+    "@types/google.maps": "^3.58.1",
     "eslint": "^9.2.0",
     "nuxt-file-storage": "^0.2.7",
     "vue-tsc": "^2.0.16"

@@ -13,7 +13,7 @@ const props = defineProps({
   selectedOrder: {
     type: [Number, String, null]
   }
-  ])
+})
   const quotedColumns = ref([{
     key: 'productline',
     label: 'Product Line',

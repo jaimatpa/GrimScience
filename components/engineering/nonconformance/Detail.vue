@@ -1,12 +1,7 @@
 <script setup lang="ts">
-import type { FormError, FormSubmitEvent } from '#ui/types'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css';
-import type { UTableColumn } from '~/types';
-import { format } from 'date-fns'
 import type { FormError, FormSubmitEvent } from '#ui/types'
-import Loading from 'vue-loading-overlay'
-import 'vue-loading-overlay/dist/css/index.css';
 import type { UTableColumn } from '~/types';
 import { format } from 'date-fns'
 
@@ -628,6 +623,7 @@ else
           </div>
         </div>
       </div>
+    </div>
 
   </UForm>
   <UDashboardModal title="Select serial" :ui="{
