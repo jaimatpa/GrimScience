@@ -50,4 +50,5 @@ export default defineNuxtConfig({
     'service/serviceordersorders/:id': { ssr: false }
   },
 
+  compatibilityDate: '2024-07-14'
 })

@@ -3,7 +3,7 @@ import { getProductLines } from "~/server/controller/materials";
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    switch(method.toUpperCase()){
+    switch (method.toUpperCase()) {
       case 'GET':
         const list = await getProductLines();
         return { body: list, message: '' }

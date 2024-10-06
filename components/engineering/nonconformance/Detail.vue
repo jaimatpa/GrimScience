@@ -4,6 +4,11 @@ import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css';
 import type { UTableColumn } from '~/types';
 import { format } from 'date-fns'
+import type { FormError, FormSubmitEvent } from '#ui/types'
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/css/index.css';
+import type { UTableColumn } from '~/types';
+import { format } from 'date-fns'
 
 const emit = defineEmits(['close', 'link'])
 const props = defineProps({
@@ -623,7 +628,7 @@ else
           </div>
         </div>
       </div>
-    </div>
+
   </UForm>
   <UDashboardModal title="Select serial" :ui="{
     width: 'w-[1440px] sm:max-w-9xl',

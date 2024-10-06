@@ -466,4 +466,5 @@ watch(selectedOptions, (newSelectedOptions) => {
   </UDashboardModal>
 
 </template>
-<style scoped></style>
+<style scoped>
+</style>

@@ -4,22 +4,22 @@ export default eventHandler(async (event) => {
   try {
     const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
         const list = await getOrders(page, pageSize, sortBy, sortOrder, filterParams);
         return { body: list, message: '' }
       case 'POST':
         const data = await readBody(event);
-        const { orderDetail, ...orderData  } = data
+        const { orderDetail, ...orderData } = data
         const newOrder: any = await createOrder(orderData)
         let formattedOrderDetail = [];
         orderDetail.forEach(order => {
           const tmp = {
-            quantity: order.quantity, 
+            quantity: order.quantity,
             name: order.DESCRIPTION,
             price: order.PRIMARYPRICE1,
-            serial: order?.serial??'',
+            serial: order?.serial ?? '',
             orderid: newOrder.UniqueID,
             bpid: order.bpid
           }
@@ -29,9 +29,9 @@ export default eventHandler(async (event) => {
           await creteOrderDetail(order)
         })
         setResponseStatus(event, 201);
-        return {body: newOrder, message: "New order created successfully." }
+        return { body: newOrder, message: "New order created successfully." }
       case 'PUT':
-        
+
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

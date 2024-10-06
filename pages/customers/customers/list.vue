@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { UTableColumn } from '~/types';
+import type { UTableColumn } from "~/types";
 
 onMounted(() => {
   init()
@@ -355,7 +355,7 @@ const onDblClick = async () => {
     modalMeta.value.modalTitle = "Edit";
     modalMeta.value.isCustomerModalOpen = true
   }
-}
+};
 </script>
 
 <template>
@@ -368,9 +368,9 @@ const onDblClick = async () => {
         <h2>Sort</h2>
       </div>
 
-      <UDashboardToolbar>
+      <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
-          <div class="flex flex-row space-x-3">
+          <div class="flex flex-row space-x-3" style="max-width:930px;">
             <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
               <template v-if="value.options.length > 1">
                 <div class="basis-1/7 max-w-[200px]">
@@ -411,22 +411,26 @@ const onDblClick = async () => {
         divide: 'divide-gray-200 dark:divide-gray-800',
         th: {
           base: 'sticky top-0 z-10',
-          color: 'bg-white dark:text-gray dark:bg-[#111827]',
-          padding: 'p-0'
+          padding: 'pb-0',
         },
         td: {
-          padding: 'py-1'
-        }
-      }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }" @select="onSelect"
-        @dblclick="onDblClick">
+          padding: 'py-1',
+        },
+      }" :empty-state="{
+          icon: 'i-heroicons-circle-stack-20-solid',
+          label: 'No items.',
+        }" @select="onSelect" @dblclick="onDblClick">
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
-            <div class="px-4 py-3.5">
+            <div class="">
               <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                :filterable="column.filterable" :filter-key="column.key" />
+                :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
+                    ? noneIcon
+                    : column?.sortDirection === 'asc'
+                      ? ascIcon
+                      : descIcon
+                  " :filterable="column.filterable" :filter-key="column.key" />
             </div>
           </template>
           <template v-else class='bg-slate-400'>
@@ -481,20 +485,30 @@ const onDblClick = async () => {
       </div>
     </UDashboardPanel>
   </UDashboardPage>
+
+
+
   <!-- New Customer Detail Modal -->
   <UDashboardModal v-model="modalMeta.isCustomerModalOpen" :title="modalMeta.modalTitle" :ui="{
     title: 'text-lg',
-    header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
     body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-    width: 'w-[1000px] sm:max-w-7xl'
+    width: 'w-[1000px] sm:max-w-7xl',
   }">
     <CustomersForm @close="handleModalClose" @save="handleModalSave" :selected-customer="gridMeta.selectedCustomerId"
       :is-modal="true" />
   </UDashboardModal>
+
   <!-- Order Modal -->
   <UDashboardModal v-model="modalMeta.isOrderDetailModalOpen" title="Invoice" :ui="{
     title: 'text-lg',
-    header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
     body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
     width: 'w-[1800px] sm:max-w-9xl',
   }">
@@ -503,27 +517,36 @@ const onDblClick = async () => {
   <!-- Quote Modal -->
   <UDashboardModal v-model="modalMeta.isQuoteDetailModalOpen" title="Quote" :ui="{
     title: 'text-lg',
-    header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
     body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-    width: 'w-[1000px] sm:max-w-7xl'
+    width: 'w-[1000px] sm:max-w-7xl',
   }">
     <CustomersQuoteDetail :selected-customer="gridMeta.selectedCustomerId" />
   </UDashboardModal>
+  
   <!-- Service Order Modal -->
   <UDashboardModal v-model="modalMeta.isServiceOrderDetailModalOpen" title="Service Order" :ui="{
-    title: 'text-lg',
-    header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
-    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-    width: 'w-[1800px] sm:max-w-9xl'
+    title: 'text-lg text-white',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+    },
+    body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+    width: 'w-[1250px] sm:max-w-9xl',
   }">
     <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId" />
   </UDashboardModal>
   <!-- Site Visit Modal -->
   <UDashboardModal v-model="modalMeta.isSiteVisitModalOpen" title="Site Visit" :ui="{
     title: 'text-lg',
-    header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
     body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-    width: 'w-[1800px] sm:max-w-9xl'
+    width: 'w-[1800px] sm:max-w-9xl',
   }">
     <CustomersSiteVisitDetail :selected-customer="gridMeta.selectedCustomerId" />
   </UDashboardModal>

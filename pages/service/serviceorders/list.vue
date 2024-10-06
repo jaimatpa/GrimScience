@@ -428,5 +428,5 @@ const onDblClick = async () => {
       :selected-complaint="gridMeta.selectedCompaintNumber" :selected-order="gridMeta.selectedOrderId" />
   </UDashboardModal>
 
-
+  
 </template>
