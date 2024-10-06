@@ -5,6 +5,7 @@ import sequelize from "~/server/utils/databse";
 
 const applyFilters = (params) => {
   const filterParams = [
+    "NUMBER",
     "uniqueID",
     "DESCRIPTION",
     "REASONFORCHANGE",
@@ -40,7 +41,7 @@ export const getChangeOrders = async (
     where: {
       ...whereClause,
     },
-    order: [[(sortBy as string) || "uniqueID", (sortOrder as string) || "DESC"]],
+    order: [[(sortBy as string) || "NUMBER", (sortOrder as string) || "DESC"]],
     offset,
     limit,
     raw: true,
