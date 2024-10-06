@@ -1,56 +1,17 @@
 <script setup lang="ts">
-  import type { FormError, FormSubmitEvent } from '#ui/types'
-  import Loading from 'vue-loading-overlay'
-  import 'vue-loading-overlay/dist/css/index.css';   
-  import { format } from 'date-fns'
+import type { FormError, FormSubmitEvent } from '#ui/types'
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/css/index.css';
+import { format } from 'date-fns'
 
-  const emit = defineEmits(['close', 'save'])
-  const props = defineProps({
-    selectedCustomer: {
-      type: [Number, String, null],
-      required: true
-    },
-    selectedOrder: {
-      type: [Number, String, null]
-    }
-  })
-  const serialColumns = ref([{
-    key: 'serial',
-    label: 'Serial',
-  }])
-  const orderColumns = ref([{
-    key: 'order',
-    label: 'Order'
-  }, {
-    key: 'UniqueID',
-    label: '#'
-  }])
-  const invoiceColumns = ref([{
-    key: 'orderdate',
-    label: 'Date',
-  }, {
-    key: 'invoice', 
-    label: 'Invoice#'
-  }, {
-    key: 'terms',
-    label: 'Terms'
-  }])
-  const reportColumns = ref([{
-    key: 'date',
-    label: 'Date',
-  }, {
-    key: 'type', 
-    label: 'Type'
-  }, {
-    key: 'by',
-    label: 'By'
-  }])
-  const investigationColumns = ref([{
-    key: 'date',
-    label: 'Date',
-  }, {
-    key: 'description',
-    label: 'Description'
+const emit = defineEmits(['close', 'save'])
+const props = defineProps({
+  selectedCustomer: {
+    type: [Number, String, null],
+    required: true
+  },
+  selectedOrder: {
+    type: [Number, String, null]
   }
   ])
   const quotedColumns = ref([{
@@ -146,42 +107,42 @@
   const serviceList = ref([])
   const failure = ref(null)
 
-  const editInit = async () => {
-    loadingOverlay.value = true
-    // await useApiFetch(`/api/tbl/tblCustomers/${props.selectedOrder}`, {
-    //   method: 'GET',
-    //   onResponse({ response }) {
-    //     if(response.status === 200) {
-    //       loadingOverlay.value = false
-    //       for (const key in response._data.body) {
-    //         if (response._data.body[key] !== undefined) {
-    //           formData[key] = response._data.body[key]
-    //         }
-    //       }
-    //     }
-    //   }
-    // })
-    await propertiesInit()
-    loadingOverlay.value = false
-  }
+const editInit = async () => {
+  loadingOverlay.value = true
+  // await useApiFetch(`/api/tbl/tblCustomers/${props.selectedOrder}`, {
+  //   method: 'GET',
+  //   onResponse({ response }) {
+  //     if(response.status === 200) {
+  //       loadingOverlay.value = false
+  //       for (const key in response._data.body) {
+  //         if (response._data.body[key] !== undefined) {
+  //           formData[key] = response._data.body[key]
+  //         }
+  //       }
+  //     }
+  //   }
+  // })
+  await propertiesInit()
+  loadingOverlay.value = false
+}
 
-  const propertiesInit = async () => {
-    loadingOverlay.value = true
-    await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          loadingOverlay.value = false
-          for (const key in response._data.body) {
-            if (response._data.body[key]) {
-              formData[key] = response._data.body[key]
-            }
+const propertiesInit = async () => {
+  loadingOverlay.value = true
+  await useApiFetch(`/api/tbl/tblCustomers/${props.selectedCustomer}`, {
+    method: 'GET',
+    onResponse({ response }) {
+      if (response.status === 200) {
+        loadingOverlay.value = false
+        for (const key in response._data.body) {
+          if (response._data.body[key]) {
+            formData[key] = response._data.body[key]
           }
         }
       }
-    })
-    loadingOverlay.value = false
-  }
+    }
+  })
+  loadingOverlay.value = false
+}
 
   const validate = (state: any): FormError[] => {
     const errors = []
@@ -191,25 +152,20 @@
     return errors
   }
 
-  async function onSubmit(event: FormSubmitEvent<any>) {
-    emit('save', event.data)
-    emit('close')
-  }
-  if(props.selectedOrder) 
-    editInit()
-  else 
-    propertiesInit()
+async function onSubmit(event: FormSubmitEvent<any>) {
+  emit('save', event.data)
+  emit('close')
+}
+if (props.selectedOrder)
+  editInit()
+else
+  propertiesInit()
 </script>
 
 <template>
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
   <UForm :validate="validate" :validate-on="['submit']" :state="formData" @submit="onSubmit">
 

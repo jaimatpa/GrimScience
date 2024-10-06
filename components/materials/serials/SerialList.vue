@@ -334,8 +334,7 @@ const onSelect = async (row) => {
 
 const handleSelect = () => {
     const ser = gridMeta.value.selectSerial;
-    const value = `#${ser?.number} ${ser?.fname} ${ser?.lname}`;
-    emit("select", value);
+    emit("select", ser);
     emit("close");
 };
 const onDblClick = async () => {
@@ -350,7 +349,8 @@ const onDblClick = async () => {
 <template>
     <UDashboardPage>
         <UDashboardPanel grow>
-            <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader" title="Serial Record Finished Goods"> </UDashboardNavbar>
+            <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader" title="Serial Record Finished Goods">
+            </UDashboardNavbar>
             <UDashboardToolbar v-if="props.isPage">
                 <template #left>
                     <div class="flex flex-row space-x-3">
@@ -358,7 +358,8 @@ const onDblClick = async () => {
                             <template v-if="value.options.length > 1">
                                 <div class="basis-1/7 max-w-[200px]">
                                     <UFormGroup :label="value.label" :name="key">
-                                        <USelect v-model="filterValues[`${value.filter}`]" :options="value.options" @change="handleFilterChange()" />
+                                        <USelect v-model="filterValues[`${value.filter}`]" :options="value.options"
+                                            @change="handleFilterChange()" />
                                     </UFormGroup>
                                 </div>
                             </template>
@@ -376,52 +377,36 @@ const onDblClick = async () => {
                     </div>
                 </template>
                 <template #right>
-                    <UButton
-                        color="green"
-                        variant="outline"
-                        :loading="exportIsLoading"
-                        label="Export to Excel"
-                        trailing-icon="i-heroicons-document-text"
-                        @click="excelExport">
+                    <UButton color="green" variant="outline" :loading="exportIsLoading" label="Export to Excel"
+                        trailing-icon="i-heroicons-document-text" @click="excelExport">
                     </UButton>
-                    <UButton color="green" variant="outline" label="New serial" trailing-icon="i-heroicons-plus" @click="onCreate()" />
+                    <UButton color="green" variant="outline" label="New serial" trailing-icon="i-heroicons-plus"
+                        @click="onCreate()" />
                 </template>
             </UDashboardToolbar>
 
-            <UTable
-                :rows="gridMeta.serials"
-                :columns="columns"
-                :loading="gridMeta.isLoading"
-                class="w-full"
-                :ui="{
-                    divide: 'divide-gray-200 dark:divide-gray-800',
-                    th: {
-                        base: 'sticky top-0 z-10',
-                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                        padding: 'p-0',
-                    },
-                    td: {
-                        padding: 'py-1',
-                    },
-                }"
-                :empty-state="{
+            <UTable :rows="gridMeta.serials" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
+                divide: 'divide-gray-200 dark:divide-gray-800',
+                th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-0',
+                },
+                td: {
+                    padding: 'py-1',
+                },
+            }" :empty-state="{
                     icon: 'i-heroicons-circle-stack-20-solid',
                     label: 'No items.',
-                }"
-                @select="onSelect"
-                @dblclick="onDblClick">
+                }" @select="onSelect" @dblclick="onDblClick">
                 <template v-for="column in columns" v-slot:[`${column.key}-header`]>
                     <template v-if="column.kind !== 'actions'">
                         <div class="px-4 py-3.5">
-                            <CommonSortAndInputFilter
-                                @handle-sorting-button="handleSortingButton"
-                                @handle-input-change="handleFilterInputChange"
-                                :label="column.label"
-                                :sortable="column.sortable"
-                                :sort-key="column.key"
+                            <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                                @handle-input-change="handleFilterInputChange" :label="column.label"
+                                :sortable="column.sortable" :sort-key="column.key"
                                 :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                                :filterable="column.filterable"
-                                :filter-key="column.key" />
+                                :filterable="column.filterable" :filter-key="column.key" />
                         </div>
                     </template>
                     <template v-else class="bg-slate-400">
@@ -443,28 +428,18 @@ const onDblClick = async () => {
             </UTable>
 
             <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
-                <div v-if="props.isPage" class="flex flex-row justify-end mr-20 mt-1">
-                    <UPagination
-                        :max="7"
-                        :page-count="gridMeta.pageSize"
-                        :total="gridMeta.numberOfSerials | 0"
-                        v-model="gridMeta.page"
-                        @update:model-value="handlePageChange()" />
+                <div class="flex flex-row justify-end mr-20 mt-1">
+                    <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfSerials | 0"
+                        v-model="gridMeta.page" @update:model-value="handlePageChange()" />
                 </div>
 
                 <div v-if="!props.isPage">
                     <div class="mt-3 w-[120px]">
-                        <UButton
-                            icon="i-heroicons-cursor-arrow-ripple"
-                            variant="outline"
-                            color="green"
-                            label="Select"
+                        <UButton icon="i-heroicons-cursor-arrow-ripple" variant="outline" color="green" label="Select"
                             :ui="{
                                 base: 'w-full',
                                 truncate: 'flex justify-center w-full',
-                            }"
-                            truncate
-                            @click="handleSelect">
+                            }" truncate @click="handleSelect">
                         </UButton>
                     </div>
                 </div>
@@ -472,35 +447,31 @@ const onDblClick = async () => {
         </UDashboardPanel>
     </UDashboardPage>
     <!-- New Serial Detail Modal -->
-    <UDashboardModal
-        v-model="modalMeta.isSerialModalOpen"
-        :title="modalMeta.modalTitle"
-        :ui="{
-            title: 'text-lg',
-            header: {
-                base: 'flex flex-row min-h-[0] items-center',
-                padding: 'pt-5 sm:px-9',
-            },
-            body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-            width: 'w-[1000px] sm:max-w-7xl',
-        }">
-        <MaterialsSerialsForm @close="handleModalClose" @save="handleModalSave" :selected-serial="gridMeta.selectedSerialId" :is-modal="true" />
+    <UDashboardModal v-model="modalMeta.isSerialModalOpen" :title="modalMeta.modalTitle" :ui="{
+        title: 'text-lg',
+        header: {
+            base: 'flex flex-row min-h-[0] items-center',
+            padding: 'pt-5 sm:px-9',
+        },
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1000px] sm:max-w-7xl',
+    }">
+        <MaterialsSerialsForm @close="handleModalClose" @save="handleModalSave"
+            :selected-serial="gridMeta.selectedSerialId" :is-modal="true" />
     </UDashboardModal>
 
     <!-- Customer Detail Modal -->
-    <UDashboardModal
-        v-model="modalMeta.isCustomerModalOpen"
-        title="Customer Detail"
-        :ui="{
-            title: 'text-lg',
-            header: {
-                base: 'flex flex-row min-h-[0] items-center',
-                padding: 'pt-5 sm:px-9',
-            },
-            body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-            width: 'w-[1000px] sm:max-w-7xl',
-        }">
-        <CustomersForm @close="" @save="fetchGridData" :selected-customer="parseInt(gridMeta.selectSerial?.Customer)" :is-modal="true" />
+    <UDashboardModal v-model="modalMeta.isCustomerModalOpen" title="Customer Detail" :ui="{
+        title: 'text-lg',
+        header: {
+            base: 'flex flex-row min-h-[0] items-center',
+            padding: 'pt-5 sm:px-9',
+        },
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'w-[1000px] sm:max-w-7xl',
+    }">
+        <CustomersForm @close="" @save="fetchGridData" :selected-customer="parseInt(gridMeta.selectSerial?.Customer)"
+            :is-modal="true" />
     </UDashboardModal>
 </template>
 <style scoped></style>

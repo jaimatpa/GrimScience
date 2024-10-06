@@ -5,22 +5,6 @@ import { ref } from 'vue';
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
 
-const people = [{
-  name: 'Lindsay Walton',
-
-}, {
-  name: 'Lindsay Walton',
-
-}, {
-  name: 'Lindsay Walton',
-}, {
-  name: 'Lindsay Walton',
-}, {
-  name: 'Lindsay Walton',
-}, {
-  name: 'Lindsay Walton',
-}]
-
 const accountList = ref([]);
 const revisions = ref([]);
 const workplaces = ref([]);
@@ -103,53 +87,6 @@ const jobDetailsColumns = [
     label: "instance",
   },
 ];
-
-const orders = [{
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-}, {
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-
-}, {
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-}, {
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-}, {
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-}, {
-  po: 'PO54654',
-  date: 5 / 5 / 12,
-  ordered: '2',
-  recieved: '54',
-  Price: '',
-  vender: 'dfkalsdf',
-}]
-
-
 
 const emit = defineEmits(["close", "save"]);
 const props = defineProps({
