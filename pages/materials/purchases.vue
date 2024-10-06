@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import CreatePurchaseModal from "~/components/purchase/CreatePurchaseModal.vue";
-import ViewPurchaseModal from "~/components/purchase/ViewPurchaseModal/ViewPurchaseModal.vue";
 import type { UTableColumn } from "~/types";
 
 useSeoMeta({
@@ -29,7 +28,7 @@ const viewPurchaseModalMeta = ref({
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "UniqueId",
+      key: "PONUMBER",
       label: "PO#",
       sortable: true,
       sortDirection: "none",
@@ -37,7 +36,7 @@ const gridMeta = ref({
       kind: "actions",
     },
     {
-      key: "date",
+      key: "DATE",
       label: "Date",
       sortable: true,
       sortDirection: "none",
@@ -45,7 +44,7 @@ const gridMeta = ref({
       kind: "actions",
     },
     {
-      key: "vendor",
+      key: "NAME",
       label: "Vendor",
       sortable: true,
       sortDirection: "none",
@@ -53,7 +52,7 @@ const gridMeta = ref({
       kind: "actions",
     },
     {
-      key: "phone",
+      key: "IRPHONE",
       label: "Phone",
       sortable: true,
       sortDirection: "none",
@@ -61,7 +60,7 @@ const gridMeta = ref({
       kind: "actions",
     },
     {
-      key: "total",
+      key: "TOTAL",
       label: "Total",
       sortable: true,
       sortDirection: "none",
@@ -69,7 +68,7 @@ const gridMeta = ref({
       kind: "actions",
     },
     {
-      key: "open",
+      key: "OPENCLOSED",
       label: "Open",
       sortable: true,
       sortDirection: "none",
@@ -81,7 +80,7 @@ const gridMeta = ref({
   pageSize: 50,
   numberOfPurchases: 0,
   purchases: [],
-  selectedPurchaseId: null,
+  selectedPO: null,
   sort: {
     column: "UniqueID",
     direction: "asc",
@@ -90,12 +89,12 @@ const gridMeta = ref({
 });
 
 const filterValues = ref({
-  UniqueId: null,
-  date: null,
-  vendor: null,
-  phone: null,
-  total: null,
-  open: null,
+  PONUMBER: null,
+  DATE: null,
+  NAME: null,
+  IRPHONE: null,
+  TOTAL: null,
+  OPENCLOSED: null,
 });
 
 const selectedColumns = ref(gridMeta.value.defaultColumns);
@@ -106,10 +105,10 @@ const columns = computed(() =>
 );
 Object.entries(route.query).forEach(([key, value]) => {
   switch (key.toLowerCase()) {
-    case "page":
+    case "offset":
       gridMeta.value.page = Number(value);
       break;
-    case "pagesize":
+    case "limit":
       gridMeta.value.pageSize = Number(value);
       break;
     case "sortby":
@@ -135,7 +134,8 @@ const fetchPurchasesData = async () => {
     },
     onResponse: ({ response }) => {
       console.log(response?._data?.body, "====> purchases list");
-      gridMeta.value.purchases = response?._data?.body;
+      gridMeta.value.purchases = response?._data?.body.list;
+      gridMeta.value.numberOfPurchases = response?._data?.body.count;
       gridMeta.value.isLoading = false;
     },
   });
@@ -148,7 +148,7 @@ const triggerCreatePurchaseModal = () => {
 
 // open view purchase moal
 const triggerViewPurchaseModal = () => {
-  if (gridMeta.value.selectedPurchaseId) {
+  if (gridMeta.value.selectedPO) {
     viewPurchaseModalMeta.value.isModalOpen = true;
   } else {
     toast.add({
@@ -200,21 +200,20 @@ const handleFilterInputChange = async (event: any, name: string) => {
 fetchPurchasesData();
 
 const onSelect = (row: any) => {
-  console.log(row);
-  gridMeta.value.selectedPurchaseId = row.UniqueId;
-  console.log(gridMeta.value.selectedPurchaseId);
+  gridMeta.value.selectedPO = row
+  console.log(gridMeta.value.selectedPO);
 };
 
 const onDblClick = () => console.log(gridMeta.value, "======> selected Data");
 
 // delete selected purchase
 const deletePurchase = async () => {
-  if (gridMeta.value.selectedPurchaseId) {
+  if (gridMeta.value.selectedPO) {
     gridMeta.value.isLoading = true;
     await useApiFetch("/api/materials/purchase/", {
       method: "DELETE",
       params: {
-        UniqueId: gridMeta.value.selectedPurchaseId,
+        UniqueID: gridMeta.value.selectedPO.UniqueID,
       },
       onResponse: ({ response }) => {
         console.log(response._data?.body);
@@ -292,7 +291,7 @@ fetchPurchasesData();
               </UButton>
               <UButton @click="triggerCreatePurchaseModal" color="gms-gray" variant="outline">
                 Create Purchase Order
-              </UButton>
+              </UButton> -->
             </div>
             <div class="flex items-center gap-3">
               <UButton @click="triggerViewPurchaseModal" color="primary" variant="outline">
@@ -303,13 +302,9 @@ fetchPurchasesData();
               </UButton>
             </div>
           </div>
-          <!-- <UPagination
-            :max="7"
-            :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfPurchases | 0"
-            v-model="gridMeta.page"
-            @update:model-value="handlePageChange()"
-          /> -->
+          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfPurchases"
+            v-model="gridMeta.page" @update:model-value="handlePageChange" />
+
         </div>
       </div>
       <div class="px-4 py-2 gmsBlueTitlebar">
