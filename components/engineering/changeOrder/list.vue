@@ -709,15 +709,8 @@ const init = async () => {
     <UForm class="space-y-6">
       <div class="flex flex-row space-x-6">
         <div class="basis-1/10 max-w-[300px] min-w-[150px]">
-<<<<<<< HEAD
-          <p
-            class="mt-[15px] p-[7px] bg-gray-600 text-white border border-green-500 rounded-md"
-          >
-            {{ number || 0 }}
-=======
           <p class="mt-[15px] p-[7px] bg-gray-600 text-white border border-green-500 rounded-md">
-            {{ uniqueIdNumber || 0 }}
->>>>>>> 3b3d8b11ed604edfe15f791bb25e9262f0f4a4bd
+            {{ number || 0 }}
           </p>
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
