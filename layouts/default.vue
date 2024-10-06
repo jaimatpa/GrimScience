@@ -285,37 +285,29 @@ const helpItems = [
 ];
 
 const links = [
-  // {
-  //   id: "installation-map",
-  //   label: "Installation Map",
-  //   icon: "i-heroicons-map-marker-alt",
-  //   to: "/installation-map",
-  //   backgroundClass: "bg-green-400",
-  //   activeClass: "!text-white before:!bg-green-600",
-  //   exact: true,
-  //   tooltip: {
-  //     text: "installation-map",
-  //     shortcuts: ["I", "M"],
-  //   }
-  // },
   {
-    id: "installation-map",
-    label: "Installation Map",
+    id: "general",
+    label: "General",
     icon: "i-heroicons-map-pin",
-    to: "/installation-map",
-    defaultOpen: route.path.startsWith("/installation-map"),
+    to: "/general",
+    defaultOpen: route.path.startsWith("/general"),
     tooltip: {
-      text: "Installation Map",
-      shortcuts: ["I", "M"],
+      text: "General",
+      shortcuts: ["G", "U"],
     },
     backgroundClass: "bg-green-800",
     activeClass: "!text-white before:!bg-black/20",
     children: [
       {
         label: "Map",
-        to: "/installation-map/map",
+        to: "/general/map",
         exact: true,
       },
+      {
+        label: "Bug Report",
+        to: "/general/bug/list",
+      },
+
     ],
   },
   {
@@ -909,7 +901,6 @@ onMounted(() => {
         </UDashboardSidebar>
       </UDashboardPanel>
       <div class="hidden bg-slate-50 hover:bg-{color}-100 dark:bg-{color}-800"></div>
-
 
       <ClientOnly>
         <LazyUDashboardSearch :groups="groups" />

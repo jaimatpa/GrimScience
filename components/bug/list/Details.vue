@@ -29,7 +29,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: lableClass, 
+      class: lableClass,
     },
     {
       key: "datea",
@@ -37,7 +37,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: lableClass, 
+      class: lableClass,
     },
     {
       key: "formName",
@@ -45,7 +45,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: lableClass, 
+      class: lableClass,
     },
     {
       key: "employee",
@@ -53,7 +53,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: lableClass, 
+      class: lableClass,
     },
     {
       key: "complaintText",
@@ -61,7 +61,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: lableClass, 
+      class: lableClass,
     },
     {
       key: "descr",
@@ -69,7 +69,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: lableClass, 
+      class: lableClass,
     },
     {
       key: "dvanceLevels",
@@ -77,7 +77,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: lableClass, 
+      class: lableClass,
     },
     {
       key: "cost",
@@ -85,7 +85,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: lableClass, 
+      class: lableClass,
     },
     {
       key: "approved",
@@ -93,7 +93,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: lableClass, 
+      class: lableClass,
     },
     {
       key: "resolveversion",
@@ -101,7 +101,7 @@ const gridMeta = ref({
       sortable: true,
       sortDirection: "none",
       filterable: true,
-      class: "min-w-[150px]", 
+      class: "min-w-[150px]",
     },
     {
       key: "edit",
@@ -334,22 +334,18 @@ const handleModalSave = async () => {
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar class="bg-red-400" title="Bug Sheet">
+      <UDashboardNavbar class="bg-gms-pink-500" title="Bug Sheet">
       </UDashboardNavbar>
 
-      <div class="px-4 py-2 gmsTealTitlebar">
+      <!-- <div class="px-4 py-2 bg-gms-pink-400">
         <h2>Sorting</h2>
-      </div>
+      </div> -->
 
-      <UDashboardToolbar class="gmsTealToolbar">
+      <UDashboardToolbar class="">
         <template #left>
           <UFormGroup label="Bug Status" name="state">
-            <USelect
-              v-model="selectStatus"
-              :options="['Open', 'Closed']"
-              @change="handleSelectChange"
-              searchable="false"
-            />
+            <USelect v-model="selectStatus" :options="['Open', 'Closed']" @change="handleSelectChange"
+              searchable="false" />
           </UFormGroup>
           <div class="flex flex-row space-x-3 ml-5">
             <div class="basis-1/7 max-w-[200px]">
@@ -362,64 +358,42 @@ const handleModalSave = async () => {
           </div>
         </template>
         <template #right>
-          <UButton
-            variant="outline"
-            label="Add Bug"
-            class="bg-gmsTealHeader"
-            trailing-icon="i-heroicons-plus"
-            @click="onCreate()"
-          />
+          <UButton variant="outline" label="Add Bug" class="bg-gmsTealHeader" trailing-icon="i-heroicons-plus"
+            @click="onCreate()" />
         </template>
       </UDashboardToolbar>
 
-      <div class="px-4 py-2 gmsTealTitlebar">
+      <div class="px-4 py-2 bg-gms-pink-400">
         <h2>Bug Lookup</h2>
       </div>
 
-      
 
-      <UTable
-        :rows="gridMeta.bug"
-        :columns="columns"
-        :loading="gridMeta.isLoading"
-        class="w-full"
-        :ui="{
-          divide: 'divide-gray-200 dark:divide-gray-800',
-          th: {
-            base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
-            padding: 'p-0',
-          },
-          td: {
-            padding: 'py-1',
-          },
-        }"
-        :empty-state="{
-          icon: 'i-heroicons-circle-stack-20-solid',
-          label: 'No items.',
-        }"
-        @select="onSelect"
-        @dblclick="onDblClick"
-      >
+
+      <UTable :rows="gridMeta.bug" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
+        divide: 'divide-gray-200 dark:divide-gray-800',
+        th: {
+          base: 'sticky top-0 z-10',
+          color: 'bg-white dark:text-gray dark:bg-[#111827]',
+          padding: 'p-0',
+        },
+        td: {
+          padding: 'py-1',
+        },
+      }" :empty-state="{
+        icon: 'i-heroicons-circle-stack-20-solid',
+        label: 'No items.',
+      }" @select="onSelect" @dblclick="onDblClick">
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
             <div class="px-4 py-3.5">
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
-                    ? noneIcon
-                    : column?.sortDirection === 'asc'
+              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
+                  ? noneIcon
+                  : column?.sortDirection === 'asc'
                     ? ascIcon
                     : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
-              />
+                  " :filterable="column.filterable" :filter-key="column.key" />
             </div>
           </template>
           <template v-else class="bg-slate-400">
@@ -434,51 +408,33 @@ const handleModalSave = async () => {
             <template v-if="column.kind === 'actions'">
               <template v-if="column.key === 'edit'">
                 <UTooltip text="Edit" class="flex justify-center">
-                  <UButton
-                    color="gray"
-                    variant="ghost"
-                    icon="i-heroicons-pencil-square"
-                    @click="onEdit(row)" 
-                  />
+                  <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
                 </UTooltip>
               </template>
               <template v-else-if="column.key === 'delete'">
                 <UTooltip text="Delete" class="flex justify-center">
-                  <UButton
-                    color="gray"
-                    variant="ghost"
-                    icon="i-heroicons-trash"
-                    @click="onDelete(row)" 
-                  />
+                  <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
                 </UTooltip>
               </template>
             </template>
             <template v-else>
-              {{ row[column.key] }} 
+              {{ row[column.key] }}
             </template>
           </div>
         </template>
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
-          <UPagination
-            :max="7"
-            :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfBug || 0"
-            v-model="gridMeta.page"
-            @update:model-value="handlePageChange()"
-          />
+          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfBug || 0"
+            v-model="gridMeta.page" @update:model-value="handlePageChange()" />
         </div>
       </div>
     </UDashboardPanel>
   </UDashboardPage>
-  
-  
-  <UDashboardModal
-    v-model="modalMeta.isBugModalOpen"
-    :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
-    :ui="{
+
+
+  <UDashboardModal v-model="modalMeta.isBugModalOpen" :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription" :ui="{
       title: 'text-lg',
       header: {
         base: 'flex flex-row min-h-[0] items-center',
@@ -486,14 +442,8 @@ const handleModalSave = async () => {
       },
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
       width: 'w-[600px] sm:max-w-8xl',
-    }"
-  >
+    }">
 
-    <BugForm
-      @close="handleModalClose"
-      @save="handleModalSave"
-      :selected-bug="gridMeta.selectedBug"
-      :is-modal="true"
-    />
+    <BugForm @close="handleModalClose" @save="handleModalSave" :selected-bug="gridMeta.selectedBug" :is-modal="true" />
   </UDashboardModal>
 </template>
