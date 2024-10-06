@@ -688,25 +688,25 @@ else
                 </div>
               </div>
               <div class="basis-1/2">
-                <div class="flex flex-col space-y-1 border-[1px] border-slate-200 p-1 mt-1">
-                  <div class="flex flex-row space-x-3">
+                <div class="flex flex-col space-y-1 border-[1px] border-slate-200 p-1 mt-1 sm-field">
+                  <div class="flex flex-row space-x-3 pb-1">
                     <div class="basis-1/2">
                       <div class="flex flex-row">
-                        <div class="w-[80px] font-medium flex items-center">
+                        <div class="w-7/12 font-medium flex items-center">
                           Travel Hrs
                         </div>
-                        <div class="flex-1">
-                          <UInput v-model="formData.TravelHours" type="number" />
+                        <div class="w-5/12">
+                          <UInput class="" v-model="formData.TravelHours" />
                         </div>
                       </div>
                     </div>
                     <div class="basis-1/2">
                       <div class="flex flex-row">
-                        <div class="w-[80px] font-medium flex items-center">
+                        <div class="w-7/12 font-medium flex items-center">
                           Miles
                         </div>
-                        <div class="flex-1">
-                          <UInput v-model="formData.Miles" type="number" />
+                        <div class="w-5/12">
+                          <UInput v-model="formData.Miles" />
                         </div>
                       </div>
                     </div>
@@ -714,21 +714,21 @@ else
                   <div class="flex flex-row space-x-3">
                     <div class="basis-1/2">
                       <div class="flex flex-row">
-                        <div class="w-[80px] font-medium flex items-center">
+                        <div class="w-7/12 font-medium flex items-center">
                           Onsite Hrs
                         </div>
-                        <div class="flex-1">
-                          <UInput v-model="formData.OnsiteHours" type="number" />
+                        <div class="w-5/12">
+                          <UInput v-model="formData.OnsiteHours" />
                         </div>
                       </div>
                     </div>
                     <div class="basis-1/2">
                       <div class="flex flex-row">
-                        <div class="w-[80px] font-medium flex items-center">
+                        <div class="w-7/12 font-medium flex items-center">
                           Per Diem
                         </div>
-                        <div class="flex-1">
-                          <UInput v-model="formData.PerDiem" type="number" />
+                        <div class="w-5/12">
+                          <UInput v-model="formData.PerDiem" />
                         </div>
                       </div>
                     </div>
@@ -1094,12 +1094,18 @@ else
       </div>
     </div>
   </UDashboardModal>
-  <UDashboardModal v-model="modalMeta.isNonConformanceModalOpen" title="Non Conformance" :ui="{
-    title: 'text-lg',
-    header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
-    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-    width: 'w-[1800px] sm:max-w-9xl',
-  }">
+  <UDashboardModal 
+  v-model="modalMeta.isNonConformanceModalOpen" 
+  title="Non Conformance"
+      :ui="{
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
+      }"
+  >
     <EngineeringNonconformanceDetail />
   </UDashboardModal>
 </template>

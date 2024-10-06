@@ -4,10 +4,10 @@ export default eventHandler(async (event) => {
   try {
     const filterParams = getQuery(event);
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
-        console.log("subb categoyyy",filterParams.subCategory);
+        console.log("subb categoyyy", filterParams.subCategory);
         const subcategories = await getDistinctSubcategories(filterParams.subCategory);
         return { body: subcategories, message: '' }
       default:

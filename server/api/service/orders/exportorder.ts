@@ -10,7 +10,7 @@ export default eventHandler(async (event) => {
 
     workbook.removeWorksheet('My sheet')
     const worksheet = workbook.addWorksheet('My sheet')
-    worksheet.columns = [ 
+    worksheet.columns = [
       { header: 'SO#', key: 'COMPLAINTNUMBER', width: 10 },
       { header: 'Serial#', key: 'SERIALNO', width: 32 },
       { header: 'Date', key: 'COMPLAINTDATE', width: 32 },

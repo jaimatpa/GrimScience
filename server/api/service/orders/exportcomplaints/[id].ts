@@ -4,7 +4,7 @@ import { getServiceOrderInvoices } from '~/server/controller/invoices';
 import { getServiceReports } from '~/server/controller/service';
 import { getParts } from '~/server/controller/materials';
 import { getInvestigationsOfComplaint } from '~/server/controller/engineering';
-import { format } from 'date-fns'; 
+import { format } from 'date-fns';
 import puppeteer from 'puppeteer';
 import type { _0 } from '#tailwind-config/theme/backdropBlur';
 
@@ -16,33 +16,33 @@ export default eventHandler(async (event) => {
 
     function escapeHTML(text) {
       const map = {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;'
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
       };
-      return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+      return text.replace(/[&<>"']/g, function (m) { return map[m]; });
     }
 
-    switch(method){
+    switch (method) {
       case 'GET':
-        const complaintDetail = await getComplaintDetail(id)        
-        const customerID=  complaintDetail['CustomerID']
-        const reviewedBy=  complaintDetail['ClosedOutBy'] ? complaintDetail['ClosedOutBy'] : "";
+        const complaintDetail = await getComplaintDetail(id)
+        const customerID = complaintDetail['CustomerID']
+        const reviewedBy = complaintDetail['ClosedOutBy'] ? complaintDetail['ClosedOutBy'] : "";
         const customerDetail = await getCustomerDetail(customerID)
-        const serviceOrderInvoices = await getServiceOrderInvoices({COMPLAINTID: id})
-        const serviceReports = await getServiceReports({COMPLAINTID: id})
-        
+        const serviceOrderInvoices = await getServiceOrderInvoices({ COMPLAINTID: id })
+        const serviceReports = await getServiceReports({ COMPLAINTID: id })
+
         let totalWarrantyMaterialCost = 0
         let warrantyMaterials = []
-        for(let i = 0; i < serviceReports.length; i++) {
-          if(serviceReports[i].PARTS) {
+        for (let i = 0; i < serviceReports.length; i++) {
+          if (serviceReports[i].PARTS) {
             const tmp = serviceReports[i].PARTS.split('=')
-            for(let j = 0; j < tmp.length; j++) {
-              if(tmp[j] !== '' && j % 3 === 0) {
-                const tempPartsDetail = await getParts({UniqueID: tmp[j]})
-                warrantyMaterials.push({...tempPartsDetail[0], Quantity: tmp[j+1]??0, Amount: Number.parseFloat(tempPartsDetail[0]['PRIMARYPRICE1'] || 0) * (Number.parseFloat(tmp[j+1]) || 0)})
+            for (let j = 0; j < tmp.length; j++) {
+              if (tmp[j] !== '' && j % 3 === 0) {
+                const tempPartsDetail = await getParts({ UniqueID: tmp[j] })
+                warrantyMaterials.push({ ...tempPartsDetail[0], Quantity: tmp[j + 1] ?? 0, Amount: Number.parseFloat(tempPartsDetail[0]['PRIMARYPRICE1'] || 0) * (Number.parseFloat(tmp[j + 1]) || 0) })
                 console.log(warrantyMaterials)
               }
             }
@@ -54,12 +54,12 @@ export default eventHandler(async (event) => {
         let totalCost = Number(totalWarrantyMaterialCost) + shippingCost;
 
         let receievedParts = []
-        for(let i = 0; i < serviceReports.length; i++) {
-          if(serviceReports[i].PARTSRECEIVED) {
+        for (let i = 0; i < serviceReports.length; i++) {
+          if (serviceReports[i].PARTSRECEIVED) {
             const tmp = serviceReports[i].PARTSRECEIVED.split('=')
-            for(let j = 0; j < tmp.length; j++) {
-              if(tmp[j] !== '' && j % 3 === 0) {
-                const tempPartsDetail = await getParts({UniqueID: tmp[j]})
+            for (let j = 0; j < tmp.length; j++) {
+              if (tmp[j] !== '' && j % 3 === 0) {
+                const tempPartsDetail = await getParts({ UniqueID: tmp[j] })
                 // Ensure tempPartsDetail is not empty and has at least one element
                 if (tempPartsDetail.length > 0 && tempPartsDetail[0]) {
                   // Access PRIMARYPRICE1 safely with default value 0
@@ -71,20 +71,20 @@ export default eventHandler(async (event) => {
 
                   // Push to receievedParts with safety checks
                   receievedParts.push({
-                      ...tempPartsDetail[0],
-                      Quantity: quantity,
-                      Amount: amount
+                    ...tempPartsDetail[0],
+                    Quantity: quantity,
+                    Amount: amount
                   });
                 } else {
                   console.error("tempPartsDetail is empty or undefined.");
                 }
                 // receievedParts.push({...tempPartsDetail[0], Quantity: tmp[j+1]??0, Amount: Number.parseFloat(tempPartsDetail[0]['PRIMARYPRICE1'] || 0) * (Number.parseFloat(tmp[j+1]) || 0)})
-              } 
+              }
             }
           }
         }
-        const investigations = await getInvestigationsOfComplaint({ComplaintID: id})
-        
+        const investigations = await getInvestigationsOfComplaint({ ComplaintID: id })
+
         const serviceOrderInvoiceSummary = {
           OnsiteHours: 0,
           TravelHours: 0,
@@ -94,12 +94,12 @@ export default eventHandler(async (event) => {
           performsnotext: ''
         }
         serviceReports.forEach((invoice) => {
-          serviceOrderInvoiceSummary.TravelHours += invoice['TravelHours']??0
-          serviceOrderInvoiceSummary.FactoryHours += invoice['FactoryHours']??0
-          serviceOrderInvoiceSummary.Miles += invoice['Miles']??0
-          serviceOrderInvoiceSummary.PerDiem += invoice['PerDiem']??0
-          serviceOrderInvoiceSummary.performsnotext += invoice['performsnotext']??0
-          serviceOrderInvoiceSummary.OnsiteHours += invoice['OnsiteHours']??0
+          serviceOrderInvoiceSummary.TravelHours += invoice['TravelHours'] ?? 0
+          serviceOrderInvoiceSummary.FactoryHours += invoice['FactoryHours'] ?? 0
+          serviceOrderInvoiceSummary.Miles += invoice['Miles'] ?? 0
+          serviceOrderInvoiceSummary.PerDiem += invoice['PerDiem'] ?? 0
+          serviceOrderInvoiceSummary.performsnotext += invoice['performsnotext'] ?? 0
+          serviceOrderInvoiceSummary.OnsiteHours += invoice['OnsiteHours'] ?? 0
         })
         let htmlContent = ''
         htmlContent += `
@@ -114,22 +114,22 @@ export default eventHandler(async (event) => {
                   <p style="font-size: 13px; margin-top: 15px; margin-left: 16px">Warranty</p>
                   <p style="font-size: 13px; margin-top: -9px; margin-left: 60px">
                     <b>#: </b>${complaintDetail['COMPLAINTNUMBER']} 
-                    <b style="margin-left: 22px">Date:</b> ${complaintDetail['COMPLAINTDATE']?format(complaintDetail['COMPLAINTDATE'], 'MM/dd/yyyy'):''}
+                    <b style="margin-left: 22px">Date:</b> ${complaintDetail['COMPLAINTDATE'] ? format(complaintDetail['COMPLAINTDATE'], 'MM/dd/yyyy') : ''}
                   </p>
                 </div>
               </div>
               <div style="margin-top: -16px">
                 <div style="display:flex; justify-content: space-between; align-items: center;">
                   <p style="width:275px; margin-top: 0px; margin-left: 7px; font-size: 13px;"><b>Serial #:</b> ${complaintDetail['SERIALNO']}</p>  
-                  <p style="width:255px; margin-top: 0px; font-size: 13px;"><b>Shipped:</b> ${complaintDetail['ORIGSHIPDATE']?format(complaintDetail['ORIGSHIPDATE'], 'MM/dd/yyyy'):''}</p>  
-                  <p style="width:270px; margin-top: 0px; font-size: 13px;"><b>Warranty:</b> ${complaintDetail['WarrentyService']==='0'?'No':'Yes'}</p>  
+                  <p style="width:255px; margin-top: 0px; font-size: 13px;"><b>Shipped:</b> ${complaintDetail['ORIGSHIPDATE'] ? format(complaintDetail['ORIGSHIPDATE'], 'MM/dd/yyyy') : ''}</p>  
+                  <p style="width:270px; margin-top: 0px; font-size: 13px;"><b>Warranty:</b> ${complaintDetail['WarrentyService'] === '0' ? 'No' : 'Yes'}</p>  
                 </div>
                 <div style="display:flex; justify-content: space-between; align-items: center; margin-top: -6px;">
                   <p style="width:270px; margin-top: 0px; font-size: 13px;"><b>By: </b> ${complaintDetail['RECBY']}</p>  
-                  <p style="width:209px; margin-top: 0px; font-size: 13px;"><b>Status:</b> ${complaintDetail['WarrentyService']===0?'Open':'Closed'}</p>
+                  <p style="width:209px; margin-top: 0px; font-size: 13px;"><b>Status:</b> ${complaintDetail['WarrentyService'] === 0 ? 'Open' : 'Closed'}</p>
                 </div>
                 <div style="display:flex; justify-content: flex-end; margin-top: -10px;">
-                  <p style="width:209px; margin-top: 0px; font-size: 13px;"><b>Valid Complaint:</b> ${complaintDetail['ValidComplaint']===0?'No':'Yes'}</p>
+                  <p style="width:209px; margin-top: 0px; font-size: 13px;"><b>Valid Complaint:</b> ${complaintDetail['ValidComplaint'] === 0 ? 'No' : 'Yes'}</p>
                 </div>
               </div>
               <h4 style="margin: -18px 0px 10px -87px; font-size: 13px;"><center>${complaintDetail['PRODUCTDESC']}</center></h4>
@@ -147,7 +147,7 @@ export default eventHandler(async (event) => {
               </div> 
               <div style="flex-basis: 50%;">
                 <p><b style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Customer Description</b></p>
-                <p style="margin-top: 0px; margin-bottom: 4px; font-size: 13px"><b>Patient Injury:</b> ${complaintDetail['INJURYREPORTNO'] === 0 ?'No':'Yes'}</p>
+                <p style="margin-top: 0px; margin-bottom: 4px; font-size: 13px"><b>Patient Injury:</b> ${complaintDetail['INJURYREPORTNO'] === 0 ? 'No' : 'Yes'}</p>
                 <p style="margin-top: 6px; margin-bottom: 4px; font-size: 13px">${complaintDetail['COMPLAINT']}</p>
               </div>
             </div>`
@@ -178,7 +178,7 @@ export default eventHandler(async (event) => {
           <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
             <thead>
               <tr>
-                <th width="670px" style="text-align: left;"><span style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Invoice #: </span><span style="font-weight: normal; margin-left: 20px;">${serviceOrderInvoices.length?serviceOrderInvoices[0]['invoicenumber']:'' }</span></th>
+                <th width="670px" style="text-align: left;"><span style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Invoice #: </span><span style="font-weight: normal; margin-left: 20px;">${serviceOrderInvoices.length ? serviceOrderInvoices[0]['invoicenumber'] : ''}</span></th>
                 <th width="230px" style="text-align: left;"><span style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Onsite Hrs.</span></th>
                 <th width="200px" style="text-align: left;"><span style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Travel Hrs.</span></th>
                 <th width="200px" style="text-align: left;"><span style="font-size: 13px; text-decoration: underline; text-decoration-thickness: 2px;">Factory Hrs.</span></th>
@@ -211,22 +211,22 @@ export default eventHandler(async (event) => {
             <tbody>`
         serviceReports.forEach((report) => {
           let type;
-          switch(report['REPAIRDESC']) {
+          switch (report['REPAIRDESC']) {
             case 0:
               type = "Customer"
               break;
-            case 1: 
+            case 1:
               type = "Factory Service"
               break;
-            default: 
+            default:
               type = "Field Service"
           }
           htmlContent += `
             <tr>
               <td style="font-size: 13px;">${report['REPAIRDATE']}</td>
               <td style="font-size: 13px;">${type}</td>
-              <td style="font-size: 13px;">${report['REPAIRSBY']??''}</td>
-              <td style="font-size: 13px;">${report['REPAIRSMADE']??''}</td>
+              <td style="font-size: 13px;">${report['REPAIRSBY'] ?? ''}</td>
+              <td style="font-size: 13px;">${report['REPAIRSMADE'] ?? ''}</td>
             </tr>`
         })
         htmlContent += `
@@ -255,8 +255,8 @@ export default eventHandler(async (event) => {
               </tr>
             </thead>
             <tbody>`
-          warrantyMaterials.forEach((material) => {
-            htmlContent += `
+        warrantyMaterials.forEach((material) => {
+          htmlContent += `
               <tr>
                 <td style="font-size: 13px;">${material['Quantity']}</td>
                 <td style="font-size: 13px;">${material['MODEL']}</td>
@@ -265,12 +265,12 @@ export default eventHandler(async (event) => {
                 <td style="font-size: 13px;">${material['UNIT']}</td>
                 <td style="font-size: 13px;">${material['Amount']}</td>
               </tr>`
-          })
-          htmlContent += `
+        })
+        htmlContent += `
               </tbody>
-            </table>` 
-            if (totalWarrantyMaterialCost > 0) {
-              htmlContent += `
+            </table>`
+        if (totalWarrantyMaterialCost > 0) {
+          htmlContent += `
                   <div style="display:flex;justify-content: flex-end; margin-right: 40px; margin-top: 10px">
                       <div>
                           <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; text-align: right;">
@@ -290,8 +290,8 @@ export default eventHandler(async (event) => {
                       </div>
                   </div>
               `;
-          }
-          htmlContent += `   
+        }
+        htmlContent += `   
             <p style="margin-top: 10px; text-decoration: underline; text-decoration-thickness: 2px; font-size: 15px; margin-bottom: 10px"><b>Materials Received</b></p>
             <table style="border-spacing: 0px;">
               <thead style="background: #FFFACD;">
@@ -303,19 +303,19 @@ export default eventHandler(async (event) => {
                 </tr>
               </thead>
               <tbody>`
-          receievedParts.forEach((material) => {
-            htmlContent += `
+        receievedParts.forEach((material) => {
+          htmlContent += `
               <tr>
                 <td style="font-size: 13px;">${material['Quantity']}</td>
                 <td style="font-size: 13px;">${material['MODEL']}</td>
                 <td style="font-size: 13px;">${material['DESCRIPTION']}</td>
                 <td style="font-size: 13px;"></td>
               </tr>`
-          })
-          htmlContent += `
+        })
+        htmlContent += `
               </tbody>
-            </table>` 
-          htmlContent += `
+            </table>`
+        htmlContent += `
             <p style="margin-top: 10px; text-decoration: underline; text-decoration-thickness: 2px; font-size: 15px; margin-bottom: 10px"><b>Action</b></p>
             <table style="border-spacing: 0px;">
               <thead style="background: #FFFACD;">
@@ -328,7 +328,7 @@ export default eventHandler(async (event) => {
               <tbody>
               </tbody>
             </table>`
-          htmlContent += `
+        htmlContent += `
             <p style="margin-top: 10px; text-decoration: underline; text-decoration-thickness: 2px; font-size: 15px; margin-bottom: 10px"><b>Investigations</b></p>
             <table style="border-spacing: 0px;">
               <thead style="background: #FFFACD;">
@@ -339,27 +339,27 @@ export default eventHandler(async (event) => {
                 </tr>
               </thead>
               <tbody>`
-          investigations.forEach((investigation) => {
-            htmlContent += `
+        investigations.forEach((investigation) => {
+          htmlContent += `
               <tr>
                 <td style="font-size: 13px;">${investigation['DIAGDATE']}</td>
-                <td style="font-size: 13px;">${investigation['ACTIONTYPE']??''}</td>
+                <td style="font-size: 13px;">${investigation['ACTIONTYPE'] ?? ''}</td>
                 <td style="font-size: 13px;">${investigation['DESCRIPTION']}</td>
               </tr>
             `
-          })
-          htmlContent += `
+        })
+        htmlContent += `
                   </tbody>
                 </table>`
-          if (reviewedBy) {
-              htmlContent += `
+        if (reviewedBy) {
+          htmlContent += `
                 <h4 style="margin: 40px 0px"><center>${escapeHTML(reviewedBy)}</center></h4>
                 </div>  
             </body>`;
-          }
+        }
 
         const browser = await puppeteer.launch();
-        const page = await browser.newPage(); 
+        const page = await browser.newPage();
 
         const pdfOptions: any = {
           path: 'Complaints.pdf',
@@ -378,7 +378,7 @@ export default eventHandler(async (event) => {
             right: '121px'
           }
         };
-        await page.setContent(htmlContent, {waitUntil: 'domcontentloaded'});
+        await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
 
         const pdfBuffer = await page.pdf(pdfOptions);
         await browser.close()
@@ -386,13 +386,13 @@ export default eventHandler(async (event) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'inline; filename="Orders Summary.pdf"',
           'Page-Size': 'Letter'
-        })  
+        })
         return pdfBuffer
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
-    
+
   } catch (error) {
     console.log(error)
     throw new Error(`Error fetching data from table: ${error.message}`);

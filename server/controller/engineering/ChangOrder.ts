@@ -345,7 +345,6 @@ export const updateChangeOrderData = async (body) => {
     COMMENTS,
     NUMBER
   };
-  debugger
   try {
  
     const [[{ count }]] = await sequelize.query(`SELECT COUNT(*) as count FROM tblECO WHERE uniqueID = :uniqueID`, {

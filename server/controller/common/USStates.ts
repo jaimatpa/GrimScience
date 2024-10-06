@@ -9,19 +9,19 @@ export const getStateList = async () => {
   //   ],
   // });
   // if(!result.length) {
-    result = await tblCustomers.findAll({
-      attributes: [
-        [Sequelize.fn('DISTINCT', Sequelize.col('state')), 'state']
-      ],
-      where: {
-        [Op.and]: [
-          { state: { [Op.ne]: null } },
-          { state: { [Op.ne]: '' } }
-        ]
-      },
-      order: [['state', 'ASC']],
-      raw: true
-    });
+  result = await tblCustomers.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('state')), 'state']
+    ],
+    where: {
+      [Op.and]: [
+        { state: { [Op.ne]: null } },
+        { state: { [Op.ne]: '' } }
+      ]
+    },
+    order: [['state', 'ASC']],
+    raw: true
+  });
   // }
   const distinctStates = result.map((item: any) => item.state);
   return distinctStates

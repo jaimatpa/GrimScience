@@ -25,7 +25,7 @@ const formData = reactive({
     Title: null,
     Employee: null,
     JobDescription: null,
-    WorkCenters:  null
+    WorkCenters: null
 })
 
 const editInit = async () => {
@@ -280,4 +280,3 @@ if (props.selectedOrganization !== null)
             :is-modal="true" />
     </UDashboardModal>
 </template>
-

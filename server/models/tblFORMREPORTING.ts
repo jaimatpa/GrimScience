@@ -39,7 +39,10 @@ const tblFORMREPORTING = sequelize.define('tblFORMREPORTING', {
       type: DataTypes.STRING,
    },
 }, {
-   timestamps: false
+   timestamps: false,   
+   // freezeTableName: true,
+   tableName: 'tblFORMREPORTING',
+
 });
 
 export default tblFORMREPORTING;
