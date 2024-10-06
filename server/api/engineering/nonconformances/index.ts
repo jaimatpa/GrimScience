@@ -1,4 +1,8 @@
-import { getNonConformances } from '~/server/controller/engineering';
+import {
+  addNonConformances,
+  // deleteNonConformances,
+  getNonConformances,
+} from '~/server/controller/engineering';
 
 export default eventHandler(async (event) => {
   try {
