@@ -27,7 +27,7 @@ export default eventHandler(async (event) => {
 // import Organization from '~/server/models/tblOrganization'
 // import Skill from '~/server/models/tblSkills'
 // import Employee from '~/server/models/tblEmployee'
-// import { QBXMLGenerator } from '~/utils/qbxml-generator'
+// // import { QBXMLGenerator } from '~/utils/qbxml-generator'
 
 // // Interfaces matching exact database schemas
 // interface IWorkCenter {
@@ -228,6 +228,8 @@ export default eventHandler(async (event) => {
 //   }
 // }
 
+
+
 // async function getSkills(workcenterId: string) {
 //   try {
 //     const skills = await Skill.findAll({
@@ -254,19 +256,18 @@ export default eventHandler(async (event) => {
 //   }
 // }
 
-// async function getEmployees(workcenterId: string) {
+
+
+// async function getSkills(workcenterId: string) {
 //   try {
-//     const employees = await Employee.findAll({
+//     const skills = await Skill.findAll({
 //       where: {
-//         WORKCENTERS: {
+//         WorkCenters: {
 //           [Op.like]: `%,${workcenterId},%`
 //         }
 //       },
-//       attributes: ['fname', 'lname', 'department'],
-//       order: [
-//         ['lname', 'ASC'],
-//         ['fname', 'ASC']
-//       ]
+//       attributes: ['Name', 'TrainingNotes', 'Prerequisites'],
+//       order: [['Name', 'ASC']]
 //     })
     
 //     return employees.map(emp => ({
@@ -282,24 +283,24 @@ export default eventHandler(async (event) => {
 //   }
 // }
 
-// // async function getQBActivities() {
-// //   try {
-// //     const gen = new QBXMLGenerator('PayrollItemWageQueryRq')
-// //     gen.appendRequest('FullName')
-// //     const response = await gen.processRequest()
+// async function getQBActivities() {
+//   try {
+//     const gen = new QBXMLGenerator('PayrollItemWageQueryRq')
+//     gen.appendRequest('FullName')
+//     const response = await gen.processRequest()
     
-// //     return response.map((item: any) => ({
-// //       label: item.Name,
-// //       value: item.Name
-// //     }))
-// //   } catch (error) {
-// //     console.error('Error fetching QuickBooks activities:', error)
-// //     throw createError({
-// //       statusCode: 500,
-// //       statusMessage: 'Error fetching QuickBooks activities'
-// //     })
-// //   }
-// // }
+//     return response.map((item: any) => ({
+//       label: item.Name,
+//       value: item.Name
+//     }))
+//   } catch (error) {
+//     console.error('Error fetching QuickBooks activities:', error)
+//     throw createError({
+//       statusCode: 500,
+//       statusMessage: 'Error fetching QuickBooks activities'
+//     })
+//   }
+// }
 
 
 

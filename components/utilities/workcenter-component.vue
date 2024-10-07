@@ -1,51 +1,202 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useApiFetch } from '~/composables/useApiFetch'; 
+import { ref, onMounted } from "vue";
+import { useApiFetch } from "~/composables/useApiFetch";
+
 onMounted(async () => {
   await fetchGridData();
+  await fetchGetPositions();
+  await fetchGetWorkCenterData();
 });
 const workCenters = ref([]);
 const selectedWorkCenter = ref(null);
 const workCenterSkills = ref([]);
 const qbActivities = ref([]);
 const loading = ref(false);
-const loadingQB = ref(false);
 
+
+// const formData = ref({
+//   number: "",
+//   name: "",
+//   position: "",
+//   positionResponsibility: [],
+//   personResponsibility: [],
+//   qbActivity: null,
+//   timeEntryWithoutJob: false,
+//   paid: false,
+//   workCenters: [],
+// });
 const formData = ref({
   number: "",
   name: "",
-  position: [],
+  position: "",
+  positionResponsibility: [],
+  personResponsibility: [],
   qbActivity: null,
   timeEntryWithoutJob: false,
   paid: false,
+  workCenters: [],
+  uniqueID: null, // Add this to store the uniqueID
 });
+
+const handleSubmit = async () => {
+  const insetData = {
+    name: formData.value.name,
+    number: formData.value.number,
+    position: formData.value.position,
+    TimeEntryWithoutJob: formData.value.timeEntryWithoutJob,
+    Paid: formData.value.paid,
+  };
+
+
+
+  try {
+    const response = await useApiFetch(
+      "/api/utilities/workcenters/insertData",
+      {
+        method: "POST",
+        body: insetData,
+      }
+    );
+
+    // Optionally handle the response here
+    console.log("Data inserted successfully:", response);
+  } catch (error) {
+    console.error("Error inserting data:", error);
+  }
+};
 
 const tableColumns = [
   { key: "number", label: "Number", sortable: true },
   { key: "name", label: "Name", sortable: true },
   { key: "employee", label: "Employee" },
-  { key: "positionD", label: "PositionD" },
+  { key: "position", label: "position" },
 ];
 
-const fetchGridData = async () => { 
+const fetchGridData = async () => {
   try {
-    const  data = await useApiFetch("/api/utilities/workcenters", {
+    const data = await useApiFetch("/api/utilities/workcenters", {
       method: "GET",
     });
-
-    // Check the entire data structure being returned
-    console.log('Fetched Data:', data);
-
     if (data && data.body) {
-      formData.value.position = data.body; // Assuming data.body contains the array of positions
+      formData.value.position = data.body;
     } else {
-      console.error('No data received or wrong structure');
+      console.error("No data received or wrong structure");
     }
   } catch (error) {
-    console.error('Error fetching work centers:', error);
+    console.error("Error fetching work centers:", error);
   }
 };
 
+const fetchGetPositions = async () => {
+  try {
+    const data = await useApiFetch("/api/utilities/workcenters/getAlldata", {
+      method: "GET",
+    });
+    if (data && data.body) {
+      const dataList = data.body;
+      formData.value.positionResponsibility = dataList.map(
+        (item) => item.label
+      );
+      formData.value.personResponsibility = dataList.map(
+        (item) => item.employee
+      );
+    } else {
+      console.error("No data received or wrong structure");
+    }
+  } catch (error) {
+    console.error("Error fetching work centers:", error);
+  }
+};
+
+const fetchGetWorkCenterData = async () => {
+  try {
+    const data = await useApiFetch("/api/utilities/workcenters/getTableData", {
+      method: "GET",
+    });
+    console.log("Fetched work centers Data:", data);
+    if (data && data.body) {
+      workCenters.value = data.body;
+    } else {
+      console.error("No data received or wrong structure");
+    }
+  } catch (error) {
+    console.error("Error fetching work centers:", error);
+  }
+};
+
+// const handleWorkCenterSelect = (row) => {
+//   formData.value = {
+//    ...formData.value,
+//     name: row.NAME,
+//     number: row.NUMBER,
+//     position: row.position,
+//     timeEntryWithoutJob: row.TimeEntryWithoutJob,
+//     paid: row.Paid,
+//     uniqueID:row.uniqueID
+//   };
+// };
+const handleWorkCenterSelect = (row) => {
+  formData.value = {
+    ...formData.value,
+    name: row.NAME,
+    number: row.NUMBER,
+    position: row.position,
+    timeEntryWithoutJob: row.TimeEntryWithoutJob,
+    paid: row.Paid,
+    uniqueID: row.uniqueID 
+  };
+  console.log("Selected row with ID:", row.uniqueID);
+};
+const handleClearForm = () => {
+  formData.value = {
+    number: "",
+    name: "",
+    position: "",
+    positionResponsibility: [],
+    personResponsibility: [],
+    qbActivity: null,
+    timeEntryWithoutJob: false,
+    paid: false,
+    workCenters: [],
+    uniqueID: null,
+  };
+  console.log("Form cleared!");
+};
+
+const handleModify = async () => {
+  if (!formData.value.uniqueID) {
+    console.error("No row selected for modification");
+    return;
+  }
+
+  const updateData = {
+    uniqueID: formData.value.uniqueID,
+    name: formData.value.name,
+    number: formData.value.number,
+    position: formData.value.position,
+    timeEntryWithoutJob: formData.value.timeEntryWithoutJob,
+    paid: formData.value.paid,
+  };
+
+  try {
+    loading.value = true;
+    const response = await useApiFetch("/api/utilities/workcenters/updateTable", {
+      method: "PUT",
+      body: updateData,
+    });
+    
+    if (response._data.body) {  // Note the _data property for Nuxt's useApiFetch
+      await fetchGetWorkCenterData();
+      // Optionally show success message
+      console.log("Update successful:", response._data.message);
+    }
+  } catch (error) {
+    console.error("Error updating work center:", error);
+    // Optionally show error message to user
+  } finally {
+    loading.value = false;
+  }
+};
 
 </script>
 
@@ -71,7 +222,7 @@ const fetchGridData = async () => {
         <UFormGroup label="Position Responsibility">
           <USelect
             v-model="formData.position"
-            :options="formData.position"  
+            :options="formData.positionResponsibility"
             placeholder="Select position"
           />
         </UFormGroup>
@@ -90,7 +241,7 @@ const fetchGridData = async () => {
         <UButton
           icon="i-heroicons-plus"
           color="green"
-          @click="handleAdd"
+          @click="handleSubmit"
           :loading="loading"
         >
           Add
@@ -100,8 +251,6 @@ const fetchGridData = async () => {
           icon="i-heroicons-pencil"
           color="yellow"
           @click="handleModify"
-          :loading="loading"
-          :disabled="!selectedWorkCenter"
         >
           Modify
         </UButton>
@@ -123,38 +272,30 @@ const fetchGridData = async () => {
           />
         </UFormGroup>
 
-        <UButton
-          icon="i-heroicons-arrow-down-tray"
-          color="blue"
-          @click="handleLoadQB"
-          :loading="loadingQB"
-        >
+        <UButton icon="i-heroicons-arrow-down-tray" color="blue">
           Load QB
         </UButton>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
-        <UCard>
-          <UTable
-            :columns="tableColumns"
-            :rows="workCenters"
-            :sort="{ column: 'number', direction: 'asc' }"
-            @select="handleWorkCenterSelect"
-          >
-            <template #number-data="{ row }">
-              {{ row.NUMBER }}
-            </template>
-            <template #name-data="{ row }">
-              {{ row.NAME }}
-            </template>
-            <template #employee-data="{ row }">
-              {{ row.Employee }}
-            </template>
-            <template #position-data="{ row }">
-              {{ row.position }}
-            </template>
-          </UTable>
-        </UCard>
+        <UTable
+          :columns="tableColumns"
+          :rows="workCenters"
+          @select="handleWorkCenterSelect"
+        >
+          <template #number-data="{ row }">
+            {{ row.NUMBER }}
+          </template>
+          <template #name-data="{ row }">
+            {{ row.NAME }}
+          </template>
+          <template #employee-data="{ row }">
+            <span v-if="row.personResponsibility">{{ row.personResponsibility }}</span>
+          </template>
+          <template #position-data="{ row }">
+            {{ row.position }}
+          </template>
+        </UTable>
 
         <!-- Right Side Panels -->
         <div class="space-y-4">
@@ -171,218 +312,3 @@ const fetchGridData = async () => {
     </div>
   </UCard>
 </template>
-
-
-
-
-
-<!-- 
-<script setup>
-
-onMounted(async () => {
-   await fetchGridData();
-   init();
-});
- 
-
- const init = async () => {
-    fetchGridData() 
- }
-
-const workCenters = ref([]);
-const selectedWorkCenter = ref(null);
-const workCenterSkills = ref([]);
-const workCenterEmployees = ref([]);
-const qbActivities = ref([]);
-const loading = ref(false);
-const loadingQB = ref(false);
-
-
-const formData = ref({
-  number: "",
-  name: "",
-  position:[],
-  qbActivity: null,
-  timeEntryWithoutJob: false,
-  paid: false,
-});
-
-const tableColumns = [
-  { key: "number", label: "Number", sortable: true },
-  { key: "name", label: "Name", sortable: true },
-  { key: "employee", label: "Employee" },
-  { key: "positionD", label: "PositionD" },
-];
-
-
-
-
-
-
-const fetchGridData = async () => { 
-  try {
-    const data  = await useApiFetch("/api/utilities/workcenters", {
-      method: "GET",
-    });
-
-    // Check the entire data structure being returned
-    console.log('Fetched Data:', data);
-
-    if (data && data.body) {
-      formData.value.position = data.body; 
-    } else {
-      console.error('No data received or wrong structure');
-    }
-  } catch (error) {
-    console.error('Error fetching work centers:', error);
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</script>
-
-
-
-
-
-<template>
-    <UCard>
-      <template #header>
-        <div class="flex justify-between items-center">
-          <h2 class="text-xl font-semibold text-blue-800">
-            Work Center Information
-          </h2>
-          <div class="flex gap-2"></div>
-        </div>
-      </template>
-  
-      <div class="space-y-6">
-    
-        <div class="grid grid-cols-3 gap-4">
-          <UFormGroup label="Number">
-            <UInput v-model="formData.number" placeholder="number" />
-          </UFormGroup>
-          <UFormGroup label="Name">
-            <UInput v-model="formData.name" placeholder="Input Name" />
-          </UFormGroup>
-          <UFormGroup label="Position Responsibility">
-            <USelect
-              v-model="formData.position"
-              :options="position"
-              placeholder="Select position"
-            />
-          </UFormGroup>
-       
-        </div>
-  
-        <div class="flex gap-4 mb-4">
-          <UCheckbox
-            v-model="formData.timeEntryWithoutJob"
-            label="Time Entry Without Job?"
-          />
-          <UCheckbox v-model="formData.paid" label="Paid?" />
-        </div>
-  
-      
-        <div class="grid grid-cols-5 gap-4 ">
-          <UButton
-            icon="i-heroicons-plus"
-            color="green"
-            @click="handleAdd"
-            :loading="loading"
-          >
-            Add
-          </UButton>
-  
-          <UButton
-            icon="i-heroicons-pencil"
-            color="yellow"
-            @click="handleModify"
-            :loading="loading"
-            :disabled="!selectedWorkCenter"
-          >
-            Modify
-          </UButton>
-  
-          <UButton
-            icon="i-heroicons-arrow-path"
-            color="bg-green"
-            variant="ghost"
-            @click="handleClearForm"
-          >
-            Clear Form
-          </UButton>
-  
-          <UFormGroup label="QB Activity">
-            <USelect
-              v-model="formData.qbActivity"
-              :options="qbActivities"
-              placeholder="Select QB activity"
-            />
-          </UFormGroup>
-  
-          <UButton
-            icon="i-heroicons-arrow-down-tray"
-            color="blue"
-            @click="handleLoadQB"
-            :loading="loadingQB"
-          >
-            Load QB
-          </UButton>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <UCard>
-            <UTable
-              :columns="tableColumns"
-              :rows="workCenters"
-              :sort="{ column: 'number', direction: 'asc' }"
-              @select="handleWorkCenterSelect"
-            >
-              <template #number-data="{ row }">
-                {{ row.NUMBER }}
-              </template>
-              <template #name-data="{ row }">
-                {{ row.NAME }}
-              </template>
-              <template #employee-data="{ row }">
-                {{ row.Employee }}
-              </template>
-              <template #position-data="{ row }">
-                {{ row.position }}
-              </template>
-           
-            </UTable>
-          </UCard>
-  
-        
-          <div class="space-y-4">
-        
-            <UCard>
-              <template #header>
-                <h3 class="text-lg font-medium">Workcenter Skills</h3>
-              </template>
-              <UList v-if="workCenterSkills.length" :items="workCenterSkills" />
-              <p v-else class="text-gray-500 text-center py-4">No skills found</p>
-            </UCard>
-          </div>
-        </div>
-      </div>
-    </UCard>
-  </template>
-  
-
-
- -->

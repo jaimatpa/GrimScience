@@ -543,9 +543,7 @@ const submitInsertForm = async () => {
 
 const fetchEmployeeData = async () => {
   try {
-    const { data, error } = await useFetch(
-      "/api/engineering/changeorder/getEmploy"
-    );
+    const { data, error } = await useFetch("/api/engineering/changeorder/getEmploy");
 
     if (data.value?.body) {
       employeeOptions.value = data.value.body.map((employee) => ({

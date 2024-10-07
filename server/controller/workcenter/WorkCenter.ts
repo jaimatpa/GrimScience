@@ -30,6 +30,9 @@ console.log(list)
     
 }
 
+
+
+
 export const getResponsibilites = async () => {
     const result = await tblWorkCenters.findAll({
         attributes: [
