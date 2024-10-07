@@ -24,14 +24,14 @@ const props = defineProps({
     required: true,
   },
 });
-console.log('Parets ID-------', props.selectedParts);
 
-console.log('Part Instace--------', props.selectedPartInstace);
+console.log("Parets ID-------", props.selectedParts);
 
-console.log('Part Model--------', props.selectedPartModel);
+console.log("Part Instace--------", props.selectedPartInstace);
+
+console.log("Part Model--------", props.selectedPartModel);
 
 const accountList = ref([]);
-const revisions = ref([]);
 const workplaces = ref([]);
 const workplacesColumns = [
   {
@@ -40,26 +40,31 @@ const workplacesColumns = [
   },
 ];
 
-const revisionsColumns = [
-  {
-    key: "code",
-    label: "Action",
-  },
-  {
-    key: "today",
-    label: "Date",
-  },
-  {
-    key: "revisedby",
-    label: "Revision By",
-  },
-];
+const revisionsGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "code",
+      label: "Action",
+    },
+    {
+      key: "today",
+      label: "Date",
+    },
+    {
+      key: "revisedby",
+      label: "Revision By",
+    },
+  ],
+  options: [],
+  selectedOption: null,
+  isLoading: false,
+});
 
 const purchaseGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-    key: "ponumber",
-    label: "PO Number",
+      key: "ponumber",
+      label: "PO Number",
     },
     {
       key: "uniqueid",
@@ -90,8 +95,8 @@ const purchaseGridMeta = ref({
 const inventoryGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-    key: "UID",
-    label: "Unique ID",
+      key: "UID",
+      label: "Unique ID",
     },
     {
       key: "QtyChange",
@@ -139,6 +144,8 @@ const vendorList = ref();
 const partUnit = ref([]);
 const insepctionList = ref([]);
 const inventoryList = ref([]);
+const revisedByList = ref([]);
+const revisedID = ref();
 
 const formData = reactive({
   UniqueID: null,
@@ -199,7 +206,7 @@ const formData = reactive({
   PARTTYPE: null,
   SPECIFICATIONS: null,
   DESCRIPTION: null,
-  STOCKNUMBER: null,  //find qtyordered from MRP2 
+  STOCKNUMBER: null, //find qtyordered from MRP2
   UNIT: null,
   MULTIPLE: null,
   CODE: null,
@@ -277,9 +284,8 @@ const formData = reactive({
   SupportorProject: null,
 });
 
-const editInit = async () => {
-  loadingOverlay.value = true;
-  await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
+const getPartsData = async (id: any) => {
+  await useApiFetch(`/api/materials/parts/parts/${id || props.selectedParts}`, {
     method: "GET",
     onResponse({ response }) {
       console.log("Get by ID ----", response);
@@ -299,13 +305,18 @@ const editInit = async () => {
       partsExist.value = false;
     },
   });
+};
+
+const editInit = async () => {
+  loadingOverlay.value = true;
+  getPartsData();
   propertiesInit();
   loadingOverlay.value = false;
   fetchWorkCentersBy();
 };
 
 const subCategoryList = async () => {
-    await useApiFetch(`/api/materials/parts/${formData.PARTTYPE}`, {
+  await useApiFetch(`/api/materials/parts/${formData.PARTTYPE}`, {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
@@ -316,7 +327,7 @@ const subCategoryList = async () => {
       subCategory.value = [];
     },
   });
-}
+};
 
 const propertiesInit = async () => {
   loadingOverlay.value = true;
@@ -379,7 +390,7 @@ const propertiesInit = async () => {
       }
     },
     onResponseError() {
-      accountList.value = []
+      accountList.value = [];
     },
   });
 
@@ -391,7 +402,7 @@ const propertiesInit = async () => {
       }
     },
     onResponseError() {
-      vendorList.value = []
+      vendorList.value = [];
     },
   });
 
@@ -405,7 +416,7 @@ const propertiesInit = async () => {
         }
       },
       onResponseError() {
-        inventoryGridMeta.value.options = []
+        inventoryGridMeta.value.options = [];
       },
     }
   );
@@ -420,7 +431,7 @@ const propertiesInit = async () => {
         }
       },
       onResponseError() {
-        purchaseGridMeta.value.options = []
+        purchaseGridMeta.value.options = [];
       },
     }
   );
@@ -441,7 +452,6 @@ const propertiesInit = async () => {
   //   }
   // );
 
-
   await useApiFetch(
     `/api/materials/parts/totalRequired?model=${props.selectedPartModel}`,
     {
@@ -450,18 +460,20 @@ const propertiesInit = async () => {
         if (response.status === 200) {
           jobDetailsGridMeta.value.options = response._data.body.jobs;
           jobDetailsGridMeta.value.ordered = response._data.body.ordered;
-          jobDetailsGridMeta.value.totalRequired = response._data.body.totalRequired;
+          jobDetailsGridMeta.value.totalRequired =
+            response._data.body.totalRequired;
 
-          jobDetailsGridMeta.value.available = formData.OnHand + jobDetailsGridMeta.value.ordered - jobDetailsGridMeta.value.totalRequired;
+          jobDetailsGridMeta.value.available =
+            formData.OnHand +
+            jobDetailsGridMeta.value.ordered -
+            jobDetailsGridMeta.value.totalRequired;
         }
       },
       onResponseError() {
-        jobDetailsGridMeta.value.options = []
+        jobDetailsGridMeta.value.options = [];
       },
     }
   );
-
-
 
   getRevisions();
   loadingOverlay.value = false;
@@ -488,11 +500,21 @@ const getRevisions = async () => {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          revisions.value = response._data.body;
+          revisionsGridMeta.value.options = response._data.body;
+          console.log("response._data.body", response._data.body);
+
+          revisedByList.value = [
+            ...new Set(
+              response._data.body
+                .map((id) => id.revisedby)
+                .filter((value) => value !== null && value !== "")
+            ),
+          ];
+          console.log("revisedByList.value ", revisedByList.value);
         }
       },
       onResponseError() {
-        revisions.value = []
+        revisionsGridMeta.value.options = [];
       },
     }
   );
@@ -687,57 +709,68 @@ const handleUpload = async () => {
   }
 };
 
-const onInventorySelect = async (row) => {
-  inventoryGridMeta.value.selectedOption = row?.uniqueID;
-  console.log('inventoryGridMeta.uniqueID', row);
+const onReviusedBySelect = async (row) => {
+  revisionsGridMeta.value.selectedOption = row?.uniqueid;
+  console.log("onReviusedBySelect", row);
+  getPartsData(revisionsGridMeta.value.selectedOption);
 
-  inventoryGridMeta.value.options.forEach((inventory) => {
-    inventory.class = inventory.uniqueID === row.uniqueID ? "bg-green-400" : undefined;
+  revisionsGridMeta.value.options.forEach((inventory) => {
+    inventory.class = inventory.uniqueid === row.uniqueid ? "bg-green-400" : "";
   });
 };
 
+const onInventorySelect = async (row) => {
+  inventoryGridMeta.value.selectedOption = row?.uniqueID;
+  console.log("inventoryGridMeta.uniqueID", row);
+
+  inventoryGridMeta.value.options.forEach((inventory) => {
+    inventory.class =
+      inventory.uniqueID === row.uniqueID ? "bg-green-400" : undefined;
+  });
+};
 
 const onPurchaseSelect = async (row) => {
-  console.log('Purchase row=====', row);
   purchaseGridMeta.value.selectedOption = row?.ponumber;
-  console.log('purchaseGridMeta.uniqueID', row);
   purchaseGridMeta.value.options.forEach((purchase) => {
     if (purchase.ponumber === row.ponumber) {
-        purchase.class = "bg-green-400";
+      purchase.class = "bg-green-400";
     } else {
-        delete purchase.class;
+      delete purchase.class;
     }
   });
 };
 
-const onTableBtnClick = (name: string) => {  
- if(name === 'inventory'){
-  const inventoryID = inventoryGridMeta.value.selectedOption;
-  if (inventoryID !== null) {
+const onTableBtnClick = (name: string) => {
+  if (name === "inventory") {
+    const inventoryID = inventoryGridMeta.value.selectedOption;
+    if (inventoryID !== null) {
       console.log("inventoryID", inventoryID);
-  } else {
-    toast.add({
-              title: "Failed",
-              description: "Please select an inventory item!",
-              icon: "i-heroicons-check-circle",
-              color: "red",
-            });
+    } else {
+      toast.add({
+        title: "Failed",
+        description: "Please select an inventory item!",
+        icon: "i-heroicons-check-circle",
+        color: "red",
+      });
+    }
   }
- }
- if(name === 'purchase'){
-  console.log('purchaseGridMeta.value.selectedOption', purchaseGridMeta.value.selectedOption);
-  const PurchaseId = purchaseGridMeta.value.selectedOption;
-  if (PurchaseId !== null) {
+  if (name === "purchase") {
+    console.log(
+      "purchaseGridMeta.value.selectedOption",
+      purchaseGridMeta.value.selectedOption
+    );
+    const PurchaseId = purchaseGridMeta.value.selectedOption;
+    if (PurchaseId !== null) {
       console.log("PurchaseId", PurchaseId);
-  } else {
-    toast.add({
-              title: "Failed",
-              description: "Please select a purchase item!",
-              icon: "i-heroicons-check-circle",
-              color: "red",
-            });
+    } else {
+      toast.add({
+        title: "Failed",
+        description: "Please select a purchase item!",
+        icon: "i-heroicons-check-circle",
+        color: "red",
+      });
+    }
   }
- }
 };
 
 const optionOnhandITD = () => {
@@ -752,7 +785,7 @@ watch(
   () => inventoryGridMeta.value.options,
   (newVal) => {
     if (newVal) {
-      optionOnhandITD(); 
+      optionOnhandITD();
     }
   }
 );
@@ -761,11 +794,10 @@ watch(
   () => formData.PARTTYPE,
   (newVal) => {
     if (newVal) {
-      subCategoryList(); 
+      subCategoryList();
     }
   }
 );
-
 </script>
 
 <template>
@@ -795,10 +827,30 @@ watch(
           </div>
 
           <div class="flex flex-row space-x-4">
-            <UCheckbox v-model="formData.SubassemblyInventoried" :checked="formData.SubassemblyInventoried === '-1'" label="Job Subassembly" class="basis-1/4"/>
-            <UCheckbox v-model="formData.ETLCriticalComponent" :checked="formData.ETLCriticalComponent === true" label="ETL Critical Component" class="basis-1/4"/>
-            <UCheckbox v-model="formData.override" :checked="formData.override === '-1'" label="Selling Price Override" class="basis-1/4"/>
-            <UCheckbox v-model="formData.BuiltInHouse" :checked="formData.BuiltInHouse === true" label="Ignore Manufacturing Cost" class="basis-1/4"/>
+            <UCheckbox
+              v-model="formData.SubassemblyInventoried"
+              :checked="formData.SubassemblyInventoried === '-1'"
+              label="Job Subassembly"
+              class="basis-1/4"
+            />
+            <UCheckbox
+              v-model="formData.ETLCriticalComponent"
+              :checked="formData.ETLCriticalComponent === true"
+              label="ETL Critical Component"
+              class="basis-1/4"
+            />
+            <UCheckbox
+              v-model="formData.override"
+              :checked="formData.override === '-1'"
+              label="Selling Price Override"
+              class="basis-1/4"
+            />
+            <UCheckbox
+              v-model="formData.BuiltInHouse"
+              :checked="formData.BuiltInHouse === true"
+              label="Ignore Manufacturing Cost"
+              class="basis-1/4"
+            />
           </div>
 
           <div class="flex flex-row space-x-4">
@@ -1217,9 +1269,7 @@ watch(
         <div class="flex flex-row space-x-8">
           <div class="basis-3/5">
             <div class="-mt-2 flex justify-between">
-              <div class="font-bold">
-                Purchases
-              </div>
+              <div class="font-bold">Purchases</div>
               <UButton
                 color="cyan"
                 variant="outline"
@@ -1236,28 +1286,26 @@ watch(
               @select="onPurchaseSelect"
               @dblclick="onPurchaseSelect"
               :ui="{
-                    divide: 'divide-gray-200 dark:divide-gray-800',
-                    th: {
-                        base: 'sticky top-0 z-10',
-                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                        padding: 'p-0 pb-2',
-                    },
-                    td: {
-                        padding: 'py-1',
-                    },
-                }"
-                :empty-state="{
-                    icon: 'i-heroicons-circle-stack-20-solid',
-                    label: 'No items.',
-                }"
+                divide: 'divide-gray-200 dark:divide-gray-800',
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'p-0 pb-2',
+                },
+                td: {
+                  padding: 'py-1',
+                },
+              }"
+              :empty-state="{
+                icon: 'i-heroicons-circle-stack-20-solid',
+                label: 'No items.',
+              }"
             />
           </div>
 
           <div class="basis-2/5">
             <div class="-mt-2 flex justify-between">
-              <div class="font-bold">
-                Inventory Transactions
-              </div>
+              <div class="font-bold">Inventory Transactions</div>
               <UButton
                 color="cyan"
                 variant="outline"
@@ -1274,22 +1322,21 @@ watch(
               @select="onInventorySelect"
               @dblclick="onInventorySelect"
               :ui="{
-                    divide: 'divide-gray-200 dark:divide-gray-800',
-                    th: {
-                        base: 'sticky top-0 z-10',
-                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                        padding: 'p-0 pb-2',
-                    },
-                    td: {
-                        padding: 'py-1',
-                    },
-                }"
-                :empty-state="{
-                    icon: 'i-heroicons-circle-stack-20-solid',
-                    label: 'No items.',
-                }"
+                divide: 'divide-gray-200 dark:divide-gray-800',
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'p-0 pb-2',
+                },
+                td: {
+                  padding: 'py-1',
+                },
+              }"
+              :empty-state="{
+                icon: 'i-heroicons-circle-stack-20-solid',
+                label: 'No items.',
+              }"
             />
-
           </div>
         </div>
 
@@ -1299,7 +1346,7 @@ watch(
           <div class="col-span-1 mt-2">
             <div class="mb-2 grid grid-cols-2 gap-3">
               <label class="ms-auto my-auto">On Order</label>
-              <UInput v-model="jobDetailsGridMeta.ordered"/>
+              <UInput v-model="jobDetailsGridMeta.ordered" />
             </div>
             <div class="mb-2 grid grid-cols-2 gap-3">
               <label class="ms-auto my-auto">On Hand</label>
@@ -1311,7 +1358,7 @@ watch(
             </div>
             <div class="mb-2 grid grid-cols-2 gap-3">
               <label class="ms-auto my-auto">Available</label>
-              <UInput v-model="jobDetailsGridMeta.available"/>
+              <UInput v-model="jobDetailsGridMeta.available" />
             </div>
             <div class="mb-2 grid grid-cols-2 gap-3">
               <label class="ms-auto my-auto">Minimum</label>
@@ -1334,20 +1381,20 @@ watch(
               :columns="workplacesColumns"
               class="h-[184px] w-full mt-2"
               :ui="{
-                    divide: 'divide-gray-200 dark:divide-gray-800',
-                    th: {
-                        base: 'sticky top-0 z-10',
-                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                        padding: 'p-0 pb-2',
-                    },
-                    td: {
-                        padding: 'py-1',
-                    },
-                }"
-                :empty-state="{
-                    icon: 'i-heroicons-circle-stack-20-solid',
-                    label: 'No items.',
-                }"
+                divide: 'divide-gray-200 dark:divide-gray-800',
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'p-0 pb-2',
+                },
+                td: {
+                  padding: 'py-1',
+                },
+              }"
+              :empty-state="{
+                icon: 'i-heroicons-circle-stack-20-solid',
+                label: 'No items.',
+              }"
             />
           </div>
           <!-- Job Details Table -->
@@ -1358,20 +1405,20 @@ watch(
               :columns="jobDetailsGridMeta.defaultColumns"
               class="h-40 w-full mt-2"
               :ui="{
-                    divide: 'divide-gray-200 dark:divide-gray-800',
-                    th: {
-                        base: 'sticky top-0 z-10',
-                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                        padding: 'p-0 pb-2',
-                    },
-                    td: {
-                        padding: 'py-1',
-                    },
-                }"
-                :empty-state="{
-                    icon: 'i-heroicons-circle-stack-20-solid',
-                    label: 'No items.',
-                }"
+                divide: 'divide-gray-200 dark:divide-gray-800',
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'p-0 pb-2',
+                },
+                td: {
+                  padding: 'py-1',
+                },
+              }"
+              :empty-state="{
+                icon: 'i-heroicons-circle-stack-20-solid',
+                label: 'No items.',
+              }"
             />
           </div>
         </div>
@@ -1383,9 +1430,25 @@ watch(
         <div class="grid grid-cols-2 gap-8">
           <div class="col-span-1 overflow-auto">
             <UTable
-              :columns="revisionsColumns"
-              :rows="revisions"
-              class="h-80 w-full"
+              :columns="revisionsGridMeta.defaultColumns"
+              :rows="revisionsGridMeta.options"
+              class="h-60 w-full"
+              @select="onReviusedBySelect"
+              :ui="{
+                divide: 'divide-gray-200 dark:divide-gray-800',
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'p-0 pb-2',
+                },
+                td: {
+                  padding: 'py-1',
+                },
+              }"
+              :empty-state="{
+                icon: 'i-heroicons-circle-stack-20-solid',
+                label: 'No items.',
+              }"
             />
           </div>
 
@@ -1393,7 +1456,11 @@ watch(
             <div>
               <div class="mb-2">Revised By</div>
               <div class="flex gap-8">
-                <UInputMenu class="w-full" />
+                <UInputMenu
+                  v-model="formData.RevisedBy"
+                  :options="revisedByList"
+                  class="w-full"
+                />
                 <UButton
                   color="cyan"
                   :disabled="props.selectedPartInstace == null"

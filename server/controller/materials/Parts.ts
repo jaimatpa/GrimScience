@@ -621,7 +621,6 @@ export const getRevisions = async (instanceId: any) => {
   }
 };
 
-
 export const getTotalRequiredByModel = async (model: string) => {
   try {
     const queryForNumbers = `SELECT number, required FROM MRP8 WHERE model = :model`;
