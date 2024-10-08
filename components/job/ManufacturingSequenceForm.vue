@@ -11,10 +11,18 @@ const props = defineProps({
     type: [String, Number, null],
     required: true,
   },
+  instanceId: {
+    type: [String, Number, null],
+    required: true,
+  },
   isModal: {
     type: [Boolean],
   },
 });
+
+// Retrieve the user cookie
+const user = useCookie<string>('user');
+const username = "#"+user.value.payrollnumber+" "+user.value.fname+" "+user.value.lname
 
 const toast = useToast();
 const router = useRouter();
@@ -34,7 +42,7 @@ const formData = reactive({
   WorkCenter: null,
   Hours: null,
 });
-const date = new Date();
+
 const editInit = async () => {
   loadingOverlay.value = true;
   await getOperations();
@@ -43,17 +51,12 @@ const editInit = async () => {
 };
 
 const getOperations = async () => {
-  await useApiFetch("/api/jobs/operations", {
+  await useApiFetch("/api/jobs/operations/mfg/"+props.instanceId, {
     method: "GET",
-    params: { ...operationFilterValues.value },
     onResponse({ response }) {
       if (response.status === 200) {
-        prodOperationGridMeta.value.operations = response._data.body;
-
-        totalHours.value = response._data.body.reduce(
-          (sum, job) => sum + parseFloat(job.Hours),
-          0
-        );
+        prodOperationGridMeta.value.operations = response._data.body.items;
+        totalHours.value = response._data.body.totalHours
       }
     },
     onResponseError() {
@@ -82,9 +85,13 @@ const propertiesInit = async () => {
 };
 
 const validate = (state: any): FormError[] => {
-  const errors = [];
-  return errors;
-};
+  const errors = []
+  if (!state.Operation) errors.push({ path: 'Operation', message: 'Please enter operation.' })
+  if (!state.week) errors.push({ path: 'week', message: 'Please enter a week.' })
+  if (!state.WorkCenter) errors.push({ path: 'WorkCenter', message: 'Please entter a workcenter.' })
+  if (!state.Hours) errors.push({ path: 'Hours', message: 'Please entter a hours.' })
+  return errors
+}
 const handleClose = async () => {
   if (organizationFormInstance?.vnode?.props.onClose) {
     emit("close");
@@ -93,33 +100,17 @@ const handleClose = async () => {
   }
 };
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  if (props.selectedJob === null) {
-    // Create New Job
+  if (prodOperationGridMeta.value.selectedOperation === null) {
+    // Create New Operation
     isLoading.value = true;
-    // await useApiFetch("/api/jobs", {
-    //   method: "POST",
-    //   body: data,
-    //   onResponse({ response }) {
-    //     if (response.status === 200) {
-    //       isLoading.value = false;
-    //       toast.add({
-    //         title: "Success",
-    //         description: response._data.message,
-    //         icon: "i-heroicons-check-circle",
-    //         color: "green",
-    //       });
-    //     }
-    //   },
-    // });
-  } else {
-    // Update Job
-    isLoading.value = true;
-    await useApiFetch(`/api/jobs/operations/${formData.UniqueID}`, {
-      method: "PUT",
-      body: event.data,
+    await useApiFetch("/api/jobs/operations/mfg/create", {
+      method: "POST",
+      body: {
+        data: {...event.data, skills: skillGridMeta.value.skills, instanceId : props.instanceId, username},
+      },
       onResponse({ response }) {
         if (response.status === 200) {
-          getOperations();
+          isLoading.value = false;
           toast.add({
             title: "Success",
             description: response._data.message,
@@ -129,17 +120,43 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       },
     });
+    handleClearCick()
+    await getOperations()
+  } else {
+    // Edit Operation
+    isLoading.value = true;
+    await useApiFetch("/api/jobs/operations/mfg/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+      method: "PUT",
+      body: {
+        data: {...event.data, skills: skillGridMeta.value.skills, instanceId : props.instanceId, username},
+      },
+      onResponse({ response }) {
+        if (response.status === 200) {
+          isLoading.value = false;
+          prodOperationGridMeta.value.operations = response._data.body.items;
+          totalHours.value = response._data.body.totalHours;
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
+    handleClearCick()
+    await getOperations()
   }
   emit("save");
 };
 
-const handleProdOperationSelect = (row) => {
-  prodOperationGridMeta.value.selectedOperation = { ...row, class: "" };
-  prodOperationGridMeta.value.operations.forEach((c) => {
-    if (c.UniqueID === row.UniqueID) {
-      c.class = "bg-gray-200";
+const handleProdOperationSelect = async (row) => {
+  prodOperationGridMeta.value.selectedOperation = row
+  prodOperationGridMeta.value.operations.forEach((op) => {
+    if (op.UniqueID === row.UniqueID) {
+      op.class = "bg-gray-200";
     } else {
-      delete c.class;
+      delete op.class;
     }
   });
   const data = prodOperationGridMeta.value.selectedOperation;
@@ -149,17 +166,93 @@ const handleProdOperationSelect = (row) => {
   formData.Operation = data.Operation;
   formData.WorkCenter = data.WorkCenter;
   formData.Hours = data.Hours;
+
+  getOperationSteps()
+
+  skillGridMeta.value.isLoading = true;
+
+  await useApiFetch("/api/jobs/operations/mfg/operationskills/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        skillGridMeta.value.skills = response._data.body.skills;
+      }
+    },
+    onResponseError() {
+      skillGridMeta.value.skills = [];
+    },
+  });
+
+  skillGridMeta.value.isLoading = false;
+
 };
+
+const getOperationSteps = async () => {
+
+  stepsGridMeta.value.isLoading = true;
+
+  await useApiFetch("/api/jobs/operations/mfg/operationsteps/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        stepsGridMeta.value.steps = response._data.body.steps;
+        if(stepsGridMeta.value.selectedStep !== null){
+          stepsGridMeta.value.steps.forEach((step) => {
+          if (step.UniqueID === stepsGridMeta.value.selectedStep.UniqueID) {
+            step.class = "bg-gray-200";
+          } else {
+            delete step.class;
+          }
+        });
+        }
+        
+      }
+    },
+    onResponseError() {
+      stepsGridMeta.value.steps = [];
+    },
+  });
+
+  stepsGridMeta.value.isLoading = false;
+}
+
+
 
 const handleClearCick = () => {
   Object.keys(formData).forEach((key) => {
     formData[key] = null;
   });
+  prodOperationGridMeta.value.selectedOperation = null
+  stepsGridMeta.value.selectedStep = null
+  skillGridMeta.value.selectedSkill = null
+  stepsGridMeta.value.steps = []
+  skillGridMeta.value.skills = []
 };
 
-const operationFilterValues = ref({
-  JobID: props.selectedJob,
-});
+const handleDeleteClick = async () => {
+
+  if(prodOperationGridMeta.value.selectedOperation !== null){
+    loadingOverlay.value = true
+    await useApiFetch("/api/jobs/operations/mfg/productoperations/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+      method: "DELETE",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+    });
+    handleClearCick()
+    await getOperations()
+    loadingOverlay.value = false
+    modalMeta.value.isDeleteModalOpen = false
+  }
+  
+};
 
 const prodOperationGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -187,6 +280,7 @@ const prodOperationGridMeta = ref({
       key: "material",
       label: "Material",
     },
+
   ],
   operations: [],
   selectedOperation: null,
@@ -196,11 +290,11 @@ const prodOperationGridMeta = ref({
 const stepsGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "step",
+      key: "Step",
       label: "Step",
     },
     {
-      key: "desc",
+      key: "Description",
       label: "Desc",
     },
   ],
@@ -212,12 +306,12 @@ const stepsGridMeta = ref({
 const skillGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "step",
+      key: "Name",
       label: "Skill",
     },
   ],
-  steps: [],
-  selectedStep: null,
+  skills: [],
+  selectedSkill: null,
   isLoading: false,
 });
 
@@ -227,10 +321,13 @@ const modalMeta = ref({
   modalDescription: "View Parts Listing",
   isSkillModalOpen: false,
   isStepInformationModalOpen: false,
+  isDeleteModalOpen: false
 });
 
-const handleStepClick = () => {
-  if (!prodOperationGridMeta.value.selectedOperation) {
+const handleStepCreate = () => {
+  stepsGridMeta.value.selectedStep = null
+
+  if (prodOperationGridMeta.value.selectedOperation == null) {
     toast.add({
       title: "Failed",
       description: "Please select the Operation",
@@ -244,15 +341,145 @@ const handleStepClick = () => {
   }
 };
 
+const onStepSelect = (row) => {
+  stepsGridMeta.value.selectedStep = row
+  stepsGridMeta.value.steps.forEach((step) => {
+    if (step.UniqueID === row.UniqueID) {
+      step.class = "bg-gray-200";
+    } else {
+      delete step.class;
+    }
+  });
+}
+
+const onStepDblClick = () => {
+  if (!stepsGridMeta.value.selectedStep == null) {
+    toast.add({
+      title: "Failed",
+      description: "Please select a step",
+      icon: "i-heroicons-minus-circle",
+      color: "red",
+    });
+  } else {
+    modalMeta.value.isStepInformationModalOpen = true;
+    modalMeta.value.modalTitle = "Step Information";
+    modalMeta.value.modalDescription = "Step Information";
+  }
+}
+
+const handleStepUp = async () => {
+  if(stepsGridMeta.value.selectedStep !== null){
+    await useApiFetch(`/api/jobs/operations/mfg/operationsteps/upstep`, {
+      method: 'PUT',
+      body: { stepId: stepsGridMeta.value.selectedStep.UniqueID, planId: prodOperationGridMeta.value.selectedOperation.UniqueID },
+      onResponse({ response }) {
+        getOperationSteps()
+        if(response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: "Step up successfully",
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+      onResponseError({}) {
+        toast.add({
+          title: "Failed",
+          description: "Failed to move step",
+          icon: "i-heroicons-exclamation-circle",
+          color: "red",
+        });
+      }
+    });
+  }else{
+    toast.add({
+      title: "Failed",
+      description: "Please select a step",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
+    });
+  }
+  
+}
+
+const handleStepDown = async () => {
+  if(stepsGridMeta.value.selectedStep !== null){
+    await useApiFetch(`/api/jobs/operations/mfg/operationsteps/downstep`, {
+      method: 'PUT',
+      body: {stepId: stepsGridMeta.value.selectedStep.UniqueID, planId: prodOperationGridMeta.value.selectedOperation.UniqueID },
+      onResponse({ response }) {
+        getOperationSteps()
+        if(response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: "Step down successfully",
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+      onResponseError({}) {
+        toast.add({
+          title: "Failed",
+          description: "Failed to move step",
+          icon: "i-heroicons-exclamation-circle",
+          color: "red",
+        });
+      }
+    });
+  }else{
+    toast.add({
+      title: "Failed",
+      description: "Please select a step",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
+    });
+  }
+  
+}
+
+const handleStepModalClose = () => {
+  modalMeta.value.isStepInformationModalOpen = false;
+};
+
 const handleSkillClick = () => {
   modalMeta.value.isSkillModalOpen = true;
   modalMeta.value.modalTitle = "Skills ";
   modalMeta.value.modalDescription = "";
 };
 
-const handleStepModalClose = () => {
-  modalMeta.value.isStepInformationModalOpen = false;
-};
+const onSkillSelect = (row) => {
+  skillGridMeta.value.selectedSkill = row
+  skillGridMeta.value.skills.forEach((skill) => {
+    if (skill.UniqueID === row.UniqueID) {
+      skill.class = "bg-gray-200";
+    } else {
+      delete skill.class;
+    }
+  });
+}
+
+const handleRemoveSkill = () => {
+  if(skillGridMeta.value.selectedSkill !== null){
+    skillGridMeta.value.skills =  skillGridMeta.value.skills.filter(skill => {
+      return skill.UniqueID !== skillGridMeta.value.selectedSkill.UniqueID
+    })
+  }else{
+    toast.add({
+      title: "Failed",
+      description: "Please select a operation and skill",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
+    });
+  }
+}
+
+
+const handleSkillModalClose = (data) => {
+  skillGridMeta.value.skills = [...skillGridMeta.value.skills,data]
+  modalMeta.value.isSkillModalOpen = false
+}
 
 const handleModalClose = () => {
   modalMeta.value.isPartsModalOpen = false;
@@ -262,11 +489,16 @@ const onPartsClick = () => {
   modalMeta.value.isPartsModalOpen = true;
 };
 
+const previewOperationReport = () => {
+  window.open(`/api/jobs/exportoperation/${props.instanceId}`);
+};
+
 if (props.selectedJob !== null) editInit();
 else propertiesInit();
 </script>
 
 <template>
+
   <div class="vl-parent">
     <loading
       v-model:active="loadingOverlay"
@@ -361,6 +593,7 @@ else propertiesInit();
                 base: 'w-full',
                 truncate: 'flex justify-center w-full',
               }"
+              @click="modalMeta.isDeleteModalOpen = true"
               truncate
             />
           </div>
@@ -408,10 +641,11 @@ else propertiesInit();
                   base: 'w-fit',
                   truncate: 'flex justify-center w-full',
                 }"
+                @click="previewOperationReport"
                 truncate
               />
               <UButton
-                label="Site Visit"
+                label="Clipboard"
                 color="green"
                 variant="outline"
                 icon="i-heroicons-clipboard-document-list"
@@ -444,10 +678,12 @@ else propertiesInit();
             <div>
               <div class="pt-4 pl-4">
                 <UTable
+                  
                   :columns="stepsGridMeta.defaultColumns"
+                  :rows="stepsGridMeta.steps"
                   :ui="{
                     wrapper:
-                      'h-[368px] border-2 border-gray-300 dark:border-gray-700',
+                      'h-[868px] border-2 border-gray-300 dark:border-gray-700',
                     tr: {
                       active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
                     },
@@ -461,6 +697,8 @@ else propertiesInit();
                       padding: 'px-2 py-0',
                     },
                   }"
+                  @select="onStepSelect"
+                  @dblclick="onStepDblClick"
                 >
                   <template #empty-state>
                     <div></div>
@@ -480,6 +718,7 @@ else propertiesInit();
                         truncate: 'flex justify-center w-full',
                       }"
                       truncate
+                      @click="handleStepDown"
                     />
                   </div>
                   <div class="">
@@ -492,21 +731,11 @@ else propertiesInit();
                         truncate: 'flex justify-center w-full',
                       }"
                       truncate
+                      @click="handleStepUp"
                     />
                   </div>
                 </div>
                 <div class="flex space-x-3">
-                  <div class="">
-                    <UButton
-                      color="blue"
-                      label="Refresh"
-                      :ui="{
-                        base: 'w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                    />
-                  </div>
                   <div class="">
                     <UButton
                       icon="i-heroicons-plus"
@@ -517,19 +746,20 @@ else propertiesInit();
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
                       }"
-                      @click="handleStepClick"
+                      @click="handleStepCreate"
                       truncate
                     />
                   </div>
                 </div>
               </div>
-              <div>
+              <!-- <div>
                 <div class="menuBlue text-white py-3 pl-2 opacity-75">
                   Skills
                 </div>
                 <div class="pt-4 pl-4">
-                  <UTable
+                  <UTable      
                     :columns="skillGridMeta.defaultColumns"
+                    :rows="skillGridMeta.skills"
                     :ui="{
                       wrapper:
                         'h-[371px] border-2 border-gray-300 dark:border-gray-700',
@@ -546,6 +776,7 @@ else propertiesInit();
                         padding: 'px-2 py-0',
                       },
                     }"
+                    @select="onSkillSelect"
                   >
                     <template #empty-state>
                       <div></div>
@@ -578,11 +809,12 @@ else propertiesInit();
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
                       }"
+                      @click="handleRemoveSkill"
                       truncate
                     />
                   </div>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -593,22 +825,17 @@ else propertiesInit();
   <!-- Parts List Modal -->
   <UDashboardModal
     v-model="modalMeta.isPartsModalOpen"
-    :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
+    title="Parts Listing"
     :ui="{
       width: 'w-[1000px] sm:max-w-7xl',
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobPartsList
-      :selected-job="selectedJob"
-      @close="handleModalClose"
-      :is-modal="true"
-    />
+    <JobPartsList :instanceID="props.instanceId"/>
   </UDashboardModal>
 
-  <!-- Job Skill Modal -->
-  <UDashboardModal
+  <!-- Product Skill Modal -->
+  <!-- <UDashboardModal
     v-model="modalMeta.isSkillModalOpen"
     :title="modalMeta.modalTitle"
     :description="modalMeta.modalDescription"
@@ -617,11 +844,11 @@ else propertiesInit();
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobSkillForm :is-modal="true" />
-  </UDashboardModal>
+    <JobSkillForm :is-modal="true" @close="handleSkillModalClose"/>
+  </UDashboardModal> -->
 
   <!-- New Step Info Modal -->
-  <UDashboardModal
+  <!-- <UDashboardModal
     v-model="modalMeta.isStepInformationModalOpen"
     :title="modalMeta.modalTitle"
     :description="modalMeta.modalDescription"
@@ -630,10 +857,47 @@ else propertiesInit();
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobStepInformationForm
+    <ProductsProdStepInformationForm
       :operation-id="prodOperationGridMeta.selectedOperation.UniqueID"
+      :instance-id="prodOperationGridMeta.selectedOperation.instanceid"
+      :step-id="stepsGridMeta.selectedStep ? stepsGridMeta.selectedStep.UniqueID : null"
+      :next-step="stepsGridMeta.steps.length > 0 ? String.fromCharCode(stepsGridMeta.steps[stepsGridMeta.steps.length - 1].Step.charCodeAt(0) + 1) : 'A'"
       @close="handleStepModalClose"
+      @change="getOperationSteps"
       :is-modal="true"
     />
+  </UDashboardModal> -->
+
+  <!-- Delete Confirmation Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isDeleteModalOpen"
+    title="Delete operation"
+    description="Are you sure you wish to delete this entire operatin?"
+    icon="i-heroicons-exclamation-circle"
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+      footer: {
+        base: 'ml-16'
+      } as any
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="red"
+        label="Delete"
+        :loading="loadingOverlay"
+        @click="handleDeleteClick"
+      />
+      <UButton
+        color="white"
+        label="Cancel"
+        @click="modalMeta.isDeleteModalOpen = false"
+      />
+    </template>
   </UDashboardModal>
+
 </template>

@@ -7,7 +7,7 @@ import type { UTableColumn } from "~/types";
 
 const emit = defineEmits(["close", "save"]);
 const props = defineProps({
-  selectedJob: {
+  instanceID: {
     type: [String, Number, null],
     required: true,
   },
@@ -17,36 +17,25 @@ const toast = useToast();
 const router = useRouter();
 const partsFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false);
-const JobExist = ref(true);
-const formData = reactive({});
-
-const jobFilters = ref({
-  JobID: [props.selectedJob],
-});
-
-const editInit = async () => {
+const partList = ref([]);
+const formData = reactive({})
+console.log(props.instanceID)
+const init = async () => {
+  console.log("init")
   loadingOverlay.value = true;
-  await useApiFetch(`/api/jobs/details`, {
+  await useApiFetch(`/api/jobs/operations/mfg/partlist/${props.instanceID}`, {
     method: "GET",
-    params: { ...jobFilters.value },
     onResponse({ response }) {
       if (response.status === 200) {
-        JobExist.value = true;
-        console.log("response._data.body", response._data.body);
-
-        // for (const key in response._data.body) {
-        //   if (response._data.body[key] !== undefined) {
-        //     formData[key] = response._data.body[key];
-        //   }
-        // }
+        console.log(response._data.body)
+        partList.value = response._data.body;
       }
     },
     onResponseError({}) {
-      JobExist.value = false;
+      partList.value = []
     },
   });
 
-  //   await propertiesInit();
   loadingOverlay.value = false;
 };
 
@@ -65,39 +54,43 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   emit("save");
 };
 
-const productColumns = ref([
+const listColumns = ref([
   {
-    key: "serial",
+    key: "model",
     label: "Stock #",
   },
   {
-    key: "date_serialized",
+    key: "description",
     label: "Desc",
   },
   {
-    key: "material_cost",
+    key: "quantity",
     label: "Qty",
   },
   {
-    key: "material_cost",
+    key: "inventoryunit",
     label: "Inv. Unit",
   },
   {
-    key: "material_cost",
+    key: "inventorycost",
     label: "Inv. Cost",
   },
   {
-    key: "material_cost",
+    key: "totalCost",
     label: "Total",
   },
   {
-    key: "material_cost",
+    key: "laborHours",
     label: "Sub Ass Hrs",
   },
 ]);
 
-if (props.selectedJob !== null) editInit();
-// else propertiesInit();
+const excelExport = async () => {
+  location.href = `/api/jobs/exportpartlist?id=${props.instanceID}`;
+};
+
+init();
+
 </script>
 
 <template>
@@ -120,7 +113,8 @@ if (props.selectedJob !== null) editInit();
     <div class="w-full flex flex-col">
       <div class="w-full mt-5">
         <UTable
-          :columns="productColumns"
+          :rows="partList"
+          :columns="listColumns"
           :ui="{
             wrapper: 'h-96 border-2 border-gray-300 dark:border-gray-700',
             th: {
@@ -145,22 +139,11 @@ if (props.selectedJob !== null) editInit();
               base: 'w-fit',
               truncate: 'flex justify-center w-full',
             }"
+            @click="excelExport"
             truncate
           />
         </div>
-        <div class="mt-5 ml-4">
-          <UButton
-            icon="i-heroicons-chat-bubble-oval-left-ellipsis"
-            variant="outline"
-            color="green"
-            label="Show Sub Assembly Hours"
-            :ui="{
-              base: 'w-fit',
-              truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
-        </div>
+       
       </div>
     </div>
   </UForm>

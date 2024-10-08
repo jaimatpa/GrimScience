@@ -1,4 +1,4 @@
-import { tblEmployee, tblJobOperations, tblOperationHoursWorked, tblSettings } from "~/server/models";
+import { tblEmployee, tblJobOperations, tblOperationHoursWorked, tblSettings, tblPlan, tblSteps } from "~/server/models";
 import { Sequelize, Op } from "sequelize";
 import  sequelize  from '../../utils/databse';  
 import { QueryTypes } from 'sequelize';
@@ -50,6 +50,8 @@ export const getAllOperation = async (jobId, instanceId, jobQty) => {
   const modList = list.map(item =>{
     return {...item, Hours: parseFloat(item.Hours) * parseFloat(jobQty)}
   } )
+
+  console.log(modList)
 
   return modList;
 }
@@ -921,3 +923,498 @@ export const reworkCostCalculate = async (lngJob, lngJobOperationID, reworkHrs) 
     throw new Error('Error fetching rework cost:',error)
 }
 }
+
+
+// Manufacturing Sequence API
+
+const reorderOperations = async (instanceID) => {
+  // Fetch all records for the given instanceID, ordered by week and number
+  const dt = await sequelize.query(`
+    SELECT * FROM tblPlan 
+    WHERE instanceid = :instanceID 
+    ORDER BY CAST(week AS INT), number ASC
+  `, {
+    replacements: { instanceID },
+    type: QueryTypes.SELECT
+  });
+
+  let start = 1;
+
+  // Iterate through each row and update the NUMBER field
+  for (const row of dt) {
+    await sequelize.query(`
+      UPDATE tblPlan 
+      SET NUMBER = :start 
+      WHERE UniqueID = :uniqueID
+    `, {
+      replacements: { start, uniqueID: row.UniqueID },
+      type: QueryTypes.UPDATE
+    });
+    start += 1;
+  }
+};
+
+export const operationExistByID = async (id) => {
+  const tableDetail = await tblPlan.findByPk(id);
+  if (tableDetail)
+    return true;
+  else
+    return false;
+}
+
+
+export const getMfgOperations = async (instanceID) => {
+
+  // Fetch the plan details for the given instanceID
+  const plans = await sequelize.query(`
+    SELECT * FROM tblPlan 
+    WHERE instanceid = :instanceID 
+    ORDER BY CAST(number AS INT) ASC
+  `, {
+    replacements: { instanceID },
+    type: QueryTypes.SELECT
+  });
+
+  let totalHours = 0;
+  const results = await Promise.all(plans.map(async plan => {
+
+    // Calculate cost for each item
+    const costDetails = await sequelize.query(`
+      SELECT ordercost, Multiple 
+      FROM vwPlan 
+      WHERE uniqueid = :UniqueID
+    `, {
+      replacements: { UniqueID: plan.UniqueID },
+      type: QueryTypes.SELECT
+    });
+
+    let cost = 0;
+    let multiple = 1;
+    costDetails.forEach(detail => {
+      cost += parseFloat(detail.ordercost);
+      multiple = detail.Multiple || 1;
+    });
+    
+    // Build the response object
+    const item = {
+      UniqueID: plan.UniqueID,
+      instanceid: plan.instanceid,
+      Number: plan.Number,
+      week: plan.week,
+      Operation: plan.Operation,
+      WorkCenter: plan.WorkCenter,
+      Hours: parseFloat(plan.Hours),
+      material: parseFloat((cost / multiple).toFixed(2))
+    };
+
+    // Accumulate total hours
+    totalHours += item.Hours;
+
+    return item;
+  }));
+
+  return {
+    totalHours: totalHours.toFixed(2),
+    items: results
+  };
+};
+
+export const createMfgOperation = async (data) => {
+  const instanceID = data.instanceId
+
+  const { Number, Operation, WorkCenter, Hours, week, skills, username } = data;
+  const strSkills = skills.map(skill => skill.UniqueID).join('=');
+
+  if (!Operation || !WorkCenter || !Hours || !week) return { error: 'Please provide all the fields' };
+  const today = new Date();
+  const formattedDate = String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
+  String(today.getDate()).padStart(2, '0') + '/' + 
+  today.getFullYear();
+  const createOperation = {
+    instanceid: instanceID,
+    Operation,
+    WorkCenter,
+    Hours,
+    week,
+    skills: strSkills,
+    Number: parseInt(Number),
+    PreparedBy: username,
+    PreparedDate: formattedDate,
+    ApprovedBy: '',
+    ApprovedDate: '',
+  }
+
+  const newOperation = await tblPlan.create(createOperation);
+
+  // Reorder operations (implement this function as needed)
+  await reorderOperations(instanceID);
+  return newOperation
+
+}
+
+export const editMfgOperation = async (data, id) => {
+
+  const instanceID = data.instanceId
+
+  const { Number, Operation, WorkCenter, Hours, week, skills, username } = data;
+
+  const strSkills = skills.map(skill => skill.UniqueID).join('=');
+
+  if (!Operation || !WorkCenter || !Hours || !week) return { error: 'Please provide all the fields' };
+  const today = new Date();
+  const editOperation = {
+    Operation,
+    WorkCenter,
+    Hours,
+    week,
+    skills: strSkills,
+    Number: parseInt(Number),
+    PreparedBy: username,
+    PreparedDate: formatDateForSQLServer(today),
+    ApprovedBy: '',
+    ApprovedDate: '',
+
+  }
+
+  await tblPlan.update(editOperation, {
+    where: { UniqueID: id}
+  });
+  await reorderOperations(instanceID);
+
+  return id
+
+}
+
+export const deleteMfgOperation = async (id) => {
+  const tableDetail = await tblPlan.findByPk(id);
+  const instanceID = tableDetail.dataValues.instanceid;
+  // Fetch steps related to the plan
+  const steps = await sequelize.query(`
+    SELECT * FROM tblsteps 
+    WHERE planid = :planUniqueID
+  `, {
+    replacements: { planUniqueID:id },
+    type: QueryTypes.SELECT
+  });
+
+  // Loop through each step and delete related records from tblsteps, tblBPParts, and tblMedia
+  for (const step of steps) {
+    const stepID = step.UniqueID;
+
+    await sequelize.query(`
+      DELETE FROM tblsteps 
+      WHERE UniqueID = :stepID
+    `, {
+      replacements: { stepID },
+      type: QueryTypes.DELETE
+    });
+
+    await sequelize.query(`
+      DELETE FROM tblBPParts 
+      WHERE stepid = :stepID
+    `, {
+      replacements: { stepID },
+      type: QueryTypes.DELETE
+    });
+
+    await sequelize.query(`
+      DELETE FROM tblMedia 
+      WHERE StepID = :stepID
+    `, {
+      replacements: { stepID },
+      type: QueryTypes.DELETE
+    });
+  }
+  // Delete the plan itself from tblplan
+  await sequelize.query(`
+    DELETE FROM tblplan 
+    WHERE UniqueID = :planUniqueID
+  `, {
+    replacements: { planUniqueID:id },
+    type: QueryTypes.DELETE
+  });
+  await reorderOperations(instanceID);
+  return id
+
+}
+
+export const getOperationReportData = async (id) => {
+  const reportData = await sequelize.query(`
+    Select (select verified from tblJobOperations where tblJobOperations.PlanID = tblPlan.UniqueID and tblJobOperations.JobID=0) as verified,(select verifiedby from tblJobOperations where tblJobOperations.PlanID = tblPlan.UniqueID and tblJobOperations.JobID=0) as verifiedby,tblPlan.uniqueID as OUID, tblSteps.UniqueID as SID, (select top 1 '#' + model + ' ' + description from tblBP  Where instanceID = tblPlan.InstanceID  and uniqueid in ( select max(uniqueid) from tblbp where instanceid=tblPlan.InstanceID)) as PlanModel, tblPlan.hours,tblBP.ProductLine, tblPlan.Number, tblPlan.Operation, tblSteps.Step, tblSteps.description as StepDescription, tblSteps.notes as notes, tblBPParts.Note, tblBPParts.Qty, tblBP.InventoryUnit, tblBP.model, tblBP.description as BPDescription, tblPlan.WorkCenter, ApprovedBy, ApprovedDate, PreparedBy, PreparedDate  from tblPlan left join tblSteps on tblSteps.PlanID = tblPlan.UniqueID left join tblBPParts on tblBPParts.StepID = tblSteps.UniqueID left join tblBP on tblBP.uniqueID = tblBPParts.partID Where tblPlan.InstanceID = :instanceId Order by tblPlan.Number, cast(step as int), model
+  `, {
+    replacements: { instanceId:id },
+    type: QueryTypes.SELECT
+  });
+
+  return reportData
+}
+
+export const getPartList = async (instanceID) => {
+  // Fetch main table details
+  
+  const qty = 1;
+
+  // Query to get total quantity
+  const table1 = await sequelize.query(`
+    SELECT tblbp.instanceid, SUM(tblbpparts.qty) * :qty AS totalQuantity
+    FROM tblbp
+    INNER JOIN tblBPParts ON tblbp.uniqueid = tblbpparts.partid
+    INNER JOIN tblsteps ON tblsteps.uniqueid = tblbpparts.stepid
+    INNER JOIN tblplan ON tblplan.uniqueid = tblsteps.planid
+    WHERE tblPlan.instanceid IN (:instanceID)
+    GROUP BY tblbp.instanceID
+  `, {
+    replacements: { instanceID: instanceID, qty: qty },
+    type: QueryTypes.SELECT
+  });
+
+  // Calculate labor hours for each item
+  const results = await Promise.all(table1.map(async row => {
+    // Fetch details for each item
+    const table2 = await sequelize.query(`
+      SELECT tblbp.model, tblbp.description, tblbp.inventoryunit, tblbp.ordercost, 
+             tblbp.multiple, tblBP.inventorycost, tblBP.instanceID, code 
+      FROM tblbp 
+      WHERE uniqueid IN (
+        SELECT MAX(uniqueid) FROM tblbp WHERE instanceid = :instanceid
+      )
+    `, {
+      replacements: { instanceid: row['instanceid'] },
+      type: QueryTypes.SELECT
+    });
+
+    // Calculate labor hours
+    const calculateLaborHours = async (instanceID) => {
+      let hours = 0;
+      let results = await sequelize.query(`
+        SELECT builtinhouse FROM tblBP WHERE instanceID = :instanceID
+      `, {
+        replacements: { instanceID: instanceID },
+        type: QueryTypes.SELECT
+      });
+
+      const builtinhouse = results[0].builtinhouse;
+
+      if (builtinhouse === 'False') {
+        // Add top-level labor hours
+        results = await sequelize.query(`
+          SELECT hours FROM tblPlan WHERE instanceID = :instanceID
+        `, {
+          replacements: { instanceID: instanceID },
+          type: QueryTypes.SELECT
+        });
+
+        hours += results.reduce((acc, row) => acc + parseFloat(row.hours), 0);
+
+        // Recursively calculate sub-assembly labor hours
+        results = await sequelize.query(`
+          SELECT (SELECT TOP 1 tblBP.instanceID 
+                  FROM tblBP 
+                  WHERE tblbp.UniqueID = tblBPParts.partid 
+                  ORDER BY tblBP.uniqueID DESC) AS instanceID, 
+                 qty
+          FROM tblBPParts
+          INNER JOIN tblSteps ON tblSteps.uniqueID = tblBPParts.stepID
+          INNER JOIN tblPlan ON tblPlan.uniqueID = tblSteps.PlanID
+          WHERE (SELECT COUNT(tblPlan.uniqueID) 
+                 FROM tblPlan 
+                 WHERE tblPlan.instanceID = (SELECT TOP 1 tblBP.instanceID 
+                                              FROM tblBP 
+                                              WHERE tblbp.UniqueID = tblBPParts.partid 
+                                              ORDER BY tblBP.uniqueID DESC)) > 0
+          AND tblplan.instanceID = :instanceID
+        `, {
+          replacements: { instanceID: instanceID },
+          type: QueryTypes.SELECT
+        });
+
+        for (const row of results) {
+          hours += (await calculateLaborHours(row.instanceID)) * row.qty;
+        }
+      }
+      return hours;
+    };
+
+    const laborHours = await calculateLaborHours(row['instanceid']);
+    table2[0]['quantity'] = row['totalQuantity'];
+    table2[0]['totalCost'] = parseFloat((row['totalQuantity'] * table2[0]['inventorycost']).toFixed(2));
+    table2[0]['laborHours'] = parseFloat(laborHours.toFixed(2));
+    return table2[0];
+  }));
+
+  return results;
+}
+
+export const getOperationSteps = async (id) => {
+  // Fetch the steps associated with the given plan ID
+  const steps = await sequelize.query(`
+    SELECT * FROM tblSteps 
+    WHERE planid = :planUniqueID 
+    ORDER BY CAST(step AS INT)
+  `, {
+    replacements: { planUniqueID:id },
+    type: QueryTypes.SELECT
+  });
+
+  // Array to hold the steps and skills data
+  const stepData = [];
+
+  // Loop through each step to process and format data
+  for (const step of steps) {
+    const Step = (parseInt(step.Step) >= 0)
+      ? String.fromCharCode(64 + parseInt(step.Step))  // Convert step to letter (A, B, C, etc.)
+      : step.Step;
+
+    // Push step information to the array
+    stepData.push({
+      Step,
+      Description: step.Description,
+      UniqueID: step.UniqueID
+    });
+  }
+
+  return {
+    steps: stepData,
+  };
+}
+
+export const getOperationSkills = async (id) => {
+  // Fetch the plan information based on the planUniqueID
+  const planDetails = await sequelize.query(`
+    SELECT * FROM tblPlan 
+    WHERE uniqueid = :planUniqueID
+  `, {
+    replacements: { planUniqueID:id },
+    type: QueryTypes.SELECT
+  });
+
+  // Extract and split the skills associated with the plan
+  const skills = planDetails[0].skills.split('=');
+  const skillData = [];
+
+  for (const skillID of skills) {
+    if (parseInt(skillID) > 0) {
+      const skillDetails = await sequelize.query(`
+        SELECT * FROM tblskills 
+        WHERE uniqueid = :skillID
+      `, {
+        replacements: { skillID: parseInt(skillID) },
+        type: QueryTypes.SELECT
+      });
+
+      if (skillDetails.length > 0) {
+        // Push skill information to the array
+        skillData.push({
+          Name: skillDetails[0].Name,
+          UniqueID: skillDetails[0].UniqueID
+        });
+      }
+    }
+  }
+
+  return {
+    skills: skillData
+  };
+}
+
+//Step API
+
+export const stepExistByID = async (id) => {
+  const tableDetail = await tblSteps.findByPk(id);
+  if (tableDetail)
+    return true;
+  else
+    return false;
+}
+
+
+export const downStpe = async (stepId, planId) => {
+  if (!stepId) {
+    throw Error('No step id provided')
+  }
+
+  // Update the selected step by adding 1.5 to the step number
+  await sequelize.query(`
+    UPDATE tblSteps
+    SET step = step + 1.5
+    WHERE uniqueID = :stepID
+  `, {
+    replacements: { stepID: stepId },
+    type: QueryTypes.UPDATE
+  });
+
+  // Fetch all steps related to the plan and order them by step number
+  const steps = await sequelize.query(`
+    SELECT * FROM tblSteps 
+    WHERE PLANID = :planId 
+    ORDER BY step
+  `, {
+    replacements: { planId },
+    type: QueryTypes.SELECT
+  });
+
+  // Clear the step list
+  let i = 0;
+
+  // Reassign step numbers and update tblSteps
+  for (const row of steps) {
+    i++;
+    
+    await sequelize.query(`
+      UPDATE tblSteps 
+      SET step = :newStep 
+      WHERE uniqueID = :stepID
+    `, {
+      replacements: { newStep: i, stepID: row.UniqueID },
+      type: QueryTypes.UPDATE
+    });
+  }
+
+}
+
+export const upStpe = async (stepId, planId) => {
+  if (!stepId) {
+    throw Error('No step id provided')
+  }
+
+  // Update the selected step by adding 1.5 to the step number
+  await sequelize.query(`
+    UPDATE tblSteps
+    SET step = step - 1.5
+    WHERE uniqueID = :stepID
+  `, {
+    replacements: { stepID: stepId },
+    type: QueryTypes.UPDATE
+  });
+
+  // Fetch all steps related to the plan and order them by step number
+  const steps = await sequelize.query(`
+    SELECT * FROM tblSteps 
+    WHERE PLANID = :planId 
+    ORDER BY step
+  `, {
+    replacements: { planId },
+    type: QueryTypes.SELECT
+  });
+
+  // Clear the step list
+  let i = 0;
+
+  // Reassign step numbers and update tblSteps
+  for (const row of steps) {
+    i++;
+    
+    await sequelize.query(`
+      UPDATE tblSteps 
+      SET step = :newStep 
+      WHERE uniqueID = :stepID
+    `, {
+      replacements: { newStep: i, stepID: row.UniqueID },
+      type: QueryTypes.UPDATE
+    });
+  }
+}
+
+
+
+

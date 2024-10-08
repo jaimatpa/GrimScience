@@ -2499,7 +2499,7 @@ else propertiesInit();
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobManufacturingSequenceForm :selected-job="selectedJob" />
+    <JobManufacturingSequenceForm :selected-job="selectedJob" :instanceId="formData.InstanceID" :isModal="true "/>
   </UDashboardModal>
 
   <!-- Rework Parts Modal -->
