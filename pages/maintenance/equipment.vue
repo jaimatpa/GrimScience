@@ -1,10 +1,14 @@
-<script lang="ts" setup>
-useSeoMeta({
-  title: 'Grimm-Maintenance equipment'
-})
+<script setup lang="ts">
+import EquipmentPage from "../../components/maintenance/equipment/list.vue";
 </script>
 
+<!-- ChangeOrdersForm.vue -->
 <template>
-  <div class="w-full flex items-center text-center justify-center">This page is under development and not available yet.
-  </div>
+  <UDashboardPage>
+    <UDashboardPanel grow>
+      <UDashboardPanelContent>
+        <EquipmentPage />
+      </UDashboardPanelContent>
+    </UDashboardPanel>
+  </UDashboardPage>
 </template>

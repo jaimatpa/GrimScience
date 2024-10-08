@@ -189,14 +189,20 @@ const handleModify = async () => {
 </script>
 
 <template>
+   <UDashboardNavbar class="gmsPurpleHeader" title="Work Center Information">
+      </UDashboardNavbar>
+
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+        <h2>Workcenter</h2>
+      </div>
   <UCard>
-    <template #header>
-      <div class="flex justify-between items-center bg-teal-100">
-        <h2 class="text-xl font-semibold text-blue-800  py-[20px]">
+ 
+      <!-- <div class="flex justify-between items-center bg-teal-100 mb-[15px]">
+        <h2 class="text-xl font-semibold text-blue-800  py-[20px] pl-[10px]">
           Work Center Information
         </h2>
-      </div>
-    </template>
+      </div> -->
+
 
     <div class="space-y-6">
       <div class="grid grid-cols-3 gap-4">
@@ -224,8 +230,9 @@ const handleModify = async () => {
       </div>
 
       <!-- Action Buttons -->
-      <div class="grid grid-cols-5 gap-4">
+      <div class="grid grid-cols-5 gap-4 px-[1px] my-[5px] py-[1px] ">
         <UButton
+        class="my-[2px] mx-[3px] pl-[20px]" 
           icon="i-heroicons-plus"
           color="green"
           @click="handleSubmit"
@@ -235,6 +242,7 @@ const handleModify = async () => {
         </UButton>
 
         <UButton
+        class="my-[2px] mx-[3px] pl-[20px]" 
           icon="i-heroicons-pencil"
           color="yellow"
           @click="handleModify"
@@ -244,8 +252,9 @@ const handleModify = async () => {
         </UButton>
 
         <UButton
+   
           icon="i-heroicons-arrow-path"
-          class="bg-red-500 text-white" 
+          class="bg-red-500 hover:bg-red-400 text-white py-[2px] px-[3px] pl-[20px]" 
           variant="ghost"
           @click="handleClearForm"
         >
@@ -254,13 +263,14 @@ const handleModify = async () => {
 
         <UFormGroup label="Account">
           <USelect
+          class="my-[2px] mx-[3px]" 
             v-model="formData.qbActivity"
             :options="qbActivities"
             placeholder="Select QB activity"
           />
         </UFormGroup>
 
-        <UButton icon="i-heroicons-pencil" color="blue">
+        <UButton icon="i-heroicons-pencil"  class="my-[2px] mx-[3px] pl-[20px]"   color="blue">
           Load QB
         </UButton>
       </div>
