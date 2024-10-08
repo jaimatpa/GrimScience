@@ -25,59 +25,47 @@ export const getPositions = async () => {
   }
 };
 
-
-// ok code
+// ok code 
 export const getAllWorkCenterData = async () => {
   try {
-    const list = await tblWorkCenters.findAll({
-      order: [
-        [
-          "NUMBER",
-          'ASC',
-        ],
-      ],
+    const workCenters = await tblWorkCenters.findAll({
+      attributes: ['uniqueID', 'position', 'NAME', 'NUMBER', 'Paid', 'TimeEntryWithoutJob'],
+      order: [['NUMBER', 'ASC']],
+      raw: true, 
+      logging: console.log 
+    });
 
+    if (workCenters.length > 0) {
+      console.log('Check if Paid and TimeEntryWithoutJob are missing:', {
+        hasPaid: 'Paid' in workCenters[0],
+        hasTimeEntryWithoutJob: 'TimeEntryWithoutJob' in workCenters[0],
+      });
     }
+    const organizations = await tblOrganization.findAll({
+      attributes: ['Title', 'Employee'],
+      raw: true 
+    });
+    const combinedResults = workCenters.map(wc => {
+      const matchingOrg = organizations.find(org => org.Title === wc.position);
+      return {
+        ...wc, // Spread all fields from the work center
+        Employee: matchingOrg ? matchingOrg.Employee : null 
+      };
+    });
 
-    );
-    console.log(list);
-    return list;
+    console.log('Combined results:', JSON.stringify(combinedResults, null, 2));
+
+    return combinedResults;
   } catch (error) {
-    console.error('Error fetching work centers:', error);
-    throw error;
+    console.error('Error fetching work centers:', error); 
+    throw error; 
   }
 };
 
-// tblOrganization.hasOne(tblWorkCenters, { foreignKey: 'Employee', sourceKey: 'UniqueID', as: 'organization' });
 
-// export const getAllWorkCenterData = async () => {
-//   try {
-//     const list = await tblWorkCenters.findAll({
-//       order: [['NUMBER', 'ASC']],
-//       include: [
-//         {
-//           model: tblOrganization,
-//           attributes: ['Title', 'Employee'], 
-//           as: 'organization',  
-//         },
-//       ],
-//     });
-
-//     console.log(list); // Log the fetched list
-//     return list; // Return the fetched list
-//   } catch (error) {
-//     console.error('Error fetching work centers:', error);
-//     throw createError({
-//       statusCode: 500,
-//       statusMessage: 'Error fetching work centers',
-//     });
-//   }
-// };
-
-
+// ok code
 export const insertDataWorkCenters = async (data) => {
   try {
-  
     const newWorkCenter = await tblWorkCenters.create({
       NAME: data.name,
       NUMBER: data.number,
@@ -86,8 +74,6 @@ export const insertDataWorkCenters = async (data) => {
       TimeEntryWithoutJob: data.TimeEntryWithoutJob,
       Paid: data.Paid,
     });
-
-    console.log(newWorkCenter)
     return newWorkCenter;
   } catch (error) {
     console.error('Error inserting data into tblWorkCenters:', error);
@@ -95,7 +81,9 @@ export const insertDataWorkCenters = async (data) => {
   }
 };
 
+// ok code
 export const updateDataWorkCenters = async (data) => {
+  console.log(data)
   try {
     const workCenter = await tblWorkCenters.findByPk(data.uniqueID);
     
@@ -118,43 +106,109 @@ export const updateDataWorkCenters = async (data) => {
   }
 };
 
-// Function to create a work center
-export const createWorkCenter = async (event: H3Event) => {
-  // Implementation remains unchanged
-};
 
-// Function to update a work center
-export const updateWorkCenter = async (event: H3Event) => {
-  // Implementation remains unchanged
-};
 
-// Function to get skills by work center ID
-export const getSkills = async (workcenterId: string) => {
-  try {
-    const skills = await Skill.findAll({
-      where: {
-        WorkCenters: {
-          [Op.like]: `%,${workcenterId},%`
-        }
-      },
-      attributes: ['Name', 'TrainingNotes', 'Prerequisites'],
-      order: [['Name', 'ASC']]
-    });
 
-    return skills.map(skill => ({
-      name: skill.Name,
-      trainingNotes: skill.TrainingNotes || null,
-      prerequisites: skill.Prerequisites || null
-    }));
-  } catch (error) {
-    console.error('Error fetching skills:', error);
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Error fetching skills'
-    });
-  }
-};
 
+
+
+
+// export const getAllWorkCenterData = async () => {
+//   try {
+//     // Fetch Work Centers data
+//     const workCenters = await tblWorkCenters.findAll({
+//       attributes: ['uniqueID', 'position', 'NAME', 'NUMBER', 'Paid', 'TimeEntryWithoutJob'],
+//       order: [['NUMBER', 'ASC']],
+//       raw: true, // Return plain objects instead of Sequelize instances
+//       logging: console.log // Logs the SQL query for debugging
+//     });
+
+//     console.log('Raw workCenters data:', workCenters); // Debug log to check raw data
+
+//     // Fetch organization data (ensure tblOrganization is properly defined)
+//     const organizations = await tblOrganization.findAll({
+//       attributes: ['Title', 'Employee'],
+//       raw: true // Return plain objects
+//     });
+
+//     // Manual join - match each work center with corresponding organization data
+//     const combinedResults = workCenters.map(wc => {
+//       const matchingOrg = organizations.find(org => org.Title === wc.position);
+//       return {
+//         ...wc, // Spread all fields from the work center
+//         Employee: matchingOrg ? matchingOrg.Employee : null // Add Employee from the matching organization
+//       };
+//     });
+
+//     // console.log('Combined results:', JSON.stringify(combinedResults, null, 2)); // Pretty-print the combined results
+
+//     return combinedResults;
+//   } catch (error) {
+//     console.error('Error fetching work centers:', error); // Log the error
+//     throw error; // Rethrow to handle it in higher-level code
+//   }
+// };
+// export const getAllWorkCenterData = async () => {
+//   try {
+//     // First, ensure both tables exist and have data
+//     const workCenters = await tblWorkCenters.findAll({
+//       attributes: ['uniqueID', 'position', 'NAME', 'NUMBER','Paid','TimeEntryWithoutJob'],
+//       order: [['NUMBER', 'ASC']],
+//       raw: true
+//     });
+
+//     const organizations = await tblOrganization.findAll({
+//       attributes: ['Title', 'Employee'],
+//       raw: true
+//     });
+
+//     // Perform a manual join
+//     const combinedResults = workCenters.map(wc => {
+//       const matchingOrg = organizations.find(org => org.Title === wc.position);
+//       return {
+//         ...wc,
+//         Employee: matchingOrg ? matchingOrg.Employee : null
+//       };
+//     });
+
+//     console.log('Combined results:', combinedResults);
+//     return combinedResults;
+//   } catch (error) {
+//     console.error('Error fetching work centers:', error);
+//     throw error;
+//   }
+// };
+
+
+// export const getAllWorkCenterData = async () => {
+//   try {
+//     // First, ensure both tables exist and have data
+//     const workCenters = await tblWorkCenters.findAll({
+//       attributes: ['position', 'NAME', 'NUMBER'],
+//       raw: true
+//     });
+
+//     const organizations = await tblOrganization.findAll({
+//       attributes: ['Title', 'Employee'],
+//       raw: true
+//     });
+
+//     // Perform a manual join
+//     const combinedResults = workCenters.map(wc => {
+//       const matchingOrg = organizations.find(org => org.Title === wc.position);
+//       return {
+//         ...wc,
+//         Employee: matchingOrg ? matchingOrg.Employee : null
+//       };
+//     });
+
+//     console.log('Combined results:', combinedResults);
+//     return combinedResults;
+//   } catch (error) {
+//     console.error('Error fetching work centers:', error);
+//     throw error;
+//   }
+// };
 
 
 // Function to get employees by work center ID
@@ -187,26 +241,7 @@ export const getSkills = async (workcenterId: string) => {
 // };
 
 // Function to get QuickBooks activities
-export const getQBActivities = async () => {
-  // Implementation remains unchanged
-};
+// export const getQBActivities = async () => {
+//   // Implementation remains unchanged
+// };
 
-// Example function for position responsibility
-export const positionResponsibility = async () => {
-
-  try {
-    const list = await tblEmployee.findAll({
-      attributes: [
-        [Sequelize.literal("CONCAT(fname, ' ', lname)"), 'fullName'],
-      ],
-      where: {
-        ACTIVE: true
-      }
-    });
-    console.log(list)
-    return list.map(employee => employee.get('fullName'));
-
-  } catch (err) {
-    return err.message;
-  }
-};

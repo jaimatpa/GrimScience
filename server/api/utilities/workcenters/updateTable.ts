@@ -13,7 +13,8 @@ export default eventHandler(async (event) => {
     const response = await updateDataWorkCenters(data);
     return { 
       body: response, 
-      message: 'Work center updated successfully' 
+      message: 'Work center updated successfully', 
+      status:200
     };
   } catch (error) {
     console.error('Error in API handler:', error);

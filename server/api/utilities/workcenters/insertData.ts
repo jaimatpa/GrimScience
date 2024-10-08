@@ -6,9 +6,13 @@ export default eventHandler(async (event) => {
     const method = event.node.req.method;
 
     if (method === 'POST') {
-      const data = await readBody(event); 
+      const data = await readBody(event);
       const response = await insertDataWorkCenters(data);
-      return { body: response, message: 'Data processed successfully' }; 
+      return {
+        body: response,
+        message: 'Data processed successfully',
+        status: 200
+      };
     } else {
       setResponseStatus(event, 405);
       return { error: 'Method Not Allowed' };
