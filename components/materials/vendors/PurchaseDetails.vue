@@ -236,7 +236,7 @@ interface ModalData {
 const props = defineProps<{
     modalData?: ModalData;
     isCreating?: boolean;
-    vendorDetails: any
+    vendorDetails?: any
 }>();
 const createFormData = reactive<ModalData>({
     ADDESS: '',

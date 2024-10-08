@@ -18,7 +18,7 @@ export const getInventoryTransactions = async (filterParams) => {
     if (InvoiceID) inventoryTransactionsWhere['InvoiceID'] = { [Op.like]: `%${InvoiceID}%` }
     if (PONumber) inventoryTransactionsWhere['PONumber'] = { [Op.like]: `%${PONumber}%` }
     if (VendorInvoiceID) inventoryTransactionsWhere['VendorInvoiceID'] = { [Op.like]: `%${VendorInvoiceID}%` }
-
+   
     if (JobID) jobWhere['NUMBER'] = { [Op.like]: `%${JobID}%` }
 
     if (COMPLAINTNUMBER) complaintWhere['COMPLAINTNUMBER'] = { [Op.like]: `%${COMPLAINTNUMBER}%` }
@@ -26,6 +26,8 @@ export const getInventoryTransactions = async (filterParams) => {
     tblInventoryTransactions.hasOne(tblServiceReport, { foreignKey: 'uniqueID', sourceKey: 'ServiceReportID' })
     tblServiceReport.hasOne(tblComplaints, { foreignKey: 'uniqueID', sourceKey: 'COMPLAINTID' })
     tblInventoryTransactions.hasOne(tblJobs, { foreignKey: 'UniqueID', sourceKey: 'JobID' })
+    if (COMPLAINTNUMBER) complaintWhere['COMPLAINTNUMBER'] = { [Op.like]: `%${COMPLAINTNUMBER}%` }
+
     const list = await tblInventoryTransactions.findAll({
       attributes: [
         'uniqueid',
@@ -56,7 +58,7 @@ export const getInventoryTransactions = async (filterParams) => {
         },
         {
           model: tblJobs,
-          attributes: ['NUMBER'],
+          attributes: ['UniqueID', 'NUMBER'],
           where: jobWhere,
           required: !JobID ? false : true
         }
@@ -64,6 +66,7 @@ export const getInventoryTransactions = async (filterParams) => {
       order: [[Sequelize.fn('CONVERT', Sequelize.literal('date'), Sequelize.col('Dated')), 'DESC']],
       limit: 50
     });
+
 
     const formattedList = await list.map((item: any) => {
       let type = item.JobID ? 'Job' : item.ServiceReportID ? 'Service Report' : item.InvoiceID ? 'Invoice' : item.PONumber ? 'PO' : null
@@ -73,6 +76,7 @@ export const getInventoryTransactions = async (filterParams) => {
         By: item.By,
         Justification: item.Justification,
         JobID: item.tblJob?.NUMBER ?? null,
+        JobUniqueID: item.tblJob?.UniqueID ?? null,
         ServiceReportID: !item.ServiceReportID ? null : item.ServiceReportID,
         InvoiceID: !item.InvoiceID ? null : item.InvoiceID,
         VendorInvoiceID: !item.VendorInvoiceID ? null : item.VendorInvoiceID,
@@ -103,7 +107,7 @@ export const getInventoryTransactionDetails = async (id, filterParams) => {
           'OnHand',
           [Sequelize.col('tblBP.UNIT'), 'UNIT'],
           [Sequelize.col('tblBP.MODEL'), 'MODEL'],
-          [Sequelize.col('tblBP.DESCRIPTION'), 'DESCRIPTION'],
+          [Sequelize.col('tblBP.DESCRIPTION'), 'DESCRIPTION']
         ],
         where: {
           InventoryTransactionID: id
