@@ -2,12 +2,12 @@ import { getNumberOfJobs } from "~/server/controller/jobs";
 
 export default eventHandler(async (event) => {
   try {
-    const filterParams = getQuery(event);
+    const {isOpen, isReleased, ...filterParams} = getQuery(event);
     const method = event._method;
     
     switch(method.toUpperCase()){
       case 'GET':
-        const numberOfCustomers = await getNumberOfJobs(filterParams);
+        const numberOfCustomers = await getNumberOfJobs(isOpen, isReleased, filterParams);
         return { body: numberOfCustomers, message: '' }
       default:
         setResponseStatus(event, 405);

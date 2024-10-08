@@ -26,14 +26,17 @@ const formatDateForSQLServer = (date) => {
 }
 
 const applyFilters = (params) => {
+
   const filterParams = ['UniqueID', 'NUMBER', 'QUANTITY', 'MODEL', 'PerType', 'DATEOPENED', 'DATECLOSED', 'PercentageComplete', 'Catagory', 'SubCatagory', 'Cost', 'jobcat', 'jobsubcat', 'ProductionDate', 'JobID'];
   const whereClause = {};
 
   filterParams.forEach(param => {
     if (params[param]) {
+
       whereClause[param] = {
         [Op.like]: `%${params[param]}%`
       };
+
     }
   });
 
@@ -56,21 +59,29 @@ const applyCusFilters = (params) => {
 };
 
 
-export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams) => {
+export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams, isOpen, isReleased) => {
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
 
   const whereClause = applyFilters(filterParams);
 
+  if (isOpen === 'true') {
+    whereClause.DATECLOSED = { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: '' }] };
+  }
+
+  if (isReleased === 'true') {
+    whereClause.ProductionDate = { [Op.ne]: null, [Op.ne]: '' };
+  }
+
   const list = await tblJobs.findAll({
     attributes: ['UniqueID', 'NUMBER', 'QUANTITY', 'MODEL', 'PART', 'PerType', 'DATEOPENED', 'DATECLOSED', 'PercentageComplete', 'Catagory', 'SubCatagory', 'Cost', 'jobcat', 'jobsubcat', 'ProductionDate'],
-    where: whereClause,
+    where: whereClause, // Apply the full whereClause with the conditional filters
     order: [[sortBy as string || 'NUMBER', sortOrder as string || 'ASC']],
     offset,
     limit
   });
 
-  const formattedList = list.map((item: any) => {
+  let formattedList = list.map((item: any) => {
     return {
       description: `${item.MODEL ? `#${item.MODEL}` : `#${item.PART}`}`,
       UniqueID: item.UniqueID,
@@ -81,25 +92,34 @@ export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams
       PerType: item.PerType,
       DATEOPENED: item.DATEOPENED,
       DATECLOSED: item.DATECLOSED,
-      PercentageComplete: item.PercentageComplete,
+      PercentageComplete: (parseFloat(item.PercentageComplete) * 100).toFixed(0),
       Cost: item.Cost,
       Catagory: item.Catagory,
       SubCatagory: item.SubCatagory,
       ProductionDate: item.ProductionDate,
+    };
+  });
 
-    }
-  })
   return formattedList;
-}
+};
 
 
-export const getNumberOfJobs = async (filterParams) => {
+export const getNumberOfJobs = async (isOpen, isReleased, filterParams) => {
 
-    const whereClause = applyFilters(filterParams);
-    const numberOfCustomers = await tblJobs.count({
-      where: whereClause
-    });
-    return numberOfCustomers;
+  const whereClause = applyFilters(filterParams);
+
+  if (isOpen === 'true') {
+    whereClause.DATECLOSED = { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: '' }] };
+  }
+
+  if (isReleased === 'true') {
+    whereClause.ProductionDate = { [Op.ne]: null, [Op.ne]: '' };
+  }
+
+  const numberOfCustomers = await tblJobs.count({
+    where: whereClause
+  });
+  return numberOfCustomers;
 }
 
 export const JobExistByID = async (id: number | string) => {
@@ -1866,3 +1886,99 @@ export const getModels = async (productline) => {
 
   return distinctMODEL;
 }
+
+export const bulkCloseJobs = async (selectedJobs) => {
+  try {
+    // Check if there are jobs selected
+    if (!selectedJobs || selectedJobs.length === 0) {
+      throw new Error('No Job Selected')
+    }
+
+    // Get the current date in a format similar to VB.NET's Now.ToShortDateString()
+    const dateClosed =  formatDate(new Date())
+
+    // Update each selected job's 'DateClosed' field
+    for (const job of selectedJobs){
+      await sequelize.query(
+        `update tblJobs set DATECLOSED = :dateClosed Where uniqueID=:uniqueId`,
+        {
+          replacements: {
+            dateClosed,
+            uniqueId: job.UniqueID
+          },
+          type: QueryTypes.UPDATE
+        }
+      );
+    }
+
+  } catch (error) {
+    console.error("Error closing jobs:", error.message);
+    throw new Error('Error closing jobs:', error.message);
+  }
+};
+
+export const updateJobPercentage = async () => {
+  try {
+    // Fetch all job items from the database
+    const jobItems = await sequelize.query(`SELECT * FROM tblJobs`, {
+      type: QueryTypes.SELECT
+    });
+
+    // Loop through each job item
+    for (const job of jobItems) {
+      let x = 0;
+      let lngjob = job.UniqueID;
+
+      // Check if the job type is "Sub Assembly"
+      if (job.jobtype === "Sub Assembly") {
+        // Get job details ordered by ship date
+        const jobDetails = await sequelize.query(`
+          SELECT * FROM tblJobDetail 
+          WHERE JobID = :lngjob 
+          ORDER BY shipdate
+        `, {
+          replacements: { lngjob },
+          type: QueryTypes.SELECT
+        });
+
+        // Accumulate quantity from the job details
+        for (const detail of jobDetails) {
+          x += parseFloat(detail.Quantity || 0);
+        }
+      } else {
+        // Get job details ordered by serial
+        const jobDetails = await sequelize.query(`
+          SELECT * FROM tblJobDetail 
+          WHERE JobID = :lngjob 
+          ORDER BY Serial
+        `, {
+          replacements: { lngjob },
+          type: QueryTypes.SELECT
+        });
+
+        // Count the entries where 'dateEntered' is not empty
+        for (const detail of jobDetails) {
+          if (detail.dateEntered && detail.dateEntered.trim() !== '') {
+            x += 1;
+          }
+        }
+      }
+
+      // Calculate the percentage complete and update the job record
+      const percentageComplete = x / parseFloat(job.Quantity || 1);
+
+      await sequelize.query(`
+        UPDATE tblJobs 
+        SET PercentageComplete = :percentageComplete 
+        WHERE UniqueID = :lngjob
+      `, {
+        replacements: { percentageComplete, lngjob },
+        type: QueryTypes.UPDATE
+      });
+    }
+
+  } catch (error) {
+    console.error('Error processing job completion:', error.message);
+    throw new Error(error.message);
+  }
+};

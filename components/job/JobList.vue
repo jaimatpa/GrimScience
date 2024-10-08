@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
+import Loading from "vue-loading-overlay";
 
 useSeoMeta({
   title: "Grimm-Employees Organization",
@@ -15,15 +16,17 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const route = useRoute();
 const toast = useToast();
+const loadingOverlay = ref(false);
+const isOpen = ref(true)
+const isReleased = ref(false)
+const selected = ref([])
+
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "UniqueID",
-      label: "UniqueID",
-      sortable: true,
-      sortDirection: "none",
-      filterable: true,
+      key: "select",
+      label: "Select",
     },
     {
       key: "NUMBER",
@@ -134,7 +137,7 @@ const headerFilters = ref({
   jobCat: {
     label: "Category",
     filter: "jobCat",
-    options: [],
+    options: [""],
   },
   jobTypes: {
     label: "Sub Category",
@@ -142,6 +145,11 @@ const headerFilters = ref({
     options: [],
   },
 });
+
+
+const handleHeaderCheckboxChange = () => {
+  fetchGridData()
+}
 
 const modalMeta = ref({
   isJobFormModalOpen: false,
@@ -158,10 +166,12 @@ const filterValues = ref({
   PerType: null,
   DATEOPENED: null,
   DATECLOSED: null,
+  ProductionDate: null,
   PercentageComplete: null,
   Cost: null,
   jobcat: null,
   jobsubcat: null,
+  
 });
 
 const selectedColumns = ref(gridMeta.value.defaultColumns);
@@ -209,7 +219,10 @@ const fetchGridData = async () => {
   await useApiFetch("/api/jobs/numbers", {
     method: "GET",
     params: {
+      isOpen: isOpen.value,
+      isReleased: isReleased.value,
       ...filterValues.value,
+      
     },
     onResponse({ response }) {
       if (response.status === 200) {
@@ -238,7 +251,10 @@ const fetchGridData = async () => {
       pageSize: gridMeta.value.pageSize,
       sortBy: gridMeta.value.sort.column,
       sortOrder: gridMeta.value.sort.direction,
+      isOpen: isOpen.value,
+      isReleased: isReleased.value,
       ...filterValues.value,
+      
     },
     onResponse({ response }) {
       if (response.status === 200) {
@@ -350,9 +366,40 @@ const onDelete = async (row: any) => {
     },
   });
 };
+
+const handleBulkClose = async () => {
+  loadingOverlay.value = true
+  await useApiFetch("/api/jobs/bulkclosejobs", {
+    method: "PUT",
+    body: { selectedJobs: selected.value },
+  });
+
+  await fetchGridData()
+  loadingOverlay.value = false
+}
+
+const onUpdatePercentage = async () => {
+  loadingOverlay.value = true
+  await useApiFetch("/api/jobs/updatejobpercentage", {
+    method: "PUT",
+  });
+
+  await fetchGridData()
+  loadingOverlay.value = false
+}
+
 </script>
 
 <template>
+  <div class="vl-parent">
+    <loading
+      v-model:active="loadingOverlay"
+      :is-full-page="true"
+      color="#000000"
+      backgroundColor="#1B2533"
+      loader="dots"
+    />
+  </div>
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar class="gmsBlueHeader" title="Jobs"> </UDashboardNavbar>
@@ -389,8 +436,51 @@ const onDelete = async (row: any) => {
               </UFormGroup>
             </div>
           </div>
+          <div class="flex flex-row mt-4">
+            <template >
+              <div class="ml-5">
+                <UCheckbox
+                  v-model="isOpen"
+                  label="Show Open Only"
+                  @update:model-value="handleHeaderCheckboxChange"
+                />
+              </div>
+            </template>
+            <template >
+              <div class="ml-5">
+                <UCheckbox
+                  v-model="isReleased"
+                  label="Show Only Released"
+                  @update:model-value="handleHeaderCheckboxChange"
+                />
+              </div>
+            </template>
+          </div>
+
         </template>
+       
+          
+
         <template #right>
+          <UButton
+            icon="i-heroicons-minus-circle-20-solid"
+            color="red"
+            variant="outline"
+            label="Bulk Close Jobs"
+            trailing-icon="i-heroicons-document-text"
+            @click="handleBulkClose"
+          >
+          </UButton>
+
+          <UButton
+            icon="i-f7-arrow-clockwise"
+            label="Update Job Percentages"
+            variant="outline"
+            color="blue"
+            @click="onUpdatePercentage"
+          />
+    
+
           <UButton
             label="Add New Job"
             variant="outline"
@@ -407,6 +497,7 @@ const onDelete = async (row: any) => {
         :rows="gridMeta.organization"
         :columns="columns"
         :loading="gridMeta.isLoading"
+         v-model="selected"
         class="w-full"
         :ui="{
           divide: 'divide-gray-200 dark:divide-gray-800',

@@ -2,12 +2,12 @@ import { createNewJob, getAllJobs } from "~/server/controller/jobs";
 
 export default eventHandler(async (event) => {
   try {
-    const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
+    const { page, pageSize, sortBy, sortOrder, isOpen, isReleased, ...filterParams  } = getQuery(event);
     const method = event._method;
     
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getAllJobs(page, pageSize, sortBy, sortOrder, filterParams);
+        const list = await getAllJobs(page, pageSize, sortBy, sortOrder, filterParams, isOpen, isReleased);
         return { body: list, message: '' }
       case 'POST':
         const data = await readBody(event)

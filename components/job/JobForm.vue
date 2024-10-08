@@ -125,7 +125,7 @@ const editInit = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         JobExist.value = true;
-
+        console.log(response._data.body)
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
             // formData[key] = response._data.body[key];
