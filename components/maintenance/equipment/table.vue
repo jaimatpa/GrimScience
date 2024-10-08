@@ -31,57 +31,59 @@ const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const headerFilters = ref({
-
   productLines: {
     label: "Product Line",
     filter: "PRODUCT",
     api: "/api/materials/productlines",
     options: [],
   },
-
 });
-
-// const headerCheckboxes = ref({
-//   open: {
-//     label: "Show Open Only",
-//     filterKey: "YES",
-//     isChecked: true,
-//   },
-// });
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "NUMBER",
+      key: "MANO",
       label: "#",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "DESCRIPTION",
-      label: "DESCRIPTION",
+      key: "CATAGORY",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "REASONFORCHANGE",
-      label: "Reason",
+      key: "SUBCATAGORY",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "ORIGINATORDATE",
-      label: "Origin Date",
+      key: "PART",
+      label: "Equipment",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "DISTRIBUTIONDATE",
-      label: "Completion Date",
+      key: "ORDEREDBY",
+      label: "Responsible",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "SERIAL",
+      label: "Serial #",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "REQUIRED",
+      label: "Next Service Date",
       sortable: true,
       sortDirection: "none",
       filterable: true,
@@ -96,34 +98,33 @@ const gridMeta = ref({
   selectedCompaintNumber: null,
   selectedSerialNumber: null,
   sort: {
-    column: "uniqueID",
+    column: "MANO",
     direction: "desc",
   },
   isLoading: false,
 });
 
-const formattedOrders = computed(() => {
-  return gridMeta.value.orders.map((order) => {
-    return {
-      ...order,
-      DESCRIPTION: order.DESCRIPTION.split(" ").slice(0, 5).join(" "),
-    };
-  });
-});
+// const formattedOrders = computed(() => {
+//   return gridMeta.value.orders.map((order) => {
+//     return {
+//       ...order,
+//       DESCRIPTION: order.DESCRIPTION.split(" ").slice(0, 5).join(" "),
+//     };
+//   });
+// });
 
 const modalMeta = ref({
   isServiceOrderModalOpen: false,
 });
 
 const filterValues = ref({
-  uniqueID: null,
-  NUMBER: null,
-  DESCRIPTION: null,
-  ORIGINATORDATE: null,
-  REASONFORCHANGE: null,
-  DISTRIBUTIONDATE: null,
-  PRODUCT: null,
-  APPROVAL: null,
+  MANO: null,
+  CATAGORY: null,
+  SUBCATAGORY: null,
+  PART: null,
+  ORDEREDBY: null,
+  SERIAL: null,
+  REQUIRED: null,
 });
 
 const handleCheckboxChange = () => {
@@ -168,7 +169,7 @@ const init = async () => {
 
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
-  await useApiFetch("/api/engineering/changeorder/numbers", {
+  await useApiFetch("/api/maintenance/equipment/totalNumber", {
     method: "GET",
     params: {
       ...filterValues.value,
@@ -189,7 +190,7 @@ const fetchGridData = async () => {
       1;
   }
 
-  await useApiFetch("/api/engineering/changeorder/", {
+  await useApiFetch("/api/maintenance/equipment/getTableData", {
     method: "GET",
     params: {
       page: gridMeta.value.page,
@@ -218,11 +219,6 @@ const handleModalSave = async () => {
 const handlePageChange = async () => {
   fetchGridData();
 };
-
-// const handleFilterChange = () => {
-//   gridMeta.value.page = 1;
-//   fetchGridData();
-// };
 
 const handleSortingButton = async (btnName: string) => {
   gridMeta.value.page = 1;
@@ -303,13 +299,13 @@ const onDblClick = () => {
       <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
           <div class="flex flex-row space-x-3">
-            <div class="basis-1/5 max-w-[300px] min-w-[150px] mr-4">
-              <UFormGroup label="Product Line" name="productLine">
-                <USelect
+            <div class="basis-1/7 max-w-[300px] min-w-[150px] mr-4">
+              <UFormGroup label="Maintenance order lookup" name="productLine">
+                <!-- <USelect
                   v-model="filterValues.PRODUCT"
                   :options="headerFilters.productLines.options"
                   @change="() => handleCheckboxChange()"
-                />
+                /> -->
               </UFormGroup>
             </div>
           </div>
@@ -330,27 +326,179 @@ const onDblClick = () => {
                 @click="excelExport"
               />
             </div>
-            <!-- <div
-              class="flex flex-row px-4 pt-[5px] bg-gms-gray-100 border border-green-500 rounded-md"
-            >
-              <template v-for="checkbox in headerCheckboxes">
-                <div>
-                  <UCheckbox
-                    color="green"
-                    variant="outline"
-                    :label="checkbox.label"
-                    :modelValue="filterValues[checkbox.filterKey] === 'No'"
-                    @change="() => handleCheckboxChange(checkbox.filterKey)"
-                  />
-                </div>
-              </template>
-            </div> -->
           </div>
         </template>
       </UDashboardToolbar>
       <!-- :rows="gridMeta.orders" -->
-      <UTable
-        :rows="formattedOrders"
+      <UTable 
+  :rows="gridMeta.orders"
+  :columns="columns"
+  :loading="gridMeta.isLoading"
+  class="w-full"
+  :ui="{
+    divide: 'divide-gray-200 dark:divide-gray-800',
+    th: {
+      base: 'sticky top-0 z-10 px-1', // Reduced horizontal padding for all columns
+      padding: 'pb-0',
+    },
+    td: {
+      padding: 'py-0.5 px-1', // Reduced vertical and horizontal padding for all columns
+    },
+  }"
+  :empty-state="{
+    icon: 'i-heroicons-circle-stack-20-solid',
+    label: 'No items.',
+  }"
+  @select="onSelect"
+  @dblclick="onDblClick"
+>
+  <template v-for="column in columns" v-slot:[`${column.key}-header`]> 
+    <!-- Unique ID column with no extra gap -->
+    <template v-if="column.key === 'MANO'">
+      <div class="flex flex-col">
+        <span class="text-xs text-gray-500">Unique ID</span>
+      </div>
+    </template>
+
+    <!-- Dropdown for CATAGORY without search -->
+    <template v-if="column.key === 'CATAGORY'">
+      <div>
+        <USelect
+          v-model="filterValues.CATEGORY"
+          :options="headerFilters.productLines.options"
+          @change="() => handleCheckboxChange()"
+        />
+        <span class="text-xs text-gray-500">CATAGORY</span>
+      </div>
+    </template>
+
+    <!-- Dropdown for SUBCATAGORY without search -->
+    <template v-if="column.key === 'SUBCATAGORY'">
+      <div>
+        <USelect
+          v-model="filterValues.SUBCATEGORY"
+          :options="headerFilters.productLines.options"
+          @change="() => handleCheckboxChange()"
+        />
+        <span class="text-xs text-gray-500">SUBCATAGORY</span>
+      </div>
+    </template>
+
+    <!-- Search input for the first five columns -->
+    <template v-else-if="['PART', 'ORDEREDBY', 'SERIAL', 'REQUIRED'].includes(column.key)">
+      <div>
+        <input
+          type="text"
+          v-model="filterValues[column.key]"
+          @input="filterTable"
+          placeholder="Search"
+          class="mt-1 border border-gray-300 rounded px-2 py-1"
+        />
+        <span class="text-xs text-gray-500">{{ column.label }}</span>
+      </div>
+    </template>
+
+    <!-- Placeholder for other columns without search input -->
+    <template v-else>
+      <div>
+        <span class="text-xs text-gray-500">{{ column.label }}</span>
+      </div>
+    </template>
+
+  </template>
+</UTable>
+
+      <!-- <UTable
+        :rows="gridMeta.orders"
+        :columns="columns"
+        :loading="gridMeta.isLoading"
+        class="w-full"
+        :ui="{
+          divide: 'divide-gray-200 dark:divide-gray-800',
+          th: {
+            base: 'sticky top-0 z-10',
+            padding: 'pb-0',
+          },
+          td: {
+            padding: 'py-1',
+          },
+        }"
+        :empty-state="{
+          icon: 'i-heroicons-circle-stack-20-solid',
+          label: 'No items.',
+        }"
+        @select="onSelect"
+        @dblclick="onDblClick"
+      >
+        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+          <template v-if="column.key === 'CATAGORY'">
+            <div>
+              <CommonSortAndInputFilter
+                @handle-sorting-button="handleSortingButton"
+                :label="column.label"
+                :sortable="column.sortable"
+                :sort-key="column.key"
+                :sort-icon="
+                  column?.sortDirection === 'none'
+                    ? noneIcon
+                    : column?.sortDirection === 'asc'
+                    ? ascIcon
+                    : descIcon
+                "
+              />
+
+              <USelect
+                v-model="filterValues.PRODUCT"
+                :options="headerFilters.productLines.options"
+                @change="() => handleCheckboxChange()"
+              />
+            </div>
+          </template>
+
+          <template v-if="column.key === 'SUBCATAGORY'">
+            <div>
+              <CommonSortAndInputFilter
+                @handle-sorting-button="handleSortingButton"
+                :label="column.label"
+                :sortable="column.sortable"
+                :sort-key="column.key"
+                :sort-icon="
+                  column?.sortDirection === 'none'
+                    ? noneIcon
+                    : column?.sortDirection === 'asc'
+                    ? ascIcon
+                    : descIcon
+                "
+              />
+              <USelect
+                class="mb-[4px]"
+                v-model="filterValues.PRODUCT"
+                :options="headerFilters.productLines.options"
+                @change="() => handleCheckboxChange()"
+              />
+            </div>
+          </template>
+
+          <template v-else>
+            <CommonSortAndInputFilter
+              @handle-sorting-button="handleSortingButton"
+              :label="column.label"
+              :sortable="column.sortable"
+              :sort-key="column.key"
+              :sort-icon="
+                column?.sortDirection === 'none'
+                  ? noneIcon
+                  : column?.sortDirection === 'asc'
+                  ? ascIcon
+                  : descIcon
+              "
+            />
+          </template>
+        </template>
+      </UTable> -->
+
+      <!-- <UTable
+        :rows="gridMeta.orders"
         :columns="columns"
         :loading="gridMeta.isLoading"
         class="w-full"
@@ -414,7 +562,7 @@ const onDblClick = () => {
             </div>
           </template>
         </template>
-      </UTable>
+      </UTable>  -->
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
           <UPagination

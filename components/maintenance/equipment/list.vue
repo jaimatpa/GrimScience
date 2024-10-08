@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import PartsModalPage from "../../../pages/materials/parts.vue";
-import OrderDetailsTable from "./Detail.vue"
+import OrderDetailsTable from "./table.vue"
 // onMounted(() => {
 //   init();
 //   fetchSignature();
