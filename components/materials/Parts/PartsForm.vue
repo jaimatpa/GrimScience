@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ref } from "vue";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
+import workCenter from "~/server/api/employees/workCenter";
 import type { UTableColumn } from "~/types";
 
 const emit = defineEmits(["close", "save"]);
@@ -25,20 +26,22 @@ const props = defineProps({
   },
 });
 
+const selectedPartsID = ref();
 console.log("Parets ID-------", props.selectedParts);
-
 console.log("Part Instace--------", props.selectedPartInstace);
-
 console.log("Part Model--------", props.selectedPartModel);
 
-const accountList = ref([]);
-const workplaces = ref([]);
-const workplacesColumns = [
-  {
-    key: "location",
-    label: "Locations",
-  },
-];
+const locationGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "location",
+      label: "Locations",
+    },
+  ],
+  options: [],
+  selectedOption: null,
+  isLoading: false,
+});
 
 const revisionsGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -143,9 +146,9 @@ const subCategory = ref([]);
 const vendorList = ref();
 const partUnit = ref([]);
 const insepctionList = ref([]);
+const accountList = ref([]);
 const inventoryList = ref([]);
 const revisedByList = ref([]);
-const revisedID = ref();
 
 const formData = reactive({
   UniqueID: null,
@@ -209,8 +212,6 @@ const formData = reactive({
   STOCKNUMBER: null, //find qtyordered from MRP2
   UNIT: null,
   MULTIPLE: null,
-  CODE: null,
-  TODAY: null, // YYYY-MM-DD HH:MM:SS
   PRODUCTLINE: null,
   MODEL: null,
   WARRENTY: null,
@@ -278,14 +279,17 @@ const formData = reactive({
   sds: null,
   LeftTankAssembly: null,
   RightTankAssembly: null,
-  RevisedBy: null,
+  CODE: null,
+  TODAY: null, // YYYY-MM-DD HH:MM:SS
+  RevisedBy: "#41 Leith Stetson",
   Recommendations: null,
   StatementOfNeed: null,
   SupportorProject: null,
 });
 
-const getPartsData = async (id: any) => {
-  await useApiFetch(`/api/materials/parts/parts/${id || props.selectedParts}`, {
+const getPartsData = async () => {
+  loadingOverlay.value = true;
+  await useApiFetch(`/api/materials/parts/parts/${selectedPartsID.value}`, {
     method: "GET",
     onResponse({ response }) {
       console.log("Get by ID ----", response);
@@ -298,21 +302,21 @@ const getPartsData = async (id: any) => {
             formData[key] = response._data.body[key];
           }
         }
-        console.log("formData", formData.SPECSHEET);
       }
     },
     onResponseError({}) {
       partsExist.value = false;
     },
   });
+  loadingOverlay.value = false;
 };
 
 const editInit = async () => {
-  loadingOverlay.value = true;
+  selectedPartsID.value = props.selectedParts;
   getPartsData();
+  loadingOverlay.value = true;
   propertiesInit();
   loadingOverlay.value = false;
-  fetchWorkCentersBy();
 };
 
 const subCategoryList = async () => {
@@ -436,22 +440,6 @@ const propertiesInit = async () => {
     }
   );
 
-  // await useApiFetch(
-  //   `/api/materials/parts/getJobsTotal?instanceId=${props.selectedPartInstace}`,
-  //   {
-  //     method: "GET",
-  //     onResponse({ response }) {
-  //       if (response.status === 200) {
-  //         jobDetailsGridMeta.value.options = response._data;
-  //         console.log("jobDetailsGridMeta.value.options", response._data);
-  //       }
-  //     },
-  //     onResponseError() {
-  //       jobDetailsGridMeta.value.options = []
-  //     },
-  //   }
-  // );
-
   await useApiFetch(
     `/api/materials/parts/totalRequired?model=${props.selectedPartModel}`,
     {
@@ -475,15 +463,35 @@ const propertiesInit = async () => {
     }
   );
 
+  await useApiFetch("/api/materials/workcenter", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        if (formData.WORKCENTERS) {
+          const workCenterIds = formData.WORKCENTERS.split(",")
+            .map((id) => id.trim())
+            .filter((id) => id !== "");
+
+          const filteredResponse = response._data.filter((val) =>
+            workCenterIds.includes(val.UniqueId)
+          );
+          locationGridMeta.value.options = filteredResponse;
+        }
+      }
+    },
+    onResponseError() {
+      revisionsGridMeta.value.options = [];
+    },
+  });
+
   getRevisions();
   loadingOverlay.value = false;
 };
 
-if (props.selectedParts !== null) editInit();
+if (selectedPartsID.value !== null) editInit();
 else propertiesInit();
 
 const files = ref([null, null, null]);
-
 const handleFileChange = (event, index) => {
   const file = event.target.files[0];
   if (file && file.type === "application/pdf") {
@@ -492,85 +500,7 @@ const handleFileChange = (event, index) => {
     event.target.value = "";
   }
 };
-
-const getRevisions = async () => {
-  await useApiFetch(
-    `/api/materials/parts/revisions?instanceId=${props.selectedPartInstace}`,
-    {
-      method: "GET",
-      onResponse({ response }) {
-        if (response.status === 200) {
-          revisionsGridMeta.value.options = response._data.body;
-          console.log("response._data.body", response._data.body);
-
-          revisedByList.value = [
-            ...new Set(
-              response._data.body
-                .map((id) => id.revisedby)
-                .filter((value) => value !== null && value !== "")
-            ),
-          ];
-          console.log("revisedByList.value ", revisedByList.value);
-        }
-      },
-      onResponseError() {
-        revisionsGridMeta.value.options = [];
-      },
-    }
-  );
-};
-
-const fetchWorkCentersBy = async () => {
-  try {
-    const response = await useApiFetch("/api/materials/workcenter", {
-      method: "GET",
-    });
-    if (response) {
-      const workCenterIds = formData.WORKCENTERS.split(",")
-        .map((id) => id.trim())
-        .filter((id) => id !== "");
-
-      const filteredResponse = response.filter((val) =>
-        workCenterIds.includes(val.UniqueId)
-      );
-
-      workplaces.value = filteredResponse;
-    } else {
-      console.log("Unexpected response structure or status code:", response);
-    }
-  } catch (error) {
-    console.error(error);
-    return { workcenters: [] };
-  }
-};
-
-function formatDate(date: Date): string {
-  return format(date, "yyyy-MM-dd HH:mm:ss");
-}
-
-const revision = async () => {
-  if (props.selectedPartInstace != null) {
-    const response = await useApiFetch(
-      `/api/materials/parts/parts/revision?instanceIdForRevision=${props.selectedPartInstace}&id=${props.selectedParts}`,
-      {
-        method: "PUT",
-        onResponse({ response }) {
-          if (response.status === 200) {
-            toast.add({
-              title: "Success",
-              description: "Revision Added successfully!",
-              icon: "i-heroicons-check-circle",
-              color: "green",
-            });
-          }
-        },
-      }
-    );
-  }
-  getRevisions();
-};
-
-const onSubmit = async (event: FormSubmitEvent<any>) => {
+const fileUpload = async (event: FormSubmitEvent<any>) => {
   const formData = new FormData();
   const fileTypes = ["Drawing/Manual", "PDS", "SDS"];
 
@@ -585,7 +515,12 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       method: "POST",
       body: formData,
     });
-
+    toast.add({
+      title: "Success",
+      description: "Files Added successfully!",
+      icon: "i-heroicons-check-circle",
+      color: "green",
+    });
     if (response.ok) {
       const responseData = await response.json();
       responseData.files.forEach((file) => {
@@ -608,7 +543,38 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     console.error("Error uploading files:", error);
     alert("An error occurred while uploading the files. Please try again.");
   }
+};
 
+const getRevisions = async () => {
+  await useApiFetch(
+    `/api/materials/parts/revisions?instanceId=${props.selectedPartInstace}`,
+    {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          revisionsGridMeta.value.options = response._data.body;
+          revisedByList.value = [
+            ...new Set(
+              response._data.body
+                .map((id) => id.revisedby)
+                .filter((value) => value !== null && value !== "")
+            ),
+          ];
+        }
+      },
+      onResponseError() {
+        revisionsGridMeta.value.options = [];
+      },
+    }
+  );
+};
+
+// function formatDate(date: Date): string {
+//   return format(date, "yyyy-MM-dd HH:mm:ss");
+// }
+
+const revision = async (event: FormSubmitEvent<any>) => {
+  fileUpload(event);
   if (event.data.SubassemblyInventoried === true) {
     event.data.SubassemblyInventoried = -1;
   }
@@ -616,15 +582,47 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     event.data.override = -1;
   }
 
-  if (props.selectedParts != null) {
+  if (props.selectedPartInstace != null) {
+    await useApiFetch(
+      `/api/materials/parts/parts/revision?instanceIdForRevision=${props.selectedPartInstace}&id=${selectedPartsID.value}`,
+      {
+        method: "PUT",
+        body: event.data,
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: "Revision Added successfully!",
+              icon: "i-heroicons-check-circle",
+              color: "green",
+            });
+          }
+        },
+      }
+    );
+  }
+  getRevisions();
+};
+
+const onSubmit = async (event: FormSubmitEvent<any>) => {
+  fileUpload(event);
+  if (event.data.SubassemblyInventoried === true) {
+    event.data.SubassemblyInventoried = -1;
+  }
+  if (event.data.override === true) {
+    event.data.override = -1;
+  }
+
+  if (selectedPartsID.value != null) {
     const now = new Date();
     const isoString = now.toISOString();
     event.data.TODAY = isoString;
 
-    await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
+    await useApiFetch(`/api/materials/parts/parts/${selectedPartsID.value}`, {
       method: "PUT",
       body: event.data,
       onResponse({ response }) {
+        console.log("PUT", response);
         if (response.status === 200) {
           toast.add({
             title: "Success",
@@ -636,12 +634,12 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       },
     });
   } else {
-    await useApiFetch(`/api/materials/parts/parts/${props.selectedParts}`, {
+    event.data.CODE = "Initial";
+    await useApiFetch(`/api/materials/parts/parts/${selectedPartsID.value}`, {
       method: "POST",
       body: event.data,
       onResponse({ response }) {
-        console.log("Add res---", response);
-
+        console.log("POST", response);
         if (response.status === 200) {
           toast.add({
             title: "Success",
@@ -656,63 +654,10 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   emit("save");
 };
 
-const selectedFiles = ref([]);
-
-const onFileSelected = (event) => {
-  const files = Array.from(event.target.files);
-  selectedFiles.value.push(...files);
-};
-
-const logFormData = (formData) => {
-  for (const [key, value] of formData.entries()) {
-    if (value instanceof File) {
-      console.log(`${key}: File(${value.name}, ${value.size} bytes)`);
-    } else {
-      console.log(`${key}: ${value}`);
-    }
-  }
-};
-
-const handleUpload = async () => {
-  if (selectedFiles.value.length === 0) {
-    console.error("No files selected");
-    return;
-  }
-  const formData = new FormData();
-  selectedFiles.value.forEach((file) => {
-    formData.append("files[]", file);
-    logFormData(formData);
-  });
-
-  try {
-    await useApiFetch(`/api/materials/parts/parts/`, {
-      method: "POST",
-      body: formData,
-      onResponse({ response }) {
-        if (response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: "i-heroicons-check-circle",
-            color: "green",
-          });
-        }
-      },
-    });
-  } catch (error) {
-    toast.add({
-      title: "Error",
-      description: "Failed to upload files.",
-      icon: "i-heroicons-x-circle",
-      color: "red",
-    });
-  }
-};
-
 const onReviusedBySelect = async (row) => {
   revisionsGridMeta.value.selectedOption = row?.uniqueid;
-  console.log("onReviusedBySelect", row);
-  getPartsData(revisionsGridMeta.value.selectedOption);
+  selectedPartsID.value = row?.uniqueid;
+  getPartsData();
 
   revisionsGridMeta.value.options.forEach((inventory) => {
     inventory.class = inventory.uniqueid === row.uniqueid ? "bg-green-400" : "";
@@ -722,22 +667,10 @@ const onReviusedBySelect = async (row) => {
 const onInventorySelect = async (row) => {
   inventoryGridMeta.value.selectedOption = row?.uniqueID;
   console.log("inventoryGridMeta.uniqueID", row);
-
-  inventoryGridMeta.value.options.forEach((inventory) => {
-    inventory.class =
-      inventory.uniqueID === row.uniqueID ? "bg-green-400" : undefined;
-  });
 };
-
 const onPurchaseSelect = async (row) => {
   purchaseGridMeta.value.selectedOption = row?.ponumber;
-  purchaseGridMeta.value.options.forEach((purchase) => {
-    if (purchase.ponumber === row.ponumber) {
-      purchase.class = "bg-green-400";
-    } else {
-      delete purchase.class;
-    }
-  });
+  console.log("purchaseGridMeta.ponumber", row);
 };
 
 const onTableBtnClick = (name: string) => {
@@ -755,10 +688,6 @@ const onTableBtnClick = (name: string) => {
     }
   }
   if (name === "purchase") {
-    console.log(
-      "purchaseGridMeta.value.selectedOption",
-      purchaseGridMeta.value.selectedOption
-    );
     const PurchaseId = purchaseGridMeta.value.selectedOption;
     if (PurchaseId !== null) {
       console.log("PurchaseId", PurchaseId);
@@ -1268,23 +1197,13 @@ watch(
 
         <div class="flex flex-row space-x-8">
           <div class="basis-3/5">
-            <div class="-mt-2 flex justify-between">
-              <div class="font-bold">Purchases</div>
-              <UButton
-                color="cyan"
-                variant="outline"
-                label="View Purchases"
-                class="px-10"
-                @click="onTableBtnClick('purchase')"
-              />
-            </div>
-
+            <div class="-mt-2 font-bold">Purchases</div>
             <UTable
               :rows="purchaseGridMeta.options"
               :columns="purchaseGridMeta.defaultColumns"
               class="h-60 w-full mt-2"
               @select="onPurchaseSelect"
-              @dblclick="onPurchaseSelect"
+              @dblclick="onTableBtnClick('purchase')"
               :ui="{
                 divide: 'divide-gray-200 dark:divide-gray-800',
                 th: {
@@ -1304,23 +1223,13 @@ watch(
           </div>
 
           <div class="basis-2/5">
-            <div class="-mt-2 flex justify-between">
-              <div class="font-bold">Inventory Transactions</div>
-              <UButton
-                color="cyan"
-                variant="outline"
-                label="View Inventory Transactions"
-                class="px-10"
-                @click="onTableBtnClick('inventory')"
-              />
-            </div>
-
+            <div class="-mt-2 font-bold">Inventory Transactions</div>
             <UTable
               :columns="inventoryGridMeta.defaultColumns"
               :rows="inventoryGridMeta.options"
               class="h-60 w-full mt-2"
               @select="onInventorySelect"
-              @dblclick="onInventorySelect"
+              @dblclick="onTableBtnClick('inventory')"
               :ui="{
                 divide: 'divide-gray-200 dark:divide-gray-800',
                 th: {
@@ -1377,8 +1286,8 @@ watch(
           <!-- Location Table -->
           <div class="col-span-1">
             <UTable
-              :rows="workplaces"
-              :columns="workplacesColumns"
+              :rows="locationGridMeta.options"
+              :columns="locationGridMeta.defaultColumns"
               class="h-[184px] w-full mt-2"
               :ui="{
                 divide: 'divide-gray-200 dark:divide-gray-800',
@@ -1465,7 +1374,7 @@ watch(
                   color="cyan"
                   :disabled="props.selectedPartInstace == null"
                   variant="outline"
-                  @click="revision"
+                  @click="revision({ data: formData })"
                   label="Revision"
                   class="px-7"
                 />
