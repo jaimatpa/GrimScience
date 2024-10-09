@@ -1,10 +1,10 @@
-import {  getJobSubCategories } from '~/server/controller/jobs';
+import { getJobSubCategories } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
         const subCategories = await getJobSubCategories()
         return { body: subCategories, message: '' }

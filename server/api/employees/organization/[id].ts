@@ -1,4 +1,4 @@
-import {  OrganizationExistByID, deleteOrganization, getOrganizationDetail, updateOrganization } from '~/server/controller/employees';
+import { OrganizationExistByID, deleteOrganization, getOrganizationDetail, updateOrganization } from '~/server/controller/employees';
 
 export default eventHandler(async (event) => {
   try {
@@ -6,10 +6,10 @@ export default eventHandler(async (event) => {
     const method = event._method;
 
     const idExist = await OrganizationExistByID(id);
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
-        if (idExist){
+        if (idExist) {
           const detail = await getOrganizationDetail(id)
           return { body: detail, message: '' };
         } else {
@@ -37,7 +37,7 @@ export default eventHandler(async (event) => {
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
-    
+
   } catch (error) {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }

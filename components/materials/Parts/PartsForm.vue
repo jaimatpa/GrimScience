@@ -741,15 +741,11 @@ watch(
 );
 </script>
 
+
 <template>
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
   <template v-if="!props.isModal && !partsExist">
     <CommonNotFound
@@ -1199,6 +1195,10 @@ watch(
                   <UInput v-model="formData.ALTER2PRICE5" />
                 </div>
               </div>
+
+
+
+
             </div>
           </div>
         </div>

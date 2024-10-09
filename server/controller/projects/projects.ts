@@ -147,7 +147,7 @@ export const getDistinctSubcategories = async (partTypeValue) => {
 export async function getBasicModels(parttype, subCategory) {
   try {
     const results = await tblBP.findAll({
-      attributes: ["UniqueID","instanceID","description", "model"], // Include both description and model
+      attributes: ["UniqueID", "instanceID", "description", "model"], // Include both description and model
       where: {
         parttype: parttype,
         SubCategory: subCategory,
@@ -161,8 +161,8 @@ export async function getBasicModels(parttype, subCategory) {
     return results.map((result) => ({
       description: result.get("description"),
       model: result.get("model"),
-      UniqueID:result.get("UniqueID"),
-      instanceID:result.get("instanceID")
+      UniqueID: result.get("UniqueID"),
+      instanceID: result.get("instanceID")
     }));
   } catch (error) {
     console.error("Error executing basic query:", error);
@@ -392,7 +392,7 @@ export const getOperationDetails = async (jobID) => {
 };
 
 const getJobOperationsWithEmployees = async (jobId) => {
-  console.log("job id is a",jobId);
+  console.log("job id is a", jobId);
   const query = `
 SELECT 
     uniqueID,
@@ -429,7 +429,7 @@ WHERE JobID = :jobId;
 
 export const deleteJobOperation = async (uniqueID) => {
   console.log("Deleting job operation with uniqueID:", uniqueID);
-  
+
   const query = `
     DELETE FROM GrimmIS34.dbo.tblJobOperations
     WHERE uniqueID = :uniqueID;
@@ -452,8 +452,8 @@ export const deleteJobOperation = async (uniqueID) => {
 
 export default getJobOperationsWithEmployees;
 
-  export const getOperationHoursWorked = async (operationID, jobID) => {
-    console.log("opera id is",operationID);
+export const getOperationHoursWorked = async (operationID, jobID) => {
+  console.log("opera id is", operationID);
   const query = `
    SELECT 
     tblOperationHoursWorked.uniqueID AS UID, 
@@ -490,7 +490,7 @@ AND
 
 
 export const deleteOperationHoursWorked = async (uniqueID) => {
-  console.log("unique id is",uniqueID);
+  console.log("unique id is", uniqueID);
   const checkQuery = `
     SELECT 
       uniqueID 
@@ -684,17 +684,17 @@ export const gePartsHours = async (jobID) => {
 };
 
 
-export const insertOperationRework=async(jobID, operationID, tblBPID, qty)=> {
+export const insertOperationRework = async (jobID, operationID, tblBPID, qty) => {
   try {
-      const sql = `INSERT INTO tblOperationReworks (JobID, OperationID, tblBPID, Qty)
+    const sql = `INSERT INTO tblOperationReworks (JobID, OperationID, tblBPID, Qty)
                    VALUES (:JobID, 0, :tblBPID, :Qty)`;
-      await sequelize.query(sql, {
-          replacements: { JobID: jobID, OperationID: operationID, tblBPID: tblBPID, Qty: qty },
-          type: QueryTypes.INSERT
-      });
-      console.log('Record inserted successfully.');
+    await sequelize.query(sql, {
+      replacements: { JobID: jobID, OperationID: operationID, tblBPID: tblBPID, Qty: qty },
+      type: QueryTypes.INSERT
+    });
+    console.log('Record inserted successfully.');
   } catch (error) {
-      console.error('Error inserting record:', error);
+    console.error('Error inserting record:', error);
   }
 }
 
@@ -718,7 +718,7 @@ export const getSteps = async (PlanID) => {
 
 
 export const DeleteSteps = async (UniqueID) => {
-  console.log("unisss",UniqueID);
+  console.log("unisss", UniqueID);
   const query = `
    DELETE FROM tblSteps WHERE UniqueID = :UniqueID
   `;
@@ -841,7 +841,7 @@ export const getAllSkill = async (page, pageSize, sortBy, sortOrder, filterParam
 };
 
 export const createSkill = async (data) => {
-  const { Name,Catagory,subcatagory,weeks,date,courseoutline,frequency} = data; // Assuming these are the fields in tblSkills
+  const { Name, Catagory, subcatagory, weeks, date, courseoutline, frequency } = data; // Assuming these are the fields in tblSkills
 
   const query = `
     INSERT INTO tblSkills (Name, Catagory, courseoutline, date, subcatagory, weeks, WorkCenterID, frequency)
@@ -854,10 +854,10 @@ VALUES (:Name, :Catagory, :courseoutline, :date, :subcatagory, :weeks, '0', :fre
       Name: Name,
       Catagory: Catagory,
       subcatagory: subcatagory,
-      weeks:weeks,
-      courseoutline:courseoutline,
-      date:date,
-      frequency:frequency
+      weeks: weeks,
+      courseoutline: courseoutline,
+      date: date,
+      frequency: frequency
     },
   });
 
@@ -942,7 +942,7 @@ export const updateSkill = async (id, formData) => {
       date: formData.date,
       by: formData.by,  // Ensure 'by' is included in formData if needed
       courseoutline: formData.courseoutline,
-      frequency:formData.frequency
+      frequency: formData.frequency
     },
     type: QueryTypes.UPDATE
   });

@@ -178,6 +178,9 @@ color:#fff!important;
 
 .gmsPurpleTitlebar {
   background-color: #bb8abc;
+  color: #000;
+  font-weight:500;
+  font-size: 15px;
 }
 
 /* --- */
@@ -193,6 +196,9 @@ color:#fff!important;
 
 .gmsTealTitlebar {
   background-color: #91bdca;
+  color: #000;
+  font-weight:500;
+  font-size: 15px;
 }
 
 /* --- */
@@ -208,6 +214,9 @@ color:#fff!important;
 
 .gmsBlueTitlebar {
   background-color: #7491bd;
+  color: #000;
+  font-weight:500;
+  font-size: 15px;
 }
 
 /* --- */
@@ -223,6 +232,9 @@ color:#fff!important;
 
 .gmsRedTitlebar {
   background-color: #bf5163;
+  color: #000;
+  font-weight:500;
+  font-size: 15px;
 }
 
 /* --- */
@@ -230,4 +242,59 @@ color:#fff!important;
 /* Button Styles */
 button {
   transition: all 0.1s;
+}
+
+.gms-modalHeader {
+  border-radius: 5px 5px 0 0;
+  margin-top:-15px;
+  padding: 1rem 1rem 0.5rem 1rem;
+}
+
+.gms-modalForm {
+padding:0;
+padding-bottom: 1rem;
+font-size:13px;
+line-height: 1.2;
+color:#000!important;
+}
+
+.gms-modalForm .text-sm:not(button) {
+  font-size:13px!important; 
+}
+
+/* .gms-modalForm label.text-sm, .gms-modalForm table th.text-sm, .gms-modalForm table td.text-sm {
+  font-size:13px!important; 
+} */
+
+/* .gms-ModalFormText label, .gms-ModalFormText table th, .gms-ModalFormText table td {
+font-size:13px!important;
+} */
+
+.i-heroicons-arrows-up-down-20-solid {
+  display:none;
+}
+
+.fheight-btn-row button {
+  height:100%;
+align-items:center;
+}
+
+table tbody td div button, table tbody tr td button {
+  padding-top:0!important;
+  padding-bottom:0!important;
+}
+
+.sm-field input {
+  padding-top:2px!important;
+  padding-bottom:2px!important;
+}
+
+.align-sortable button {
+  padding-left:0;
+  margin-left:0;
+}
+
+
+.product-tabs {
+  
 }

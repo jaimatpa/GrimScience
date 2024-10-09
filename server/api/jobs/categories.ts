@@ -3,8 +3,8 @@ import { getJobCategories } from '~/server/controller/jobs';
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
         const categories = await getJobCategories()
         return { body: categories, message: '' }
