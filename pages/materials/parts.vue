@@ -298,8 +298,6 @@ const excelExport = async () => {
   location.href = `/api/materials/parts/exportList?${paramsString}`;
   exportIsLoading.value = false;
 };
-const emit = defineEmits()
-
 const onSelect = async (row) => {
   gridMeta.value.selectedPartsId = row?.UniqueID;
   gridMeta.value.selectedPartInstanceId = row?.instanceID;
@@ -322,15 +320,21 @@ const onDblClick = async () => {
         <h2>Part Lookup</h2>
       </div>
 
-      <UDashboardToolbar class="bg-gms-gray-100">
+      <UDashboardToolbar>
         <template #left>
-          <div class="flex flex-row space-x-3" style="max-width:930px;">
-            <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
+          <div class="flex flex-row space-x-3">
+            <template
+              v-for="[key, value] in Object.entries(headerFilters)"
+              :key="key"
+            >
               <template v-if="value.options.length > 1">
                 <div class="basis-1/7 max-w-[200px]">
                   <UFormGroup :label="value.label" :name="key">
-                    <USelect v-model="filterValues[`${value.filter}`]" :options="value.options"
-                      @change="handleFilterChange()" />
+                    <USelect
+                      v-model="filterValues[`${value.filter}`]"
+                      :options="value.options"
+                      @change="handleFilterChange()"
+                    />
                   </UFormGroup>
                 </div>
               </template>
@@ -338,11 +342,22 @@ const onDblClick = async () => {
           </div>
         </template>
         <template #right>
-          <UButton color="green" variant="outline" :loading="exportIsLoading" label="Export to Excel"
-            trailing-icon="i-heroicons-document-text" @click="excelExport">
+          <UButton
+            color="green"
+            variant="outline"
+            :loading="exportIsLoading"
+            label="Export to Excel"
+            trailing-icon="i-heroicons-document-text"
+            @click="excelExport"
+          >
           </UButton>
-          <UButton color="green" variant="outline" label="New Part" trailing-icon="i-heroicons-plus"
-            @click="onCreate()" />
+          <UButton
+            color="green"
+            variant="outline"
+            label="New Part"
+            trailing-icon="i-heroicons-plus"
+            @click="onCreate()"
+          />
         </template>
       </UDashboardToolbar>
 
@@ -374,15 +389,23 @@ const onDblClick = async () => {
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
-            <div class="">
-              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
-                :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
-                  ? noneIcon
-                  : column?.sortDirection === 'asc'
+            <div class="px-4 py-3.5">
+              <CommonSortAndInputFilter
+                @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange"
+                :label="column.label"
+                :sortable="column.sortable"
+                :sort-key="column.key"
+                :sort-icon="
+                  column?.sortDirection === 'none'
+                    ? noneIcon
+                    : column?.sortDirection === 'asc'
                     ? ascIcon
                     : descIcon
-                  " :filterable="column.filterable" :filter-key="column.key" />
+                "
+                :filterable="column.filterable"
+                :filter-key="column.key"
+              />
             </div>
           </template>
           <template v-else class="bg-slate-400">
@@ -394,16 +417,26 @@ const onDblClick = async () => {
 
         <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
+            <UButton
+              color="gray"
+              variant="ghost"
+              icon="i-heroicons-pencil-square"
+              @click="onEdit(row)"
+            />
           </UTooltip>
         </template>
         <template #delete-data="{ row }">
           <UTooltip text="Delete" class="flex justify-center">
-            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
+            <UButton
+              color="gray"
+              variant="ghost"
+              icon="i-heroicons-trash"
+              @click="onDelete(row)"
+            />
           </UTooltip>
         </template>
       </UTable>
-      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
           <UPagination
             :max="7"
@@ -413,7 +446,7 @@ const onDblClick = async () => {
             @update:model-value="handlePageChange()"
           />
         </div>
-      </div> -->
+      </div>
     </UDashboardPanel>
   </UDashboardPage>
 
