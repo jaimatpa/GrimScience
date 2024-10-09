@@ -6,6 +6,9 @@ import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
 import workCenter from "~/server/api/employees/workCenter";
 import type { UTableColumn } from "~/types";
+import PurchaseDetails from "../vendors/PurchaseDetails.vue";
+import InventoryTransactions from "../transactions/InventoryTransactions.vue";
+import ProductsForm from "~/components/products/ProductsForm.vue";
 
 const emit = defineEmits(["close", "save"]);
 const props = defineProps({
@@ -46,7 +49,7 @@ const locationGridMeta = ref({
 const usedOnGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "location",
+      key: "Expr1",
       label: "Used On",
     },
   ],
@@ -496,6 +499,21 @@ const propertiesInit = async () => {
     },
   });
 
+  await useApiFetch("/api/materials/vendors/usedOn", {
+    method: "GET",
+    query: {
+        instanceId: props.selectedPartInstace,
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        usedOnGridMeta.value.options = response._data;
+      }
+    },
+    onResponseError() {
+      usedOnGridMeta.value.options = [];
+    },
+  });
+
   getRevisions();
   loadingOverlay.value = false;
 };
@@ -677,19 +695,32 @@ const onReviusedBySelect = async (row) => {
 };
 
 const onInventorySelect = async (row) => {
-  inventoryGridMeta.value.selectedOption = row?.uniqueID;
-  console.log("inventoryGridMeta.uniqueID", row);
-};
-const onPurchaseSelect = async (row) => {
-  purchaseGridMeta.value.selectedOption = row?.ponumber;
-  console.log("purchaseGridMeta.ponumber", row);
+  inventoryGridMeta.value.selectedOption = row;
 };
 
-const onTableBtnClick = (name: string) => {
+const onPurchaseSelect = async (row) => {
+  const purchaseData = {
+    PONUMBER: row?.ponumber,
+    NAME: row?.NAME, 
+    ORDERED: row?.ORDERED,
+    RECEIVED: row?.RECEIVED,
+    DATE: row?.date,        
+  };
+  if(purchaseData){
+    purchaseGridMeta.value.selectedOption = purchaseData;
+  }
+};
+
+const usedOnSelect = async (row) => {
+  usedOnGridMeta.value.selectedOption = row?.instanceID;
+};
+
+const onTableBtnClick = (name: any) => {
   if (name === "inventory") {
-    const inventoryID = inventoryGridMeta.value.selectedOption;
-    if (inventoryID !== null) {
-      console.log("inventoryID", inventoryID);
+    if (inventoryGridMeta.value.selectedOption !== null) {
+      console.log('TTTTTTTTTTTT', inventoryGridMeta.value.selectedOption);
+      
+      modalMeta.value.isInventoryModalOpen = true;
     } else {
       toast.add({
         title: "Failed",
@@ -699,10 +730,10 @@ const onTableBtnClick = (name: string) => {
       });
     }
   }
+
   if (name === "purchase") {
-    const PurchaseId = purchaseGridMeta.value.selectedOption;
-    if (PurchaseId !== null) {
-      console.log("PurchaseId", PurchaseId);
+    if (purchaseGridMeta.value.selectedOption !== null) {
+      modalMeta.value.isPurchaseModalOpen = true;
     } else {
       toast.add({
         title: "Failed",
@@ -711,6 +742,23 @@ const onTableBtnClick = (name: string) => {
         color: "red",
       });
     }
+  }
+
+  if (name === "usedOn") {
+    if (usedOnGridMeta.value.selectedOption !== null) {
+      modalMeta.value.isProductsModalOpen = true;
+    } else {
+      toast.add({
+        title: "Failed",
+        description: "Please select a used on product item!",
+        icon: "i-heroicons-check-circle",
+        color: "red",
+      });
+    }
+  }
+
+  if (name === "location") {
+    modalMeta.value.isWorkCenterModalOpen = true;
   }
 };
 
@@ -721,6 +769,14 @@ const optionOnhandITD = () => {
     });
   }
 };
+
+const modalMeta = ref({
+  isProductsModalOpen: false,
+  isWorkCenterModalOpen: false,
+  isInventoryModalOpen: false,
+  isPurchaseModalOpen: false,
+  modalTitle: "New Modal",
+});
 
 watch(
   () => inventoryGridMeta.value.options,
@@ -741,11 +797,15 @@ watch(
 );
 </script>
 
-
 <template>
   <div class="vl-parent">
-    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
-      loader="dots" />
+    <loading
+      v-model:active="loadingOverlay"
+      :is-full-page="true"
+      color="#000000"
+      backgroundColor="#1B2533"
+      loader="dots"
+    />
   </div>
   <template v-if="!props.isModal && !partsExist">
     <CommonNotFound
@@ -1195,10 +1255,6 @@ watch(
                   <UInput v-model="formData.ALTER2PRICE5" />
                 </div>
               </div>
-
-
-
-
             </div>
           </div>
         </div>
@@ -1300,6 +1356,8 @@ watch(
             <UTable
               :rows="usedOnGridMeta.options"
               :columns="usedOnGridMeta.defaultColumns"
+              @select="usedOnSelect"
+              @dblclick="onTableBtnClick('usedOn')"
               class="h-[184px] w-full mt-2"
               :ui="{
                 divide: 'divide-gray-200 dark:divide-gray-800',
@@ -1367,7 +1425,7 @@ watch(
             <UButton
               color="cyan"
               variant="outline"
-              @click=""
+              @click="onTableBtnClick('location')"
               label="Select work center"
               class="w-full flex justify-center"
             />
@@ -1436,4 +1494,69 @@ watch(
       </div>
     </UForm>
   </template>
+
+  <!-- Purchase Modal -->
+  <UDashboardModal v-model="modalMeta.isPurchaseModalOpen" title="View Purchase" class="h-[50vh] overflow-y-auto"
+    :ui="{
+        title: 'text-lg',
+        header: {
+          base: 'flex flex-row min-h-[0] items-center',
+          padding: 'pt-5 sm:px-9',
+        },
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        width: 'container sm:max-w-9xl',
+        height: 'h-[500px]',
+      }">
+    <PurchaseDetails :is-creating="false" :modal-data="purchaseGridMeta.selectedOption"></PurchaseDetails>
+  </UDashboardModal>
+
+  <!-- Inventory Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isInventoryModalOpen" title="Inventory Transactions" class="h-[50vh] overflow-y-auto"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'container sm:max-w-9xl',
+    }"
+  >
+    <InventoryTransactions :selected-Order="inventoryGridMeta.selectedOption"></InventoryTransactions>
+  </UDashboardModal>
+
+  <!-- Products Modal -->
+  <UDashboardModal v-model="modalMeta.isProductsModalOpen" title="Products" class="h-[50vh] overflow-y-auto"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'container sm:max-w-9xl',
+    }"
+  >
+  <ProductsForm
+    :selected-product="usedOnGridMeta.selectedOption"
+    :is-modal="true"
+  />
+  </UDashboardModal>
+
+  <!-- Locations Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isWorkCenterModalOpen"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'container sm:max-w-9xl',
+    }"
+  >
+    <div>Locations Modal</div>
+  </UDashboardModal>
 </template>
