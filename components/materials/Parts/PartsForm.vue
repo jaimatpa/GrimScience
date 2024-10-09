@@ -43,6 +43,18 @@ const locationGridMeta = ref({
   isLoading: false,
 });
 
+const usedOnGridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "location",
+      label: "Used On",
+    },
+  ],
+  options: [],
+  selectedOption: null,
+  isLoading: false,
+});
+
 const revisionsGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
@@ -105,10 +117,10 @@ const inventoryGridMeta = ref({
       key: "QtyChange",
       label: "QTY",
     },
-    {
-      key: "onhandITD",
-      label: "OnhandITD",
-    },
+    // {
+    //   key: "onhandITD",
+    //   label: "OnhandITD",
+    // },
     {
       key: "Dated",
       label: "Date",
@@ -969,12 +981,12 @@ watch(
           </div>
         </div>
 
-        <div class="space-y-4 mt-8">
+        <div class="space-y-4 mt-4">
           <div class="gmsBlueTitlebar ps-2 py-1.5 text-white font-bold">
             Primary Vendor
           </div>
 
-          <div class="grid grid-cols-3 gap-5 mt-2">
+          <div class="grid grid-cols-3 gap-5">
             <!-- Left Grid Section -->
             <div class="grid grid-cols-2 gap-5">
               <div class="col-span-2 space-y-1">
@@ -1038,7 +1050,7 @@ watch(
           </div>
         </div>
 
-        <div class="flex flex-row gap-5 mt-8 mb-5">
+        <div class="flex flex-row gap-5 mt-4 mb-3">
           <div
             class="basis-1/2 gmsBlueTitlebar text-white font-bold ps-2 py-1.5"
           >
@@ -1191,7 +1203,7 @@ watch(
           </div>
         </div>
 
-        <div class="gmsBlueTitlebar text-white font-bold ps-2 py-1.5 mt-8 mb-5">
+        <div class="gmsBlueTitlebar text-white font-bold ps-2 py-1.5 mt-4 mb-3">
           Inventory
         </div>
 
@@ -1249,7 +1261,7 @@ watch(
           </div>
         </div>
 
-        <div class="gmsBlueTitlebar h-8 w-full my-5"></div>
+        <div class="gmsBlueTitlebar h-8 w-full mt-5 mb-3"></div>
 
         <div class="grid grid-cols-5 gap-5">
           <div class="col-span-1 mt-2">
@@ -1283,11 +1295,11 @@ watch(
               v-model="formData.COMMENT"
             />
           </div>
-          <!-- Location Table -->
+          <!-- Used on Table -->
           <div class="col-span-1">
             <UTable
-              :rows="locationGridMeta.options"
-              :columns="locationGridMeta.defaultColumns"
+              :rows="usedOnGridMeta.options"
+              :columns="usedOnGridMeta.defaultColumns"
               class="h-[184px] w-full mt-2"
               :ui="{
                 divide: 'divide-gray-200 dark:divide-gray-800',
@@ -1330,9 +1342,39 @@ watch(
               }"
             />
           </div>
+          <!-- Location Table -->
+          <div class="col-span-1 space-y-2">
+            <UTable
+              :rows="locationGridMeta.options"
+              :columns="locationGridMeta.defaultColumns"
+              class="h-[150px] w-full mt-2"
+              :ui="{
+                divide: 'divide-gray-200 dark:divide-gray-800',
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'p-0 pb-2',
+                },
+                td: {
+                  padding: 'py-1',
+                },
+              }"
+              :empty-state="{
+                icon: 'i-heroicons-circle-stack-20-solid',
+                label: 'No items.',
+              }"
+            />
+            <UButton
+              color="cyan"
+              variant="outline"
+              @click=""
+              label="Select work center"
+              class="w-full flex justify-center"
+            />
+          </div>
         </div>
 
-        <div class="gmsBlueTitlebar text-white font-bold ps-2 py-1.5 mt-8 mb-5">
+        <div class="gmsBlueTitlebar text-white font-bold ps-2 py-1.5 my-3">
           Revision History
         </div>
 
@@ -1341,7 +1383,7 @@ watch(
             <UTable
               :columns="revisionsGridMeta.defaultColumns"
               :rows="revisionsGridMeta.options"
-              class="h-60 w-full"
+              class="h-40 w-full"
               @select="onReviusedBySelect"
               :ui="{
                 divide: 'divide-gray-200 dark:divide-gray-800',
