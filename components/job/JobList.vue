@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
 import Loading from "vue-loading-overlay";
+import { format } from "date-fns";
 
 useSeoMeta({
   title: "Grimm-Employees Organization",
@@ -20,7 +21,8 @@ const loadingOverlay = ref(false);
 const isOpen = ref(true)
 const isReleased = ref(false)
 const selected = ref([])
-
+const startDate = ref(new Date('2019-10-12'));
+const endDate = ref(new Date());
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -146,10 +148,14 @@ const headerFilters = ref({
   },
 });
 
-
 const handleHeaderCheckboxChange = () => {
   fetchGridData()
 }
+
+watch([startDate, endDate], () => {
+  console.log(startDate,endDate)
+  fetchGridData();  // Fetch data whenever either startDate or endDate changes
+});
 
 const modalMeta = ref({
   isJobFormModalOpen: false,
@@ -221,6 +227,8 @@ const fetchGridData = async () => {
     params: {
       isOpen: isOpen.value,
       isReleased: isReleased.value,
+      startDate:startDate.value,
+      endDate:endDate.value,
       ...filterValues.value,
       
     },
@@ -244,6 +252,7 @@ const fetchGridData = async () => {
       Math.ceil(gridMeta.value.numberOfOrganization / gridMeta.value.pageSize) |
       1;
   }
+  
   await useApiFetch("/api/jobs", {
     method: "GET",
     params: {
@@ -253,6 +262,8 @@ const fetchGridData = async () => {
       sortOrder: gridMeta.value.sort.direction,
       isOpen: isOpen.value,
       isReleased: isReleased.value,
+      startDate:startDate.value,
+      endDate:endDate.value,
       ...filterValues.value,
       
     },
@@ -574,6 +585,70 @@ const onUpdatePercentage = async () => {
             v-model="gridMeta.page"
             @update:model-value="handlePageChange()"
           />
+        </div>
+      </div>
+      <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Date Range Lookup</h2>
+      </div>
+      <div class="px-5 py-2 bg-gms-gray-100">
+        <div class="flex items-center gap-10">
+          <div class="flex items-center gap-2">
+            <p>From</p>
+            <UFormGroup name="From">
+                <UPopover :popper="{ placement: 'top-start' }">
+                  <UButton
+                    icon="i-heroicons-calendar-days-20-solid"
+                    :label="
+                      startDate &&
+                      format(startDate, 'MM/dd/yyyy')
+                    "
+                    variant="outline"
+                    :ui="{
+                      base: 'w-full',
+                      truncate: 'flex justify-center w-full',
+                    }"
+                    truncate
+                  />
+                  <template #panel="{ close }">
+                    <CommonDatePicker
+                      v-model="startDate"
+                      is-required
+                      @close="close"
+                    />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+          </div>
+          <div class="flex items-center gap-2">
+            <p>To</p>
+            <UFormGroup name="To">
+                <UPopover :popper="{ placement: 'top-start' }">
+                  <UButton
+                    icon="i-heroicons-calendar-days-20-solid"
+                    :label="
+                      endDate &&
+                      format(endDate, 'MM/dd/yyyy')
+                    "
+                    variant="outline"
+                    :ui="{
+                      base: 'w-full',
+                      truncate: 'flex justify-center w-full',
+                    }"
+                    truncate
+                  />
+                  <template #panel="{ close }">
+                    <CommonDatePicker
+                      v-model="endDate"
+                      is-required
+                      @close="close"
+                    />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+          </div>
+          <UButton color="primary" variant="solid">
+            Lookup
+          </UButton>
         </div>
       </div>
     </UDashboardPanel>

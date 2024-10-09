@@ -8,8 +8,8 @@ import { calculateUnitCosts } from "./Operation";
 
 const formatDate = (date) => {
   const today = new Date(date);
-  return String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
-  String(today.getDate()).padStart(2, '0') + '/' + 
+  return String(today.getMonth() + 1)  + '/' + 
+  String(today.getDate()) + '/' + 
   today.getFullYear();
 }
 
@@ -59,11 +59,21 @@ const applyCusFilters = (params) => {
 };
 
 
-export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams, isOpen, isReleased) => {
+export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams, isOpen, isReleased, startDate, endDate) => {
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
 
+  startDate = formatDate(startDate)
+  endDate = formatDate(endDate)
+  console.log(startDate,endDate)
+
   const whereClause = applyFilters(filterParams);
+
+  if (!filterParams.DATEOPENED && startDate && endDate) {
+    whereClause[Sequelize.Op.and] = [
+      Sequelize.literal(`CAST(DATEOPENED AS DATETIME) BETWEEN '${startDate}' AND '${endDate}'`)
+    ];
+  }
 
   if (isOpen === 'true') {
     whereClause.DATECLOSED = { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: '' }] };
@@ -104,9 +114,19 @@ export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams
 };
 
 
-export const getNumberOfJobs = async (isOpen, isReleased, filterParams) => {
+export const getNumberOfJobs = async (isOpen, isReleased, filterParams, startDate, endDate) => {
+
+  startDate = formatDate(startDate)
+  endDate = formatDate(endDate)
 
   const whereClause = applyFilters(filterParams);
+
+  // Convert DATEOPENED from string to date for comparison in the range filter
+  if (!filterParams.DATEOPENED && startDate && endDate) {
+    whereClause[Sequelize.Op.and] = [
+      Sequelize.literal(`CAST(DATEOPENED AS DATETIME) BETWEEN '${startDate}' AND '${endDate}'`)
+    ];
+  }
 
   if (isOpen === 'true') {
     whereClause.DATECLOSED = { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: '' }] };
