@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
-import PartsModalPage from "../../../pages/materials/parts.vue";
+import { ref, onMounted } from "vue";
 import OrderDetailsTable from "./table.vue";
 
 onMounted(async () => {
@@ -9,14 +8,6 @@ onMounted(async () => {
   await fetchEquipmentList();
   await fetchEmployeeData();
 });
-// onMounted(async () => {
-
-// await Promise.all([
-//   init(),
-//   fetchCategoryData(),
-//   fetchSubCategoryData()
-// ]);
-// });
 
 const headerFilters = ref({
   productLines: {
@@ -32,7 +23,7 @@ const headerFilters = ref({
   },
   subCategoryList: {
     label: "Sub Category",
-    filter: "PRODUCT",
+    filter: "subcategory",
     options: [],
   },
   equipmentList: {
@@ -58,13 +49,8 @@ const modalMeta = ref({
   modalTitle: "Products",
 });
 
-const onOpenProduct = () => {
-  modalMeta.value.modalTitle = "Products";
-  modalMeta.value.isCustomerModalOpen = true;
-};
-
 const openSerialRecord = () => {
-  partsMeta.value.modalTitle = "Parts";
+  partsMeta.value.modalTitle = "Serial list";
   partsMeta.value.isPartsModalOpen = true;
 };
 
@@ -192,12 +178,6 @@ const onPrevieOrderBtnClick = () => {
 
 const emit = defineEmits(["rowSelectedProduct", "selectEco", "close"]);
 
-const handleSelect = () => {
-  emit("selectEco", selectedRow);
-  // emit("rowSelectedProduct", rowSelectedProduct);
-  emit("close");
-};
-
 const props = defineProps({
   isModal: {
     type: [Boolean],
@@ -212,121 +192,6 @@ const props = defineProps({
   },
 });
 
-const clearFields = () => {
-  (selectedRowProducts.value = {
-    productsDetails: "",
-  }),
-    (selectedRowParts.value = {
-      partsDetails: "",
-    }),
-    (selectedRowData.value = {
-      uniqueID: "",
-      DESCRIPTION: "",
-      REASONFORCHANGE: "",
-      ISSUE: "",
-      SOLUTION: "",
-      DetailReason: "",
-      PRODUCT: "",
-      FromModel: "",
-      ToModel: "",
-      PARTS: "",
-      ENGAPPROVER: "",
-      MARAPPROVER: "",
-      ORIGINATOR: "",
-      MANAPPROVER: "",
-      ENGAPPROVAL: "",
-      MARAPPROVAL: "",
-      MANAPPROVAL: "",
-      ENGDATEAPPROVED: "",
-      MARDATEAPPROVED: "",
-      MANDATEAPPROVED: "",
-      ORIGINATORDATE: "",
-      MANCOMMENTS: "",
-      MARCOMMENTS: "",
-      ENGCOMMENTS: "",
-      COMMENTS: "",
-      PRODUCTS: "",
-      VandVNotRequired: "",
-      MANUFACTURING: "",
-      ENGINEERING: "",
-      ProductsDetails: "",
-      partsDetail: "",
-    });
-
-  Description.value = "";
-  IssueDetails.value = "";
-  solutionOrder.value = "";
-  uniqueIdNumber.value = "";
-  DetailsReasonChange.value = "";
-  fromModel.value = "";
-  toModel.value = "";
-  PartsAffect.value = "";
-  productLineOption.value = "";
-  changeReasonData.value = "";
-  engineeringBoolean.value = "";
-  marketingData.value = "";
-  marketingDate.value = "";
-  marketingBoolean.value = "";
-  marketingComments.value = "";
-  marketingCheck.value = false;
-  manufacturingCheck.value = false;
-  manufacturingData.value = "";
-  engineeringCheck.value = false;
-  engineeringData.value = "";
-  originatorData.value = "";
-  originatorDate.value = "";
-  signature.value = "";
-  CompleteBoolean.value = "";
-  commentsComplete.value = "";
-  manufacturingBoolean.value = "";
-  manufacturingComments.value = "";
-  engineeringComments.value = "";
-  manufacturingDate.value = "";
-  engineeringDate.value = "";
-  productsDetails.value = "";
-  partsDetail.value = "";
-  CompleteDate.value = "";
-  verificationNotRequired.value = false;
-};
-
-const selectedRowData = ref({
-  uniqueID: "",
-  DESCRIPTION: "",
-  REASONFORCHANGE: "",
-  ISSUE: "",
-  SOLUTION: "",
-  DetailReason: "",
-  PRODUCT: "",
-  FromModel: "",
-  ToModel: "",
-  PARTS: "",
-  ProductsDetails: "",
-  PartsDetails: "",
-  ENGAPPROVER: "",
-  MARAPPROVER: "",
-  ORIGINATOR: "",
-  MANAPPROVER: "",
-  APPROVAL: "",
-  ENGAPPROVAL: "",
-  MARAPPROVAL: "",
-  MANAPPROVAL: "",
-  ENGDATEAPPROVED: "",
-  MARDATEAPPROVED: "",
-  MANDATEAPPROVED: "",
-  ORIGINATORDATE: "",
-  MANCOMMENTS: "",
-  MARCOMMENTS: "",
-  ENGCOMMENTS: "",
-  SIGNATURE: "",
-  COMMENTS: "",
-  PRODUCTS: "",
-  VandVNotRequired: "",
-  MANUFACTURING: "",
-  MARKETING: "",
-  ENGINEERING: "",
-});
-
-
 const clearValues = () => {
   handleVModel.value = {
     uniqeId: "",
@@ -338,27 +203,33 @@ const clearValues = () => {
     type: "",
     location: "",
     responsible: "",
-    dateInService: "", 
+    dateInService: "",
     nextReqService: "",
   };
 };
 
-
 const handleRowSelected = (row) => {
   console.log("Function OK", row);
-  
+
   // Function to format date to YYYY-MM-DD
   const formatDateToYYYYMMDD = (dateString) => {
     const dateParts = dateString.split("/");
-    return `${dateParts[2]}-${dateParts[0].padStart(2, '0')}-${dateParts[1].padStart(2, '0')}`;
+    return `${dateParts[2]}-${dateParts[0].padStart(
+      2,
+      "0"
+    )}-${dateParts[1].padStart(2, "0")}`;
   };
 
   // Extracting the REQUIRED date and formatting it
-  const requiredDate = row.REQUIRED ? formatDateToYYYYMMDD(row.REQUIRED.split(" ")[0]) : ""; 
-  const dataData = row.DATE ? formatDateToYYYYMMDD(row.REQUIRED.split(" ")[0]) : ""; 
+  const requiredDate = row.REQUIRED
+    ? formatDateToYYYYMMDD(row.REQUIRED.split(" ")[0])
+    : "";
+  const dataData = row.DATE
+    ? formatDateToYYYYMMDD(row.REQUIRED.split(" ")[0])
+    : "";
 
   handleVModel.value = {
-     uniqeId:row.UniqueID || "",
+    uniqeId: row.UniqueID || "",
     manValue: row.MANO || "",
     category: row.CATAGORY || "",
     subCategory: row.SUBCATAGORY || "",
@@ -367,27 +238,13 @@ const handleRowSelected = (row) => {
     type: row.TYPE || "",
     location: row.LOCATION || "",
     responsible: row.ORDEREDBY || "",
-    dateInService:dataData, 
+    dateInService: dataData,
     nextReqService: requiredDate,
   };
 };
 
-// start list of PRODUCT
-const selectedRowProducts = ref({
-  productsArray: [],
-  productsData: "",
-  selectedIndex: null,
-});
-
-const closeProductModal = () => {
+const closeSerialModal = () => {
   modalMeta.value.isCustomerModalOpen = false;
-};
-
-const updateProductsDetails = () => {
-  selectedRowProducts.value.productsData =
-    selectedRowProducts.value.productsArray
-      .map((product) => `${product.UniqueID} ${product.PRODUCTLINE}`)
-      .join(", ");
 };
 
 const selectedRowParts = ref({
@@ -411,23 +268,14 @@ const handleRowSelectedSerial = (row) => {
   }
 };
 
-const closePartsModal = () => {
-  partsMeta.value.isPartsModalOpen = false;
-};
-
 const updatePartsDetails = () => {
   selectedRowParts.value.partsData = selectedRowParts.value.partsArray
     .map((part) => `${part.MODEL} ${part.DESCRIPTION}`)
     .join(", ");
 };
 
-// const handleSelectPart = (index) => {
-//   selectedRowParts.value.selectedIndex =
-//     selectedRowParts.value.selectedIndex === index ? null : index;
-// };
-
 const handleVModel = ref({
-  uniqeId:"",
+  uniqeId: "",
   manValue: "",
   category: "",
   subCategory: "",
@@ -440,45 +288,29 @@ const handleVModel = ref({
   nextReqService: "",
 });
 
-debugger
-const submitValue = computed(() => {
-  const {
-    uniqeId,
-    manValue,
-    category,
-    subCategory,
-    equipment,
-    serialNo,
-    type,
-    location,
-    responsible,
-    dateInService,
-    nextReqService,
-  } = handleVModel.value;
 
-  return {
-    UNIQUEID: uniqeId,
-    CATAGORY: category.label || "",
-    SUBCATAGORY: subCategory.label || "",
-    PART: equipment.label || "",
-    SERIAL: serialNo,
-    TYPE: type.label || "",
-    LOCATION: location,
-    ORDEREDBY: responsible.label || "",
-    DATE: dateInService,
-    REQUIRED:nextReqService,
-    MANO: manValue,
-  };
-});
-
-// Submit function remains the same, just referencing the computed value
 const submitForm = async () => {
-  debugger
+  const formData = {
+    CATAGORY: handleVModel.value.category, 
+    SUBCATAGORY: handleVModel.value.subCategory,
+    PART: handleVModel.value.equipment, 
+    SERIAL: handleVModel.value.serialNo,
+    TYPE: handleVModel.value.type,
+    LOCATION: handleVModel.value.location,
+    ORDEREDBY: handleVModel.value.responsible, 
+    DATE: handleVModel.value.dateInService,
+    REQUIRED: handleVModel.value.nextReqService, 
+    MANO: handleVModel.value.manValue,
+  };
+
   try {
-    const { data, error } = await useFetch("/api/maintenance/equipment/insertData", {
-      method: "POST",
-      body: submitValue.value,
-    });
+    const { data, error } = await useFetch(
+      "/api/maintenance/equipment/insertData",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
 
     if (error.value) {
       console.error("Error submitting form:", error.value);
@@ -489,91 +321,7 @@ const submitForm = async () => {
     console.error("Unexpected error:", err);
   }
 };
-const submitInsertForm = async () => {
-  const formData = {
-    uniqueID: uniqueIdNumber.value,
-    REASONFORCHANGE: changeReasonData.value,
-    PRODUCT: productLineOption.value,
-    // PRODUCTS: productsDetails.value,
-    PRODUCTS: selectedRowProducts.value.productsData,
-    SOLUTION: solutionOrder.value,
-    DESCRIPTION: Description.value,
-    DetailReason: DetailsReasonChange.value,
-    FromModel: fromModel.value,
-    ToModel: toModel.value,
-    // PARTS: parts.value,
-    PARTS: selectedRowParts.value.partsData,
-    ProductsDetails: productsDetails.value,
-    PartsDetails: partsDetail.value,
-    ISSUE: IssueDetails.value,
-    VandVNotRequired: verificationNotRequired.value ? "0" : "-1",
-    // VandVNotRequired: verificationNotRequired.value,
-    ORIGINATOR: originatorData.value.label || "",
-    ORIGINATORDATE: originatorDate.value,
-    ENGINEERING: engineeringCheck.value,
-    ENGAPPROVER: engineeringData.value.label || "",
-    ENGDATEAPPROVED: engineeringDate.value,
-    ENGAPPROVAL: engineeringBoolean.value,
-    ENGCOMMENTS: engineeringComments.value,
-    MARKETING: marketingCheck.value,
-    MARAPPROVER: marketingData.value.label || "",
-    MARDATEAPPROVED: marketingDate.value,
-    MARAPPROVAL: marketingBoolean.value,
-    MARCOMMENTS: marketingComments.value,
-    MANUFACTURING: manufacturingCheck.value,
-    MANAPPROVER: manufacturingData.value.label || "",
-    MANDATEAPPROVED: manufacturingDate.value,
-    MANAPPROVAL: manufacturingBoolean.value,
-    MANCOMMENTS: manufacturingComments.value,
-    SIGNATURE: signature.value.label || "",
-    DISTRIBUTIONDATE: CompleteDate.value,
-    APPROVAL: CompleteBoolean.value || "",
-    COMMENTS: commentsComplete.value,
-    NUMBER: number.value,
-  };
 
-  // console.log(formData);
-  // debugger
-  try {
-    const response = await useApiFetch(
-      "/api/engineering/changeorder/postOrder",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    if (response.body.success === true) {
-      toast.add({
-        title: "Success",
-        description: response.body.message,
-        icon: "i-heroicons-check-circle",
-        color: "green",
-      });
-
-      clearFields();
-      shouldRefresh.value = true;
-    } else {
-      console.error("Submission failed:", response.body.message);
-    }
-  } catch (error) {
-    console.error("Error during form submission:", error);
-  }
-};
-onBeforeUnmount(() => {
-  if (fetchInterval.value) {
-    clearInterval(fetchInterval.value);
-  }
-});
-
-// const headerFilters = ref({
-//   productLines: {
-//     label: "Product Line",
-//     filter: "PRODUCTDESC",
-//     api: "/api/materials/productlines",
-//     options: [],
-//   },
-// });
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -735,13 +483,12 @@ const filterValues = ref({
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <h3>Next Req. Service</h3>
           <UInput
-             v-model="handleVModel.nextReqService"
+            v-model="handleVModel.nextReqService"
             type="date"
             class="w-40"
           />
         </div>
       </div>
-
 
       <div class="flex flex-row space-x-4">
         <div class="w-3/4 flex flex-col"></div>
@@ -818,30 +565,7 @@ const filterValues = ref({
   >
     <MaterialsSerialsSerialList
       @rowSelectedPart="handleRowSelectedSerial"
-      @close="closeProductModal"
+      @close="closeSerialModal"
     />
   </UDashboardModal>
-  <!-- 
-  <UDashboardModal
-    v-model="partsMeta.isPartsModalOpen"
-    :title="partsMeta.modalTitle"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
-      },
-      body: {
-        base: 'gap-y-1',
-        padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
-      },
-      width: 'w-[4000px] sm:max-w-7xl',
-    }"
-  >
-    <PartsModalPage
-      @rowSelectedParts="handleSelectedPart"
-      @close="closePartsModal"
-      :isSelectButton="partsSelectButton"
-    />
-  </UDashboardModal> -->
 </template>

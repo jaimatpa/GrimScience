@@ -40,12 +40,11 @@ const headerFilters = ref({
     options: [],
   },
   categoryList: {
-    label: "Product Line",
+    
     filter: "PRODUCT",
     options: [],
   },
   subCategoryList:{
-    label: "Product Line",
     filter: "PRODUCT",
     options: [], 
   }
@@ -138,7 +137,7 @@ const filterValues = ref({
   SERIAL: null,
   REQUIRED: null,
 });
-debugger
+
 const handleCheckboxChange = () => {
   filterValues.value.APPROVAL =
     filterValues.value.APPROVAL === "No" ? "Yes" : "No";
@@ -298,15 +297,6 @@ const handleSortingButton = async (btnName: string) => {
   }
   init();
 };
-const handleFilterInputChange = async (event, name) => {
-  gridMeta.value.page = 1;
-  if (filterValues.value.hasOwnProperty(name)) {
-    filterValues.value[name] = event;
-  } else {
-    console.error(`Filter does not have property: ${name}`);
-  }
-  init();
-};
 
 // Export excel data download  function
 const excelExport = () => {
@@ -382,7 +372,7 @@ const onDblClick = () => {
         :ui="{
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
-            base: 'sticky top-0 z-10 px-1',
+            base: ' top-0 z-10 px-1',
             padding: 'pb-0',
           },
           td: {
@@ -398,11 +388,7 @@ const onDblClick = () => {
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <!-- Unique ID column with no extra gap -->
-          <template v-if="column.key === 'MANO'">
-            <div class="flex flex-col">
-              <span class="text-xs text-gray-500">Unique ID</span>
-            </div>
-          </template>
+         
 
           <!-- Dropdown for CATAGORY without search -->
           <template v-if="column.key === 'CATAGORY'">
@@ -431,7 +417,7 @@ const onDblClick = () => {
           <!-- Search input for the first five columns -->
           <template
             v-else-if="
-              ['PART', 'ORDEREDBY', 'SERIAL', 'REQUIRED'].includes(column.key)
+              ['MANO','PART', 'ORDEREDBY', 'SERIAL', 'REQUIRED'].includes(column.key)
             "
           >
             <div>

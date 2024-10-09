@@ -41,7 +41,7 @@ export const getEquipmentTableData= async (
     where: {
       ...whereClause,
     },
-    order: [[(sortBy as string) || "MANO", (sortOrder as string) || "DESC"]],
+    order: [[(sortBy as string) || "MANO", (sortOrder as string) || "ASC"]],
     offset,
     limit,
     raw: true,
@@ -207,86 +207,53 @@ export const getAllEquipmentList = async () => {
 //   }
 // };
 
-
 export const insertEquipmentData = async (body) => { 
-  
-  const {
-    uniqueID,
-    category,
-    subCategory,
-    equipment,
-    serialNo,
-    type,
-    location,
-    responsible,
-    manValue,
-    dateInService,
-    nextReqService,
-  } = body;
 
   const formatDate = (dateString) => {
     if (!dateString || dateString === "" || dateString === null) {
       return null; 
     }
-    
+
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return null; // Return null if the date is invalid
+    }
+
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const day = String(date.getUTCDate()).padStart(2, '0');
-    const hours = String(date.getUTCHours()).padStart(2, '0');
-    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-  
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    return `${year}-${month}-${day}`; // Return only date part
   };
 
-  // Convert relevant fields to proper data types
+  // Create a new object for the final data
   const finalData = {
-    UNIQUEID: parseInt(uniqueID, 10) || null, // Ensure uniqueID is numeric
-    CATAGORY: category,
-    SUBCATAGORY: subCategory,
-    PART: equipment,
-    SERIAL: serialNo, // SERIAL can remain a string
-    TYPE: type,
-    LOCATION: location,
-    ORDEREDBY: responsible,
-    DATE: formatDate(dateInService), // Changed key name for clarity
-    REQUIRED: formatDate(nextReqService),
-    MANO:manValue // Changed key name for clarity
+    ...body,
+    DATE: formatDate(body.DATE) || body.DATE, // Use formatted date or retain original
+    REQUIRED: formatDate(body.REQUIRED) || body.REQUIRED, // Use formatted date or retain original
   };
 
   try {
-    // Check if the record already exists
-    const [[{ count }]] = await sequelize.query(`SELECT COUNT(*) as count FROM tblMaintainenceOrders WHERE UniqueID = :uniqueID`, {
-      replacements: { uniqueID },
+    // Calculate the max number for MANO
+    const result = await sequelize.query(`SELECT COALESCE(MAX(MANO), 0) + 1 AS maxNumber FROM tblMaintainenceOrders`, {
+      type: sequelize.QueryTypes.SELECT,
     });
+    finalData.MANO = result[0] ? result[0].maxNumber : 1; // Assign the calculated max number
 
-    if (count === 0) {
-      // Calculate the max number if it's a new record
-      const result = await sequelize.query(`SELECT COALESCE(MAX(MANO), 0) + 1 AS maxNumber FROM tblMaintainenceOrders`, {
-        type: sequelize.QueryTypes.SELECT,
-      });
-      const maxNumber = result[0] ? result[0].maxNumber : 1;
-      finalData.manValue = maxNumber; // Assign the calculated max number
-    }
-
-    // Construct query for update or insert
-    const query = count > 0
-      ? `UPDATE tblMaintainenceOrders SET ${Object.keys(finalData).map(key => `${key} = :${key}`).join(', ')} WHERE UniqueID = :uniqueID`
-      : `INSERT INTO tblMaintainenceOrders (${Object.keys(finalData).join(', ')}) VALUES (${Object.keys(finalData).map(key => `:${key}`).join(', ')})`;
+    // Construct insert query
+    const query = `INSERT INTO tblMaintainenceOrders (${Object.keys(finalData).join(', ')}) VALUES (${Object.keys(finalData).map(key => `:${key}`).join(', ')})`;
 
     // Execute the query
     await sequelize.query(query, {
-      replacements: { ...finalData, uniqueID },
+      replacements: finalData,
     });
 
     return {
       success: true,
-      message: count > 0 ? "Record updated successfully" : "Record created successfully",
+      message: "Record created successfully",
       data: finalData,
     };
   } catch (error) {
-    console.error("Error in updateChangeOrderData:", error);
+    console.error("Error in insertEquipmentData:", error);
     return {
       success: false,
       message: "Error processing request",
