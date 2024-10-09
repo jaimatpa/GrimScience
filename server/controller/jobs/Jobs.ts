@@ -8,8 +8,8 @@ import { calculateUnitCosts } from "./Operation";
 
 const formatDate = (date) => {
   const today = new Date(date);
-  return String(today.getMonth() + 1)  + '/' + 
-  String(today.getDate()) + '/' + 
+  return String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
+  String(today.getDate()).padStart(2, '0') + '/' + 
   today.getFullYear();
 }
 
