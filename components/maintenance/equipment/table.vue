@@ -2,9 +2,11 @@
 import type { UTableColumn } from "~/types";
 import { defineEmits } from "vue";
 
-onMounted(() => {
-  init();
+onMounted(async() => {
+  await init();
   fetchGridData();
+  await fetchCategoryData();
+  await fetchSubCategoryData();
 });
 
 useSeoMeta({
@@ -37,6 +39,16 @@ const headerFilters = ref({
     api: "/api/materials/productlines",
     options: [],
   },
+  categoryList: {
+    label: "Product Line",
+    filter: "PRODUCT",
+    options: [],
+  },
+  subCategoryList:{
+    label: "Product Line",
+    filter: "PRODUCT",
+    options: [], 
+  }
 });
 
 const gridMeta = ref({
@@ -126,7 +138,7 @@ const filterValues = ref({
   SERIAL: null,
   REQUIRED: null,
 });
-
+debugger
 const handleCheckboxChange = () => {
   filterValues.value.APPROVAL =
     filterValues.value.APPROVAL === "No" ? "Yes" : "No";
@@ -189,8 +201,8 @@ const fetchGridData = async () => {
       Math.ceil(gridMeta.value.numberOfChangeOrders / gridMeta.value.pageSize) |
       1;
   }
-
   await useApiFetch("/api/maintenance/equipment/getTableData", {
+  
     method: "GET",
     params: {
       page: gridMeta.value.page,
@@ -208,6 +220,43 @@ const fetchGridData = async () => {
     },
   });
 };
+
+const fetchCategoryData = async () => { 
+  try {
+    const {data }= await useFetch("/api/maintenance/equipment/getAllCategory");
+    if (data._rawValue) {
+      // Assuming `data.value.body` is an array of categories (strings or objects)
+      headerFilters.value.categoryList.options = data._rawValue.map((category) => ({
+        label: category || 'Unnamed', // If category is a string
+        value: category, // If category is a string
+      }));
+  
+    } else {
+      console.error("No category data found");
+    }
+  } catch (err) {
+    console.error("Error fetching category data:", err);
+  }
+};
+
+const fetchSubCategoryData = async () => { 
+  try {
+    const {data }= await useFetch("/api/maintenance/equipment/getAllSubCategory");
+    if (data._rawValue) {
+      // Assuming `data.value.body` is an array of categories (strings or objects)
+      headerFilters.value.subCategoryList.options = data._rawValue.map((category) => ({
+        label: category || 'Unnamed', // If category is a string
+        value: category, // If category is a string
+      }));
+  
+    } else {
+      console.error("No category data found");
+    }
+  } catch (err) {
+    console.error("Error fetching category data:", err);
+  }
+};
+
 
 const handleModalClose = () => {
   modalMeta.value.isServiceOrderModalOpen = false;
@@ -301,11 +350,6 @@ const onDblClick = () => {
           <div class="flex flex-row space-x-3">
             <div class="basis-1/7 max-w-[300px] min-w-[150px] mr-4">
               <UFormGroup label="Maintenance order lookup" name="productLine">
-                <!-- <USelect
-                  v-model="filterValues.PRODUCT"
-                  :options="headerFilters.productLines.options"
-                  @change="() => handleCheckboxChange()"
-                /> -->
               </UFormGroup>
             </div>
           </div>
@@ -330,85 +374,7 @@ const onDblClick = () => {
         </template>
       </UDashboardToolbar>
       <!-- :rows="gridMeta.orders" -->
-      <UTable 
-  :rows="gridMeta.orders"
-  :columns="columns"
-  :loading="gridMeta.isLoading"
-  class="w-full"
-  :ui="{
-    divide: 'divide-gray-200 dark:divide-gray-800',
-    th: {
-      base: 'sticky top-0 z-10 px-1', // Reduced horizontal padding for all columns
-      padding: 'pb-0',
-    },
-    td: {
-      padding: 'py-0.5 px-1', // Reduced vertical and horizontal padding for all columns
-    },
-  }"
-  :empty-state="{
-    icon: 'i-heroicons-circle-stack-20-solid',
-    label: 'No items.',
-  }"
-  @select="onSelect"
-  @dblclick="onDblClick"
->
-  <template v-for="column in columns" v-slot:[`${column.key}-header`]> 
-    <!-- Unique ID column with no extra gap -->
-    <template v-if="column.key === 'MANO'">
-      <div class="flex flex-col">
-        <span class="text-xs text-gray-500">Unique ID</span>
-      </div>
-    </template>
-
-    <!-- Dropdown for CATAGORY without search -->
-    <template v-if="column.key === 'CATAGORY'">
-      <div>
-        <USelect
-          v-model="filterValues.CATEGORY"
-          :options="headerFilters.productLines.options"
-          @change="() => handleCheckboxChange()"
-        />
-        <span class="text-xs text-gray-500">CATAGORY</span>
-      </div>
-    </template>
-
-    <!-- Dropdown for SUBCATAGORY without search -->
-    <template v-if="column.key === 'SUBCATAGORY'">
-      <div>
-        <USelect
-          v-model="filterValues.SUBCATEGORY"
-          :options="headerFilters.productLines.options"
-          @change="() => handleCheckboxChange()"
-        />
-        <span class="text-xs text-gray-500">SUBCATAGORY</span>
-      </div>
-    </template>
-
-    <!-- Search input for the first five columns -->
-    <template v-else-if="['PART', 'ORDEREDBY', 'SERIAL', 'REQUIRED'].includes(column.key)">
-      <div>
-        <input
-          type="text"
-          v-model="filterValues[column.key]"
-          @input="filterTable"
-          placeholder="Search"
-          class="mt-1 border border-gray-300 rounded px-2 py-1"
-        />
-        <span class="text-xs text-gray-500">{{ column.label }}</span>
-      </div>
-    </template>
-
-    <!-- Placeholder for other columns without search input -->
-    <template v-else>
-      <div>
-        <span class="text-xs text-gray-500">{{ column.label }}</span>
-      </div>
-    </template>
-
-  </template>
-</UTable>
-
-      <!-- <UTable
+      <UTable
         :rows="gridMeta.orders"
         :columns="columns"
         :loading="gridMeta.isLoading"
@@ -416,11 +382,11 @@ const onDblClick = () => {
         :ui="{
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
-            base: 'sticky top-0 z-10',
+            base: 'sticky top-0 z-10 px-1',
             padding: 'pb-0',
           },
           td: {
-            padding: 'py-1',
+            padding: 'py-0.5 px-1',
           },
         }"
         :empty-state="{
@@ -431,138 +397,63 @@ const onDblClick = () => {
         @dblclick="onDblClick"
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+          <!-- Unique ID column with no extra gap -->
+          <template v-if="column.key === 'MANO'">
+            <div class="flex flex-col">
+              <span class="text-xs text-gray-500">Unique ID</span>
+            </div>
+          </template>
+
+          <!-- Dropdown for CATAGORY without search -->
           <template v-if="column.key === 'CATAGORY'">
             <div>
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
-                    ? noneIcon
-                    : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-              />
-
               <USelect
-                v-model="filterValues.PRODUCT"
-                :options="headerFilters.productLines.options"
+                v-model="filterValues.CATEGORY"
+                :options="headerFilters.categoryList.options" 
                 @change="() => handleCheckboxChange()"
               />
+              <span class="text-xs text-gray-500">CATAGORY</span>
             </div>
           </template>
 
+          <!-- Dropdown for SUBCATAGORY without search -->
           <template v-if="column.key === 'SUBCATAGORY'">
             <div>
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
-                    ? noneIcon
-                    : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-              />
               <USelect
-                class="mb-[4px]"
-                v-model="filterValues.PRODUCT"
-                :options="headerFilters.productLines.options"
+                v-model="filterValues.SUBCATEGORY"
+                :options="headerFilters.subCategoryList.options"
                 @change="() => handleCheckboxChange()"
               />
+              <span class="text-xs text-gray-500">SUBCATAGORY</span>
             </div>
           </template>
 
-          <template v-else>
-            <CommonSortAndInputFilter
-              @handle-sorting-button="handleSortingButton"
-              :label="column.label"
-              :sortable="column.sortable"
-              :sort-key="column.key"
-              :sort-icon="
-                column?.sortDirection === 'none'
-                  ? noneIcon
-                  : column?.sortDirection === 'asc'
-                  ? ascIcon
-                  : descIcon
-              "
-            />
-          </template>
-        </template>
-      </UTable> -->
-
-      <!-- <UTable
-        :rows="gridMeta.orders"
-        :columns="columns"
-        :loading="gridMeta.isLoading"
-        class="w-full"
-        :ui="{
-          divide: 'divide-gray-200 dark:divide-gray-800',
-          th: {
-            base: 'sticky top-0 z-10',
-            padding:'pb-0',
-          },
-          td: {
-            padding:'py-1',
-          },
-        }"
-        :empty-state="{
-          icon: 'i-heroicons-circle-stack-20-solid',
-          label: 'No items.',
-        }"
-        @select="onSelect"
-        @dblclick="onDblClick"
-      >
-        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-          <template v-if="column.key === 'failure'">
+          <!-- Search input for the first five columns -->
+          <template
+            v-else-if="
+              ['PART', 'ORDEREDBY', 'SERIAL', 'REQUIRED'].includes(column.key)
+            "
+          >
             <div>
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
-                    ? noneIcon
-                    : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
+              <input
+                type="text"
+                v-model="filterValues[column.key]"
+                @input="filterTable"
+                placeholder="Search"
+                class="mt-1 border border-gray-300 rounded px-2 py-1"
               />
+              <span class="text-xs text-gray-500">{{ column.label }}</span>
             </div>
           </template>
 
+          <!-- Placeholder for other columns without search input -->
           <template v-else>
             <div>
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
-                    ? noneIcon
-                    : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
-              />
+              <span class="text-xs text-gray-500">{{ column.label }}</span>
             </div>
           </template>
         </template>
-      </UTable>  -->
+      </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
           <UPagination
