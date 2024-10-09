@@ -3,6 +3,14 @@ import { tblBP, tblPlan, tblSteps, tblBPParts, tblMedia ,tblJobOperations } from
 import  sequelize  from '../../utils/databse';  
 import { QueryTypes } from 'sequelize';  
 
+const formatDate = (date) => {
+  const today = new Date(date);
+  return String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
+  String(today.getDate()).padStart(2, '0') + '/' + 
+  today.getFullYear();
+}
+
+
 const formatDateForSQLServer = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -66,6 +74,7 @@ export const productExistByModel = async (model) => {
 export const getProductOperations = async (id) => {
   const tableDetail = await tblBP.findByPk(id);
   const instanceID = tableDetail.dataValues.instanceID;
+  await reorderOperations(instanceID)
   // Fetch the plan details for the given instanceID
   const plans = await sequelize.query(`
     SELECT * FROM tblPlan 
@@ -201,10 +210,7 @@ export const createProductOperation = async (data) => {
   const strSkills = skills.map(skill => skill.UniqueID).join('=');
 
   if (!Operation || !WorkCenter || !Hours || !week) return { error: 'Please provide all the fields' };
-  const today = new Date();
-  const formattedDate = String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
-  String(today.getDate()).padStart(2, '0') + '/' + 
-  today.getFullYear();
+
   const createOperation = {
     instanceid: instanceID,
     Operation,
@@ -214,7 +220,7 @@ export const createProductOperation = async (data) => {
     skills: strSkills,
     Number: parseInt(Number),
     PreparedBy: username,
-    PreparedDate: formattedDate,
+    PreparedDate: formatDate(new Date()),
     ApprovedBy: '',
     ApprovedDate: '',
 
@@ -488,5 +494,96 @@ export const cloneOperations = async (sourceModelName, targetModelName, username
   }
   await reorderOperations(productInstanceID);
   return targetModelName;
+};
+
+export const cloneOperationAndSteps = async (frmInstanceId, selectedOperation, username) => {
+  console.log(frmInstanceId, selectedOperation, username)
+  try {
+    // Exit if the form instance ID is 0 or no operation is selected
+    if (!frmInstanceId || !selectedOperation) {
+      return;
+    }
+
+    const operationDetails = await sequelize.query(`
+      SELECT * FROM tblPlan WHERE UniqueID = :operationID
+    `, {
+      replacements: { operationID: selectedOperation },
+      type: QueryTypes.SELECT
+    });
+
+    const newOperation = await tblPlan.create({
+      instanceid: frmInstanceId,
+      Operation: operationDetails[0].Operation,
+      WorkCenter: operationDetails[0].WorkCenter,
+      Hours: operationDetails[0].Hours,
+      Number: operationDetails[0].Number,
+      week: operationDetails[0].week,
+      skills: operationDetails[0].skills,
+      PreparedBy: username,
+      PreparedDate: formatDate(new Date()),
+      ApprovedBy: '',
+      ApprovedDate: '',
+    });
+
+    const newOperationID = newOperation.UniqueID;
+
+    // Step 5: Clone steps for the operation
+    const sourceSteps = await sequelize.query(`
+      SELECT * FROM tblSteps WHERE PLANID = :operationID
+    `, {
+      replacements: { operationID: selectedOperation },
+      type: QueryTypes.SELECT
+    });
+
+    for (const step of sourceSteps) {
+      const newStep = await tblSteps.create({
+        Step: step.Step,
+        Description: step.Description,
+        notes: step.notes,
+        PLANID: newOperationID,
+      });
+
+      const newStepID = newStep.UniqueID;
+
+      // Step 6: Clone media linked to the step
+      const stepMedia = await sequelize.query(`
+        SELECT * FROM tblMedia WHERE StepID = :stepID
+      `, {
+        replacements: { stepID: step.UniqueID },
+        type: QueryTypes.SELECT
+      });
+
+      for (const media of stepMedia) {
+        await tblMedia.create({
+          Path: media.Path,
+          Name: media.Name,
+          StepID: newStepID,
+        });
+      }
+
+      // Step 7: Clone parts linked to the step
+      const stepParts = await sequelize.query(`
+        SELECT * FROM tblBPParts WHERE stepid = :stepID
+      `, {
+        replacements: { stepID: step.UniqueID },
+        type: QueryTypes.SELECT
+      });
+
+      for (const part of stepParts) {
+        delete part.uniqueid
+        await tblBPParts.create({
+          ...part,
+          stepid: newStepID,
+          instanceid: frmInstanceId,
+        });
+      }
+    }
+
+
+    console.log('Operation and steps cloned successfully.');
+  } catch (error) {
+    console.error('Error cloning operation and steps:', error.message);
+    throw new Error(error.message);
+  }
 };
 

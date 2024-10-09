@@ -426,3 +426,4 @@ export const getModels = async () => {
   const distinctMODEL = result.map((item: any) => item['MODEL']);
   return distinctMODEL;
 }
+

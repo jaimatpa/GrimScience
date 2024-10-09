@@ -21,6 +21,7 @@ const props = defineProps({
 });
 
 // Retrieve the user cookie
+// const copyOpList = useCookie<string>('copyop');
 const user = useCookie<string>('user');
 const username = "#"+user.value.payrollnumber+" "+user.value.fname+" "+user.value.lname
 
@@ -34,6 +35,7 @@ const perTypes = ref([]);
 const totalHours = ref("0");
 const subScheduleHrs = ref("0");
 const workCenters = ref([]);
+const copiedOperations = ref([])
 const formData = reactive({
   UniqueID: null,
   Number: null,
@@ -51,6 +53,7 @@ const editInit = async () => {
 };
 
 const getOperations = async () => {
+  loadingOverlay.value = true
   await useApiFetch("/api/products/productoperations/"+props.selectedProduct, {
     method: "GET",
     onResponse({ response }) {
@@ -64,6 +67,7 @@ const getOperations = async () => {
       prodOperationGridMeta.value.operations = [];
     },
   });
+  loadingOverlay.value = false
 };
 
 const propertiesInit = async () => {
@@ -170,21 +174,21 @@ const handleProdOperationSelect = async (row) => {
 
   getOperationSteps()
 
-  skillGridMeta.value.isLoading = true;
+  // skillGridMeta.value.isLoading = true;
 
-  await useApiFetch("/api/products/operationskills/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        skillGridMeta.value.skills = response._data.body.skills;
-      }
-    },
-    onResponseError() {
-      skillGridMeta.value.skills = [];
-    },
-  });
+  // await useApiFetch("/api/products/operationskills/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+  //   method: "GET",
+  //   onResponse({ response }) {
+  //     if (response.status === 200) {
+  //       skillGridMeta.value.skills = response._data.body.skills;
+  //     }
+  //   },
+  //   onResponseError() {
+  //     skillGridMeta.value.skills = [];
+  //   },
+  // });
 
-  skillGridMeta.value.isLoading = false;
+  // skillGridMeta.value.isLoading = false;
 
 };
 
@@ -322,7 +326,8 @@ const modalMeta = ref({
   modalDescription: "View Parts Listing",
   isSkillModalOpen: false,
   isStepInformationModalOpen: false,
-  isDeleteModalOpen: false
+  isDeleteModalOpen: false,
+  isClipboardModalOpen: false
 });
 
 const handleStepCreate = () => {
@@ -494,6 +499,16 @@ const previewOperationReport = () => {
   window.open(`/api/products/exportoperation/${props.instanceId}`);
 };
 
+const handleClipboardClose = () => {
+  modalMeta.value.isClipboardModalOpen = false;
+};
+
+const handleCopyOp = () => {
+  copiedOperations.value = [...copiedOperations.value, {instanceId: props.instanceId, operation: prodOperationGridMeta.value.selectedOperation, desc: prodOperationGridMeta.value.selectedOperation.Operation  }]
+  localStorage.setItem('copyOpList', JSON.stringify(copiedOperations.value) ) 
+};
+
+
 if (props.selectedProduct !== null) editInit();
 else propertiesInit();
 </script>
@@ -636,7 +651,7 @@ else propertiesInit();
               <UButton
                 icon="i-heroicons-eye"
                 label="Preview Report"
-                color="green"
+                color="blue"
                 variant="outline"
                 :ui="{
                   base: 'w-fit',
@@ -647,16 +662,17 @@ else propertiesInit();
               />
               <UButton
                 label="Clipboard"
-                color="green"
+                color="blue"
                 variant="outline"
                 icon="i-heroicons-clipboard-document-list"
                 :ui="{ base: 'w-fit', truncate: 'flex justify-center w-full' }"
+                @click="modalMeta.isClipboardModalOpen = true"
               />
               <div class="">
                 <UButton
                   icon="i-heroicons-magnifying-glass"
                   variant="outline"
-                  color="green"
+                  color="blue"
                   label="View Parts List"
                   :ui="{
                     base: 'w-fit',
@@ -684,7 +700,7 @@ else propertiesInit();
                   :rows="stepsGridMeta.steps"
                   :ui="{
                     wrapper:
-                      'h-[368px] border-2 border-gray-300 dark:border-gray-700',
+                      'h-[868px] border-2 border-gray-300 dark:border-gray-700',
                     tr: {
                       active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
                     },
@@ -753,7 +769,7 @@ else propertiesInit();
                   </div>
                 </div>
               </div>
-              <div>
+              <!-- <div>
                 <div class="menuBlue text-white py-3 pl-2 opacity-75">
                   Skills
                 </div>
@@ -815,13 +831,23 @@ else propertiesInit();
                     />
                   </div>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
       </div>
     </UForm>
   </template>
+
+
+  
+  <CommonMfgClipboard 
+  v-if="modalMeta.isClipboardModalOpen" 
+  :instanceId="props.instanceId" 
+  @close="handleClipboardClose"
+  @copyOp = "handleCopyOp"
+  @refreshOperations = "getOperations"
+  />
 
   <!-- Parts List Modal -->
   <UDashboardModal
