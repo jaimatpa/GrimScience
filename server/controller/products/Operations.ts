@@ -435,11 +435,8 @@ export const cloneOperations = async (sourceModelName, targetModelName, username
       ApprovedBy: '',
       ApprovedDate: '',
     });
-
-    console.log(newOperation)
     
     const newOperationID = newOperation.UniqueID;
-    console.log("newOperation",newOperationID)
     // Step 5: Clone steps for the operation
     const sourceSteps = await sequelize.query(`
       SELECT * FROM tblSteps WHERE PLANID = :operationID
@@ -497,7 +494,6 @@ export const cloneOperations = async (sourceModelName, targetModelName, username
 };
 
 export const cloneOperationAndSteps = async (frmInstanceId, selectedOperation, username) => {
-  console.log(frmInstanceId, selectedOperation, username)
   try {
     // Exit if the form instance ID is 0 or no operation is selected
     if (!frmInstanceId || !selectedOperation) {
@@ -579,8 +575,6 @@ export const cloneOperationAndSteps = async (frmInstanceId, selectedOperation, u
       }
     }
 
-
-    console.log('Operation and steps cloned successfully.');
   } catch (error) {
     console.error('Error cloning operation and steps:', error.message);
     throw new Error(error.message);

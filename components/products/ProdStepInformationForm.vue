@@ -66,8 +66,6 @@ const editInit = async () => {
     method: 'GET',
     onResponse({ response }) {
       if(response.status === 200) {
-        console.log(response._data.body)
-
         for (const key in response._data.body.stepInfo) {
           if (response._data.body.stepInfo[key] !== undefined) {
             formData[key] = response._data.body.stepInfo[key]
@@ -345,7 +343,6 @@ const stepGridMeta = ref({
 
 const handleFileUpload = (event) => {
   const selectedFiles = Array.from(event.target.files);
-  console.log(selectedFiles)
   stepFiles.value = [...stepFiles.value, ...selectedFiles];
   stepGridMeta.value.steps = [...stepGridMeta.value.steps, ...selectedFiles.map(file => ({
     name: file.name,
@@ -354,15 +351,9 @@ const handleFileUpload = (event) => {
 }
 
 const removeFile = (id,idx) => {
-
-  console.log(id,idx)
-  console.log(stepGridMeta.value.steps[idx])
-
   if(stepGridMeta.value.steps[idx].path !== undefined){
-    console.log(1)
     deleteFileListId.value = [...deleteFileListId.value, stepGridMeta.value.steps[idx].uniqueID]
   }else{
-    console.log(2)
     stepFiles.value = stepFiles.value.filter(file => {
       return file.lastModified !== id
     })
@@ -370,8 +361,6 @@ const removeFile = (id,idx) => {
   stepGridMeta.value.steps = stepGridMeta.value.steps.filter(file => {
     return file.uniqueID !== id
   })
-  
-  
 };
 
 const onProductDblClick = async () => {
@@ -434,7 +423,6 @@ const handleKeyModalClick = () => {
   }else{
     if(productKey.value !== null){
       partsStockGridMeta.value.parts = [...partsStockGridMeta.value.parts,{...productGridMeta.value.selectedProduct, qty: productQuantity.value, key: productKey.value}]
-      console.log(partsStockGridMeta.value.parts)
       isKeyModalOpen.value = false
       productKey.value = null
       productQuantity.value = 1

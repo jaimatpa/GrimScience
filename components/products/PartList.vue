@@ -26,7 +26,6 @@ const init = async () => {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        console.log(response._data.body)
         partList.value = response._data.body;
       }
     },

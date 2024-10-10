@@ -292,7 +292,6 @@ const onMultipleSelect = (row) => {
 }
 const onSelect = async (row) => {
   gridMeta.value.selectProduct = row
-  console.log(gridMeta.value.selectProduct)
   gridMeta.value.selectedProductId = row?.UniqueID;
   costCalculation.value = {
     materialCost: null,
@@ -316,7 +315,6 @@ const onSelect = async (row) => {
   });
   gridMeta.value.selectProduct = row;
   
-  console.log(gridMeta.value.selectProduct)
   await useApiFetch('/api/products/revisions/'+row?.UniqueID, {
     method: 'GET',
     onResponse({ response }) {
@@ -346,7 +344,6 @@ const onSelect = async (row) => {
 
 };
 const onRevisionSelect = async (row) => {
-  console.log(row)
   gridMeta.value.selectedProductId = row?.UniqueID;
   revisions.value.forEach((pro) => {
     if (pro.UniqueID === row.UniqueID) {
@@ -384,7 +381,6 @@ const handleBulkInactive = async () => {
 }
 const handleCostCalculation = async () => {
   if (!Number.isNaN(gridMeta.value.selectProduct.SELLINGPRICE)) {
-    console.log(gridMeta.value.selectProduct.SELLINGPRICE)
     loadingOverlay.value = true
     await useApiFetch('/api/products/costandprofit/'+gridMeta.value.selectedProductId, {
       method: 'GET',

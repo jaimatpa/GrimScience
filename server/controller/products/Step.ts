@@ -131,8 +131,6 @@ export const saveStepDetails = async (stepData, partsList, mediaList, username, 
     }
   }
 
-  // console.log(mediaList)
-
 // Handle Media
 
 if(deleteFiles.length > 0){

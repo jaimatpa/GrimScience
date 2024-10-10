@@ -21,7 +21,7 @@ const props = defineProps({
 });
 
 // Retrieve the user cookie
-// const copyOpList = useCookie<string>('copyop');
+
 const user = useCookie<string>('user');
 const username = "#"+user.value.payrollnumber+" "+user.value.fname+" "+user.value.lname
 
@@ -59,7 +59,6 @@ const getOperations = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         prodOperationGridMeta.value.operations = response._data.body.items;
-        console.log(prodOperationGridMeta.value.operations)
         totalHours.value = response._data.body.totalHours
       }
     },
