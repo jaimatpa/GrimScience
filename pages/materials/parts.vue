@@ -17,6 +17,24 @@ const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
 const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
+const emit = defineEmits(["rowSelectedParts", "close"]);
+
+const handleSelect = () => {
+  emit("rowSelectedParts", gridMeta.value.selectProduct);
+  emit("close");
+}
+
+const props = defineProps({
+  isPage: {
+    type: Boolean,
+    default: false,
+  },
+  isSelectButton: {
+    type: Boolean,
+    default: false,
+  }
+});
+
 const headerFilters = ref({
   categories: {
     label: "Category",
@@ -29,6 +47,8 @@ const headerFilters = ref({
     options: [],
   },
 });
+
+
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
@@ -90,6 +110,7 @@ const gridMeta = ref({
   partsList: [],
   selectedPartsId: null,
   selectedPartInstanceId: null,
+  selectProduct: null,
   selectedPartModdel: null,
   sort: {
     column: "UniqueID",
@@ -101,6 +122,7 @@ const modalMeta = ref({
   isCustomerModalOpen: false,
   modalTitle: "New Parts",
 });
+
 const filterValues = ref({
   PARTTYPE: null,
   SUBCATEGORY: null,
@@ -109,6 +131,7 @@ const filterValues = ref({
   ETLCriticalComponent: null,
   MODEL: null,
 });
+
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
 
@@ -298,6 +321,7 @@ const onSelect = async (row) => {
   gridMeta.value.selectedPartsId = row?.UniqueID;
   gridMeta.value.selectedPartInstanceId = row?.instanceID;
   gridMeta.value.selectedPartModdel = row?.MODEL;
+  gridMeta.value.selectProduct = row;
 };
 const onDblClick = async () => {
   if (gridMeta.value.selectedPartsId) {
@@ -310,7 +334,7 @@ const onDblClick = async () => {
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar class="gmsBlueHeader" title="Parts"> </UDashboardNavbar>
+      <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader" title="Parts"> </UDashboardNavbar>
 
       <div class="px-4 py-2 gmsBlueTitlebar">
         <h2>Part Lookup</h2>

@@ -1,7 +1,15 @@
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
 
-const emit = defineEmits(["close", "select"]);
+const emit = defineEmits(["rowSelectedProduct", "close"]);
+
+
+
+const handleSelect = ()=>{
+  emit("rowSelectedProduct",  gridMeta.value.selectProduct);
+  emit("close");
+}
+
 
 onMounted(() => {
   init();
@@ -215,8 +223,12 @@ const onDelete = (row) => {
   
 };
 
+
 const onSelect = async (row) => {
+
+
   gridMeta.value.selectedProductId = row?.UniqueID;
+  
   gridMeta.value.products.forEach((pro) => {
     if (pro.UniqueID === row.UniqueID) {
       pro.class = "bg-gray-200";
@@ -227,6 +239,7 @@ const onSelect = async (row) => {
   gridMeta.value.selectProduct = row;
 
 };
+
 
 const onDblClick = async () => {
   if (gridMeta.value.selectedProductId) {
@@ -491,9 +504,9 @@ const handleFilterInputChange = async (event, name) => {
           </div>
         </div>
       </div>
-      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- v-if="props.isPage && activeTab === 'lookup'" -->
+      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div
-          v-if="props.isPage && activeTab === 'lookup'"
           class="flex flex-row justify-end mr-20 mt-1"
         >
           <UPagination
@@ -503,9 +516,9 @@ const handleFilterInputChange = async (event, name) => {
             v-model="gridMeta.page"
             @update:model-value="handlePageChange()"
           />
-        </div> -->
+        </div>
 
-        <!-- <div v-if="!props.isPage">
+        <div v-if="!props.isPage">
           <div class="mt-3 w-[120px]">
             <UButton
               icon="i-heroicons-cursor-arrow-ripple"
@@ -521,8 +534,8 @@ const handleFilterInputChange = async (event, name) => {
             >
             </UButton>
           </div>
-        </div> -->
-      <!-- </div> -->
+        </div>
+      </div>
     </UDashboardPanel>
   </UDashboardPage>
   <!-- New Product Detail Modal -->

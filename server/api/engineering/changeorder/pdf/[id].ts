@@ -10,15 +10,11 @@ export default eventHandler(async (event) => {
 
     switch (method) {
       case "GET":
-        // Get all job operations using the provided ID
         const jobOperations = await getJobOperationsById({ uniqID: id });
-
-        // Check if job operations are found
         if (!jobOperations || jobOperations.length === 0) {
           setResponseStatus(event, 404);
           return { error: "No data found for the given ID." };
         }
-
         // Generate HTML content
         let htmlContent = `
         <body style="font-family: Arial; max-width: 1024px; margin: 0 auto;">
@@ -32,8 +28,7 @@ export default eventHandler(async (event) => {
                 <strong>ID:</strong> <span style="font-size: 14px;">${jobOperations[0]["uniqueID"]}</span>
               </h4>
               <h4 style="margin: 0;">
-              
-              <strong>Date:</strong> <span style="font-size: 14px;">${jobOperations["ORIGINATORDATE"] ? format(jobOperations["ORIGINATORDATE"], "MM/dd/yyyy") : ""}</span>
+              <strong>Date:</strong> <span style="font-size: 14px;">${jobOperations[0]["ENGDATEAPPROVED"] ? format(jobOperations[0]["ORIGINATORDATE"], 'MM/dd/yyyy') : ''}</span>
               </h4>
               <h4 style="margin: 0;">
                 <strong>By:</strong> <span style="font-size: 14px;">${jobOperations[0]["SIGNATURE"]}</span>
@@ -113,29 +108,29 @@ export default eventHandler(async (event) => {
             <td><span>Originator</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ORIGINATOR"]}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ORIGINATORDATE"]}</span></td>
-            <td><span style="font-size: 12px;">${jobOperations[0]["ENGAPPROVAL"] ? 'Approved' : 'Pending'}</span></td>
-            <td><span style="font-size: 12px;">${jobOperations[0]["ENGCOMMENTS"] || 'All good'}</span></td>
+            <td><span style="font-size: 12px;">${jobOperations[0]["ENGAPPROVAL"] }</span></td>
+            <td><span style="font-size: 12px;">${jobOperations[0]["ENGCOMMENTS"] }</span></td>
         </tr>
         <tr>
             <td><span>Engineering</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ENGAPPROVER"]}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ENGDATEAPPROVED"] ? format(jobOperations[0]["ENGDATEAPPROVED"], 'MM/dd/yyyy') : ''}</span></td>
-            <td><span style="font-size: 12px;">${jobOperations[0]["ENGAPPROVAL"] ? 'Approved' : 'Pending'}</span></td>
-            <td><span style="font-size: 12px;">${jobOperations[0]["ENGCOMMENTS"] || 'All good'}</span></td>
+            <td><span style="font-size: 12px;">${jobOperations[0]["ENGAPPROVAL"] }</span></td>
+            <td><span style="font-size: 12px;">${jobOperations[0]["ENGCOMMENTS"] }</span></td>
         </tr>
         <tr>
             <td><span>Marketing</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["MARAPPROVER"]}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["MARDATEAPPROVED"] ? format(jobOperations[0]["MARDATEAPPROVED"], 'MM/dd/yyyy') : ''}</span></td>
-            <td><span style="font-size: 12px;">${jobOperations[0]["MARAPPROVAL"] ? 'Approved' : 'Pending'}</span></td>
-            <td><span style="font-size: 12px;">${jobOperations[0]["MARCOMMENTS"] || 'All good'}</span></td>
+            <td><span style="font-size: 12px;">${jobOperations[0]["MARAPPROVAL"] }</span></td>
+            <td><span style="font-size: 12px;">${jobOperations[0]["MARCOMMENTS"] }</span></td>
         </tr>
         <tr>
             <td><span>Manufacturing</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["MANAPPROVER"]}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["MANDATEAPPROVED"] ? format(jobOperations[0]["MANDATEAPPROVED"], 'MM/dd/yyyy') : ''}</span></td>
-            <td><span style="font-size: 12px;">${jobOperations[0]["MANAPPROVAL"] ? 'Approved' : 'Pending'}</span></td>
-            <td><span style="font-size: 12px;">${jobOperations[0]["MANCOMMENTS"] || 'All good'}</span></td>
+            <td><span style="font-size: 12px;">${jobOperations[0]["MANAPPROVAL"] }</span></td>
+            <td><span style="font-size: 12px;">${jobOperations[0]["MANCOMMENTS"] }</span></td>
         </tr>
     </tbody>
 </table>
@@ -183,224 +178,3 @@ export default eventHandler(async (event) => {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { format } from "date-fns";
-// import puppeteer from "puppeteer";
-// import { getJobOperationsById } from "~/server/controller/engineering/ChangOrder";
-
-// export default eventHandler(async (event) => {
-//   try {
-//     const method = event._method;
-//     const id = event.context.params.id;
-
-//     switch (method) {
-//       case "GET":
-//         // Get all job operations using the provided ID
-//         const jobOperations = await getJobOperationsById({ uniqID: id });
-
-//         // Check if job operations are found
-//         if (!jobOperations || jobOperations.length === 0) {
-//           setResponseStatus(event, 404);
-//           return { error: "No data found for the given ID." };
-//         }
-
-//         // Generate HTML content
-//         let htmlContent = `
-//         <body style="font-family: Arial; max-width: 1024px; margin: 0 auto;">
-//           <div style="display: flex; justify-content: space-between;">
-
-//               <div>
-//                   <h3 style="margin: 0;">Job Number: ${jobOperations[0]["ENGCOMMENTS"]}</h3>
-//               </div>
-
-//               <div style="width: 30%;">
-//    <h4 style="margin: 0;">
-//     <strong>ID:</strong> <span style="font-size: 14px;">${jobOperations[0]["uniqueID"]}</span>
-//   </h4>
-//   <h4 style="margin: 0;">
-//     <strong>Date:</strong> <span style="font-size: 14px;">${jobOperations[0]["ORIGINATORDATE"]}</span>
-//   </h4>
-//   <h4 style="margin: 0;">
-//     <strong>By:</strong> <span style="font-size: 14px;">${jobOperations[0]["SIGNATURE"]}</span>
-//   </h4>     </div>
-            
-//           </div>`;
-
-//         // Iterate through operations
-//         jobOperations.forEach((operation, index) => {
-//           htmlContent += `
-
-// <body style="font-family: Arial; max-width: 1024px; margin: 0 auto; ">
-
-// <div style="width: 100%; height: 2px; background-color: black;"></div>
-//           <div style="display: flex; justify-content: space-between;">
-          
-
-// <div style="width: 50%;">
-
-
-//            <p style="margin-top:12px; margin-bottom: 0;">
-//                 Work Center: ${operation["DESCRIPTION"]}
-//             </p>
-
-// </div>
-//  <div style="width: 50%;">
-
-//   <p style="margin-top: 12px; margin-bottom: 0;">
-//                 Work Center: ${operation["REASONFORCHANGE"]}
-//             </p>
-
-// </div>
-//        <div style="display: flex; justify-content: space-between;">
-          
-
-
-          
-//            </div>
-//            <div style="width: 50%;">
-
-
-//            <p style="margin-top:12px; margin-bottom: 0;">
-//                 Work Center: ${operation["ISSUE"]}
-//             </p>
-
-// </div>
-//  <div style="width: 50%;">
-
-//   <p style="margin-top: 12px; margin-bottom: 0;">
-//                 Work Center: ${operation["SOLUTION"]}
-//             </p>
-
-// </div>
-//           </div>
-
-//             <div style="margin-top: 20px;">
-//               <h4 style="margin: 0;">
-//                 ${index + 1}. Operation: ${operation["SOLUTION"]}
-//               </h4>
-//               <ol type="A" style="display: flex; flex-direction: column; gap: 10px; padding-top: 10px;">
-//                   <li>Select A System</li>
-//                   <li>Select The Configuration</li>
-//                   <li>Define Your Space</li>
-//                   <li>Select Options & Accessories</li>
-//                   <li>Formal Quotation</li>
-//               </ol>
-//               <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-//                   <div style="display: inline-flex;">
-//                       <p style="margin: 0;">Prepared By:</p>
-//                       <p style="margin: 0;padding-left: 4px;">
-//                         ${operation["SOLUTION"]}
-//                       </p>
-//                   </div>
-//                   <div style="width: 30%; text-align: center; display: inline-flex;">
-//                       <p style="margin: 0;">Approved By:</p>
-//                       <p style="margin: 0;padding-left: 4px;">#1 Joseph Grimm</p>
-//                   </div>
-//                   <div style="width: 30%; text-align: right; display: inline-flex;">
-//                       <p style="margin: 0;">Verified By:</p>
-//                       <p style="margin: 0;padding-left: 4px;">#1 Joseph Grimm</p>
-//                   </div>
-//               </div>
-//               <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-//                   <div style="display: inline-flex;">
-//                       <p style="margin: 0;">Date:</p>
-//                       <p style="margin: 0; padding-left: 4px;">
-//                         ${operation["DISTRIBUTIONDATE"] ? format(operation["DISTRIBUTIONDATE"], "MM/dd/yyyy") : ""}
-//                       </p>
-//                   </div>
-//               </div>
-//               <table style="width: 100%; border-collapse: collapse; margin-top: 40px;">
-//                   <thead>
-//                       <tr>
-//                           <th style="border: 1px solid #000; padding: 8px;">Date</th>
-//                           <th style="border: 1px solid #000; padding: 8px;">Employee</th>
-//                           <th style="border: 1px solid #000; padding: 8px;">Hours</th>
-//                       </tr>
-//                   </thead>
-//                   <tbody>`;
-
-//           // Add schedule data if exists
-//           if (operation.schedule) {
-//             operation.schedule.forEach(item => {
-//               htmlContent += `
-//                 <tr>
-//                     <td style="border: 1px solid #000; padding: 8px;">
-//                         ${item["DISTRIBUTIONDATE"] ? format(item["DISTRIBUTIONDATE"], "MM/dd/yyyy") : ""}
-//                     </td>
-//                     <td style="border: 1px solid #000; padding: 8px;">
-//                         ${item["EMPLOYEE"]}
-//                     </td>
-//                     <td style="border: 1px solid #000; padding: 8px;">
-//                         ${item["HOURS"]}
-//                     </td>
-//                 </tr>`;
-//             });
-//           }
-//           htmlContent += `    
-//                   </tbody>
-//               </table>
-//             </div>`;
-//         });
-
-//         // Launch Puppeteer with a custom timeout
-//         const browser = await puppeteer.launch({
-//           headless: true,
-//           timeout: 30000, // Timeout for browser launch
-//           args: ['--no-sandbox', '--disable-setuid-sandbox'], // For optimization
-//         });
-
-//         const page = await browser.newPage();
-
-//         const pdfOptions = {
-//           path: "Operation.pdf",
-//           format: "letter",
-//           margin: {
-//             top: "40px",
-//             bottom: "40px",
-//             left: "40px",
-//             right: "40px",
-//           },
-//         };
-
-//         // Set content with a 30s timeout
-//         await page.setContent(htmlContent, { waitUntil: "networkidle2", timeout: 30000 });
-
-//         const pdfBuffer = await page.pdf(pdfOptions);
-//         await browser.close();
-
-//         // Set headers and return the PDF buffer
-//         setHeaders(event, {
-//           "Content-Type": "application/pdf",
-//           "Content-Disposition": 'inline; filename="View Operation.pdf"',
-//           "Page-Size": "Letter",
-//         });
-//         return pdfBuffer;
-
-//       default:
-//         setResponseStatus(event, 405);
-//         return { error: "Method Not Allowed" };
-//     }
-//   } catch (error) {
-//     console.error("Error generating PDF:", error);
-//     throw new Error(`Error fetching data from table: ${error.message}`);
-//   }
-// });
-
-

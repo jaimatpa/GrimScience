@@ -4,11 +4,26 @@ import { defineEmits } from "vue";
 
 onMounted(() => {
   init();
-  
+  fetchGridData();
 });
 
 useSeoMeta({
   title: "Grimm-Service Orders",
+});
+
+const props = defineProps({
+  shouldRefresh: {
+    type: Boolean,
+  },
+  isPage: {
+    type: [Boolean, null],
+  },
+});
+
+watchEffect(() => {
+  if (props.shouldRefresh) {
+    fetchGridData();
+  }
 });
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
@@ -16,18 +31,20 @@ const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const headerFilters = ref({
+
   productLines: {
     label: "Product Line",
-    filter: "PRODUCTDESC",
+    filter: "PRODUCT",
     api: "/api/materials/productlines",
     options: [],
   },
+
 });
 
 const headerCheckboxes = ref({
   open: {
     label: "Show Open Only",
-    filterKey: "OPENCASE",
+    filterKey: "YES",
     isChecked: true,
   },
 });
@@ -35,7 +52,7 @@ const headerCheckboxes = ref({
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "uniqueID",
+      key: "NUMBER",
       label: "#",
       sortable: true,
       sortDirection: "none",
@@ -79,10 +96,19 @@ const gridMeta = ref({
   selectedCompaintNumber: null,
   selectedSerialNumber: null,
   sort: {
-    column: "PRODUCT",
+    column: "uniqueID",
     direction: "desc",
   },
   isLoading: false,
+});
+
+const formattedOrders = computed(() => {
+  return gridMeta.value.orders.map((order) => {
+    return {
+      ...order,
+      DESCRIPTION: order.DESCRIPTION.split(" ").slice(0, 5).join(" "),
+    };
+  });
 });
 
 const modalMeta = ref({
@@ -90,32 +116,29 @@ const modalMeta = ref({
 });
 
 const filterValues = ref({
-  NUMBER: null,
   uniqueID: null,
+  NUMBER: null,
   DESCRIPTION: null,
+  ORIGINATORDATE: null,
   REASONFORCHANGE: null,
   DISTRIBUTIONDATE: null,
   PRODUCT: null,
-  newCheckedValue:null
+  APPROVAL: null,
 });
 
-const watchCheckbox = (property, filterKey) => {
-  watch(
-    () => headerCheckboxes.value[property].isChecked,
-    (newCheckedValue) => {
-      filterValues.value[filterKey] = newCheckedValue ? "1" : "0";
-    }
-  );
+const handleCheckboxChange = () => {
+  filterValues.value.APPROVAL =
+    filterValues.value.APPROVAL === "No" ? "Yes" : "No";
 };
 
-// Watch for each checkbox
-watchCheckbox("open", "OPENCASE");
-
-const props = defineProps({
-  isPage: {
-    type: [Boolean, null],
+watch(
+  filterValues,
+  (newVal) => {
+    fetchGridData();
   },
-});
+  { deep: true }
+);
+
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
 const columns = computed(() =>
@@ -126,6 +149,21 @@ const columns = computed(() =>
 
 const init = async () => {
   fetchGridData();
+
+  gridMeta.value.isLoading = true;
+  for (const key in headerFilters.value) {
+    const apiURL =
+      headerFilters.value[key]?.api ?? `/api/service/orders/${key}`;
+
+    await useApiFetch(apiURL, {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          headerFilters.value[key].options = [null, ...response._data.body];
+        }
+      },
+    });
+  }
 };
 
 const fetchGridData = async () => {
@@ -141,6 +179,7 @@ const fetchGridData = async () => {
       }
     },
   });
+
   if (
     gridMeta.value.page * gridMeta.value.pageSize >
     gridMeta.value.numberOfChangeOrders
@@ -159,6 +198,7 @@ const fetchGridData = async () => {
       sortOrder: gridMeta.value.sort.direction,
       ...filterValues.value,
     },
+
     onResponse({ response }) {
       if (response.status === 200) {
         gridMeta.value.orders = response._data.body;
@@ -178,10 +218,12 @@ const handleModalSave = async () => {
 const handlePageChange = async () => {
   fetchGridData();
 };
-const handleFilterChange = () => {
-  gridMeta.value.page = 1;
-  fetchGridData();
-};
+
+// const handleFilterChange = () => {
+//   gridMeta.value.page = 1;
+//   fetchGridData();
+// };
+
 const handleSortingButton = async (btnName: string) => {
   gridMeta.value.page = 1;
   for (const column of columns.value) {
@@ -200,7 +242,7 @@ const handleSortingButton = async (btnName: string) => {
             break;
           default:
             column.sortDirection = "none";
-            gridMeta.value.sort.column = "PRODUCT";
+            gridMeta.value.sort.column = "uniqueID";
             gridMeta.value.sort.direction = "desc";
             break;
         }
@@ -239,17 +281,11 @@ const excelExport = () => {
   exportIsLoading.value = false;
 };
 
-const onPrevieOrderBtnClick = () => {
-  window.open(`/api/service/orders/exportcomplaints`);
-};
-
 const emit = defineEmits(["rowSelected", "rowDoubleClicked"]);
-
 const onSelect = (row) => {
   console.log(row);
   emit("rowSelected", row);
 };
-
 const onDblClick = () => {
   emit("rowDoubleClicked");
 };
@@ -272,7 +308,7 @@ const onDblClick = () => {
                 <USelect
                   v-model="filterValues.PRODUCT"
                   :options="headerFilters.productLines.options"
-                  @change="handleFilterChange()"
+                  @change="() => handleCheckboxChange()"
                 />
               </UFormGroup>
             </div>
@@ -302,9 +338,9 @@ const onDblClick = () => {
                   <UCheckbox
                     color="green"
                     variant="outline"
-                    v-model="filterValues[checkbox.filterKey]"
                     :label="checkbox.label"
-                    @update:model-value="handleFilterChange"
+                    :modelValue="filterValues[checkbox.filterKey] === 'No'"
+                    @change="() => handleCheckboxChange(checkbox.filterKey)"
                   />
                 </div>
               </template>
@@ -312,9 +348,9 @@ const onDblClick = () => {
           </div>
         </template>
       </UDashboardToolbar>
-
+      <!-- :rows="gridMeta.orders" -->
       <UTable
-        :rows="gridMeta.orders"
+        :rows="formattedOrders"
         :columns="columns"
         :loading="gridMeta.isLoading"
         class="w-full"
@@ -322,10 +358,10 @@ const onDblClick = () => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            padding: 'pb-0',
+            padding:'pb-0',
           },
           td: {
-            padding: 'py-1',
+            padding:'py-1',
           },
         }"
         :empty-state="{
@@ -337,7 +373,7 @@ const onDblClick = () => {
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.key === 'failure'">
-            <div class="">
+            <div>
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange"
@@ -358,7 +394,7 @@ const onDblClick = () => {
           </template>
 
           <template v-else>
-            <div class="">
+            <div>
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange"
@@ -380,7 +416,7 @@ const onDblClick = () => {
         </template>
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
-        <div v-if="props.isPage" class="flex flex-row justify-end mr-20 mt-1">
+        <div class="flex flex-row justify-end mr-20 mt-1">
           <UPagination
             :max="7"
             :page-count="gridMeta.pageSize"
