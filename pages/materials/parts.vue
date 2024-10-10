@@ -16,6 +16,24 @@ const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
 const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
+const emit = defineEmits(["rowSelectedParts", "close"]);
+
+const handleSelect = () => {
+  emit("rowSelectedParts", gridMeta.value.selectProduct);
+  emit("close");
+}
+
+const props = defineProps({
+  isPage: {
+    type: Boolean,
+    default: false,
+  },
+  isSelectButton: {
+    type: Boolean,
+    default: false,
+  }
+});
+
 const headerFilters = ref({
   categories: {
     label: "Category",
@@ -28,6 +46,8 @@ const headerFilters = ref({
     options: [],
   }
 });
+
+
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
@@ -79,6 +99,7 @@ const gridMeta = ref({
   customers: [],
   selectedCustomerId: null,
   selectedPartInstanceId: null,
+  selectProduct: null,
   selectedPartModdel: null,
   sort: {
     column: "UniqueID",
@@ -94,6 +115,7 @@ const modalMeta = ref({
   isSiteVisitModalOpen: false,
   modalTitle: "New Parts",
 });
+
 const filterValues = ref({
   PARTTYPE: null,
   SUBCATEGORY: null,
@@ -102,6 +124,7 @@ const filterValues = ref({
   ETLCriticalComponent: null,
   MODEL: null
 });
+
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
 
@@ -183,7 +206,6 @@ const fetchGridData = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         gridMeta.value.customers = response._data.body;
-        console.log("parts are:", gridMeta.value.customers);
       }
       gridMeta.value.isLoading = false;
     },
@@ -290,14 +312,12 @@ const excelExport = async () => {
   location.href = `/api/materials/parts/exportList?${paramsString}`;
   exportIsLoading.value = false;
 };
-const emit = defineEmits()
 
 const onSelect = async (row) => {
-  console.log("row is in there", row);
-  emit('onPartSelect', row?.UniqueID)
   gridMeta.value.selectedCustomerId = row?.UniqueID;
   gridMeta.value.selectedPartInstanceId = row?.instanceID;
   gridMeta.value.selectedPartModdel = row?.MODEL;
+  gridMeta.value.selectProduct = row;
 };
 const onDblClick = async () => {
   if (gridMeta.value.selectedCustomerId) {
@@ -310,7 +330,7 @@ const onDblClick = async () => {
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar class="gmsBlueHeader" title="Parts"> </UDashboardNavbar>
+      <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader" title="Parts"> </UDashboardNavbar>
 
       <div class="px-4 py-2 gmsBlueTitlebar">
         <h2>Part Lookup</h2>
@@ -377,9 +397,6 @@ const onDblClick = async () => {
           </template>
         </template>
 
-
-
-
         <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
             <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
@@ -391,17 +408,24 @@ const onDblClick = async () => {
           </UTooltip>
         </template>
       </UTable>
-      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
-          <UPagination
-            :max="7"
-            :page-count="gridMeta.pageSize"
-            :total="gridMeta.numberOfCustomers | 0"
-            v-model="gridMeta.page"
-            @update:model-value="handlePageChange()"
-          />
+          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfCustomers | 0"
+            v-model="gridMeta.page" @update:model-value="handlePageChange()" />
         </div>
-      </div> -->
+      </div>
+
+      <div v-if="props.isSelectButton">
+        <div class="mt-3 w-[120px]">
+          <UButton icon="i-heroicons-cursor-arrow-ripple" variant="outline" color="green" label="Select" :ui="{
+            base: 'w-full',
+            truncate: 'flex justify-center w-full',
+          }" truncate @click="handleSelect">
+          </UButton>
+        </div>
+      </div>
+
+
     </UDashboardPanel>
   </UDashboardPage>
   <!-- Parts Detail Modal -->

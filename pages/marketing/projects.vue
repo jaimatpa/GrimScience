@@ -144,7 +144,6 @@ const init = async () => {
   
   }
   const fetchGridData = async () => {
-
     gridMeta.value.isLoading = true
     await useApiFetch('/api/projects/numbers', {
       method: 'GET',
