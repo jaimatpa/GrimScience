@@ -126,7 +126,8 @@ const tblCustomers = sequelize.define('tblCustomers', {
       type: DataTypes.STRING,
    },
 }, {
-   timestamps: false
+   timestamps: false,
+   tableName: 'tblCustomers',
 });
 
 export default tblCustomers;

@@ -7,6 +7,7 @@ const emit = defineEmits(["close", "save"]);
 const props = defineProps({
     selectedSerial: {
         type: [String, Number, null],
+        required: true,
     },
     isModal: {
         type: [Boolean],

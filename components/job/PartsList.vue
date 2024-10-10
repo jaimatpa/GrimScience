@@ -29,8 +29,8 @@ const editInit = async () => {
         partList.value = response._data.body;
       }
     },
-    onResponseError({}) {
-      partList.value = []
+    onResponseError({ }) {
+      JobExist.value = false;
     },
   });
 
@@ -90,35 +90,20 @@ if (props.selectedJob !== null) editInit();
 
 <template>
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
-  <UForm
-    :validate="validate"
-    :validate-on="['submit']"
-    :state="formData"
-    class="space-y-4"
-    @submit="onSubmit"
-  >
+  <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
     <div class="w-full flex flex-col">
       <div class="w-full mt-5">
-        <UTable
-          :rows="partList"
-          :columns="listColumns"
-          :ui="{
-            wrapper: 'h-96 border-2 border-gray-300 dark:border-gray-700',
-            th: {
-              base: 'sticky top-0 z-10',
-              color: 'bg-white dark:text-gray dark:bg-[#111827]',
-              padding: 'p-1',
-            },
-          }"
-        >
+        <UTable :columns="productColumns" :ui="{
+          wrapper: 'h-96 border-2 border-gray-300 dark:border-gray-700',
+          th: {
+            base: 'sticky top-0 z-10',
+            color: 'bg-white dark:text-gray dark:bg-[#111827]',
+            padding: 'p-1',
+          },
+        }">
           <template #empty-state>
             <div></div>
           </template>
@@ -126,18 +111,18 @@ if (props.selectedJob !== null) editInit();
       </div>
       <div class="flex">
         <div class="mt-5 ml-4">
-          <UButton
-            variant="outline"
-            color="green"
-            label="Generate Excel"
-            :ui="{
+          <UButton variant="outline" color="green" label="Generate Excel" :ui="{
+            base: 'w-fit',
+            truncate: 'flex justify-center w-full',
+          }" truncate />
+        </div>
+        <div class="mt-5 ml-4">
+          <UButton icon="i-heroicons-chat-bubble-oval-left-ellipsis" variant="outline" color="green"
+            label="Show Sub Assembly Hours" :ui="{
               base: 'w-fit',
               truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
+            }" truncate />
         </div>
-        
       </div>
     </div>
   </UForm>

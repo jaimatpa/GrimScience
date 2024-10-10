@@ -5,7 +5,6 @@ import tblSteps from "./tblSteps";
 
 export { default as tbl } from "./tbl";
 export { default as tblAccounts } from "./tblAccounts";
-export { default as tblCurrentInventory } from "./tblCurrentInventory";
 export { default as tblBP6 } from "./tblBP6";
 export { default as tblBuildPEmployees } from "./tblBuildPEmployees";
 export { default as tblBuildPParts } from "./tblBuildPParts";
@@ -54,7 +53,6 @@ export { default as tblPAInvestigation } from "./tblPAInvestigation";
 export { default as tblPayableDetail } from "./tblPayableDetail";
 export { default as tblPayables } from "./tblPayables";
 export { default as tblPermissions } from "./tblPermissions";
-export { default as tblPurchase } from "./tblPurchase";
 export { default as tblPO } from "./tblPO";
 export { default as tblPODetail } from "./tblPODetail";
 export { default as tblPreventiveActions } from "./tblPreventiveActions";
@@ -93,6 +91,8 @@ export { default as tblZipLocations } from "./tblZipLocations";
 export { default as tblZoneChart } from "./tblZoneChart";
 export { default as tmpImport } from "./tmpImport";
 export { default as vwServiceReportListing } from "./vwServiceReportListing";
+export { default as tblPurchase } from "./tblPurchase";
+export { default as tblCurrentInventory } from "./tblCurrentInventory"
 
 // Associations with Aliases
 

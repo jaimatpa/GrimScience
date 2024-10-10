@@ -71,11 +71,11 @@ export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams
 
 export const getNumberOfJobs = async (filterParams) => {
 
-    const whereClause = applyFilters(filterParams);
-    const numberOfCustomers = await tblJobs.count({
-      where: whereClause
-    });
-    return numberOfCustomers;
+  const whereClause = applyFilters(filterParams);
+  const numberOfCustomers = await tblJobs.count({
+    where: whereClause
+  });
+  return numberOfCustomers;
 }
 
 export const JobExistByID = async (id: number | string) => {

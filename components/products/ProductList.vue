@@ -1,7 +1,15 @@
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
 import Loading from 'vue-loading-overlay'
-const emit = defineEmits(["close", "select"]);
+const emit = defineEmits(["rowSelectedProduct", "close", "select"]);
+
+
+
+const handleSelect = ()=>{
+  emit("rowSelectedProduct",  gridMeta.value.selectProduct);
+  emit("close");
+}
+
 
 onMounted(() => {
   init();
@@ -552,7 +560,7 @@ const closeCloneModal = () => {
         <h2>Sort</h2>
       </div>
 
-      <UDashboardToolbar v-if="props.isPage">
+      <UDashboardToolbar v-if="props.isPage" class="bg-gms-gray-100">
         <template #left>
           <div class="flex flex-row space-x-3">
             <template
@@ -646,8 +654,7 @@ const closeCloneModal = () => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            color: 'bg-white dark:text-gray dark:bg-[#111827]',
-            padding: 'p-0',
+            padding: 'pb-0',
           },
           td: {
             padding: 'py-1',
@@ -663,7 +670,7 @@ const closeCloneModal = () => {
       
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
-            <div class="px-4 py-3.5">
+            <div class="">
               <CommonSortAndInputFilter
                 @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange"
@@ -683,7 +690,7 @@ const closeCloneModal = () => {
             </div>
           </template>
           <template v-else class="bg-slate-400">
-            <div class="flex justify-center text-center w-[53px]">
+            <div class="flex w-[53px]">
               {{ column.label }}
             </div>
           </template>
@@ -731,6 +738,9 @@ const closeCloneModal = () => {
                   color: 'bg-white dark:text-gray dark:bg-[#111827]',
                   padding: 'p-1',
                 },
+                td: {
+                  padding: 'py-1'
+                }
               }"
               @select="onRevisionSelect"
               @dblclick="onDblClick"
@@ -896,9 +906,9 @@ const closeCloneModal = () => {
 
         </div>
       </div>
+      <!-- v-if="props.isPage && activeTab === 'lookup'" -->
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div
-          v-if="props.isPage && activeTab === 'lookup'"
           class="flex flex-row justify-end mr-20 mt-1"
         >
           <UPagination
@@ -909,6 +919,24 @@ const closeCloneModal = () => {
             @update:model-value="handlePageChange()"
           />
         </div>
+
+        <div v-if="!props.isPage">
+          <div class="mt-3 w-[120px]">
+            <UButton
+              icon="i-heroicons-cursor-arrow-ripple"
+              variant="outline"
+              color="green"
+              label="Select"
+              :ui="{
+                base: 'w-full',
+                truncate: 'flex justify-center w-full',
+              }"
+              truncate
+              @click="handleSelect"
+            >
+            </UButton>
+          </div>
+        </div>
       </div>
     </UDashboardPanel>
   </UDashboardPage>
@@ -917,13 +945,12 @@ const closeCloneModal = () => {
   v-model="modalMeta.isProductModalOpen"
   :title="modalMeta.modalTitle"
   :ui="{
-    title: 'text-lg',
+    title: 'text-lg text-white',
     header: {
-      base: 'flex flex-row min-h-[0] items-center',
-      padding: 'pt-5 sm:px-9',
+      base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
     },
-    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-    width: 'w-[1000px] sm:max-w-7xl',
+    body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+    width: 'w-[1250px] sm:max-w-9xl',
   }"
 >
   <ProductsForm

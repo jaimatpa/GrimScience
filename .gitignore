@@ -2,8 +2,9 @@ node_modules
 .nuxt
 .env
 .output
-storage
 package-lock.json
 yarn.lockpnpm-lock.yaml
 yarn.lock
 *.pdf
+dist
+yarn.lock

@@ -1,12 +1,12 @@
-import { format } from "date-fns";
 import { Model, Op } from "sequelize";
 import type { QueryValue } from "ufo";
-import { tblPurchase , tblVendors } from "~/server/models";
+import { tblPO, tblPurchase, tblVendors } from "~/server/models";
 
 const applyFilters = (params: any) => {
-  const filterParams = ["UniqueId", "date", "vendor", "phone", "total"];
-  const whereClause = {};
+  const filterParams = ["PONUMBER", "NAME", "IRPHONE", "TOTAL", "OPENCLOSED"];
+  const whereClause: any = {};
 
+  // Apply filters for string fields
   filterParams.forEach((param) => {
     if (params[param]) {
       whereClause[param] = {
@@ -15,31 +15,44 @@ const applyFilters = (params: any) => {
     }
   });
 
+  // Add date filtering if startDate and endDate are provided
+  if (params.startDate || params.endDate) {
+    whereClause.DATE = {}; // Initialize DATE object
+    if (params.startDate) {
+      whereClause.DATE[Op.gte] = params.startDate;
+    }
+    if (params.endDate) {
+      whereClause.DATE[Op.lte] = params.endDate;
+    }
+  }
+
   return whereClause;
 };
 
-export const getAllPurchase = async (
-  sortBy: QueryValue | QueryValue[],
-  sortOrder: QueryValue | QueryValue[],
-  filterParams: any
-): Promise<Model<any, any>[]> => {
+export const getAllPurchase = async (page, pageSize, sortBy, sortOrder, filterParams) => {
+  const limit = parseInt(pageSize as string, 10) || 50;
+  const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
+
   const whereClause = applyFilters(filterParams);
 
-  const purchases = await tblPurchase.findAll({
-    attributes: ["UniqueId", "date", "vendor", "phone", "total", "open"],
+  const list = await tblPO.findAll({
     where: whereClause,
-    order: [[(sortBy as string) || "UniqueId", (sortOrder as string) || "ASC"]],
+    order: [[sortBy || 'PONUMBER', sortOrder || 'DESC']],
+    offset,
+    limit
   });
 
-  return purchases;
+  const count = await tblPO.count({ where: whereClause }); 
+
+  return { list, count };
 };
 
 export const deletePurchase = async (
-  UniqueId: QueryValue | QueryValue[]
+  UniqueID: QueryValue | QueryValue[]
 ): Promise<number> => {
   const deleteResult = await tblPurchase.destroy({
     where: {
-      UniqueId,
+      UniqueID,
     },
   });
   console.log(deleteResult);

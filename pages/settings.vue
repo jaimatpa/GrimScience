@@ -4,7 +4,7 @@ const links = [[{
   icon: 'i-heroicons-user-circle',
   to: '/settings',
   exact: true
-}],, [{
+}], , [{
   label: 'Documentation',
   icon: 'i-heroicons-book-open',
   to: 'https://ui.nuxt.com/pro',

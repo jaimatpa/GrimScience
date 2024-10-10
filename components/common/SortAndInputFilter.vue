@@ -26,31 +26,31 @@ const props = defineProps({
 })
 </script>
 <template>
+  <template v-if="props.filterable">
+    <div class="flex justify-start">
+      <UInput
+        :model-value="props.value"
+        @update:model-value="event => emit('handleInputChange', event, props.filterKey)"
+        :ui="{wrapper: 'w-full', base: 'w-full'}"
+      />
+    </div>
+  </template>
   <template v-if="props.sortable">
-    <div class="flex justify-center">
-      <UButton variant="ghost" color="gray" @click="emit('handleSortingButton', props.sortKey)">
+    <div class="flex justify-start align-sortable">
+      <UButton variant="ghost" color="black" @click="emit('handleSortingButton', props.sortKey)">
         {{ props.label }}
         <template #trailing>
           <UIcon 
             :name="props.sortIcon" 
-            class="w-5 h-5" 
+            class="w-auto" 
           />
         </template>
       </UButton>
     </div>
   </template>
   <template v-else>
-    <div class="flex justify-center text-center px-[10px] py-[6px]">
+    <div class="py-1.5" style="white-space:nowrap;">
       {{ props.label }}
-    </div>
-  </template>
-  <template v-if="props.filterable">
-    <div class="flex justify-center">
-      <UInput
-        :model-value="props.value"
-        @update:model-value="event => emit('handleInputChange', event, props.filterKey)"
-        :ui="{wrapper: 'w-full', base: 'w-full'}"
-      />
     </div>
   </template>
 </template>

@@ -1,10 +1,10 @@
-import { createComplaint, getComplaintDetail, updateComplaint, getComplainNo,getSerialByCustomer } from '~/server/controller/service';
+import { createComplaint, getComplaintDetail, updateComplaint, getComplainNo, getSerialByCustomer } from '~/server/controller/service';
 
 export default eventHandler(async (event) => {
   try {
     const id = event.context.params.id
     const method = event._method;
-    switch(method.toUpperCase()){
+    switch (method.toUpperCase()) {
       case 'GET':
         const detail = await getComplaintDetail(id);
         return { body: detail, message: '' }
@@ -14,12 +14,12 @@ export default eventHandler(async (event) => {
         return { body: updateResult, message: 'Order updated successfully' }
       case 'POST':
         // get new complain number 
-        const newCompId =  await getComplainNo();
+        const newCompId = await getComplainNo();
         const createReqData = await readBody(event)
-         // get serialId from serial number
+        // get serialId from serial number
         const getSerialRes = await getSerialByCustomer(createReqData?.CustomerID)
-         // Create complain func
-        const createdResult = await createComplaint(createReqData,newCompId,getSerialRes)
+        // Create complain func
+        const createdResult = await createComplaint(createReqData, newCompId, getSerialRes)
         return { body: createdResult, message: 'Order created successfully' }
       default:
         setResponseStatus(event, 405);

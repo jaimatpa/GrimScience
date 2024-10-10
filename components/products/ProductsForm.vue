@@ -9,7 +9,7 @@ const props = defineProps({
   selectedProduct: {
     type: [String, Number, null],
     required: true
-  }, 
+  },
   isModal: {
     type: [Boolean]
   }
@@ -92,7 +92,7 @@ const editInit = async () => {
   await useApiFetch(`/api/products/${props.selectedProduct}`, {
     method: 'GET',
     onResponse({ response }) {
-      if(response.status === 200) {
+      if (response.status === 200) {
         loadingOverlay.value = false
         productExist.value = true
         for (const key in response._data.body) {
@@ -101,8 +101,8 @@ const editInit = async () => {
           }
         }
       }
-    }, 
-    onResponseError({}) {
+    },
+    onResponseError({ }) {
       productExist.value = false
     }
   })
@@ -253,7 +253,7 @@ const validate = (state: any): FormError[] => {
   return errors
 }
 const handleClose = async () => {
-  if(productsFormInstance?.vnode?.props.onClose) {
+  if (productsFormInstance?.vnode?.props.onClose) {
     emit('close')
   } else {
     router.go(-1)
@@ -368,29 +368,51 @@ const setProductFormData = (data) => {
   formData[selectedFormField.value] = data
 }
 
-if(props.selectedProduct !== null) 
+
+const items = [{
+  slot: 'generalSpecs',
+  label: 'General Specs',
+}, {
+  slot: 'readyRef',
+  label: 'Ready Ref',
+}, {
+  slot: 'paraTherm',
+  label: 'PARATherm',
+}, {
+  slot: 'cryoPress',
+  label: 'CRYOPress',
+}, {
+  slot: 'cryoTherm',
+  label: 'CRYOTherm',
+}, {
+  slot: 'duraLast',
+  label: 'DURALast',
+}]
+
+
+
+
+if (props.selectedProduct !== null)
   editInit()
-else 
+else
   propertiesInit()
 </script>
 
 <template>
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
   <template v-if="!props.isModal && !productExist">
-    <CommonNotFound
-      :name="'Product not found'"
-      :message="'The product you are looking for does not exist'"
-      :to="'/products/products/list'"
-    />
+    <CommonNotFound :name="'Product not found'" :message="'The product you are looking for does not exist'"
+      :to="'/products/products/list'" />
   </template>
+
+
+
+
+
+
   <template v-else>
     <div class="my-2">
         <div class="font-bold">

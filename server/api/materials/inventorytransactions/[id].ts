@@ -6,7 +6,7 @@ export default eventHandler(async (event) => {
     const id = event.context.params.id;
     const { ...filterParams } = getQuery(event);
 
-    switch(method.toUpperCase()){
+    switch (method.toUpperCase()) {
       case 'GET':
         const list = await getInventoryTransactionDetails(id, filterParams);
         return { body: list, message: '' }

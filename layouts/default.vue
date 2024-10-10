@@ -286,6 +286,31 @@ const helpItems = [
 
 const links = [
   {
+    id: "general",
+    label: "General",
+    icon: "i-heroicons-map-pin",
+    to: "/general",
+    defaultOpen: route.path.startsWith("/general"),
+    tooltip: {
+      text: "General",
+      shortcuts: ["G", "U"],
+    },
+    backgroundClass: "bg-green-800",
+    activeClass: "!text-white before:!bg-black/20",
+    children: [
+      {
+        label: "Map",
+        to: "/general/map",
+        exact: true,
+      },
+      {
+        label: "Bug Report",
+        to: "/general/bug/list",
+      },
+
+    ],
+  },
+  {
     id: "customers",
     label: "Customers",
     icon: "i-heroicons-user-group",
@@ -543,7 +568,7 @@ const links = [
       },
       {
         label: "Serials",
-        to: "/materials/serials",
+        to: "/materials/serials/list",
       },
       {
         label: "MRP",
@@ -775,7 +800,7 @@ const colors = computed(() =>
 
 const getUiConfig = (link) => {
   return {
-    wrapper: "relative !min-h-[auto] !min-w-[auto]",
+    wrapper: "relative !min-h-[auto] !min-w-[auto] border-b-[1px] border-white",
     container: link.backgroundClass,
     base: "group text-white relative flex items-center gap-1.5 px-2.5 py-1.5 w-full rounded-md font-medium text-sm focus:outline-none focus-visible:outline-none dark:focus-visible:outline-none focus-visible:before:ring-inset focus-visible:before:ring-2 focus-visible:before:ring-primary-500 dark:focus-visible:before:ring-primary-400 before:absolute before:inset-px before:rounded-md disabled:cursor-not-allowed disabled:opacity-75",
     active: link.activeClass,
@@ -816,340 +841,81 @@ onMounted(() => {
 </script>
 
 <template>
-  <UDashboardLayout>
+  <div class="bg-gms-gray-400" style="height:100vh;width:100vw;">
+    <UDashboardLayout style="max-width:1500px;background-color:#fff;margin-left:auto;margin-right:auto;">
 
-    <slot />
+      <slot />
 
-    <UDashboardPanel 
-      class="bg-gms-gray-400"
-      :width="250"
-      :resizable="{ min: 200, max: 300 }"
-      collapsible
-      
-    >
-      <UDashboardNavbar class="!border-transparent" :ui="{ left: 'flex-1' }">
-        <template #left>
-          <div class="w-full p-3 mt-5 flex justify-center items-center">
-            <img
-              src="../public/grimm_logo_menu_dropshadow_v2.png"
-              alt="Grimm Avatar"
-            />
-          </div>
-        </template>
-      </UDashboardNavbar>
+      <UDashboardPanel class="bg-gms-gray-400" :width="250" :resizable="{ min: 200, max: 300 }" collapsible>
+        <UDashboardNavbar class="!border-transparent" :ui="{ left: 'flex-1' }">
+          <template #left>
+            <div class="w-full p-3 mt-5 flex justify-center items-center">
+              <img src="../public/grimm_logo_menu_dropshadow_v2.png" alt="Grimm Avatar" />
+            </div>
+          </template>
+        </UDashboardNavbar>
 
-      <UDashboardSidebar
-        :ui="{
+        <UDashboardSidebar :ui="{
           body: 'flex-1 px-4 flex flex-col !gap-y-0 overflow-y-auto',
-        }"
-      >
-        <template #header>
-          <div class="text-center  mt-2 mb-2">
-          <UAvatar
-              src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAPFBMVEXk5ueutLepsLPo6uursbXJzc/p6+zj5ea2u76orrKvtbi0ubzZ3N3O0dPAxcfg4uPMz9HU19i8wcPDx8qKXtGiAAAFTElEQVR4nO2d3XqzIAyAhUD916L3f6+f1m7tVvtNINFg8x5tZ32fQAIoMcsEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQTghAJD1jWtnXJPP/54IgNzZQulSmxvTH6oYXX4WS+ivhTbqBa1r26cvCdCu6i0YXbdZ0o4A1rzV+5IcE3YE+z58T45lqo7g1Aa/JY5tgoqQF3qb382x7lNzBLcxft+O17QUYfQI4IIeklKsPSN4i6LKj/7Zm8n99RbHJpEw9gEBXNBpKIYLJqKYRwjOikf//r+J8ZsVuacbqCMNleI9TqGLGqMzhnVdBOdd6F/RlrFijiCoVMk320CBIahUxTWI0KKEcJqKbMdpdJb5QvdHq6wCI5qhKlgGMS/RBHkubWDAE+QZxB4xhCyDiDkLZxgGEVdQldzSKbTIhmZkFkSEPcVvmBn2SMuZB9od7fQDsMiDdKJjFUSCQarM5WirZ3C2TT/htYnyPcPfgrFHWz0BI74gr6J/IZiGUxAZGQLqmvQLTrtE/Go4YxhVRIpEw+sww1IIcqr5NKmUUzLF3d4/qPkYIp2T/obPuemlojFUR4t9Q2Vojhb7BmgElWHzLPH8hucfpefPNFTVgs9h1AdU/Pin96vwWbWdf+X9Absn3OdO34aMdsDnP8WgKYisTqI6CkNGqZQo1XA6Ef6AU32SJzOcBukHPF07/xNSgmHKa5BOhtezv6mA/rYJpwXNAnbRZ1XuF3BzDcO3vpA3+ny2909gbqE4hhD3LIPhLLyBNhPZvbZ3B+3tPYa18A7auSlXQayKwTPNLKDcuOB0xPYKDPFTkWsevQPRZ1J8Hji9I1KQ34r7hZhrwNwOZ97QxNx0drwn4QI0wQk1DcEsfKCWKdxVvxPSNUIp/knmAXT+nT+Ko3+0H96rcNb3m1fx7MBTJdeBJ7uFcWsc0wvgAsC4pROW0l2inbAmIBv/7GZmuhQH6API2rr8T0e6yuZJ+80A9LZeG62T3tik31XwxtwZcizKuTHkMjB1WdZde4Kmic/A5ZI3rr1ae21d08PlVHYfAaxw9G9CYRbJ+8ZdbTcMRV1XM3VdF0M32vtoTdZ0+u29s0OttJ5bz64UwinjaFMVY9vkqc3KKSxN21Xl+0L4Q3Vuv1tYl0pqnX6ms4XetFz7gdZVAgUEoJntfOUe4ZwsHd9FzqQ3Vv6xe41l0XJcqcKl6TZvlv7ClAW3BsqQW4X7ypApB8dmTgK4IX5wvqIVj33HtD2qSG4BqznxdIefL27Y4sahi0MdIdvUsDva8agGGbCtITmCY31MHD2O0uIdh/0rJDQ1VX5Zdxz3rR2QDbv6qXl9vudzqQtGm1Jv9LDXOsfvvB7VcZ8PDKD0mQ1VHPYQ9O+Yj4hR1IUD8rBnn3ho2m8oQMxbCFiKlL2ioSW5heeJqegED52CzxCtcGD3Kv8Wms9EYLyUhwaFIhSMBClevWEmiK/Iaogu4H7sg6ppQhQG8RUqivuTGOAJOg6FfgW0q0M0PQMRMEgXaeNf3SYDZ8PIMI0+wHgr/MgN7wYwpiLjCCqM6ydUDZLQiB6nDdNC8SDyig3jPPpFXGcC9O8BUBDVmgBY59E7Md/35Loe/UVEECEJwYggJjELZ4J71SaQSBeC02n4Da29CayJNA28SAhd2CQyC1Xw6pSmGSINQVuMhAZp4DClan9MgmkDDNmezqwS8sgtlXK/EPBhoaSmYVC/F7IO1jQEdHOlabpKh3+jzLQSTUiq4X2I+Ip/zU8rlaqAvkS21ElR+gqu3zbjjL+hIAiCIAiCIAiCIAiCsCf/AKrfVhSbvA+DAAAAAElFTkSuQmCC"
-              alt="Avatar"
-              size="3xl"
-            />
-          </div>
-          <div class="text-center text-white mb-1">
-            Logged in as Leith Stetson
-          </div>
-          <div class="text-center text-white mb-3 font-bold text-2xl">
-            {{ currentTime }}
-          </div>
-          <div class="text-center text-white mb-10">
-             <UButtonGroup>
-              <UButton label="Time Entry" icon="i-heroicons-plus"  color="green" />
-              <UButton label="Log Out" color="white" icon="i-heroicons-arrow-left-on-rectangle" @click="Logout" />
-             </UButtonGroup>
-          </div>
-          <UDashboardSearchButton />
-        </template>
+        }">
+          <template #header>
+            <div class="text-center  mt-2 mb-2">
+              <UAvatar
+                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAPFBMVEXk5ueutLepsLPo6uursbXJzc/p6+zj5ea2u76orrKvtbi0ubzZ3N3O0dPAxcfg4uPMz9HU19i8wcPDx8qKXtGiAAAFTElEQVR4nO2d3XqzIAyAhUD916L3f6+f1m7tVvtNINFg8x5tZ32fQAIoMcsEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQTghAJD1jWtnXJPP/54IgNzZQulSmxvTH6oYXX4WS+ivhTbqBa1r26cvCdCu6i0YXbdZ0o4A1rzV+5IcE3YE+z58T45lqo7g1Aa/JY5tgoqQF3qb382x7lNzBLcxft+O17QUYfQI4IIeklKsPSN4i6LKj/7Zm8n99RbHJpEw9gEBXNBpKIYLJqKYRwjOikf//r+J8ZsVuacbqCMNleI9TqGLGqMzhnVdBOdd6F/RlrFijiCoVMk320CBIahUxTWI0KKEcJqKbMdpdJb5QvdHq6wCI5qhKlgGMS/RBHkubWDAE+QZxB4xhCyDiDkLZxgGEVdQldzSKbTIhmZkFkSEPcVvmBn2SMuZB9od7fQDsMiDdKJjFUSCQarM5WirZ3C2TT/htYnyPcPfgrFHWz0BI74gr6J/IZiGUxAZGQLqmvQLTrtE/Go4YxhVRIpEw+sww1IIcqr5NKmUUzLF3d4/qPkYIp2T/obPuemlojFUR4t9Q2Vojhb7BmgElWHzLPH8hucfpefPNFTVgs9h1AdU/Pin96vwWbWdf+X9Absn3OdO34aMdsDnP8WgKYisTqI6CkNGqZQo1XA6Ef6AU32SJzOcBukHPF07/xNSgmHKa5BOhtezv6mA/rYJpwXNAnbRZ1XuF3BzDcO3vpA3+ny2909gbqE4hhD3LIPhLLyBNhPZvbZ3B+3tPYa18A7auSlXQayKwTPNLKDcuOB0xPYKDPFTkWsevQPRZ1J8Hji9I1KQ34r7hZhrwNwOZ97QxNx0drwn4QI0wQk1DcEsfKCWKdxVvxPSNUIp/knmAXT+nT+Ko3+0H96rcNb3m1fx7MBTJdeBJ7uFcWsc0wvgAsC4pROW0l2inbAmIBv/7GZmuhQH6API2rr8T0e6yuZJ+80A9LZeG62T3tik31XwxtwZcizKuTHkMjB1WdZde4Kmic/A5ZI3rr1ae21d08PlVHYfAaxw9G9CYRbJ+8ZdbTcMRV1XM3VdF0M32vtoTdZ0+u29s0OttJ5bz64UwinjaFMVY9vkqc3KKSxN21Xl+0L4Q3Vuv1tYl0pqnX6ms4XetFz7gdZVAgUEoJntfOUe4ZwsHd9FzqQ3Vv6xe41l0XJcqcKl6TZvlv7ClAW3BsqQW4X7ypApB8dmTgK4IX5wvqIVj33HtD2qSG4BqznxdIefL27Y4sahi0MdIdvUsDva8agGGbCtITmCY31MHD2O0uIdh/0rJDQ1VX5Zdxz3rR2QDbv6qXl9vudzqQtGm1Jv9LDXOsfvvB7VcZ8PDKD0mQ1VHPYQ9O+Yj4hR1IUD8rBnn3ho2m8oQMxbCFiKlL2ioSW5heeJqegED52CzxCtcGD3Kv8Wms9EYLyUhwaFIhSMBClevWEmiK/Iaogu4H7sg6ppQhQG8RUqivuTGOAJOg6FfgW0q0M0PQMRMEgXaeNf3SYDZ8PIMI0+wHgr/MgN7wYwpiLjCCqM6ydUDZLQiB6nDdNC8SDyig3jPPpFXGcC9O8BUBDVmgBY59E7Md/35Loe/UVEECEJwYggJjELZ4J71SaQSBeC02n4Da29CayJNA28SAhd2CQyC1Xw6pSmGSINQVuMhAZp4DClan9MgmkDDNmezqwS8sgtlXK/EPBhoaSmYVC/F7IO1jQEdHOlabpKh3+jzLQSTUiq4X2I+Ip/zU8rlaqAvkS21ElR+gqu3zbjjL+hIAiCIAiCIAiCIAiCsCf/AKrfVhSbvA+DAAAAAElFTkSuQmCC"
+                alt="Avatar" size="3xl" />
+            </div>
+            <div class="text-center text-white mb-1">
+              Logged in as Leith Stetson
+            </div>
+            <div class="text-center text-white mb-3 font-bold text-2xl">
+              {{ currentTime }}
+            </div>
+            <div class="text-center text-white mb-10">
+              <UButtonGroup>
+                <UButton label="Time Entry" icon="i-heroicons-plus" color="green" />
+                <UButton label="Log Out" color="white" icon="i-heroicons-arrow-left-on-rectangle" @click="Logout" />
+              </UButtonGroup>
+            </div>
+            <UDashboardSearchButton />
+          </template>
 
-        <UDashboardSidebarLinks
-          v-for="link in links"
-          :key="link.id"
-          :links="[link]"
-          :ui="getUiConfig(link)"
-        />
+          <UDashboardSidebarLinks v-for="link in links" :key="link.id" :links="[link]" :ui="getUiConfig(link)" />
 
 
-        <!-- <UDashboardSidebarLinks
+          <!-- <UDashboardSidebarLinks
           :links="[{ label: 'Colors', draggable: true, children: colors }]"
           @update:links="colors => defaultColors = colors"
         /> -->
 
-        <div class="flex-1" />
+          <!-- <div class="flex-1" /> -->
 
-        <!-- <UDashboardSidebarLinks :links="footerLinks" /> -->
+          <!-- <UDashboardSidebarLinks :links="footerLinks" /> -->
 
-        <UDivider class="white-divider" />
 
-        <template #footer>
-          <!-- ~/components/UserDropdown.vue -->
-          <CommonUserDropdown />
-        </template>
 
-                
-      </UDashboardSidebar>
-    </UDashboardPanel>
-    <div class="hidden bg-{slate}-50 hover:bg-{color}-100 dark:bg-{color}-800"></div>
-    
+          <template #footer>
 
-    <ClientOnly>
-      <LazyUDashboardSearch :groups="groups" />
-    </ClientOnly>
-  </UDashboardLayout>
-  <UDashboardModal
-    title="Time Entry"
-    :ui="{
-      width: 'w-[1800px] sm:max-w-9xl',
-      body: { padding: 'py-0 sm:pt-0' },
-    }"
-  >
-    <ServiceReportDetail
-      :selected-complaint="null"
-    />
+            <!-- ~/components/UserDropdown.vue -->
+            <CommonUserDropdown class="border-t-[1px] border-white py-1 mt-[-8px]" />
+          </template>
+
+
+        </UDashboardSidebar>
+      </UDashboardPanel>
+      <div class="hidden bg-slate-50 hover:bg-{color}-100 dark:bg-{color}-800"></div>
+
+      <ClientOnly>
+        <LazyUDashboardSearch :groups="groups" />
+      </ClientOnly>
+
+    </UDashboardLayout>
+  </div>
+
+  <UDashboardModal title="Time Entry" :ui="{
+    width: 'w-[1800px] sm:max-w-9xl',
+    body: { padding: 'py-0 sm:pt-0' },
+  }">
+    <ServiceReportDetail :selected-complaint="null" />
   </UDashboardModal>
-  
+
 </template>
-
-<style scoped>
-#customers {
-  background-color: #000 !important;
-}
-/* Scoped CSS for component-specific styling */
-.white-divider div {
-  border-color: #fff !important;
-}
-
-.header-text-white div {
-  color: #fff !important;
-  font-size: 24px !important;
-}
-
-/* Navbar Style */
-
-/* #headlessui-disclosure-button-nQ5bhjxrh1P_114, #headlessui-disclosure-button-nQ5bhjxrh1P-5  {
-    background-color: #9b4b99!important;
-}
-
-#headlessui-disclosure-button-nQ5bhjxrh1P_114 button:hover::before, #headlessui-disclosure-button-nQ5bhjxrh1P-5 button:hover::before  {
-    background-color: #b95db7!important;
-}
-
-#headlessui-disclosure-button-nQ5bhjxrh1P_114 button, #headlessui-disclosure-button-nQ5bhjxrh1P-5 button, #headlessui-disclosure-button-nQ5bhjxrh1P_114 button span, #headlessui-disclosure-button-nQ5bhjxrh1P-5 button span {
-color:#fff!important;
-} */
-
-/* MENU STYLES */
-.menuPurple {
-  background-color: #9b4b99 !important;
-  border-bottom: 1px solid #fff;
-}
-
-.menuPurple button:hover::before,
-.menuPurple a:hover::before,
-.menuPurple a:hover::after {
-  background-color: #b95db7 !important;
-}
-
-.menuPurple button,
-.menuPurple button span,
-.menuPurple a,
-.menuPurple a span {
-  color: #fff !important;
-}
-
-.menuPurple ul li span.bg-gray-400,
-.menuPurple ul li span.bg-gray-900,
-.menuPurple ul li span.bg-gray-200::before,
-.menuPurple ul li span.bg-gray-400::after {
-  background-color: #fff !important;
-}
-
-/* --- */
-
-.menuTeal {
-  background-color: #15889c !important;
-  border-bottom: 1px solid #fff;
-}
-
-.menuTeal button:hover::before,
-.menuTeal a:hover::before,
-.menuTeal a.text-gray-900::before {
-  background-color: #1da1b8 !important;
-}
-
-.menuTeal button,
-.menuTeal button span,
-.menuTeal a,
-.menuTeal a span {
-  color: #fff !important;
-}
-
-.menuTeal ul li span.bg-gray-400,
-.menuTeal ul li span.bg-gray-900,
-.menuTeal ul li span.bg-gray-200::before,
-.menuTeal ul li span.bg-gray-400::after {
-  background-color: #fff !important;
-}
-
-/* --- */
-
-.menuBlue {
-  background-color: #0d4c8b !important;
-  border-bottom: 1px solid #fff;
-}
-
-.menuBlue button:hover::before,
-.menuBlue a:hover::before,
-.menuBlue a.text-gray-900::before {
-  background-color: #1361ae !important;
-}
-
-.menuBlue button,
-.menuBlue button span,
-.menuBlue a,
-.menuBlue a span {
-  color: #fff !important;
-}
-
-.menuBlue ul li span.bg-gray-400,
-.menuBlue ul li span.bg-gray-900,
-.menuBlue ul li span.bg-gray-200::before,
-.menuBlue ul li span.bg-gray-400::after {
-  background-color: #fff !important;
-}
-
-/* --- */
-
-.menuRed {
-  background-color: #bf5163 !important;
-  border-bottom: 1px solid #fff;
-}
-
-.menuRed button:hover::before,
-.menuRed a:hover::before,
-.menuRed a.text-gray-900::before {
-  background-color: #ec6279 !important;
-}
-
-.menuRed button,
-.menuRed button span,
-.menuRed a,
-.menuRed a span {
-  color: #fff !important;
-}
-
-.menuRed ul li span.bg-gray-400,
-.menuRed ul li span.bg-gray-900,
-.menuRed ul li span.bg-gray-200::before,
-.menuRed ul li span.bg-gray-400::after {
-  background-color: #fff !important;
-}
-
-/* --- */
-
-.menuGray {
-  background-color: #666 !important;
-  border-bottom: 1px solid #fff;
-}
-
-.menuGray button:hover::before,
-.menuGray a:hover::before,
-.menuGray a.text-gray-900::before {
-  background-color: #777 !important;
-}
-
-.menuGray button,
-.menuGray button span,
-.menuGray a,
-.menuGray a span {
-  color: #fff !important;
-}
-
-.menuGray ul li span.bg-gray-400,
-.menuGray ul li span.bg-gray-900,
-.menuGray ul li span.bg-gray-200::before,
-.menuGray ul li span.bg-gray-400::after {
-  background-color: #fff !important;
-}
-
-/* --- */
-
-/* Header Styles */
-
-.gmsPurpleTitlebar h2,
-.gmsTealTitlebar h2,
-.gmsBlueTitlebar h2,
-.gmsRedTitlebar h2 {
-  color: #000;
-  font-size: 16px;
-}
-
-.gmsPurpleHeader {
-  background-color: #9b4b99;
-}
-
-.gmsPurpleHeader h1 {
-  color: #fff !important;
-  font-size: 19px;
-}
-
-.gmsPurpleTitlebar {
-  background-color: #bb8abc;
-}
-
-/* --- */
-
-.gmsTealHeader {
-  background-color: #15889c;
-}
-
-.gmsTealHeader h1 {
-  color: #fff !important;
-  font-size: 19px;
-}
-
-.gmsTealTitlebar {
-  background-color: #91bdca;
-}
-
-/* --- */
-
-.gmsBlueHeader {
-  background-color: #0d4c8b;
-}
-
-.gmsBlueHeader h1 {
-  color: #fff !important;
-  font-size: 19px;
-}
-
-.gmsBlueTitlebar {
-  background-color: #7491bd;
-}
-
-/* --- */
-
-.gmsRedHeader {
-  background-color: #bf5163;
-}
-
-.gmsRedHeader h1 {
-  color: #fff !important;
-  font-size: 19px;
-}
-
-.gmsRedTitlebar {
-  background-color: #bf5163;
-}
-
-/* --- */
-
-/* Button Styles */
-button {
-  transition: all 0.1s;
-}
-</style>
