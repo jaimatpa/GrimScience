@@ -18,11 +18,13 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 const route = useRoute();
 const toast = useToast();
 const loadingOverlay = ref(false);
+const loadingDeleteButton = ref(false)
 const isOpen = ref(true)
 const isReleased = ref(false)
 const selected = ref([])
 const startDate = ref(new Date('2019-10-12'));
 const endDate = ref(new Date());
+const deleteJob = ref(null)
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -162,6 +164,7 @@ const modalMeta = ref({
   modalTitle: "New Job",
   modalDescription: "Add New Job",
   isPositionModalOpen: false,
+  isDeleteModalOpen: false,
 });
 
 const filterValues = ref({
@@ -362,21 +365,32 @@ const onDblClick = async () => {
 };
 
 const onDelete = async (row: any) => {
-  await useApiFetch(`/api/jobs/${row?.UniqueID}`, {
-    method: "DELETE",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        toast.add({
-          title: "Success",
-          description: response._data.message,
-          icon: "i-heroicons-trash-solid",
-          color: "green",
-        });
-        fetchGridData();
-      }
-    },
-  });
+  deleteJob.value = row?.UniqueID
+  modalMeta.value.isDeleteModalOpen = true
 };
+
+const handleDeleteClick = async () => {
+  if(deleteJob.value != null){
+    loadingDeleteButton.value = true
+    await useApiFetch(`/api/jobs/${deleteJob.value}`, {
+      method: "DELETE",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-trash-solid",
+            color: "green",
+          });
+          fetchGridData();
+        }
+      },
+    });
+    loadingDeleteButton.value = false
+    modalMeta.value.isDeleteModalOpen = false
+    deleteJob.value = null
+  }
+}
 
 const handleBulkClose = async () => {
   loadingOverlay.value = true
@@ -669,5 +683,37 @@ const onUpdatePercentage = async () => {
       @save="handleModalSave"
       :selected-job="gridMeta.selectedJobId"
     />
+  </UDashboardModal>
+
+  <!-- Delete Confirmation Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isDeleteModalOpen"
+    title="Delete operation"
+    description="Are you ABSOLUTELY sure you wish to delete this job?"
+    icon="i-heroicons-exclamation-circle"
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+      footer: {
+        base: 'ml-16'
+      } as any
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="red"
+        label="Delete"
+        :loading="loadingDeleteButton"
+        @click="handleDeleteClick"
+      />
+      <UButton
+        color="white"
+        label="Cancel"
+        @click="modalMeta.isDeleteModalOpen = false"
+      />
+    </template>
   </UDashboardModal>
 </template>
