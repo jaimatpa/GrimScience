@@ -1,11 +1,11 @@
-import { getAllCategoryList } from '~/server/controller/maintenance/equipment';
+import { getAllTypeList } from '~/server/controller/maintenance/equipment';
 
 export default eventHandler(async (event) => {
   try {
     const { method } = event.node.req;  
     switch (method.toUpperCase()) {
       case 'GET':
-        const list = await getAllCategoryList();
+        const list = await getAllTypeList();
         return list 
       default:
         setResponseStatus(event, 405);

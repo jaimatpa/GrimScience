@@ -1,5 +1,5 @@
 import { Op, QueryTypes, Sequelize } from "sequelize";
-import { tblCustomers, tblBP,tblMaintainenceOrders,tblWorkStation, tblECO } from "~/server/models";
+import { tblCustomers, tblBP,tblMaintainenceOrders,tblWorkStation,tblMaintainenceReports, } from "~/server/models";
 import { tblEmployee } from "~/server/models";
 import sequelize from "~/server/utils/databse";
 
@@ -41,7 +41,7 @@ export const getEquipmentTableData= async (
     where: {
       ...whereClause,
     },
-    order: [[(sortBy as string) || "MANO", (sortOrder as string) || "ASC"]],
+    order: [[(sortBy as string) || "MANO", (sortOrder as string) || "DESC"]],
     offset,
     limit,
     raw: true,
@@ -108,7 +108,6 @@ export const getAllEquipmentList = async () => {
     });
 
     const categories = reasons.map(item => item.PART);
-    console.log("Extracted Categories:", categories);
     return categories.length ? categories : { error: "No reasons found" };
   } catch (error) {
     console.error("Database error:", error);
@@ -116,96 +115,23 @@ export const getAllEquipmentList = async () => {
   }
 };
 
+export const getAllTypeList = async () => {
+  try {
+    const reasons = await tblMaintainenceOrders.findAll({
+      attributes: [
+        [Sequelize.fn("DISTINCT", Sequelize.col("TYPE")), "TYPE"]
+      ],
+      order: [["TYPE", "ASC"]],
+      raw: true,
+    });
 
-// export const insertEquipmentData = async (body) => {
-//   const {
-//     uniqeId,
-//     category,
-//     subCategory,
-//     equipment,
-//     serialNo,
-//     type,
-//     location,
-//     responsible,
-//     dateInService,
-//     nextReqService,
-//   } = body;
-
-//   // Date formatting function
-//   const formatDate = (dateString) => {
-//     if (!dateString || dateString === "" || dateString === null) {
-//       return null;
-//     }
-//     const date = new Date(dateString);
-//     const year = date.getUTCFullYear();
-//     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-//     const day = String(date.getUTCDate()).padStart(2, '0');
-//     const hours = String(date.getUTCHours()).padStart(2, '0');
-//     const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-//     const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-
-//     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-//   };
-
-//   const finalData = {
-//     category,
-//     subCategory,
-//     equipment,
-//     SERIALID: serialNo,
-//     type,
-//     location,
-//     responsible,
-//     InserviceDate: formatDate(dateInService),
-//     nextReqService: formatDate(nextReqService),
-//   };
-
-//   try {
-//     // Check if the record with the given UniqueID already exists
-//     const existingRecord = await tblMaintainenceOrders.findOne({
-//       where: { UniqueID: uniqeId }, // Check only based on UniqueID
-//     });
-
-//     if (existingRecord) {
-//       // If record exists, update it
-//       await tblMaintainenceOrders.update(finalData, {
-//         where: { UniqueID: uniqeId },
-//       });
-//       console.log("Record updated with data:", finalData);
-
-//       return {
-//         success: true,
-//         message: "Record updated successfully",
-//         data: finalData,
-//       };
-//     } else {
-//       // If no record exists, create a new one
-//       const result = await sequelize.query(
-//         `SELECT COALESCE(MAX(UniqueID), 0) + 1 AS maxUniqueID FROM tblMaintainenceOrders`,
-//         {
-//           type: sequelize.QueryTypes.SELECT,
-//         }
-//       );
-//       const maxUniqueID = result[0] ? result[0].maxUniqueID : 1;
-//       finalData.UniqueID = maxUniqueID; // Assign new UniqueID
-
-//       const newRecord = await tblMaintainenceOrders.create(finalData);
-//       console.log("New record created with data:", finalData);
-
-//       return {
-//         success: true,
-//         message: "Record created successfully",
-//         data: newRecord,
-//       };
-//     }
-//   } catch (error) {
-//     console.error("Error in insertEquipmentData:", error);
-//     return {
-//       success: false,
-//       message: "Error processing request",
-//       error: error.message,
-//     };
-//   }
-// };
+    const categories = reasons.map(item => item.TYPE);
+    return categories.length ? categories : { error: "No reasons found" };
+  } catch (error) {
+    console.error("Database error:", error);
+    return { error: error.message || "Failed to fetch reasons for change" }; 
+  }
+};
 
 export const insertEquipmentData = async (body) => { 
 
@@ -222,14 +148,12 @@ export const insertEquipmentData = async (body) => {
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const day = String(date.getUTCDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`; // Return only date part
+    return `${year}-${month}-${day}`; 
   };
-
-  // Create a new object for the final data
   const finalData = {
     ...body,
-    DATE: formatDate(body.DATE) || body.DATE, // Use formatted date or retain original
-    REQUIRED: formatDate(body.REQUIRED) || body.REQUIRED, // Use formatted date or retain original
+    DATE: formatDate(body.DATE) || body.DATE, 
+    REQUIRED: formatDate(body.REQUIRED) || body.REQUIRED, 
   };
 
   try {
@@ -237,12 +161,10 @@ export const insertEquipmentData = async (body) => {
     const result = await sequelize.query(`SELECT COALESCE(MAX(MANO), 0) + 1 AS maxNumber FROM tblMaintainenceOrders`, {
       type: sequelize.QueryTypes.SELECT,
     });
-    finalData.MANO = result[0] ? result[0].maxNumber : 1; // Assign the calculated max number
+    finalData.MANO = result[0] ? result[0].maxNumber : 1;
 
     // Construct insert query
     const query = `INSERT INTO tblMaintainenceOrders (${Object.keys(finalData).join(', ')}) VALUES (${Object.keys(finalData).map(key => `:${key}`).join(', ')})`;
-
-    // Execute the query
     await sequelize.query(query, {
       replacements: finalData,
     });
@@ -261,6 +183,64 @@ export const insertEquipmentData = async (body) => {
     };
   }
 };
+
+
+// ok code
+export const deleteEquipmentData = (id) => {
+  if (!id) {
+    throw new Error("ID is required for deletion.");
+  }
+  
+  return sequelize.query(`DELETE FROM tblMaintainenceOrders WHERE UniqueID = :id`, {
+    replacements: { id }, 
+  });
+};
+
+// ok code
+export const removeReportTableData = (id) => {
+  if (!id) {
+    throw new Error("ID is required for deletion.");
+  }
+  
+  return sequelize.query(`DELETE FROM tblMaintainenceReports WHERE No = :id`, {
+    replacements: { id }, 
+  });
+};
+
+
+
+
+
+
+export const getAllMatchReportData = async (orderId, query) => {
+  try {
+    
+    const orderIdInt = parseInt(orderId, 10); 
+
+    if (isNaN(orderIdInt)) {
+      throw new Error('Invalid OrderID: must be a valid number');
+    }
+
+    const reports = await tblMaintainenceReports.findAll({
+      where: {
+        OrderID: orderIdInt // Use the converted integer value
+      },
+      attributes: ['uniqueid', 'No', 'date', 'by'],
+      order: [['No', 'DESC']]
+    });
+    return reports;
+  } catch (error) {
+    throw new Error(`Error fetching reports: ${error.message}`);
+  }
+};
+
+
+
+
+
+
+
+
 
 
 

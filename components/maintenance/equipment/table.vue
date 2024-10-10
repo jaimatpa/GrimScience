@@ -28,17 +28,13 @@ watchEffect(() => {
   }
 });
 
-const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
-const descIcon = "i-heroicons-bars-arrow-down-20-solid";
-const noneIcon = "i-heroicons-arrows-up-down-20-solid";
-
 const headerFilters = ref({
-  productLines: {
-    label: "Product Line",
-    filter: "PRODUCT",
-    api: "/api/materials/productlines",
-    options: [],
-  },
+  // productLines: {
+  //   label: "Product Line",
+  //   filter: "PRODUCT",
+  //   api: "/api/materials/productlines",
+  //   options: [],
+  // },
   categoryList: {
     
     filter: "PRODUCT",
@@ -109,7 +105,7 @@ const gridMeta = ref({
   selectedCompaintNumber: null,
   selectedSerialNumber: null,
   sort: {
-    column: "MANO",
+    column:"MANO",
     direction: "desc",
   },
   isLoading: false,
@@ -224,10 +220,9 @@ const fetchCategoryData = async () => {
   try {
     const {data }= await useFetch("/api/maintenance/equipment/getAllCategory");
     if (data._rawValue) {
-      // Assuming `data.value.body` is an array of categories (strings or objects)
       headerFilters.value.categoryList.options = data._rawValue.map((category) => ({
-        label: category || 'Unnamed', // If category is a string
-        value: category, // If category is a string
+        label: category || 'Unnamed',
+        value: category, 
       }));
   
     } else {
@@ -242,10 +237,9 @@ const fetchSubCategoryData = async () => {
   try {
     const {data }= await useFetch("/api/maintenance/equipment/getAllSubCategory");
     if (data._rawValue) {
-      // Assuming `data.value.body` is an array of categories (strings or objects)
       headerFilters.value.subCategoryList.options = data._rawValue.map((category) => ({
-        label: category || 'Unnamed', // If category is a string
-        value: category, // If category is a string
+        label: category || 'Unnamed',
+        value: category, 
       }));
   
     } else {
@@ -363,7 +357,7 @@ const onDblClick = () => {
           </div>
         </template>
       </UDashboardToolbar>
-      <!-- :rows="gridMeta.orders" -->
+
       <UTable
         :rows="gridMeta.orders"
         :columns="columns"
@@ -387,9 +381,7 @@ const onDblClick = () => {
         @dblclick="onDblClick"
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-          <!-- Unique ID column with no extra gap -->
          
-
           <!-- Dropdown for CATAGORY without search -->
           <template v-if="column.key === 'CATAGORY'">
             <div>
