@@ -16,6 +16,13 @@ const formatDateForSQLServer = (date) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
 
+const formatDate = (date) => {
+  const today = new Date(date);
+  return String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
+  String(today.getDate()).padStart(2, '0') + '/' + 
+  today.getFullYear();
+}
+
 export const stepExistByID = async (id) => {
   const tableDetail = await tblSteps.findByPk(id);
   if (tableDetail)
@@ -174,7 +181,7 @@ if(deleteFiles.length > 0){
   const today = new Date();
   const planData = {
     PreparedBy: username, // Replace with the actual employee name
-    PreparedDate: formatDateForSQLServer(today),
+    PreparedDate: formatDate(today),
     ApprovedBy: "",
     ApprovedDate: ""
   };
@@ -238,7 +245,7 @@ export const deleteStep = async (id, employeeName) => {
   // Update fields in the plan record
   const today = new Date()
   planRecord.PreparedBy = employeeName;  // gStrEmployee in VB.NET
-  planRecord.PreparedDate = formatDateForSQLServer(today)  // Format as short date
+  planRecord.PreparedDate = formatDate(today)  // Format as short date
   planRecord.ApprovedBy = "";
   planRecord.ApprovedDate = "";
 

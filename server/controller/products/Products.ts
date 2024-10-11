@@ -24,6 +24,13 @@ const applyFilters = (params) => {
   return whereClause;
 };
 
+const formatDate = (date) => {
+  const today = new Date(date);
+  return String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
+  String(today.getDate()).padStart(2, '0') + '/' + 
+  today.getFullYear();
+}
+
 const formatDateForSQLServer = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -95,6 +102,7 @@ export const getRevisions = async (id) => {
   })
   revisions.forEach(revision => {
     revision.dataValues.VariablePricing = revision.dataValues.VariablePricing == "1" ? true : false;
+    revision.dataValues.TODAY = revision.dataValues.TODAY ? formatDate(new Date(revision.dataValues.TODAY)) : revision.dataValues.TODAY
   })
   return revisions
 }
@@ -116,7 +124,6 @@ export const createProduct = async (data,files) => {
   const createReqData = {
     ...data,
     CODE: "Initial",
-    TODAY: formatDateForSQLServer(today),
   };
   const newProduct = await tblBP.create(createReqData);
   let SPECSHEET = null
@@ -128,12 +135,20 @@ export const createProduct = async (data,files) => {
     )
     SPECSHEET = '/ProductSpecFiles/'+newProduct.dataValues.UniqueID+'_'+file.name
   }
-  let updatedNewProduct = {
-    SPECSHEET,
-    instanceID: newProduct.dataValues.UniqueID
-  };
-  const newUpdatedProduct = await tblBP.update(updatedNewProduct, {
-    where: { UniqueID: newProduct.dataValues.UniqueID }
+
+
+  const newUpdatedProduct = await sequelize.query( `
+    UPDATE tblBP 
+    SET TODAY = :today ,
+    instanceID = :instanceID, 
+    SPECSHEET = :specsheet 
+    WHERE UniqueID = :uniqueID
+  `, {
+    replacements: { 
+      today: formatDateForSQLServer(today), 
+      instanceID: newProduct.dataValues.UniqueID,
+      specsheet: SPECSHEET, 
+      uniqueID: data.UniqueID }
   });
   
   return newUpdatedProduct;
@@ -152,21 +167,32 @@ export const updateProduct = async (data,files) => {
   }
   let updatedReqData = {
     ...data,
-    TODAY: formatDateForSQLServer(today),
+    TODAY: null ,
     instanceID: data.instanceID,
     SPECSHEET: SPECSHEET
   };
+
   await tblBP.update(updatedReqData, {
-    where: { UniqueID: data.UniqueID }
+      where: { UniqueID: data.UniqueID }
   });
+
+  await sequelize.query(`
+    UPDATE tblBP 
+    SET TODAY = :today 
+    WHERE UniqueID = :uniqueID
+  `, {
+    replacements: { today: formatDateForSQLServer(today), uniqueID: data.UniqueID }
+  });
+
   return data.UniqueID;
 }
 
 export const revisionProduct = async (data, files) => {
-  data.UniqueID = null
+  
   const tableDetail = await tblBP.findByPk(data.UniqueID);
+  data.UniqueID = null
   const today = new Date(); 
-
+  
   let SPECSHEET = data.SPECSHEET
   for ( const file of files ) {
     await storeFileLocally(
@@ -179,11 +205,18 @@ export const revisionProduct = async (data, files) => {
   let updatedReqData = {
     ...data,
     CODE: "Revision",
-    TODAY: formatDateForSQLServer(today),
+    TODAY: null,
     instanceID: tableDetail.dataValues.instanceID,
     SPECSHEET: SPECSHEET
   };
-  await tblBP.create(updatedReqData);
+  const newProduct = await tblBP.create(updatedReqData);
+  await sequelize.query(`
+    UPDATE tblBP 
+    SET TODAY = :today 
+    WHERE UniqueID = :uniqueID
+  `, {
+    replacements: { today: formatDateForSQLServer(today), uniqueID: newProduct.dataValues.UniqueID }
+  });
   return data.UniqueID;
 }
 
@@ -194,17 +227,25 @@ export const deleteProduct = async (id) => {
 
 
 export const inactiveProduct = async (id, reqData) => {
-  reqData.UniqueID = null
+  
   const tableDetail = await tblBP.findByPk(id);
+  reqData.UniqueID = null
   const today = new Date(); 
   let updatedReqData = {
     ...reqData,
     CODE: "Inactive",
-    TODAY: formatDateForSQLServer(today),
+    TODAY: null,
     instanceID: tableDetail.dataValues.instanceID
   };
 
-  await tblBP.create(updatedReqData);
+  const newProduct = await tblBP.create(updatedReqData);
+  await sequelize.query(`
+    UPDATE tblBP 
+    SET TODAY = :today 
+    WHERE UniqueID = :uniqueID
+  `, {
+    replacements: { today: formatDateForSQLServer(today), uniqueID: newProduct.dataValues.UniqueID }
+  });
   return id;
   
 }
@@ -218,11 +259,21 @@ export const bulkInactiveProduct = async (data) => {
     let updatedReqData = {
       ...tableDetail.dataValues,
       CODE: "Inactive",
-      TODAY: formatDateForSQLServer(today),
+      TODAY: null,
       instanceID: tableDetail.dataValues.instanceID,
     };
 
     await tblBP.create(updatedReqData);
+
+    const newProduct = await tblBP.create(updatedReqData);
+    await sequelize.query(`
+      UPDATE tblBP 
+      SET TODAY = :today 
+      WHERE UniqueID = :uniqueID
+    `, {
+      replacements: { today: formatDateForSQLServer(today), uniqueID: newProduct.dataValues.UniqueID }
+    });
+    
   });
 
   // Wait for all promises to resolve

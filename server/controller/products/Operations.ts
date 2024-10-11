@@ -252,7 +252,7 @@ export const editProductOperation = async (data,id) => {
     skills: strSkills,
     Number: parseInt(Number),
     PreparedBy: username,
-    PreparedDate: formatDateForSQLServer(today),
+    PreparedDate: formatDate(today),
     ApprovedBy: '',
     ApprovedDate: '',
 

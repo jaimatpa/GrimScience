@@ -4,13 +4,12 @@ import { format } from "date-fns";
 import { ref } from "vue";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
-import workCenter from "~/server/api/employees/workCenter";
 import type { UTableColumn } from "~/types";
 import PurchaseDetails from "../vendors/PurchaseDetails.vue";
 import InventoryTransactions from "../transactions/InventoryTransactions.vue";
 import ProductsForm from "~/components/products/ProductsForm.vue";
 
-const emit = defineEmits(["close", "save"]);
+const emit = defineEmits(["close", "save", "productFormData"]);
 const props = defineProps({
   selectedParts: {
     type: [String, Number, null],
@@ -27,6 +26,10 @@ const props = defineProps({
     type: [String, Number, null],
     required: true,
   },
+  fromProductForm: {
+    type: [Boolean, null]
+  }
+
 });
 
 const selectedPartsID = ref();
@@ -771,6 +774,11 @@ const optionOnhandITD = () => {
   }
 };
 
+const selectPartForProductForm = (model) => {
+  emit('productFormData', model);
+  emit('close');
+}
+
 const modalMeta = ref({
   isProductsModalOpen: false,
   isWorkCenterModalOpen: false,
@@ -1481,7 +1489,15 @@ watch(
                 />
               </div>
             </div>
-            <div class="flex justify-center">
+            <div class="flex justify-center gap-5">
+              <UButton
+                v-if="props.fromProductForm"
+                icon="i-heroicons-cursor-arrow-ripple"
+                variant="outline"
+                color="green"
+                label="Select"
+                @click="selectPartForProductForm(formData.MODEL)"
+              />
               <UButton
                 color="cyan"
                 variant="outline"

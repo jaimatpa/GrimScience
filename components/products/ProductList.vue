@@ -328,7 +328,7 @@ const onSelect = async (row) => {
     onResponse({ response }) {
       if(response.status === 200) {
         if(response._data.body.length > 0) {
-          revisions.value = response._data.body;
+          revisions.value = response._data.body
         }
       }
     }, 
