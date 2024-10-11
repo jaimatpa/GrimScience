@@ -269,6 +269,7 @@ const handleFileUpload = (event) => {
 const onSubmit = async (event: FormSubmitEvent<any>) => {
 
   if(props.selectedProduct === null) { // Create Product
+    loadingOverlay.value = true
     await useApiFetch('/api/products', {
       method: 'POST',
       body:{
@@ -286,8 +287,10 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       }
     })
+    loadingOverlay.value = false
   } else { // Update Product
     if(actionType.value === "revision") {
+      loadingOverlay.value = true
       await useApiFetch(`/api/products/revisions/${props.selectedProduct}`, {
         method: 'PUT',
         body: {
@@ -305,7 +308,9 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
           }
         }
       })
+      loadingOverlay.value = false
     } else if(actionType.value === "inactive") {
+      loadingOverlay.value = true
       await useApiFetch('/api/products/inactive/'+ props.selectedProduct, {
         method: 'PUT',
         body: event.data, 
@@ -320,7 +325,9 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
           }
         }
       })
+      loadingOverlay.value = false
     } else if(actionType.value === "createOrModify") {
+      loadingOverlay.value = true
       await useApiFetch(`/api/products/${props.selectedProduct}`, {
         method: 'PUT',
         body: {
@@ -338,10 +345,11 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
           }
         }
       })
+      loadingOverlay.value = false
     }
     
   }
-  // emit('save')
+  emit('save')
 }
 
 const modalMeta = ref({
