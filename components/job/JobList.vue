@@ -5,7 +5,11 @@ import type { UTableColumn } from "~/types";
 useSeoMeta({
   title: "Grimm-Employees Organization",
 });
-
+const props = defineProps({
+  isPage: {
+    type: [Boolean, null],
+  },
+});
 onMounted(() => {
   init();
 });
