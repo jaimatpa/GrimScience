@@ -128,12 +128,12 @@ const editInit = async () => {
         console.log(response._data.body)
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
-            // formData[key] = response._data.body[key];
-            if (key === "Cost") {
-              formData[key] = `$${response._data.body[key]}`;
-            } else {
-              formData[key] = response._data.body[key];
-            }
+            formData[key] = response._data.body[key];
+            // if (key === "Cost") {
+            //   formData[key] = `$${response._data.body[key]}`;
+            // } else {
+            //   formData[key] = response._data.body[key];
+            // }
             instanceID.value = response._data.body["InstanceID"]
           }
         }
@@ -595,7 +595,32 @@ const handleClearCick = () => {
       formData[key] = null;
     }
   });
+
 };
+
+const handleRefreshJobCost = async () => {
+  modalMeta.value.isRefreshJobCostClosedConfirmationModalOpen = false
+  loadingOverlay.value = true
+  await useApiFetch(`/api/jobs/refreshJobsCosts/`, {
+    method: "GET",
+    params: { jobId: props.selectedJob, latestUnitCost:  unitCost.value },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        formData.Cost = response._data.body
+      }
+    },
+  });
+  loadingOverlay.value = false
+}
+
+const openRefreshJobCostConfirmationModal = async () => {
+  modalMeta.value.isRefreshJobCostConfirmationModalOpen = false
+  if (!formData.DATECLOSED || formData.DATECLOSED === ""){
+    await handleRefreshJobCost()
+  }else{
+    modalMeta.value.isRefreshJobCostClosedConfirmationModalOpen = true
+  }
+}
 
 const handleProdOperationSelect = async (row) => {
   prodOperationGridMeta.value.selectedOperation = { ...row, class: "" };
@@ -972,7 +997,9 @@ const modalMeta = ref({
   isFixSerialModalOpen: false,
   isRefreshOperationModalOpen: false,
   isVerifyAndCloseModalOpen: false,
-  isReopneOperationModalOpen: false
+  isReopneOperationModalOpen: false,
+  isRefreshJobCostConfirmationModalOpen: false,
+  isRefreshJobCostClosedConfirmationModalOpen: false,
 });
 
 const onDblClick = () => {
@@ -1473,7 +1500,7 @@ else propertiesInit();
               </UFormGroup>
             </div>
             <div class="basis-1/5">
-              <UFormGroup label="Unit Material Cost" name="Unit Material Cost">
+              <UFormGroup label="Unit Material Cost ($)" name="Unit Material Cost">
                 <UInput 
                   v-model="unitCost"
                 />
@@ -1537,7 +1564,7 @@ else propertiesInit();
               </UFormGroup>
             </div>
             <div class="basis-1/5">
-              <UFormGroup label="Job Material Cost" name="Job Material Cost">
+              <UFormGroup label="Job Material Cost ($)" name="Job Material Cost">
                 <UInput v-model="formData.Cost" />
               </UFormGroup>
             </div>
@@ -1619,7 +1646,7 @@ else propertiesInit();
               color="green"
               label="Refresh Job Costs"
               :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-              @click="handleRefreshOperation"
+              @click="modalMeta.isRefreshJobCostConfirmationModalOpen = true"
               truncate
             />
           </div>
@@ -2498,6 +2525,64 @@ else propertiesInit();
         color="white"
         label="No"
         @click="modalMeta.isReopneOperationModalOpen = false"
+      />
+    </template>
+  </UDashboardModal>
+
+  <UDashboardModal
+    v-model="modalMeta.isRefreshJobCostClosedConfirmationModalOpen"
+    title="Recalculate"
+    :description="'This job has already been closed, would you like to recalculate the costs anyway?' "
+    
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="green"
+        label="Yes"
+        :loading="loadingButton"
+        @click="handleRefreshJobCost"
+      />
+      <UButton
+        color="white"
+        label="No"
+        @click="modalMeta.isRefreshJobCostClosedConfirmationModalOpen = false"
+      />
+    </template>
+  </UDashboardModal>
+
+  <UDashboardModal
+    v-model="modalMeta.isRefreshJobCostConfirmationModalOpen"
+    title="Recalculate"
+    :description="'Are you sure you want to refresh job costs? This will recalculate with current part and labor costs.' "
+    
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="green"
+        label="Yes"
+        :loading="loadingButton"
+        @click="openRefreshJobCostConfirmationModal"
+      />
+      <UButton
+        color="white"
+        label="No"
+        @click="modalMeta.isRefreshJobCostConfirmationModalOpen = false"
       />
     </template>
   </UDashboardModal>

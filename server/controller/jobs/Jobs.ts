@@ -1589,7 +1589,7 @@ const loadSerialItems = async (lngJob) => {
 
     // Step 4: Calculate and display the job cost
     const jobCost = await calculateJobCost(lngJob); // Assuming this function exists
-    const formattedJobCost = jobCost.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    const formattedJobCost = jobCost;
 
     return {
       serialItems: lvwSerialItems,
@@ -2089,6 +2089,45 @@ export const updateJobPercentage = async () => {
 
   } catch (error) {
     console.error('Error processing job completion:', error.message);
+    throw new Error(error.message);
+  }
+};
+
+export const refreshJobCosts = async (lngJob, latestUnitCost) => {
+  try {
+    const jobDetails = await sequelize.query(
+        `SELECT * FROM tblJobDetail WHERE JobID = :lngJob AND dateEntered <> '' AND dateEntered IS NOT NULL`,
+        {
+            replacements: { lngJob },
+            type: QueryTypes.SELECT
+        }
+    );
+
+    for (const row of jobDetails) {
+        row.CostPerUnit = latestUnitCost;
+    }
+
+    for (const row of jobDetails) {
+      await sequelize.query(
+          `UPDATE tblJobDetail SET CostPerUnit = :cost WHERE JobID = :lngJob AND UniqueID = :uniqueID`,
+          {
+              replacements: { cost: row.CostPerUnit, lngJob, uniqueID: row.UniqueID },
+              type: QueryTypes.UPDATE
+          }
+      );
+    }
+
+    const recJOnCost = await calculateJobCost(lngJob)
+    let cost = recJOnCost || 0.00;
+    await sequelize.query(
+      `UPDATE tblJobs SET Cost = :cost WHERE UniqueID = :lngJob`,
+      { replacements: { cost, lngJob }, type: QueryTypes.UPDATE }
+    );
+
+    return recJOnCost;
+
+  }catch (error) {
+    console.error("Error in refreshJobCosts:", error.message);
     throw new Error(error.message);
   }
 };

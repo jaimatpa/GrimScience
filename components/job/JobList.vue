@@ -33,10 +33,6 @@ const deleteJob = ref(null)
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "select",
-      label: "Select",
-    },
-    {
       key: "NUMBER",
       label: "Job #",
       sortable: true,
@@ -530,6 +526,7 @@ const onUpdatePercentage = async () => {
           icon: 'i-heroicons-circle-stack-20-solid',
           label: 'No items.',
         }" @select="onSelect" @dblclick="onDblClick">
+
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
             <div class="px-4 py-3.5">
