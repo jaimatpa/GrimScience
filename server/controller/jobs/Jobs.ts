@@ -167,6 +167,101 @@ export const getAllJobDetail = async (sortBy, sortOrder, filterParams) => {
   return list;
 }
 
+export const getJobPartList = async (id) => {
+
+  const tableDetail = await tblJobs.findByPk(id);
+  const InstanceID = tableDetail.dataValues.InstanceID;
+  const qty = tableDetail.dataValues.QUANTITY === 0 ? 1 : tableDetail.dataValues.QUANTITY;
+
+
+  const table1 = await sequelize.query(`
+      Select tblbp.instanceid, sum(tblbpparts.qty) * :qty  AS totalQuantity
+      from tblbp 
+      inner join tblBPParts on tblbp.uniqueid = tblbpparts.partid 
+      inner join tblsteps on tblsteps.uniqueid = tblbpparts.stepid 
+      inner join tblplan on tblplan.uniqueid = tblsteps.planid 
+      Where tblPlan.instanceid in (:instanceID)  
+      group by tblbp.instanceID
+  `, {
+      replacements: { instanceID: InstanceID, qty: qty },
+      type: QueryTypes.SELECT
+  });
+
+  // Calculate labor hours
+  const calculateLaborHours = async (instanceID) => {
+    let hours = 0;
+    let results = await sequelize.query(`
+      SELECT builtinhouse FROM tblBP WHERE instanceID = :instanceID
+    `, {
+      replacements: { instanceID: instanceID },
+      type: QueryTypes.SELECT
+    });
+
+    const builtinhouse = results[0].builtinhouse;
+
+    if (builtinhouse === 'False') {
+      // Add top-level labor hours
+      results = await sequelize.query(`
+        SELECT hours FROM tblPlan WHERE instanceID = :instanceID
+      `, {
+        replacements: { instanceID: instanceID },
+        type: QueryTypes.SELECT
+      });
+
+      hours += results.reduce((acc, row) => acc + parseFloat(row.hours), 0);
+
+      // Recursively calculate sub-assembly labor hours
+      results = await sequelize.query(`
+        SELECT (SELECT TOP 1 tblBP.instanceID 
+                FROM tblBP 
+                WHERE tblbp.UniqueID = tblBPParts.partid 
+                ORDER BY tblBP.uniqueID DESC) AS instanceID, 
+               qty
+        FROM tblBPParts
+        INNER JOIN tblSteps ON tblSteps.uniqueID = tblBPParts.stepID
+        INNER JOIN tblPlan ON tblPlan.uniqueID = tblSteps.PlanID
+        WHERE (SELECT COUNT(tblPlan.uniqueID) 
+               FROM tblPlan 
+               WHERE tblPlan.instanceID = (SELECT TOP 1 tblBP.instanceID 
+                                            FROM tblBP 
+                                            WHERE tblbp.UniqueID = tblBPParts.partid 
+                                            ORDER BY tblBP.uniqueID DESC)) > 0
+        AND tblplan.instanceID = :instanceID
+      `, {
+        replacements: { instanceID: instanceID },
+        type: QueryTypes.SELECT
+      });
+
+      for (const row of results) {
+        hours += (await calculateLaborHours(row.instanceID)) * row.qty;
+      }
+    }
+    return hours;
+  };
+
+
+  const results = await Promise.all(table1.map(async row => {
+    const table2 = await sequelize.query(`
+        select tblbp.model, tblbp.description, tblbp.inventoryunit, tblbp.ordercost, 
+               tblbp.multiple, tblBP.inventorycost, tblBP.instanceID, code 
+        from tblbp 
+        where uniqueid in (
+          select max(uniqueid) from tblbp where instanceid = :instanceid
+        );
+    `, {
+        replacements: { instanceid: row['instanceid'] },
+        type: QueryTypes.SELECT
+    });
+    const laborHours = await calculateLaborHours(row['instanceid']);
+    table2[0]['quantity'] = row['totalQuantity'];
+    table2[0]['totalCost'] = parseFloat(( row['totalQuantity'] * table2[0]['inventorycost']).toFixed(2));
+    table2[0]['laborHours'] = parseFloat(laborHours.toFixed(2));
+    return table2[0];
+  }));
+
+  return results;
+}
+
 export const updateJob = async (id, reqData) => {
   const model = reqData.MODEL.trim().split(" ")[0];
   const query = `SELECT instanceID FROM tblBP WHERE model = :model LIMIT 1`;
@@ -196,7 +291,7 @@ export const createNewJob = async (data) => {
 
 export const getBegSerial = async (recJOaModelText) => {
   try {
-    console.log(recJOaModelText)
+
     // Guard clause if recJOaModelText is empty
     if (!recJOaModelText || recJOaModelText.length < 1) return;
 
@@ -242,11 +337,6 @@ export const getBegSerial = async (recJOaModelText) => {
 
     // Handle leading "0" case in recJOaModelText
     
-
-    console.log({
-      recJOainstanceID,
-      recJOaBegSerial
-    })
     // Return the updated values for instanceID and BegSerial
     return {
       recJOainstanceID,

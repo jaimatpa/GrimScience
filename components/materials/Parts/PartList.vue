@@ -1,0 +1,447 @@
+<template>
+    <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Part Lookup</h2>
+    </div>
+
+    <UDashboardToolbar class="bg-gms-gray-100">
+        <template #left>
+            <div class="flex flex-row space-x-3" style="max-width:930px;">
+                <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
+                    <template v-if="value.options.length > 1">
+                        <div class="basis-1/7 max-w-[200px]">
+                            <UFormGroup :label="value.label" :name="key">
+                                <USelect v-model="filterValues[`${value.filter}`]" :options="value.options"
+                                    @change="handleFilterChange()" />
+                            </UFormGroup>
+                        </div>
+                    </template>
+                </template>
+
+            </div>
+        </template>
+        <template #right>
+            <UButton color="green" variant="outline" :loading="exportIsLoading" label="Export to Excel"
+                trailing-icon="i-heroicons-document-text" @click="excelExport">
+            </UButton>
+            <UButton color="green" variant="outline" label="New Part" trailing-icon="i-heroicons-plus"
+                @click="onCreate()" />
+        </template>
+    </UDashboardToolbar>
+
+    <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Lookup</h2>
+    </div>
+    <UTable :rows="gridMeta.parts" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
+        divide: 'divide-gray-200 dark:divide-gray-800',
+        th: {
+            base: 'sticky top-0 z-10',
+            padding: 'pb-0',
+        },
+        td: {
+            padding: 'py-1',
+        },
+    }" :empty-state="{
+        icon: 'i-heroicons-circle-stack-20-solid',
+        label: 'No items.',
+    }" @select="onSelect" @dblclick="onDblClick">
+        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+            <template v-if="column.kind !== 'actions'">
+                <div class="">
+                    <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                        @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                        :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
+                            ? noneIcon
+                            : column?.sortDirection === 'asc'
+                                ? ascIcon
+                                : descIcon
+                            " :filterable="column.filterable" :filter-key="column.key" />
+                </div>
+            </template>
+            <template v-else class="bg-slate-400">
+                <div class="flex justify-center text-center w-[53px]">
+                    {{ column.label }}
+                </div>
+            </template>
+        </template>
+
+        <template #edit-data="{ row }">
+            <UTooltip text="Edit" class="flex justify-center">
+                <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
+            </UTooltip>
+        </template>
+        <template #delete-data="{ row }">
+            <UTooltip text="Delete" class="flex justify-center">
+                <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
+            </UTooltip>
+        </template>
+    </UTable>
+    <div class="flex flex-row justify-end mr-20 mt-1">
+        <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfParts | 0"
+            v-model="gridMeta.page" @update:model-value="handlePageChange()" />
+    </div>
+    <div v-if="!props.isPage">
+        <div class="mt-3 w-[120px]">
+            <UButton icon="i-heroicons-cursor-arrow-ripple" variant="outline" color="green" label="Select" :ui="{
+                base: 'w-full',
+                truncate: 'flex justify-center w-full',
+            }" truncate @click="handleSelect">
+            </UButton>
+        </div>
+    </div>
+    <UDashboardModal v-model="modalMeta.isCustomerModalOpen" :title="modalMeta.modalTitle" :ui="{
+        title: 'text-lg text-white',
+        header: {
+            base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
+        },
+        body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+        width: 'w-[1500px] sm:max-w-9xl',
+    }">
+        <MaterialsPartsForm 
+        @close="handleModalClose" 
+        @save="handleModalSave"
+        @productFormData="handleDataFromPartForm"
+        :selectedParts="gridMeta.selectedCustomerId" 
+        :selectedPartInstace="gridMeta.selectedPartInstanceId"
+        :is-modal="true" 
+        :selectedPartModel="gridMeta.selectedPartModdel"
+        :fromProductForm="props.fromProductForm"
+        />
+        
+    </UDashboardModal>
+</template>
+
+<script lang="ts" setup>
+import type { UTableColumn } from "~/types";
+const emit = defineEmits(["select", "close", 'productFormData'])
+
+const props = defineProps({
+    category: {
+        type: [String, null],
+    },
+    subCategory: {
+        type: [String, null]
+    },
+    fromProductForm: {
+        type:[Boolean, null]
+    },
+    isPage: {
+        type: Boolean,
+        default: false
+    }
+});
+onMounted(() => {
+    init();
+});
+useSeoMeta({
+    title: "Grimm-Parts",
+});
+
+const route = useRoute();
+const toast = useToast();
+
+const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
+const descIcon = "i-heroicons-bars-arrow-down-20-solid";
+const noneIcon = "i-heroicons-arrows-up-down-20-solid";
+
+const headerFilters = ref({
+    categories: {
+        label: "Category",
+        filter: "PARTTYPE",
+        options: [],
+    },
+    subcategories: {
+        label: "Sub Catagory",
+        filter: "SUBCATEGORY",
+        options: [],
+    }
+});
+const gridMeta = ref({
+    defaultColumns: <UTableColumn[]>[
+        {
+            key: "PARTTYPE",
+            label: "Category",
+            sortable: true,
+            sortDirection: "none",
+            filterable: true,
+        },
+        {
+            key: "SUBCATEGORY",
+            label: "Sub Category",
+            sortable: true,
+            sortDirection: "none",
+            filterable: true,
+        },
+        {
+            key: "MODEL",
+            label: "Stock#",
+            sortable: true,
+            sortDirection: "none",
+            filterable: true,
+        },
+        {
+            key: "DESCRIPTION",
+            label: "DESCRIPTION",
+            sortable: true,
+            sortDirection: "none",
+            filterable: true,
+        },
+        {
+            key: "OnHand",
+            label: "OnHand",
+            sortable: true,
+            sortDirection: "none",
+            filterable: true,
+        },
+        {
+            key: "ETLCriticalComponent",
+            label: "ETL Critical Component",
+            sortable: true,
+            sortDirection: "none",
+            filterable: true,
+        },
+    ],
+    page: 1,
+    pageSize: 50,
+    numberOfParts: 0,
+    parts: [],
+    selectedCustomerId: null,
+    selectedPartInstanceId: null,
+    selectedPartModdel: null,
+    description: "",
+    sort: {
+        column: "UniqueID",
+        direction: "asc",
+    },
+    isLoading: false,
+});
+const modalMeta = ref({
+    isCustomerModalOpen: false,
+    isOrderDetailModalOpen: false,
+    isQuoteDetailModalOpen: false,
+    isServiceOrderDetailModalOpen: false,
+    isSiteVisitModalOpen: false,
+    modalTitle: "New Parts",
+});
+const filterValues = ref({
+  PARTTYPE: props.category || null,
+  SUBCATEGORY: props.subCategory || null,
+  DESCRIPTION: null,
+  OnHand: null,
+  ETLCriticalComponent: null,
+  MODEL: props.fieldValue || null
+});
+
+const selectedColumns = ref(gridMeta.value.defaultColumns);
+const exportIsLoading = ref(false);
+
+const columns = computed(() =>
+    gridMeta.value.defaultColumns.filter((column) =>
+        selectedColumns.value.includes(column)
+    )
+);
+Object.entries(route.query).forEach(([key, value]) => {
+    switch (key.toLowerCase()) {
+        case "page":
+            gridMeta.value.page = Number(value);
+            break;
+        case "pagesize":
+            gridMeta.value.pageSize = Number(value);
+            break;
+        case "sortby":
+            gridMeta.value.sort.column = value as unknown as string;
+            break;
+        case "sortorder":
+            gridMeta.value.sort.direction = value as unknown as string;
+            break;
+    }
+});
+
+const init = async () => {
+    fetchGridData();
+    for (const key in headerFilters.value) {
+        const apiURL = headerFilters.value[key]?.api ?? `/api/materials/${key}`;
+        console.log("Api url is", apiURL);
+        await useApiFetch(apiURL, {
+            method: "GET",
+            onResponse({ response }) {
+                if (response.status === 200) {
+                    headerFilters.value[key].options = [null, ...response._data.body];
+                }
+            },
+        });
+    }
+};
+
+const fetchGridData = async () => {
+    gridMeta.value.isLoading = true;
+    await useApiFetch("/api/materials/numbers", {
+        method: "GET",
+        params: {
+            ...filterValues.value,
+            page: gridMeta.value.page,
+            pageSize: gridMeta.value.pageSize,
+        },
+        onResponse({ response }) {
+            if (response.status === 200) {
+                gridMeta.value.numberOfParts = response._data.body;
+            }
+        },
+    });
+    if (gridMeta.value.numberOfParts === 0) {
+        gridMeta.value.parts = [];
+        gridMeta.value.numberOfParts = 0;
+        gridMeta.value.isLoading = false;
+        return;
+    }
+    if (
+        gridMeta.value.page * gridMeta.value.pageSize >
+        gridMeta.value.numberOfParts
+    ) {
+        gridMeta.value.page =
+            Math.ceil(gridMeta.value.numberOfParts / gridMeta.value.pageSize) | 1;
+    }
+
+    console.log('filter value is', filterValues);
+    await useApiFetch("/api/materials/parts/parts", {
+        method: "GET",
+        params: {
+            page: gridMeta.value.page,
+            pageSize: gridMeta.value.pageSize,
+            sortBy: gridMeta.value.sort.column,
+            sortOrder: gridMeta.value.sort.direction,
+            ...filterValues.value,
+        },
+        onResponse({ response }) {
+            if (response.status === 200) {
+                gridMeta.value.parts = response._data.body;
+                console.log("parts are:", gridMeta.value.parts);
+            }
+            gridMeta.value.isLoading = false;
+        },
+    });
+};
+const onCreate = () => {
+    gridMeta.value.selectedCustomerId = null;
+    modalMeta.value.modalTitle = "New Parts";
+    modalMeta.value.isCustomerModalOpen = true;
+    gridMeta.value.selectedPartInstanceId = null;
+    gridMeta.value.selectedPartModdel = null;
+
+
+};
+const onEdit = (row) => {
+    gridMeta.value.selectedCustomerId = row?.UniqueID;
+    modalMeta.value.modalTitle = "Edit";
+    modalMeta.value.isCustomerModalOpen = true;
+};
+
+
+const onDelete = async (row: any) => {
+    await useApiFetch(`/api/parts/${row?.UniqueID}`, {
+        method: "DELETE",
+        onResponse({ response }) {
+            if (response.status === 200) {
+                toast.add({
+                    title: "Success",
+                    description: response._data.message,
+                    icon: "i-heroicons-trash-solid",
+                    color: "green",
+                });
+                fetchGridData();
+            }
+        },
+    });
+};
+const handleModalClose = () => {
+    console.log("it's coming modal")
+    modalMeta.value.isCustomerModalOpen = false;
+};
+const handleModalSave = async () => {
+    handleModalClose();
+    fetchGridData();
+};
+const handlePageChange = async () => {
+    fetchGridData();
+};
+const handleFilterChange = () => {
+    gridMeta.value.page = 1;
+    fetchGridData();
+};
+const handleSortingButton = async (btnName: string) => {
+    gridMeta.value.page = 1;
+    for (const column of columns.value) {
+        if (column.sortable) {
+            if (column.key === btnName) {
+                switch (column.sortDirection) {
+                    case "none":
+                        column.sortDirection = "asc";
+                        gridMeta.value.sort.column = btnName;
+                        gridMeta.value.sort.direction = "asc";
+                        break;
+                    case "asc":
+                        column.sortDirection = "desc";
+                        gridMeta.value.sort.column = btnName;
+                        gridMeta.value.sort.direction = "desc";
+                        break;
+                    default:
+                        column.sortDirection = "none";
+                        gridMeta.value.sort.column = "UniqueID";
+                        gridMeta.value.sort.direction = "asc";
+                        break;
+                }
+            } else {
+                column.sortDirection = "none";
+            }
+        }
+    }
+    fetchGridData();
+};
+const handleFilterInputChange = async (event, name) => {
+    gridMeta.value.page = 1;
+    if (filterValues.value.hasOwnProperty(name)) {
+        filterValues.value[name] = event;
+    } else {
+        console.error(`Filter does not have property: ${name}`);
+    }
+    fetchGridData();
+};
+const excelExport = async () => {
+    exportIsLoading.value = true;
+    const params = {
+        sortBy: gridMeta.value.sort.column,
+        sortOrder: gridMeta.value.sort.direction,
+        ...filterValues.value,
+    };
+    const paramsString = Object.entries(params)
+        .filter(([_, value]) => value !== null)
+        .map(([key, value]) => {
+            if (value !== null) return `${key}=${value}`;
+        })
+        .join("&");
+    location.href = `/api/materials/parts/exportList?${paramsString}`;
+    exportIsLoading.value = false;
+};
+const onSelect = async (row) => {
+    console.log("row is in there", row);
+    gridMeta.value.selectedCustomerId = row?.UniqueID;
+    gridMeta.value.selectedPartInstanceId = row?.instanceID;
+    gridMeta.value.selectedPartModdel = row?.MODEL;
+    gridMeta.value.description = row?.DESCRIPTION;
+
+};
+const handleSelect = () => {
+    emit("select", gridMeta.value.description);
+    emit("close");
+};
+const handleDataFromPartForm = (data) => {
+  emit('productFormData',data);
+  emit('close');
+}
+
+const onDblClick = async () => {
+    if (gridMeta.value.selectedCustomerId) {
+        modalMeta.value.modalTitle = "Edit";
+        modalMeta.value.isCustomerModalOpen = true;
+    }
+};
+</script>

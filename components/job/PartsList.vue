@@ -21,7 +21,6 @@ const partList = ref([]);
 const formData = reactive({})
 console.log(props.instanceID)
 const init = async () => {
-  console.log("init")
   loadingOverlay.value = true;
   await useApiFetch(`/api/jobs/operations/mfg/partlist/${props.instanceID}`, {
     method: "GET",
@@ -95,21 +94,10 @@ init();
 
 <template>
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
-  <UForm
-    :validate="validate"
-    :validate-on="['submit']"
-    :state="formData"
-    class="space-y-4"
-    @submit="onSubmit"
-  >
+  <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
     <div class="w-full flex flex-col">
       <div class="w-full mt-5">
         <UTable

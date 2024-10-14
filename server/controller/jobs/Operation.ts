@@ -39,7 +39,7 @@ const applyFilters = (params) => {
 };
 
 export const getAllOperation = async (jobId, instanceId, jobQty) => {
-
+  console.log(jobId, instanceId, jobQty)
   const list = await sequelize.query(`
     Select distinct tblJobOperations.*, tblPlan.UniqueID as PID from tblJobOperations left join tblPlan on tblJobOperations.PlanID = tblPlan.uniqueID Where tblJobOperations.instanceid = :instanceid and jobID = :jobId order by number asc
   `, {
@@ -47,8 +47,10 @@ export const getAllOperation = async (jobId, instanceId, jobQty) => {
     type: QueryTypes.SELECT
   });
 
+  console.log(list)
+
   const modList = list.map(item =>{
-    return {...item, Hours: parseFloat(item.Hours) * parseFloat(jobQty)}
+    return {...item, Hours: (parseFloat(item.Hours) * parseFloat(jobQty)).toFixed(2)}
   } )
 
   console.log(modList)
@@ -482,8 +484,8 @@ export const moveToOperation = async (operationId, listItems) => {
 export const verifyAndCloseOperation = async (lngJob, lngJobOperationID, txtReworkHoursProduct, glob_StrEmployee, recJoaPerType, recJOnQuantity) => {
   
   try {
-    if(!reworkHrs){
-      reworkHrs = 0
+    if(!txtReworkHoursProduct){
+      txtReworkHoursProduct = 0
     }
     // Fetch the job record
     const jobDT = await sequelize.query(`

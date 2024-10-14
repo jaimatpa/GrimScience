@@ -4,11 +4,11 @@ export default eventHandler(async (event) => {
   try {
     const filterParams = getQuery(event);
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
-        console.log("subb categoyyyss",filterParams.subCategory,filterParams.subCategory);
-        const parts = await getBasicModels(filterParams.category,filterParams.subCategory);
+        console.log("subb categoyyyss", filterParams.subCategory, filterParams.subCategory);
+        const parts = await getBasicModels(filterParams.category, filterParams.subCategory);
         return { body: parts, message: '' }
       default:
         setResponseStatus(event, 405);

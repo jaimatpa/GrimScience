@@ -6,7 +6,7 @@ export default eventHandler(async (event) => {
     const { jobId, operationId, planId } = getQuery(event);
     switch(method.toUpperCase()){
       case 'DELETE':
-        const { message } = await deleteJobOperation(jobId, operationId, planId)
+        const { message } = await deleteRougeOperation(jobId, operationId, planId)
         return { body: '', message }
       default:
         setResponseStatus(event, 405);

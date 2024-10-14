@@ -286,6 +286,31 @@ const helpItems = [
 
 const links = [
   {
+    id: "general",
+    label: "General",
+    icon: "i-heroicons-map-pin",
+    to: "/general",
+    defaultOpen: route.path.startsWith("/general"),
+    tooltip: {
+      text: "General",
+      shortcuts: ["G", "U"],
+    },
+    backgroundClass: "bg-green-800",
+    activeClass: "!text-white before:!bg-black/20",
+    children: [
+      {
+        label: "Map",
+        to: "/general/map",
+        exact: true,
+      },
+      {
+        label: "Bug Report",
+        to: "/general/bug/list",
+      },
+
+    ],
+  },
+  {
     id: "customers",
     label: "Customers",
     icon: "i-heroicons-user-group",
@@ -796,7 +821,9 @@ const getUiConfig = (link) => {
 
 const Logout = () => {
   const token = useCookie('token');
+  const user = useCookie('user');
   token.value = null;
+  user.value = null;
   navigateTo('/login');
 }
 
@@ -865,18 +892,17 @@ onMounted(() => {
           <!-- <UDashboardSidebarLinks :links="footerLinks" /> -->
 
 
-          
-            <template #footer>
 
-              <!-- ~/components/UserDropdown.vue -->
-              <CommonUserDropdown class="border-t-[1px] border-white py-1 mt-[-8px]" />
-            </template>
-          
+          <template #footer>
+
+            <!-- ~/components/UserDropdown.vue -->
+            <CommonUserDropdown class="border-t-[1px] border-white py-1 mt-[-8px]" />
+          </template>
+
 
         </UDashboardSidebar>
       </UDashboardPanel>
       <div class="hidden bg-slate-50 hover:bg-{color}-100 dark:bg-{color}-800"></div>
-
 
       <ClientOnly>
         <LazyUDashboardSearch :groups="groups" />
@@ -886,9 +912,9 @@ onMounted(() => {
   </div>
 
   <UDashboardModal title="Time Entry" :ui="{
-      width: 'w-[1800px] sm:max-w-9xl',
-      body: { padding: 'py-0 sm:pt-0' },
-    }">
+    width: 'w-[1800px] sm:max-w-9xl',
+    body: { padding: 'py-0 sm:pt-0' },
+  }">
     <ServiceReportDetail :selected-complaint="null" />
   </UDashboardModal>
 

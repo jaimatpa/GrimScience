@@ -5,7 +5,7 @@ export default eventHandler(async (event) => {
     const method = event._method;
     const { ...params } = getQuery(event)
 
-    switch(method.toUpperCase()){
+    switch (method.toUpperCase()) {
       case 'GET':
         const detail = await getOrderDetail(params)
         return { body: detail, message: '' };
@@ -13,7 +13,7 @@ export default eventHandler(async (event) => {
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
     }
-    
+
   } catch (error) {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }

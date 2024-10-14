@@ -1,4 +1,4 @@
-import {  getJobSubCategories } from '~/server/controller/jobs';
+import { getJobSubCategories } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {

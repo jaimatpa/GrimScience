@@ -6,7 +6,11 @@ import { format } from "date-fns";
 useSeoMeta({
   title: "Grimm-Employees Organization",
 });
-
+const props = defineProps({
+  isPage: {
+    type: [Boolean, null],
+  },
+});
 onMounted(() => {
   init();
 });
@@ -151,11 +155,11 @@ const headerFilters = ref({
 });
 
 const handleHeaderCheckboxChange = () => {
+  gridMeta.value.page = 1;
   fetchGridData()
 }
 
 watch([startDate, endDate], () => {
-  console.log(startDate,endDate)
   fetchGridData();  // Fetch data whenever either startDate or endDate changes
 });
 
@@ -224,7 +228,7 @@ const init = async () => {
 
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
-  // // handle number of jobs and pagination
+  // handle number of jobs and pagination
   await useApiFetch("/api/jobs/numbers", {
     method: "GET",
     params: {
@@ -435,18 +439,12 @@ const onUpdatePercentage = async () => {
 
       <UDashboardToolbar>
         <template #left>
-          <template
-            v-for="[key, value] in Object.entries(headerFilters)"
-            :key="key"
-          >
+          <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
             <!-- <template v-if="value.options.length > 1"> -->
             <div class="basis-1/7 max-w-[200px]">
               <UFormGroup :label="value.label" :name="key">
-                <USelect
-                  v-model="filterValues[`${value.filter}`]"
-                  :options="value.options"
-                  @change="handleFilterChange()"
-                />
+                <USelect v-model="filterValues[`${value.filter}`]" :options="value.options"
+                  @change="handleFilterChange()" />
               </UFormGroup>
             </div>
             <!-- </template> -->
@@ -462,7 +460,6 @@ const onUpdatePercentage = async () => {
             </div>
           </div>
           <div class="flex flex-row mt-4">
-            <template >
               <div class="ml-5">
                 <UCheckbox
                   v-model="isOpen"
@@ -470,8 +467,6 @@ const onUpdatePercentage = async () => {
                   @update:model-value="handleHeaderCheckboxChange"
                 />
               </div>
-            </template>
-            <template >
               <div class="ml-5">
                 <UCheckbox
                   v-model="isReleased"
@@ -479,13 +474,10 @@ const onUpdatePercentage = async () => {
                   @update:model-value="handleHeaderCheckboxChange"
                 />
               </div>
-            </template>
           </div>
 
         </template>
        
-          
-
         <template #right>
           <UButton
             icon="i-heroicons-minus-circle-20-solid"
@@ -505,7 +497,6 @@ const onUpdatePercentage = async () => {
             @click="onUpdatePercentage"
           />
     
-
           <UButton
             label="Add New Job"
             variant="outline"
@@ -538,29 +529,18 @@ const onUpdatePercentage = async () => {
         :empty-state="{
           icon: 'i-heroicons-circle-stack-20-solid',
           label: 'No items.',
-        }"
-        @select="onSelect"
-        @dblclick="onDblClick"
-      >
+        }" @select="onSelect" @dblclick="onDblClick">
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
             <div class="px-4 py-3.5">
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
+              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
                     ? noneIcon
                     : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
-              />
+                      ? ascIcon
+                      : descIcon
+                  " :filterable="column.filterable" :filter-key="column.key" />
             </div>
           </template>
           <template v-else class="bg-slate-400">
@@ -571,22 +551,12 @@ const onUpdatePercentage = async () => {
         </template>
         <template #edit-data="{ row }">
           <UTooltip text="Edit" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-pencil-square"
-              @click="onEdit(row)"
-            />
+            <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
           </UTooltip>
         </template>
         <template #delete-data="{ row }">
           <UTooltip text="Delete" class="flex justify-center">
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-trash"
-              @click="onDelete(row)"
-            />
+            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
           </UTooltip>
         </template>
       </UTable>
@@ -669,11 +639,8 @@ const onUpdatePercentage = async () => {
   </UDashboardPage>
 
   <!-- New Organization Detail Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isJobFormModalOpen"
-    :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
-    :ui="{
+  <UDashboardModal v-model="modalMeta.isJobFormModalOpen" :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription" :ui="{
       width: 'w-[1100px] sm:max-w-7xl',
       body: { padding: 'py-0 sm:pt-0' },
     }"

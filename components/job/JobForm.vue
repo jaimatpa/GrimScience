@@ -14,7 +14,6 @@ const props = defineProps({
 });
 
 const user = useCookie<string>('user');
-console.log(user)
 const username = user.value.fname+" "+user.value.lname
 
 
@@ -22,6 +21,7 @@ const toast = useToast();
 const router = useRouter();
 const jobFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false);
+const loadingButton = ref(false)
 const JobExist = ref(true);
 const isLoading = ref(false);
 const categories = ref([]);
@@ -139,7 +139,7 @@ const editInit = async () => {
         }
       }
     },
-    onResponseError({}) {
+    onResponseError({ }) {
       JobExist.value = false;
     },
   });
@@ -349,7 +349,7 @@ const getSerial = async () => {
         }
       }
     },
-    onResponseError({}) {
+    onResponseError({ }) {
       productsSerialGridMeta.value.products = [];
       productsSBSerialGridMeta.value.products = [];
     },
@@ -378,14 +378,28 @@ const fetchJobOperation = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         if (formData.JobType === "Product") {
-          prodOperationGridMeta.value.operations = response._data.body;
+          prodOperationGridMeta.value.operations = response._data.body.map((item) => {
+            if(!item.PID){
+              item.class = 'bg-red-500'
+            }else{
+              item.class = 'bg-white'
+            }
+            return item
+          });
           prodDesOperations.value = response._data.body.map(
             (item) =>{
               return {name: item.Operation, value: item.uniqueID }
             } 
           );
         } else {
-          subOperationGridMeta.value.subOperations = response._data.body;
+          subOperationGridMeta.value.subOperations = response._data.body.map((item) => {
+            if(!item.PID){
+              item.class = 'bg-red-500'
+            }else{
+              item.class = 'bg-white'
+            }
+            return item
+          });;
           subDesOperations.value = response._data.body.map(
             (item) => {
               return {name: item.Operation, value: item.uniqueID }
@@ -570,36 +584,10 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       },
     });
 
-    // await deleteOperations();
   }
   emit("save");
 };
 
-const deleteOperations = async () => {
-  const operationIds =
-    formData.JobType === "Product"
-      ? prodOperationIds.value
-      : subOperationIds.value;
-
-  if (operationIds?.length > 0) {
-    for (let i = 0; i < operationIds.length; i++) {
-      const operationId = operationIds[i];
-      await useApiFetch(`/api/jobs/operations/${operationId}`, {
-        method: "DELETE",
-        onResponse({ response }) {
-          if (response.status === 200) {
-            toast.add({
-              title: "Success",
-              description: response._data.message,
-              icon: "i-heroicons-check-circle",
-              color: "green",
-            });
-          }
-        },
-      });
-    }
-  }
-};
 
 const handleClearCick = () => {
   Object.keys(formData).forEach((key) => {
@@ -615,7 +603,7 @@ const handleProdOperationSelect = async (row) => {
     if (c.uniqueID === row.uniqueID) {
       c.class = "bg-gray-200";
     } else {
-      delete c.class;
+      c.class = c.PID !== null ? "bg-white" : "bg-red-500"
     }
   });
 
@@ -633,6 +621,7 @@ const handleProdOperationSelect = async (row) => {
     },
   });
   getSchedules();
+
 };
 
 const handleSubOperationSelect = async (row) => {
@@ -642,7 +631,7 @@ const handleSubOperationSelect = async (row) => {
     if (c.uniqueID === row.uniqueID) {
       c.class = "bg-gray-200";
     } else {
-      delete c.class;
+      c.class = c.class;
     }
   });
 
@@ -977,7 +966,13 @@ const modalMeta = ref({
   isOperationModalOpen: false,
   isReworkPartsModalOpen: false,
   isJobListModalOpen: false,
-  reworkModalOperationId: null
+  reworkModalOperationId: null,
+  isUpdateQtyModalOpen: false,
+  isPullIntoInventoryModalOpen: false,
+  isFixSerialModalOpen: false,
+  isRefreshOperationModalOpen: false,
+  isVerifyAndCloseModalOpen: false,
+  isReopneOperationModalOpen: false
 });
 
 const onDblClick = () => {
@@ -987,6 +982,7 @@ const onDblClick = () => {
     formData.MODEL ? formData.MODEL : formData.PART
   }`;
 };
+
 
 const handleRWClick = () => {
   modalMeta.value.isReworkPartsModalOpen = true;
@@ -1028,11 +1024,13 @@ const handleViewOperationClick = () => {
 };
 
 const handleUpdateQty = async () => {
+  modalMeta.value.isUpdateQtyModalOpen = false
   loadingOverlay.value = true
   await useApiFetch(`/api/jobs/updateSerial/`, {
     method: "PUT",
     params: { jobId:props.selectedJob, jobQty: formData.QUANTITY, begSerial: begPRSerial.value },
     onResponse({ response }) {
+      loadingOverlay.value = false
       if (response.status === 200) {
         toast.add({
           title: "Success",
@@ -1044,10 +1042,11 @@ const handleUpdateQty = async () => {
       emit('save')
     },
   });
-  loadingOverlay.value = false
+  
 }
 
 const handlePullIntoSerial = async () => {
+  modalMeta.value.isPullIntoInventoryModalOpen = false
   loadingOverlay.value = true
   await useApiFetch(`/api/jobs/pullintoserial/`, {
     method: "PUT",
@@ -1071,24 +1070,34 @@ const handlePullIntoSerial = async () => {
 
 const handlePullIntoInventory = async () => {
   if(sbQty.value){
-    loadingOverlay.value = true
-    await useApiFetch(`/api/jobs/pullintoinventory/`, {
-      method: "PUT",
-      body: { subSerialList: productsSBSerialGridMeta.value.products , instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, jobQty: formData.QUANTITY, qty:sbQty.value, latestUnitCost: unitCost.value, date:sbDate },
+    if(formData.PerType === 'Serial/Unit'){
+      loadingOverlay.value = true
+      await useApiFetch(`/api/jobs/pullintoinventory/`, {
+        method: "PUT",
+        body: { subSerialList: productsSBSerialGridMeta.value.products , instanceId: formData.InstanceID, employee: username, perType: formData.PerType, jobPart: formData.PART, jobId: props.selectedJob, jobQty: formData.QUANTITY, qty:sbQty.value, latestUnitCost: unitCost.value, date:sbDate },
 
-      onResponse({ response }) {
-        if (response.status === 200) {
-          toast.add({
-            title: "Success",
-            description: response._data.message,
-            icon: "i-heroicons-check-circle",
-            color: "green",
-          });
-        }
-      },
-    });
-    await getSerial()
-    loadingOverlay.value = false
+        onResponse({ response }) {
+          if (response.status === 200) {
+            toast.add({
+              title: "Success",
+              description: response._data.message,
+              icon: "i-heroicons-check-circle",
+              color: "green",
+            });
+          }
+        },
+      });
+      await getSerial()
+      loadingOverlay.value = false
+    }else{
+      toast.add({
+        title: "Success",
+        description: "Job is set to be completed via Operations. If you wish to complete by unit, please reopen operations and switch the type.",
+        icon: "i-heroicons-check-circle",
+        color: "red",
+      });
+    }
+    
   }else{
     toast.add({
       title: "Success",
@@ -1129,7 +1138,7 @@ const correctInventory = async () => {
   }else{
     toast.add({
       title: "Select",
-      description: "Please select a serial",
+      description: "No Item Selected",
       icon: "i-heroicons-check-circle",
       color: "red",
     });
@@ -1217,6 +1226,7 @@ const onSelectSBSerial = (row) => {
 }
 
 const handleRefreshOperation = async() => {
+  modalMeta.value.isRefreshOperationModalOpen = false
   loadingOverlay.value = true
   await useApiFetch("/api/jobs/operations/refreshoperations", {
     method: "GET",
@@ -1331,6 +1341,7 @@ const moveSelectedEnteriesToOperation = async () => {
 }
 
 const verifyAndCloseOperation = async () => {
+  modalMeta.value.isVerifyAndCloseModalOpen = false
   if (
     subOperationGridMeta.value.selectedSubOperation === null &&
     prodOperationGridMeta.value.selectedOperation === null
@@ -1345,9 +1356,10 @@ const verifyAndCloseOperation = async () => {
 
   if (subOperationGridMeta.value.selectedSubOperation !== null) {
     loadingOverlay.value = true
+    console.log({ jobId: props.selectedJob, operationId: subOperationGridMeta.value.selectedSubOperation.uniqueID, reworkHours: prodHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY })
     await useApiFetch(`/api/jobs/operations/verifyAndCloseOp/`, {
       method: "PUT",
-      params: { jobId: props.selectedJob, operationId: subOperationGridMeta.value.selectedSubOperation.uniqueID, reworkHours: prodHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY },
+      params: { jobId: props.selectedJob, operationId: subOperationGridMeta.value.selectedSubOperation.uniqueID, reworkHours: subHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY },
       onResponse({ response }) {
         
       },
@@ -1360,6 +1372,7 @@ const verifyAndCloseOperation = async () => {
 
   if (prodOperationGridMeta.value.selectedOperation !== null) {
     loadingOverlay.value = true
+    console.log({ jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHours: prodHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY })
     await useApiFetch(`/api/jobs/operations/verifyAndCloseOp/`, {
       method: "PUT",
       params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, reworkHours: prodHrs.value, employee: username, perType: formData.PerType, quantity: formData.QUANTITY },
@@ -1376,6 +1389,7 @@ const verifyAndCloseOperation = async () => {
 }
 
 const reOpenOperation = async () => {
+  modalMeta.value.isReopneOperationModalOpen = false
   loadingOverlay.value = true
   await useApiFetch(`/api/jobs/operations/reOpenOp/`, {
     method: "PUT",
@@ -1434,22 +1448,11 @@ else propertiesInit();
 
 <template>
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
 
-  <UForm
-    :validate="validate"
-    :validate-on="['submit']"
-    :state="formData"
-    class="space-y-4"
-    @submit="onSubmit"
-  >
+  <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
     <div class="flex space-x-4">
       <div>
         <div class="flex flex-col space-y-4">
@@ -1477,15 +1480,8 @@ else propertiesInit();
               </UFormGroup>
             </div>
             <div class="basis-1/5">
-              <UFormGroup
-                label="Relieve Inventory Per"
-                name="Relieve Inventory Per"
-              >
-                <UInputMenu
-                  v-model="formData.PerType"
-                  v-model:query="formData.PerType"
-                  :options="perTypes"
-                />
+              <UFormGroup label="Relieve Inventory Per" name="Relieve Inventory Per">
+                <UInputMenu v-model="formData.PerType" v-model:query="formData.PerType" :options="perTypes" />
               </UFormGroup>
             </div>
           </div>
@@ -1494,25 +1490,14 @@ else propertiesInit();
             <div class="basis-1/5">
               <UFormGroup label="Date Opened" name="Date Opened">
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton
-                    icon="i-heroicons-calendar-days-20-solid"
-                    :label="
-                      formData.DATEOPENED &&
-                      format(formData.DATEOPENED, 'MM/dd/yyyy')
-                    "
-                    variant="outline"
-                    :ui="{
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.DATEOPENED &&
+                    format(formData.DATEOPENED, 'MM/dd/yyyy')
+                    " variant="outline" :ui="{
                       base: 'w-full',
                       truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
+                    }" truncate />
                   <template #panel="{ close }">
-                    <CommonDatePicker
-                      v-model="formData.DATEOPENED"
-                      is-required
-                      @close="close"
-                    />
+                    <CommonDatePicker v-model="formData.DATEOPENED" is-required @close="close" />
                   </template>
                 </UPopover>
               </UFormGroup>
@@ -1529,25 +1514,14 @@ else propertiesInit();
             <div class="basis-1/5">
               <UFormGroup label="Ready To Produce" name="Ready To Produce">
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton
-                    icon="i-heroicons-calendar-days-20-solid"
-                    :label="
-                      formData.ProductionDate &&
-                      format(formData.ProductionDate, 'MM/dd/yyyy')
-                    "
-                    variant="outline"
-                    :ui="{
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.ProductionDate &&
+                    format(formData.ProductionDate, 'MM/dd/yyyy')
+                    " variant="outline" :ui="{
                       base: 'w-full',
                       truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
+                    }" truncate />
                   <template #panel="{ close }">
-                    <CommonDatePicker
-                      v-model="formData.ProductionDate"
-                      is-required
-                      @close="close"
-                    />
+                    <CommonDatePicker v-model="formData.ProductionDate" is-required @close="close" />
                   </template>
                 </UPopover>
               </UFormGroup>
@@ -1573,25 +1547,14 @@ else propertiesInit();
             <div class="basis-1/5">
               <UFormGroup label="Job Closed" name="Job Closed">
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton
-                    icon="i-heroicons-calendar-days-20-solid"
-                    :label="
-                      formData.JOBCLOSED &&
-                      format(formData.JOBCLOSED, 'MM/dd/yyyy')
-                    "
-                    variant="outline"
-                    :ui="{
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.JOBCLOSED &&
+                    format(formData.JOBCLOSED, 'MM/dd/yyyy')
+                    " variant="outline" :ui="{
                       base: 'w-full',
                       truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
+                    }" truncate />
                   <template #panel="{ close }">
-                    <CommonDatePicker
-                      v-model="formData.JOBCLOSED"
-                      is-required
-                      @close="close"
-                    />
+                    <CommonDatePicker v-model="formData.JOBCLOSED" is-required @close="close" />
                   </template>
                 </UPopover>
               </UFormGroup>
@@ -1608,36 +1571,21 @@ else propertiesInit();
 
             <div class="basis-1/5">
               <UFormGroup label="" name="Title">
-                <UButton
-                  label="Re-Open"
-                  icon="i-f7-arrow-clockwise"
-                  variant="outline"
-                  color="green"
-                  class="mt-6"
-                  :ui="{
-                    base: 'w-full',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                />
+                <UButton label="Re-Open" icon="i-f7-arrow-clockwise" variant="outline" color="green" class="mt-6" :ui="{
+                  base: 'w-full',
+                  truncate: 'flex justify-center w-full',
+                }" />
               </UFormGroup>
             </div>
 
             <div class="basis-1/5">
               <UFormGroup label="Category" name="Category">
-                <UInputMenu
-                  v-model="formData.jobcat"
-                  v-model:query="formData.jobcat"
-                  :options="jobCat"
-                />
+                <UInputMenu v-model="formData.jobcat" v-model:query="formData.jobcat" :options="jobCat" />
               </UFormGroup>
             </div>
             <div class="basis-1/5">
               <UFormGroup label="Sub Category" name="Sub Category">
-                <UInputMenu
-                  v-model="formData.jobsubcat"
-                  v-model:query="formData.jobsubcat"
-                  :options="jobsubcat"
-                />
+                <UInputMenu v-model="formData.jobsubcat" v-model:query="formData.jobsubcat" :options="jobsubcat" />
               </UFormGroup>
             </div>
           </div>
@@ -1645,26 +1593,12 @@ else propertiesInit();
 
         <div class="flex flex-row space-x-4 justify-start mt-5">
           <div class="">
-            <UButton
-              icon="i-heroicons-document-text"
-              type="submit"
-              variant="outline"
-              color="green"
-              label="Save"
-              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-              truncate
-            />
+            <UButton icon="i-heroicons-document-text" type="submit" variant="outline" color="green" label="Save"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
           </div>
           <div class="">
-            <UButton
-              icon="i-f7-rays"
-              variant="outline"
-              color="red"
-              :label="'Clear'"
-              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-              @click="handleClearCick"
-              truncate
-            />
+            <UButton icon="i-f7-rays" variant="outline" color="red" :label="'Clear'"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" @click="handleClearCick" truncate />
           </div>
           <!-- <div>
           <UButton
@@ -1693,62 +1627,29 @@ else propertiesInit();
       </div>
       <div class="flex flex-col gap-4 justify-start mt-2">
         <div class="">
-          <UButton
-            icon="i-heroicons-magnifying-glass"
-            variant="outline"
-            color="green"
-            label="View Parts List"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-            truncate
-            @click="onPartsClick()"
-          />
+          <UButton icon="i-heroicons-magnifying-glass" variant="outline" color="green" label="View Parts List"
+            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate @click="onPartsClick()" />
         </div>
         <div class="">
-          <UButton
-            icon="i-heroicons-magnifying-glass"
-            variant="outline"
-            color="green"
-            label="View Operations"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-            @click="handleViewOperationClick"
-            truncate
-          />
+          <UButton icon="i-heroicons-magnifying-glass" variant="outline" color="green" label="View Operations"
+            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" @click="handleViewOperationClick"
+            truncate />
         </div>
         <div class="">
-          <UButton
-            icon="i-heroicons-magnifying-glass"
-            variant="outline"
-            color="green"
-            label="View Subassemblies"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-            truncate
-          />
+          <UButton icon="i-heroicons-magnifying-glass" variant="outline" color="green" label="View Subassemblies"
+            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
         </div>
         <div>
-          <UButton
-            icon="i-heroicons-printer"
-            label="Print Folder Label"
-            variant="outline"
-            color="purple"
-            :ui="{
-              base: 'min-w-[200px] w-full',
-              truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
+          <UButton icon="i-heroicons-printer" label="Print Folder Label" variant="outline" color="purple" :ui="{
+            base: 'min-w-[200px] w-full',
+            truncate: 'flex justify-center w-full',
+          }" truncate />
         </div>
         <div>
-          <UButton
-            icon="i-heroicons-printer"
-            label="Print Documents"
-            variant="outline"
-            color="purple"
-            :ui="{
-              base: 'min-w-[200px] w-full',
-              truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
+          <UButton icon="i-heroicons-printer" label="Print Documents" variant="outline" color="purple" :ui="{
+            base: 'min-w-[200px] w-full',
+            truncate: 'flex justify-center w-full',
+          }" truncate />
         </div>
       </div>
     </div>
@@ -1760,20 +1661,13 @@ else propertiesInit();
             <div class="flex flex-col space-y-3">
               <div class="w-1/4">
                 <UFormGroup label="Product Line" name="Product Line">
-                  <UInputMenu
-                    v-model="formData.PRODUCTLINE"
-                    v-model:query="formData.PRODUCTLINE"
-                    :options="productLines"
-                  />
+                  <UInputMenu v-model="formData.PRODUCTLINE" v-model:query="formData.PRODUCTLINE"
+                    :options="productLines" />
                 </UFormGroup>
               </div>
               <div class="w-1/4">
                 <UFormGroup label="Model" name="Model">
-                  <UInputMenu
-                    v-model="formData.MODEL"
-                    v-model:query="formData.MODEL"
-                    :options="models"
-                  />
+                  <UInputMenu v-model="formData.MODEL" v-model:query="formData.MODEL" :options="models" />
                 </UFormGroup>
               </div>
               <div class="w-1/4">
@@ -1794,17 +1688,14 @@ else propertiesInit();
                     base: 'w-fit',
                     truncate: 'flex justify-center w-full',
                   }"
-                  @click = "handleUpdateQty"
+                  @click = "modalMeta.isUpdateQtyModalOpen = true"
                 />
               </UFormGroup>
             </div>
             <div class="w-full flex">
               <div class="w-1/2 mt-5">
-                <UTable
-                  v-if="formData.JobType === 'Product'"
-                  :columns="productsSerialGridMeta.defaultColumns"
-                  :rows="productsSerialGridMeta.products"
-                  :ui="{
+                <UTable v-if="formData.JobType === 'Product'" :columns="productsSerialGridMeta.defaultColumns"
+                  :rows="productsSerialGridMeta.products" :ui="{
                     wrapper:
                       'h-52 border-2 border-gray-300 dark:border-gray-700',
                     tr: {
@@ -1831,21 +1722,15 @@ else propertiesInit();
                 </template>
                 </UTable>
               </div>
-              <div class="w-1/2">
+              <!-- <div class="w-1/2">
                 <div class="mt-5 ml-4">
-                  <UButton
-                    icon="i-heroicons-magnifying-glass"
-                    variant="outline"
-                    color="green"
-                    label="View Selected DHR"
+                  <UButton icon="i-heroicons-magnifying-glass" variant="outline" color="green" label="View Selected DHR"
                     :ui="{
                       base: 'w-fit',
                       truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
+                    }" truncate />
                 </div>
-              </div>
+              </div> -->
             </div>
             <div class="flex space-x-3">
               <div class="mt-5">
@@ -1858,28 +1743,19 @@ else propertiesInit();
                     base: 'w-fit',
                     truncate: 'flex justify-center w-full',
                   }"
-                  @click="handlePullIntoSerial"
+                  @click="modalMeta.isPullIntoInventoryModalOpen = true"
                   truncate
                 />
               </div>
               <div class="basis-1/6 mt-5">
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton
-                    icon="i-heroicons-calendar-days-20-solid"
-                    :label="date && format(date, 'MM/dd/yyyy')"
-                    variant="outline"
-                    :ui="{
+                  <UButton icon="i-heroicons-calendar-days-20-solid" :label="date && format(date, 'MM/dd/yyyy')"
+                    variant="outline" :ui="{
                       base: 'w-full',
                       truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
+                    }" truncate />
                   <template #panel="{ close }">
-                    <CommonDatePicker
-                      v-model="date"
-                      is-required
-                      @close="close"
-                    />
+                    <CommonDatePicker v-model="date" is-required @close="close" />
                   </template>
                 </UPopover>
               </div>
@@ -1893,7 +1769,7 @@ else propertiesInit();
                     base: 'w-fit',
                     truncate: 'flex justify-center w-full',
                   }"
-                  @click="handleFixSerialIssue"
+                  @click="modalMeta.isFixSerialModalOpen = true"
                   truncate
                 />
               </div>
@@ -1903,20 +1779,13 @@ else propertiesInit();
             <div class="flex flex-col space-y-3">
               <div class="w-1/4">
                 <UFormGroup label="Category" name="Category">
-                  <UInputMenu
-                    v-model="formData.Catagory"
-                    v-model:query="formData.Catagory"
-                    :options="categories"
-                  />
+                  <UInputMenu v-model="formData.Catagory" v-model:query="formData.Catagory" :options="categories" />
                 </UFormGroup>
               </div>
               <div class="w-1/4">
                 <UFormGroup label="Sub Category" name="Sub Category">
-                  <UInputMenu
-                    v-model="formData.SubCatagory"
-                    v-model:query="formData.SubCatagory"
-                    :options="subCategories"
-                  />
+                  <UInputMenu v-model="formData.SubCatagory" v-model:query="formData.SubCatagory"
+                    :options="subCategories" />
                 </UFormGroup>
               </div>
               <div class="w-1/4">
@@ -1932,9 +1801,7 @@ else propertiesInit();
 
             <div class="w-full flex">
               <div class="w-1/2 mt-5">
-                <UTable
-                  :columns="productsSBSerialGridMeta.defaultColumns"
-                  :rows="productsSBSerialGridMeta.products"
+                <UTable :columns="productsSBSerialGridMeta.defaultColumns" :rows="productsSBSerialGridMeta.products"
                   :ui="{
                     wrapper:
                       'h-52 border-2 border-gray-300 dark:border-gray-700',
@@ -2005,9 +1872,7 @@ else propertiesInit();
                     :ui="{
                       base: 'w-full',
                       truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
+                    }" truncate />
                   <template #panel="{ close }">
                     <CommonDatePicker
                       v-model="sbDate"
@@ -2107,44 +1972,33 @@ else propertiesInit();
                   base: 'w-full',
                   truncate: 'flex justify-center w-full',
                 }"
-                @click="handleRefreshOperation"
+                @click="modalMeta.isRefreshOperationModalOpen = true"
                 truncate
               />
             </div>
             <div v-if="formData.JobType === 'Product'" class="basis-1/4">
-              <UButton
+              <UButton 
                 icon="i-heroicons-pencil-square"
-                variant="outline"
-                color="green"
-                label="Edit Operations"
+                variant="outline" color="green" 
+                label="Edit Operations" 
                 :ui="{
                   base: 'w-full',
                   truncate: 'flex justify-center w-full',
-                }"
-                truncate
+                }" 
+                @click="onDblClick"
+                truncate 
               />
             </div>
             <div class="basis-1/4">
-              <UButton
-                icon="i-heroicons-minus-circle-20-solid"
-                variant="outline"
-                color="red"
-                label="Delete Rouge Operations"
-                :ui="{
+              <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red"
+                label="Delete Rouge Operations" :ui="{
                   base: 'w-full',
                   truncate: 'flex justify-center w-full',
-                }"
-                @click="handleDeleteOperation"
-                truncate
-              />
+                }" @click="handleDeleteOperation" truncate />
             </div>
             <div class="basis-1/4">
-              <UButton
-                icon="i-heroicons-minus-circle-20-solid"
-                variant="outline"
-                color="red"
-                label="Delete All Rouge Operations"
-                :ui="{
+              <UButton icon="i-heroicons-minus-circle-20-solid" variant="outline" color="red"
+                label="Delete All Rouge Operations" :ui="{
                   base: 'w-full',
                   truncate: 'flex justify-center w-full',
                 }"
@@ -2155,10 +2009,9 @@ else propertiesInit();
           </div>
 
           <div class="w-full mt-5">
-            <UTable
-              v-if="formData.JobType === 'Product'"
+            <UTable v-if="formData.JobType === 'Product'" 
               :columns="prodOperationGridMeta.defaultColumns"
-              :rows="prodOperationGridMeta.operations"
+              :rows="prodOperationGridMeta.operations" 
               :ui="{
                 wrapper: 'h-52 border-2 border-gray-300 dark:border-gray-700',
                 tr: {
@@ -2173,18 +2026,14 @@ else propertiesInit();
                   base: 'h-[31px]',
                   padding: 'px-2 py-0',
                 },
-              }"
-              @select="handleProdOperationSelect"
-              @dblclick="onDblClick"
-            >
+              }" @select="handleProdOperationSelect" @dblclick="onDblClick">
               <template #empty-state>
                 <div></div>
               </template>
             </UTable>
 
-            <UTable
-              v-else
-              :columns="subOperationGridMeta.defaultColumns"
+            <UTable v-else 
+              :columns="subOperationGridMeta.defaultColumns" 
               :rows="subOperationGridMeta.subOperations"
               :ui="{
                 wrapper: 'h-52 border-2 border-gray-300 dark:border-gray-700',
@@ -2200,10 +2049,7 @@ else propertiesInit();
                   base: 'h-[31px]',
                   padding: 'px-2 py-0',
                 },
-              }"
-              @select="handleSubOperationSelect"
-              @dblclick="onDblClick"
-            >
+              }" @select="handleSubOperationSelect" @dblclick="onDblClick">
               <template #empty-state>
                 <div></div>
               </template>
@@ -2211,19 +2057,14 @@ else propertiesInit();
           </div>
 
           <div class="flex mt-2 space-x-5">
-            <div
-              class="w-full flex flex-col border-[1px] border-slate-200 mt-2"
-            >
+            <div class="w-full flex flex-col border-[1px] border-slate-200 mt-2">
               <div class="flex w-full space-x-5">
                 <div class="basis-2/5 p-2">
                   <span class="text-sm">
-                    Employee Hours For Selected Operations</span
-                  >
-                  <UTable
-                    v-if="formData.JobType === 'Product'"
+                    Employee Hours For Selected Operations</span>
+                  <UTable v-if="formData.JobType === 'Product'" 
                     :columns="prodEmployeeGridMeta.defaultColumns"
-                    :rows="prodEmployeeGridMeta.employees"
-                    :ui="{
+                    :rows="prodEmployeeGridMeta.employees" :ui="{
                       wrapper:
                         'h-52  border-2 border-gray-300 dark:border-gray-700',
                       tr: {
@@ -2250,10 +2091,7 @@ else propertiesInit();
                     </template>
                   </UTable>
 
-                  <UTable
-                    v-else
-                    :columns="subEmployeeGridMeta.defaultColumns"
-                    :rows="subEmployeeGridMeta.subEmployees"
+                  <UTable v-else :columns="subEmployeeGridMeta.defaultColumns" :rows="subEmployeeGridMeta.subEmployees"
                     :ui="{
                       wrapper:
                         'h-52  border-2 border-gray-300 dark:border-gray-700',
@@ -2287,8 +2125,7 @@ else propertiesInit();
                         formData.JobType === "Product"
                           ? prodScheduleHrs
                           : subScheduleHrs
-                      }}</span
-                    >
+                      }}</span>
                   </div>
                 </div>
 
@@ -2300,18 +2137,11 @@ else propertiesInit();
                       <div>
                         <span>Rework</span>
                         <div class="">
-                          <UButton
-                            icon="i-heroicons-pencil-square"
-                            variant="outline"
-                            color="green"
-                            label="Rework Parts"
+                          <UButton icon="i-heroicons-pencil-square" variant="outline" color="green" label="Rework Parts"
                             :ui="{
                               base: 'w-fit',
                               truncate: 'flex justify-center w-full',
-                            }"
-                            truncate
-                            @click="handleRWClick"
-                          />
+                            }" truncate @click="handleRWClick" />
                         </div>
                       </div>
                       <div class="w-28">
@@ -2352,7 +2182,7 @@ else propertiesInit();
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
                       }"
-                      @click="verifyAndCloseOperation"
+                      @click="modalMeta.isVerifyAndCloseModalOpen = true"
                       truncate
                     />
 
@@ -2366,7 +2196,7 @@ else propertiesInit();
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
                       }"
-                      @click="reOpenOperation"
+                      @click="modalMeta.isReopneOperationModalOpen = true"
                       truncate
                     />
           
@@ -2378,12 +2208,8 @@ else propertiesInit();
 
                 <div class="flex w-full space-x-3">
                   <div class="w-fit mt-6">
-                    <UButton
-                      icon="i-heroicons-pencil-square"
-                      variant="outline"
-                      color="green"
-                      label="Move Selected Enteries to Operation"
-                      :ui="{
+                    <UButton icon="i-heroicons-pencil-square" variant="outline" color="green"
+                      label="Move Selected Enteries to Operation" :ui="{
                         base: 'w-fit',
                         truncate: 'flex justify-center w-full',
                       }"
@@ -2415,10 +2241,7 @@ else propertiesInit();
               </div>
             </div>
 
-            <div
-              v-if="formData.JobType === 'Product'"
-              class="flex flex-col items-center justify-center"
-            >
+            <div v-if="formData.JobType === 'Product'" class="flex flex-col items-center justify-center">
               <div class="w-28">
                 <UPopover :popper="{ placement: 'bottom-start' }">
                   <UButton
@@ -2431,9 +2254,7 @@ else propertiesInit();
                     :ui="{
                       base: 'w-full',
                       truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
+                    }" truncate />
                   <template #panel="{ close }">
                     <CommonDatePicker
                       v-model="reScheduleOp"
@@ -2445,11 +2266,7 @@ else propertiesInit();
               </div>
 
               <div class="mt-5">
-                <UButton
-                  icon="i-heroicons-pencil-square"
-                  variant="outline"
-                  color="green"
-                  label="reSchedule Operation"
+                <UButton icon="i-heroicons-pencil-square" variant="outline" color="green" label="reSchedule Operation"
                   :ui="{
                     base: 'w-full',
                     truncate: 'flex justify-center w-full',
@@ -2486,15 +2303,12 @@ else propertiesInit();
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
-    <JobPartsList :selected-job="selectedJob" @close="handleModalClose" />
+    <JobPartsList :instanceID=formData.InstanceID @close="handleModalClose" />
   </UDashboardModal>
 
   <!-- Manufacturing Sequnce Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isOperationModalOpen"
-    :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
-    :ui="{
+  <UDashboardModal v-model="modalMeta.isOperationModalOpen" :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription" :ui="{
       width: 'w-[1800px] sm:max-w-7xl',
       body: { padding: 'py-0 sm:pt-0' },
     }"
@@ -2503,15 +2317,190 @@ else propertiesInit();
   </UDashboardModal>
 
   <!-- Rework Parts Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isReworkPartsModalOpen"
-    :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
-    :ui="{
+  <UDashboardModal v-model="modalMeta.isReworkPartsModalOpen" :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription" :ui="{
       width: 'w-[1800px] sm:max-w-7xl',
       body: { padding: 'py-0 sm:pt-0' },
     }"
   >
     <JobReworkParts :selected-job="selectedJob" :operationId="modalMeta.reworkModalOperationId" />
   </UDashboardModal>
+
+  <!-- Update QTY confirmation -->
+  <UDashboardModal
+    v-model="modalMeta.isUpdateQtyModalOpen"
+    title="Update QTY"
+    description="It is very dangerous updating the Job Quantity after a job has been started. It may incorreclty reflect in the job costing. Are you sure you wish to proceed?"
+    icon="i-heroicons-exclamation-circle"
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+      footer: {
+        base: 'ml-16'
+      } as any
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="red"
+        label="Yes"
+        :loading="loadingButton"
+        @click="handleUpdateQty"
+      />
+      <UButton
+        color="white"
+        label="Cancel"
+        @click="modalMeta.isUpdateQtyModalOpen = false"
+      />
+    </template>
+  </UDashboardModal>
+ 
+  <UDashboardModal
+    v-model="modalMeta.isPullIntoInventoryModalOpen"
+    title="Pull Into Inventory"
+    description="Serials are about to be processed. Please press ok and be patient. Preparing to update inventory."
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+ 
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="green"
+        label="Ok"
+        :loading="loadingButton"
+        @click="handlePullIntoSerial"
+      />
+      <UButton
+        color="white"
+        label="Cancel"
+        @click="modalMeta.isPullIntoInventoryModalOpen = false"
+      />
+    </template>
+  </UDashboardModal>
+
+  <UDashboardModal
+    v-model="modalMeta.isFixSerialModalOpen"
+    title="Fix Serial Issues"
+    description="Serials are about to be processed. Please press ok and be patient. Preparing to update inventory."
+    
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+ 
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="green"
+        label="Ok"
+        :loading="loadingButton"
+        @click="handleFixSerialIssue"
+      />
+      <UButton
+        color="white"
+        label="No"
+        @click="modalMeta.isFixSerialModalOpen = false"
+      />
+    </template>
+  </UDashboardModal>
+
+  <UDashboardModal
+    v-model="modalMeta.isRefreshOperationModalOpen"
+    title="Update Operations?"
+    description="Would you like to update the job operations to reflect the current plan?"
+    
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="green"
+        label="Yes"
+        :loading="loadingButton"
+        @click="handleRefreshOperation"
+      />
+      <UButton
+        color="white"
+        label="No"
+        @click="modalMeta.isRefreshOperationModalOpen = false"
+      />
+    </template>
+  </UDashboardModal>
+
+  <UDashboardModal
+    v-model="modalMeta.isVerifyAndCloseModalOpen"
+    title="Verify & Close Operation"
+    :description=" formData.PerType !== 'Operation' ? 'Are you sure you are ready to close the operation? Inventory will not be relieved since it is set to Serial/Unit' : 'Would you like to update the job operations to reflect the current plan?' "
+    
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="green"
+        label="Yes"
+        :loading="loadingButton"
+        @click="verifyAndCloseOperation"
+      />
+      <UButton
+        color="white"
+        label="No"
+        @click="modalMeta.isVerifyAndCloseModalOpen = false"
+      />
+    </template>
+  </UDashboardModal>
+
+  <UDashboardModal
+    v-model="modalMeta.isReopneOperationModalOpen"
+    title="Re-Open Operation"
+    :description="'Are you sure you are ready to re-open the operation?' "
+    
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="green"
+        label="Yes"
+        :loading="loadingButton"
+        @click="reOpenOperation"
+      />
+      <UButton
+        color="white"
+        label="No"
+        @click="modalMeta.isReopneOperationModalOpen = false"
+      />
+    </template>
+  </UDashboardModal>
+
+ 
 </template>

@@ -144,7 +144,6 @@ const init = async () => {
   
   }
   const fetchGridData = async () => {
-
     gridMeta.value.isLoading = true
     await useApiFetch('/api/projects/numbers', {
       method: 'GET',
@@ -466,4 +465,5 @@ watch(selectedOptions, (newSelectedOptions) => {
   </UDashboardModal>
 
 </template>
-<style scoped></style>
+<style scoped>
+</style>

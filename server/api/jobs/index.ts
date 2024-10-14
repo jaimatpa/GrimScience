@@ -11,8 +11,8 @@ export default eventHandler(async (event) => {
         return { body: list, message: '' }
       case 'POST':
         const data = await readBody(event)
-        const newCustomer = await createNewJob(data)
-        return { body: { newCustomer }, message: 'New Job created successfully!'}
+        const detail = await createNewJob(data)
+        return { body: { detail }, message: 'New Job created successfully!'}
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

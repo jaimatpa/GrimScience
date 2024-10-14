@@ -610,7 +610,7 @@ else propertiesInit();
                 :rows="prodOperationGridMeta.operations"
                 :ui="{
                   wrapper:
-                    'h-[868px] border-2 border-gray-300 dark:border-gray-700',
+                    'h-[668px] border-2 border-gray-300 dark:border-gray-700',
                   tr: {
                     active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
                   },
@@ -683,7 +683,7 @@ else propertiesInit();
                   :rows="stepsGridMeta.steps"
                   :ui="{
                     wrapper:
-                      'h-[868px] border-2 border-gray-300 dark:border-gray-700',
+                      'h-[668px] border-2 border-gray-300 dark:border-gray-700',
                     tr: {
                       active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
                     },
@@ -832,6 +832,27 @@ else propertiesInit();
     }"
   >
     <JobPartsList :instanceID="props.instanceId"/>
+  </UDashboardModal>
+
+  <!-- New Step Info Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isStepInformationModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1200px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <ProductsProdStepInformationForm
+      :operation-id="prodOperationGridMeta.selectedOperation.UniqueID"
+      :instance-id="prodOperationGridMeta.selectedOperation.instanceid"
+      :step-id="stepsGridMeta.selectedStep ? stepsGridMeta.selectedStep.UniqueID : null"
+      :next-step="stepsGridMeta.steps.length > 0 ? String.fromCharCode(stepsGridMeta.steps[stepsGridMeta.steps.length - 1].Step.charCodeAt(0) + 1) : 'A'"
+      @close="handleStepModalClose"
+      @change="getOperationSteps"
+      :is-modal="true"
+    />
   </UDashboardModal>
 
   <!-- Product Skill Modal -->

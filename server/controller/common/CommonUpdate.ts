@@ -6,7 +6,7 @@ interface updateTableRowProps {
   data: any;
 }
 
-export const updateTableRow = async ({tblName, id, data}: updateTableRowProps) => {
+export const updateTableRow = async ({ tblName, id, data }: updateTableRowProps) => {
   try {
     if (models[tblName]) {
       const primaryKey = models[tblName].primaryKeyAttribute;
@@ -14,7 +14,7 @@ export const updateTableRow = async ({tblName, id, data}: updateTableRowProps) =
       if (!existingRow) {
         throw new Error(`Record with ${primaryKey} ${id} not found in ${tblName}`);
       }
-      const updatedResult = await models[tblName].update(data, { where: { [primaryKey]: id } } );
+      const updatedResult = await models[tblName].update(data, { where: { [primaryKey]: id } });
       return updatedResult;
     } else {
       throw new Error(`The item is not existed in ${tblName}`);
