@@ -11,6 +11,11 @@ const props = defineProps({
     type: [Boolean, null],
   },
 });
+const props = defineProps({
+  isPage: {
+    type: [Boolean, null],
+  },
+});
 onMounted(() => {
   init();
 });

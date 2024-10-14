@@ -40,6 +40,8 @@
     "nuxt": "^3.11.2",
     "nuxt-file-storage": "^0.2.7",
     "pg-hstore": "^2.3.4",
+    "nuxt-file-storage": "^0.2.7",
+    "pg-hstore": "^2.3.4",
     "puppeteer": "^22.12.1",
     "sequelize": "^6.37.3",
     "tedious": "^18.2.0",

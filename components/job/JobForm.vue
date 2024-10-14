@@ -662,6 +662,7 @@ const handleProdOperationSelect = async (row) => {
   });
   getSchedules();
 
+
 };
 
 const handleSubOperationSelect = async (row) => {
@@ -1024,7 +1025,6 @@ const onDblClick = () => {
     formData.MODEL ? formData.MODEL : formData.PART
   }`;
 };
-
 
 const handleRWClick = () => {
   modalMeta.value.isReworkPartsModalOpen = true;

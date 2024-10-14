@@ -19,7 +19,7 @@ const partsFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false);
 const partList = ref([]);
 const formData = reactive({})
-console.log(props.instanceID)
+
 const init = async () => {
   loadingOverlay.value = true;
   await useApiFetch(`/api/jobs/operations/mfg/partlist/${props.instanceID}`, {
@@ -54,31 +54,39 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
 };
 
 const listColumns = ref([
+const listColumns = ref([
   {
+    key: "model",
     key: "model",
     label: "Stock #",
   },
   {
     key: "description",
+    key: "description",
     label: "Desc",
   },
   {
+    key: "quantity",
     key: "quantity",
     label: "Qty",
   },
   {
     key: "inventoryunit",
+    key: "inventoryunit",
     label: "Inv. Unit",
   },
   {
+    key: "inventorycost",
     key: "inventorycost",
     label: "Inv. Cost",
   },
   {
     key: "totalCost",
+    key: "totalCost",
     label: "Total",
   },
   {
+    key: "laborHours",
     key: "laborHours",
     label: "Sub Ass Hrs",
   },
