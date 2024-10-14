@@ -5,7 +5,7 @@ import "vue-loading-overlay/dist/css/index.css";
 import { format } from "date-fns";
 import type { UTableColumn } from "~/types";
 
-const emit = defineEmits(["close", "save"]);
+const emit = defineEmits(["close", "save", "open"]);
 const props = defineProps({
   selectedJob: {
     type: [String, Number, null],
@@ -61,7 +61,7 @@ const formData = reactive({
   Title: null,
   Employee: null,
   JobType: null,
-  JobDescription: null,
+  JobDescription: "",
   WorkCenters: null,
   NUMBER: null,
   QUANTITY: null,
@@ -70,7 +70,7 @@ const formData = reactive({
   JOBCLOSED: null,
   jobcat: null,
   jobsubcat: null,
-  Cost: null,
+  Cost: 0,
   Catagory: null,
   SubCatagory: null,
   ClosedBy: null,
@@ -118,6 +118,7 @@ watch(() => formData.PART, async (newPart) => {
 
 let date = new Date();
 let sbDate = new Date();
+
 const editInit = async () => {
   loadingOverlay.value = true;
   await useApiFetch(`/api/jobs/${props.selectedJob}`, {
@@ -183,20 +184,6 @@ const editInit = async () => {
       productLines.value = [];
     },
   });
-
-  // get models users
-  // await useApiFetch("/api/jobs/models", {
-  //   method: "GET",
-  //   params: {productline: formData.PRODUCTLINE},
-  //   onResponse({ response }) {
-  //     if (response.status === 200) {
-  //       models.value = response._data.body;
-  //     }
-  //   },
-  //   onResponseError() {
-  //     models.value = [];
-  //   },
-  // });
 
   await fetchJobOperation();
 
@@ -417,7 +404,7 @@ const fetchJobOperation = async () => {
 
 const propertiesInit = async () => {
   loadingOverlay.value = true;
-
+  formData.DATEOPENED = new Date()
   // get job type list
   // await useApiFetch("/api/jobs/jobTypes", {
   //   method: "GET",
@@ -497,6 +484,32 @@ const propertiesInit = async () => {
     },
   });
 
+  // get productline list
+  await useApiFetch("/api/jobs/productLines", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        productLines.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      productLines.value = [];
+    },
+  });
+
+  // get categories list
+  await useApiFetch("/api/jobs/categories", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        categories.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      categories.value = [];
+    },
+  });
+
   loadingOverlay.value = false;
 };
 
@@ -534,29 +547,25 @@ const getSchedules = async () => {
 
 const validate = (state: any): FormError[] => {
   const errors = [];
-  if (!state.NUMBER) errors.push({ path: 'NUMBER', message: 'Please enter your job number.' })
-  if (!state.QUANTITY) errors.push({ path: 'QUANTITY', message: 'Please enter a your job quantity.' })
-  if (!state.JobType) errors.push({ path: 'JobType', message: 'Please enter an job type.' })
+  if (!state.NUMBER) errors.push({ path: 'NUMBER', message: 'Please enter your Job#.' })
+  if (!state.QUANTITY) errors.push({ path: 'QUANTITY', message: 'Please enter a your Job Qty.' })
+  if (!state.JobType) errors.push({ path: 'JobType', message: 'Please enter an Job Type.' })
+  if (!state.PerType) errors.push({ path: 'PerType', message: 'Please enter an Relieve Inventory Per.' })
   return errors;
 };
 
 const onSubmit = async (event: FormSubmitEvent<any>) => {
-  const totalAmount = event.data.Cost;
-  const numericAmount = parseFloat(totalAmount.replace("$", ""));
-  const data = {
-    ...event.data,
-    Cost: numericAmount,
-  };
 
   if (props.selectedJob === null) {
     // Create New Job
-    isLoading.value = true;
+    loadingOverlay.value = true;
     await useApiFetch("/api/jobs", {
       method: "POST",
-      body: data,
+      body: event.data,
       onResponse({ response }) {
         if (response.status === 200) {
-          isLoading.value = false;
+          console.log(response._data.body)
+          emit("open",response._data.body.UniqueID)
           toast.add({
             title: "Success",
             description: response._data.message,
@@ -566,12 +575,14 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       },
     });
+    
+    loadingOverlay.value = false
   } else {
     // Update Job
-    isLoading.value = true;
+    loadingOverlay.value = true;
     await useApiFetch(`/api/jobs/${props.selectedJob}`, {
       method: "PUT",
-      body: data,
+      body: event.data,
       onResponse({ response }) {
         if (response.status === 200) {
           toast.add({
@@ -583,11 +594,15 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         }
       },
     });
+    loadingOverlay.value = false
 
   }
-  emit("save");
+  
 };
 
+const reOpen = () => {
+  formData.DATECLOSED = ""
+}
 
 const handleClearCick = () => {
   Object.keys(formData).forEach((key) => {
@@ -1514,6 +1529,8 @@ else propertiesInit();
           </div>
 
           <div class="flex flex-row space-x-3">
+            
+            
             <div class="basis-1/5">
               <UFormGroup label="Date Opened" name="Date Opened">
                 <UPopover :popper="{ placement: 'bottom-start' }">
@@ -1527,15 +1544,6 @@ else propertiesInit();
                     <CommonDatePicker v-model="formData.DATEOPENED" is-required @close="close" />
                   </template>
                 </UPopover>
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="By" name="By">
-                <UInputMenu
-                  v-model="formData.ByEmployee"
-                  v-model:query="formData.ByEmployee"
-                  :options="getEmployeees"
-                />
               </UFormGroup>
             </div>
             <div class="basis-1/5">
@@ -1555,23 +1563,6 @@ else propertiesInit();
             </div>
 
             <div class="basis-1/5">
-              <UFormGroup label="By" name="By">
-                <UInputMenu
-                  v-model="formData.ProductionBy"
-                  v-model:query="formData.ProductionBy"
-                  :options="getEmployeees"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Job Material Cost ($)" name="Job Material Cost">
-                <UInput v-model="formData.Cost" />
-              </UFormGroup>
-            </div>
-          </div>
-
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/5">
               <UFormGroup label="Job Closed" name="Job Closed">
                 <UPopover :popper="{ placement: 'bottom-start' }">
                   <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.JOBCLOSED &&
@@ -1586,6 +1577,38 @@ else propertiesInit();
                 </UPopover>
               </UFormGroup>
             </div>
+
+            <div class="basis-1/5">
+              <UFormGroup label="" name="Title">
+                <UButton label="Re-Open" icon="i-f7-arrow-clockwise" variant="outline" color="green" class="mt-6" :ui="{
+                  base: 'w-full',
+                  truncate: 'flex justify-center w-full',
+                  
+                }"
+                @click="reOpen"
+                />
+              </UFormGroup>
+            </div>
+
+            
+            <div class="basis-1/5">
+              <UFormGroup label="Job Material Cost ($)" name="Job Material Cost">
+                <UInput v-model="formData.Cost" />
+              </UFormGroup>
+            </div>
+          </div>
+
+          <div class="flex flex-row space-x-3">
+            
+            <div class="basis-1/5">
+              <UFormGroup label="By" name="By">
+                <UInputMenu
+                  v-model="formData.ByEmployee"
+                  v-model:query="formData.ByEmployee"
+                  :options="getEmployeees"
+                />
+              </UFormGroup>
+            </div>
             <div class="basis-1/5">
               <UFormGroup label="By" name="By">
                 <UInputMenu
@@ -1596,12 +1619,15 @@ else propertiesInit();
               </UFormGroup>
             </div>
 
+            
+
             <div class="basis-1/5">
-              <UFormGroup label="" name="Title">
-                <UButton label="Re-Open" icon="i-f7-arrow-clockwise" variant="outline" color="green" class="mt-6" :ui="{
-                  base: 'w-full',
-                  truncate: 'flex justify-center w-full',
-                }" />
+              <UFormGroup label="By" name="By">
+                <UInputMenu
+                  v-model="formData.ProductionBy"
+                  v-model:query="formData.ProductionBy"
+                  :options="getEmployeees"
+                />
               </UFormGroup>
             </div>
 

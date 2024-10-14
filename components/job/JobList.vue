@@ -413,6 +413,10 @@ const onUpdatePercentage = async () => {
   loadingOverlay.value = false
 }
 
+const openJobDetailsForm = (jobId) => {
+  gridMeta.value.selectedJobId = jobId
+}
+
 </script>
 
 <template>
@@ -635,7 +639,7 @@ const onUpdatePercentage = async () => {
     </UDashboardPanel>
   </UDashboardPage>
 
-  <!-- New Organization Detail Modal -->
+  <!-- Job Detail Modal -->
   <UDashboardModal v-model="modalMeta.isJobFormModalOpen" :title="modalMeta.modalTitle"
     :description="modalMeta.modalDescription" :ui="{
       width: 'w-[1100px] sm:max-w-7xl',
@@ -646,6 +650,7 @@ const onUpdatePercentage = async () => {
       @close="handleModalClose"
       @save="handleModalSave"
       :selected-job="gridMeta.selectedJobId"
+      @open="openJobDetailsForm"
     />
   </UDashboardModal>
 

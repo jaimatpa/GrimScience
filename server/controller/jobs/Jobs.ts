@@ -65,7 +65,6 @@ export const getAllJobs = async (page, pageSize, sortBy, sortOrder, filterParams
 
   startDate = formatDate(startDate)
   endDate = formatDate(endDate)
-  console.log(startDate,endDate)
 
   const whereClause = applyFilters(filterParams);
 
@@ -263,14 +262,37 @@ export const getJobPartList = async (id) => {
 }
 
 export const updateJob = async (id, reqData) => {
-  const model = reqData.MODEL.trim().split(" ")[0];
-  const query = `SELECT instanceID FROM tblBP WHERE model = :model LIMIT 1`;
-  const [result] = await sequelize.query(query, {
-      replacements: { MODEL: model },
-      type: QueryTypes.SELECT
-  });
-  const instanceid = parseInt(result.instanceID);
-  await tblJobs.update({...reqData, ProjectType:reqData.Catagory, instanceID:instanceid}, {
+  let instanceid = 0
+  if(reqData.MODEL){
+    const model = reqData.MODEL.trim().split(" ")[0];
+    const query = `SELECT TOP 1 instanceID FROM tblBP WHERE MODEL = :model`;
+    const [result] = await sequelize.query(query, {
+        replacements: { model },
+        type: QueryTypes.SELECT
+    });
+    instanceid = result.instanceID
+  }
+
+  if(reqData.PART){
+    const model = reqData.PART.trim().split(" ")[0];
+    const query = `SELECT TOP 1 instanceID FROM tblBP WHERE MODEL = :model`;
+    const [result] = await sequelize.query(query, {
+        replacements: { model },
+        type: QueryTypes.SELECT
+    });
+    instanceid = result.instanceID
+  }
+
+  await tblJobs.update({
+    ...reqData,
+    ProjectType:reqData.Catagory, 
+    instanceID:instanceid,
+    DATEOPENED: formatDate(reqData.DATEOPENED),
+    DATECLOSED: reqData.DATECLOSED ? formatDate(reqData.DATECLOSED) : null,
+    ProductionDate: reqData.ProductionDate ? formatDate(reqData.ProductionDate) : null,
+  }, 
+    
+  {
     where: { UniqueID: id }
   });
   return id;
@@ -284,6 +306,11 @@ export const deleteJob = async (id) => {
 export const createNewJob = async (data) => {
   const createReqData = {
     ...data,
+    PercentageComplete : 0,
+    DATEOPENED: formatDate(data.DATEOPENED),
+    DATECLOSED: data.DATECLOSED ? formatDate(data.DATECLOSED) : null,
+    ProductionDate: data.ProductionDate ? formatDate(data.ProductionDate) : null,
+
   };
   const newCustomer = await tblJobs.create(createReqData);
   return newCustomer
@@ -560,7 +587,7 @@ export const pullIntoInventory = async (
         const today = formatDateForSQLServer(new Date())
         // Fetch the max uniqueID from tblJobDetail
         const [{ maxUniqueID }] = await sequelize.query(`SELECT MAX(UniqueID) AS maxUniqueID FROM tblJobDetail`, { type: QueryTypes.SELECT });
-        console.log( maxUniqueID )
+
         // Verify inventory transaction
         const lngTransID = await verifyInventoryTransaction("", today, glob_StrEmployee, {jobID:lngJob, jobDetailID:parseFloat(maxUniqueID)} );
 
@@ -604,7 +631,6 @@ export const pullIntoInventory = async (
 
 export const correctInventory = async (jobId, glob_StrEmployee, jobDetailId)=> {
   const today = formatDateForSQLServer(new Date())
-  console.log("", today, glob_StrEmployee, {jobID:jobId, jobDetailID: jobDetailId} )
   verifyInventoryTransaction("", today, glob_StrEmployee, {jobID:jobId, jobDetailID: jobDetailId} );
 }
 
@@ -738,7 +764,7 @@ export const verifyInventoryTransaction = async (manual = '', date, createdBy, o
     `, {
       type: QueryTypes.SELECT
     });
-    console.log("tranx",existingTransaction)
+   
     if (existingTransaction.length > 0) {
       transID = existingTransaction[0].uniqueID;
     }
@@ -1080,7 +1106,6 @@ const removeFromInventory2 = async (jobDetailID, instanceID, recJOnQuantity) => 
                       const qtyUsed = parseFloat(row.qty) * parseFloat(recJOnQuantity);
 
                       strParts += `UniqueID:${partUniqueID}//Part#:${partModel}//Inventory Cost:${inventoryCost}//Qty Used:${qtyUsed}==`;
-                      console.log(`UniqueID:${partUniqueID}//Part#:${partModel}//Inventory Cost:${inventoryCost}//Qty Used:${qtyUsed}==`);
 
                       dblcost += parseFloat(inventoryCost) * qtyUsed;
                   }
