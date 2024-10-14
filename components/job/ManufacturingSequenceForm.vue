@@ -267,6 +267,7 @@ else propertiesInit();
 </script>
 
 <template>
+
   <div class="vl-parent">
     <loading
       v-model:active="loadingOverlay"
@@ -636,4 +637,5 @@ else propertiesInit();
       :is-modal="true"
     />
   </UDashboardModal>
+
 </template>

@@ -12,7 +12,8 @@ useSeoMeta({
   title: 'Login'
 })
 
-const token = useCookie<string>('token');
+  const token = useCookie<string>('token');
+  const user = useCookie<string>('user');
 
 const users = ref([])
 const loadingOverlay = ref(false);
@@ -41,18 +42,19 @@ const init = () => {
   })
 }
 
-const onSubmit = (event: FormSubmitEvent<FormDataSchema>) => {
-  useApiFetch('/api/auth/login', {
-    method: 'POST',
-    body: event.data,
-    async onResponse({ response }) {
-      if (response.status === 200) {
-        token.value = response._data.token;
-        await navigateTo("/")
+  const onSubmit = (event: FormSubmitEvent<FormDataSchema>) => {
+    useApiFetch('/api/auth/login', {
+      method: 'POST',
+      body: event.data,
+      async onResponse({ response }) {
+        if(response.status === 200) {
+          user.value = JSON.stringify(response._data.body);
+          token.value = response._data.token;
+          await navigateTo("/")
+        }
       }
-    }
-  })
-}
+    })
+  }
 
 init();
 </script>

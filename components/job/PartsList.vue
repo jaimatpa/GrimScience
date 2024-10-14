@@ -17,28 +17,16 @@ const toast = useToast();
 const router = useRouter();
 const partsFormInstance = getCurrentInstance();
 const loadingOverlay = ref(false);
-const JobExist = ref(true);
-const formData = reactive({});
-
-const jobFilters = ref({
-  JobID: [props.selectedJob],
-});
+const partList = ref([]);
+const formData = reactive({})
 
 const editInit = async () => {
   loadingOverlay.value = true;
-  await useApiFetch(`/api/jobs/details`, {
+  await useApiFetch(`/api/jobs/jobpartlist/${props.selectedJob}`, {
     method: "GET",
-    params: { ...jobFilters.value },
     onResponse({ response }) {
       if (response.status === 200) {
-        JobExist.value = true;
-        console.log("response._data.body", response._data.body);
-
-        // for (const key in response._data.body) {
-        //   if (response._data.body[key] !== undefined) {
-        //     formData[key] = response._data.body[key];
-        //   }
-        // }
+        partList.value = response._data.body;
       }
     },
     onResponseError({ }) {
@@ -65,33 +53,33 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   emit("save");
 };
 
-const productColumns = ref([
+const listColumns = ref([
   {
-    key: "serial",
+    key: "model",
     label: "Stock #",
   },
   {
-    key: "date_serialized",
+    key: "description",
     label: "Desc",
   },
   {
-    key: "material_cost",
+    key: "quantity",
     label: "Qty",
   },
   {
-    key: "material_cost",
+    key: "inventoryunit",
     label: "Inv. Unit",
   },
   {
-    key: "material_cost",
+    key: "inventorycost",
     label: "Inv. Cost",
   },
   {
-    key: "material_cost",
+    key: "totalCost",
     label: "Total",
   },
   {
-    key: "material_cost",
+    key: "laborHours",
     label: "Sub Ass Hrs",
   },
 ]);
