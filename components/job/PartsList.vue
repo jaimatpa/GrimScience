@@ -54,39 +54,31 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
 };
 
 const listColumns = ref([
-const listColumns = ref([
   {
-    key: "model",
     key: "model",
     label: "Stock #",
   },
   {
     key: "description",
-    key: "description",
     label: "Desc",
   },
   {
-    key: "quantity",
     key: "quantity",
     label: "Qty",
   },
   {
     key: "inventoryunit",
-    key: "inventoryunit",
     label: "Inv. Unit",
   },
   {
-    key: "inventorycost",
     key: "inventorycost",
     label: "Inv. Cost",
   },
   {
     key: "totalCost",
-    key: "totalCost",
     label: "Total",
   },
   {
-    key: "laborHours",
     key: "laborHours",
     label: "Sub Ass Hrs",
   },

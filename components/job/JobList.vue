@@ -6,11 +6,7 @@ import { format } from "date-fns";
 useSeoMeta({
   title: "Grimm-Employees Organization",
 });
-const props = defineProps({
-  isPage: {
-    type: [Boolean, null],
-  },
-});
+
 const props = defineProps({
   isPage: {
     type: [Boolean, null],
