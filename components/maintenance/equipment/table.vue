@@ -312,7 +312,6 @@ const excelExport = () => {
 
 const emit = defineEmits(["rowSelected", "rowDoubleClicked"]);
 const onSelect = (row) => {
-  console.log(row);
   emit("rowSelected", row);
 };
 const onDblClick = () => {

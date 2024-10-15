@@ -72,6 +72,7 @@ const tblMaintainenceReports = sequelize.define('tblMaintainenceReports', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName:'tblMaintainenceReports',
    timestamps: false
 });
 

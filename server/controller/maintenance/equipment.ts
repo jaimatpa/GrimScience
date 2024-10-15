@@ -1,5 +1,5 @@
 import { Op, QueryTypes, Sequelize } from "sequelize";
-import { tblCustomers, tblBP,tblMaintainenceOrders,tblWorkStation,tblMaintainenceReports, } from "~/server/models";
+import { tblCustomers, tblBP,tblMaintainenceOrders,tblWorkStation,tblMaintainenceReports,tblMaintReportMeasurements } from "~/server/models";
 import { tblEmployee } from "~/server/models";
 import sequelize from "~/server/utils/databse";
 
@@ -233,6 +233,147 @@ export const getAllMatchReportData = async (orderId, query) => {
     throw new Error(`Error fetching reports: ${error.message}`);
   }
 };
+
+
+
+export const getAllReportByData = async () => {
+  try {
+    const reports = await tblMaintainenceReports.findAll({
+      attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('By')), 'By']], // Get distinct values
+      order: [['By', 'DESC']], // Order the results by the 'By' column in descending order
+    });
+    
+    // Map the results to get an array of unique values
+    const uniqueReports = reports.map(report => report.get('By'));
+    
+ // Log the unique reports
+    return uniqueReports; // Return the unique reports
+  } catch (error) {
+    throw new Error(`Error fetching reports: ${error.message}`);
+  }
+};
+
+export const getAllReportWhereData = async () => {
+  try {
+    const reports = await tblMaintainenceReports.findAll({
+      attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('Inhouse')), 'Inhouse']], // Get distinct values
+      order: [['Inhouse', 'DESC']], // Order the results by the 'By' column in descending order
+    });
+    
+    // Map the results to get an array of unique values
+    const uniqueReports = reports.map(report => report.get('Inhouse'));
+    
+ // Log the unique reports
+    return uniqueReports; // Return the unique reports
+  } catch (error) {
+    throw new Error(`Error fetching reports: ${error.message}`);
+  }
+};
+export const getAllReportSub1Data = async () => {
+  try {
+    const reports = await tblMaintainenceReports.findAll({
+      attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('Sub1')), 'Sub1']], 
+      order: [['Sub1', 'DESC']], 
+    });
+    
+    const uniqueReports = reports.map(report => report.get('Sub1'));
+
+    return uniqueReports; 
+  } catch (error) {
+    throw new Error(`Error fetching reports: ${error.message}`);
+  }
+};
+
+
+
+export const getAllReportUOMData = async () => {
+  try {
+    const reports = await tblMaintReportMeasurements.findAll({
+      attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('UOM')), 'UOM']], 
+      order: [['UOM', 'DESC']],
+    });
+    const uniqueReports = reports.map(report => report.get('UOM'));
+    
+   // Log the unique reports
+    return uniqueReports; // Return the unique reports
+  } catch (error) {
+    throw new Error(`Error fetching reports: ${error.message}`);
+  }
+};
+
+
+
+
+export const getAllReportSearchData = async (subCategory) => {
+
+  try {
+    const reports = await tblMaintainenceReports.findAll({
+      where: {
+        Sub1: subCategory, 
+      },
+      attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('Inst1')), 'Inst1']],
+      order: [['Inst1', 'DESC']],
+      group: ['Inst1'], 
+    });
+    
+    const uniqueReports = reports.map(report => report.get('Inst1'));
+
+    console.log(uniqueReports);
+    return uniqueReports;
+  } catch (error) {
+    throw new Error(`Error fetching reports: ${error.message}`);
+  }
+};
+
+
+
+
+
+
+
+
+// async function fillComboBox() {
+//   const instruments = await CurrentBP.findAll({
+//       attributes: [
+//           [sequelize.fn('concat', sequelize.literal("'#'"), sequelize.col('model'), sequelize.literal(" ' ' "), sequelize.col('description')), 'instrument']
+//       ],
+//       where: {
+//           parttype: 'Instrument'
+//       },
+//       order: [['model', 'ASC']]
+//   });
+
+//   return instruments.map(item => item.instrument);
+// }
+
+
+
+
+
+// async function refreshLVW(reportId) {
+//   const measurements = await tblMaintReportMeasurements.findAll({
+//       where: { ReportID: reportId }
+//   });
+
+//   return measurements.map(measurement => ({
+//       uniqueID: measurement.uniqueID,
+//       UOM: measurement.UOM,
+//       Applied: measurement.Applied,
+//       Reading: measurement.Reading,
+//       Adjusted: measurement.Adjusted,
+//       Min: measurement.Min,
+//   }));
+// }
+
+
+
+
+
+
+
+
+
+
 
 
 

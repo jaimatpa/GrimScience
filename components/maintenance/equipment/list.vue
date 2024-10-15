@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import OrderDetailsTable from "./table.vue";
+import NewReportModul from "./NewReportComponent.vue"
+
+
 
 onMounted(async () => {
   await init();
@@ -46,14 +49,32 @@ const headerFilters = ref({
 });
 
 const toast = useToast();
+
 const modalMeta = ref({
   isSerialModalOpen: false,
   modalTitle: "Serial",
+  isNewReportModalOpen:false,
+  mainID:""
+  
 });
 
 const openSerialRecord = () => {
   modalMeta.value.modalTitle = "Serial list";
   modalMeta.value.isSerialModalOpen = true;
+};
+
+
+
+const openNewReport = () => {
+  const reportID = handleVModel.value.manValue
+  if (reportID) { 
+
+    modalMeta.value.modalTitle = "New Report";
+    modalMeta.value.isNewReportModalOpen = true;
+    modalMeta.value.mainID = reportID;
+  } else {
+    console.log("manValue is empty, modal will not open.");
+  }
 };
 
 const fetchEmployeeData = async () => {
@@ -219,8 +240,6 @@ const clearValues = () => {
 };
 
 const handleRowSelected = (row) => {
-  console.log("Function OK", row);
-
   // Function to format date to YYYY-MM-DD
   const formatDateToYYYYMMDD = (dateString) => {
     const dateParts = dateString.split("/");
@@ -389,6 +408,7 @@ const onSelectReportMatchData = async () => {
     );
 
     if (response && response.status === 200) {
+      console.log(response.body)
       inventoryDetailGridMeta.value.details = response.body;
     } else {
       console.error(
@@ -420,6 +440,7 @@ const handleVModel = ref({
 });
 
 const onSelect = (row) => {
+  console.log(row.No)
   handleVModel.value.selectedNoValue = row.No;
 };
 
@@ -721,6 +742,7 @@ const onRemoveReport = async () => {
     </UTable>
   </div>
 
+
   <div class="flex justify-end space-x-4 pt-[10px]">
     <div class="basis-1/6">
       <UButton
@@ -728,7 +750,7 @@ const onRemoveReport = async () => {
         label="New Report"
         variant="outline"
         color="green"
-        @click="submitForm"
+        @click="openNewReport()"
         :ui="{
           base: 'min-w-[200px] w-full',
           truncate: 'flex justify-center w-full',
@@ -736,21 +758,26 @@ const onRemoveReport = async () => {
         truncate
       />
     </div>
+
+
+
     <div class="basis-1/6">
-      <UButton
-        icon="i-heroicons-minus-circle"
-        label="Remove Report"
-        variant="outline"
-        color="red"
-        @click="onRemoveReport"
-        :ui="{
-          base: 'min-w-[200px] w-full',
-          truncate: 'flex justify-center w-full',
-        }"
-        truncate
-      />
-    </div>
+    <UButton
+      icon="i-heroicons-minus-circle"
+      label="Remove Report"
+      variant="outline"
+      color="red"
+      :ui="{
+        base: 'min-w-[200px] w-full',
+        truncate: 'flex justify-center w-full',
+      }"
+      truncate
+      @click="onRemoveReport"
+    />
   </div>
+  </div>
+
+
   <UDashboardModal
     v-model="modalMeta.isSerialModalOpen"
     :title="modalMeta.modalTitle"
@@ -770,6 +797,32 @@ const onRemoveReport = async () => {
     <MaterialsSerialsSerialList
       @select="handleRowSelectedSerial"
       @close="closeSerialModal"
+    />
+  </UDashboardModal>
+
+
+
+  <UDashboardModal 
+    v-model="modalMeta.isNewReportModalOpen"
+    :title="modalMeta.modalTitle"
+    :mainID="modalMeta.mainID"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: {
+        base: 'gap-y-1',
+        padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+      },
+      width: 'w-[3000px] sm:max-w-7xl',
+    }"
+  >
+
+    <NewReportModul
+     @select="handleRowSelectedSerial"
+     @close="closeSerialModal"
     />
   </UDashboardModal>
 </template>
