@@ -1,13 +1,14 @@
-import { getJobSubCategories } from '~/server/controller/jobs';
+import { reOpenOperation } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
+    const { jobId, operationId, unitCost, employee, quantity } = getQuery(event);
+
     const method = event._method;
-    const {  category } = getQuery(event);
     switch(method.toUpperCase()){
-      case 'GET':
-        const { distinctSubCategories, distinctPart } = await getJobSubCategories(category)
-        return { body: { distinctSubCategories, distinctPart }, message: '' }
+      case 'PUT':
+        await reOpenOperation(jobId, operationId, unitCost, employee, quantity)
+        return { body: '', message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
