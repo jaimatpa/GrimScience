@@ -130,12 +130,14 @@ export const getProductInfos = async (params) => {
   }
   const productInfos = await tblBP.findAll({
     attributes: [
-      "UniqueID",
-      "PRODUCTLINE",
-      "PARTTYPE",
-      "SUBCATEGORY",
-      "PRIMARYPRICE1",
-      "DESCRIPTION",
+      'UniqueID',
+      'PRODUCTLINE',
+      'PARTTYPE',
+      'SUBCATEGORY',
+      'PRIMARYPRICE1',
+      'DESCRIPTION',
+      'InventoryCost',
+      'InventoryUnit'
     ],
     where: whereClause,
     limit: 50,
@@ -161,15 +163,17 @@ export const getParts = async (filterParams) => {
 
   const productInfos = await tblBP.findAll({
     attributes: [
-      "UniqueID",
-      "instanceID",
-      "PARTTYPE",
-      "SUBCATEGORY",
-      "MODEL",
-      "DESCRIPTION",
-      "OnHand",
-      "PRIMARYPRICE1",
-      "UNIT",
+      'UniqueID',
+      'instanceID',
+      'PARTTYPE',
+      'SUBCATEGORY',
+      'MODEL',
+      'DESCRIPTION',
+      'OnHand',
+      'PRIMARYPRICE1',
+      'UNIT',
+      'InventoryCost',
+      'InventoryUnit'
     ],
     where: {
       partflag: 1,

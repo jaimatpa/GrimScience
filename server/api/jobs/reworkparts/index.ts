@@ -1,13 +1,13 @@
-import { getJobSubCategories } from '~/server/controller/jobs';
+import { getReworkParts } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
+    const { ...filterParams } = getQuery(event);
     const method = event._method;
-    const {  category } = getQuery(event);
     switch(method.toUpperCase()){
       case 'GET':
-        const { distinctSubCategories, distinctPart } = await getJobSubCategories(category)
-        return { body: { distinctSubCategories, distinctPart }, message: '' }
+        const list = await getReworkParts(filterParams);
+        return { body: list, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

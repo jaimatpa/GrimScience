@@ -1,13 +1,13 @@
-import { getJobSubCategories } from '~/server/controller/jobs';
+import { reworkCostCalculate } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    const {  category } = getQuery(event);
+    const { jobId, operationId, reworkHrs } = getQuery(event);
     switch(method.toUpperCase()){
       case 'GET':
-        const { distinctSubCategories, distinctPart } = await getJobSubCategories(category)
-        return { body: { distinctSubCategories, distinctPart }, message: '' }
+        const reworkCost = await reworkCostCalculate( jobId, operationId, reworkHrs )
+        return { body: reworkCost, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

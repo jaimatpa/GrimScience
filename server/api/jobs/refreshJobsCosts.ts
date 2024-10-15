@@ -1,13 +1,14 @@
-import { getJobSubCategories } from '~/server/controller/jobs';
+import { refreshJobCosts } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    const {  category } = getQuery(event);
+    const { jobId, latestUnitCost } = getQuery(event);
+    console.log(jobId, latestUnitCost )
     switch(method.toUpperCase()){
       case 'GET':
-        const { distinctSubCategories, distinctPart } = await getJobSubCategories(category)
-        return { body: { distinctSubCategories, distinctPart }, message: '' }
+        const jobCost = await refreshJobCosts( jobId, latestUnitCost)
+        return { body: jobCost, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
