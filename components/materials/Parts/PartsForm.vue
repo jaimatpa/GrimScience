@@ -452,6 +452,7 @@ const handleFileChange = (event, index) => {
     event.target.value = '';
   }
 };
+
 const getRevisions = async () => {
   await useApiFetch(
     `/api/materials/parts/revisions?instanceId=${props.selectedPartInstace}`,
@@ -589,8 +590,6 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     const now = new Date();
     const isoString = now.toISOString();
     event.data.TODAY = isoString;
-
-
 
     console.log("form data is", event.data)
     await useApiFetch(`/api/materials/parts/parts/${props.selectedCustomer}`, {

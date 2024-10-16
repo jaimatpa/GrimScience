@@ -181,31 +181,6 @@ const fetchSubCategoryData = async () => {
   }
 };
 
-const onPrevieOrderBtnClick = () => {
-  if (uniqueIDP.value) {
-    const queryString = new URLSearchParams({ id: uniqueIDP.value }).toString();
-    const fetchData = async (id) => {
-      const pdfUrl = `/api/engineering/changeorder/pdf/${id}`;
-      try {
-        const response = await fetch(pdfUrl);
-        console.log(response);
-        if (!response.ok) {
-          throw new Error("Failed to fetch PDF");
-        }
-        const blob = await response.blob();
-        const pdfContentUrl = URL.createObjectURL(blob);
-        window.open(pdfContentUrl, "_blank");
-      } catch (error) {
-        console.error(error);
-        alert("Error fetching the PDF. Please try again later.");
-      }
-    };
-    fetchData(uniqueIDP.value);
-  } else {
-    alert("Unique ID is missing! The function cannot execute.");
-  }
-};
-
 const emit = defineEmits(["rowSelectedProduct", "selectEco", "close"]);
 
 const props = defineProps({
@@ -238,8 +213,10 @@ const clearValues = () => {
     Maintenance: "",
   };
 };
+const uniqueIDP = ref(null);
 
 const handleRowSelected = (row) => {
+  uniqueIDP.value = row.MANO;
   // Function to format date to YYYY-MM-DD
   const formatDateToYYYYMMDD = (dateString) => {
     const dateParts = dateString.split("/");
@@ -409,6 +386,7 @@ const onSelectReportMatchData = async () => {
 
     if (response && response.status === 200) {
       console.log(response.body)
+      
       inventoryDetailGridMeta.value.details = response.body;
     } else {
       console.error(
@@ -493,6 +471,34 @@ const onRemoveReport = async () => {
 //   SERIAL: null,
 //   REQUIRED: null,
 // });
+
+const onPrevieOrderBtnClick = () => {
+
+  if (uniqueIDP.value) {
+    const queryString = new URLSearchParams({ id:uniqueIDP.value }).toString();
+    const fetchData = async (id) => {
+      const pdfUrl = `/api/maintenance/equipment/pdf/${id}`;
+      try {
+        const response = await fetch(pdfUrl);
+        console.log(response);
+        if (!response.ok) {
+          throw new Error("Failed to fetch PDF");
+        }
+        const blob = await response.blob();
+        const pdfContentUrl = URL.createObjectURL(blob);
+        window.open(pdfContentUrl, "_blank");
+      } catch (error) {
+        console.error(error);
+        alert("Error fetching the PDF. Please try again later.");
+      }
+    };
+    fetchData(uniqueIDP.value);
+  } else {
+    alert("Unique ID is missing! The function cannot execute.");
+  }
+};
+
+
 </script>
 <template>
   <OrderDetailsTable
@@ -741,8 +747,6 @@ const onRemoveReport = async () => {
       </template>
     </UTable>
   </div>
-
-
   <div class="flex justify-end space-x-4 pt-[10px]">
     <div class="basis-1/6">
       <UButton
@@ -758,9 +762,6 @@ const onRemoveReport = async () => {
         truncate
       />
     </div>
-
-
-
     <div class="basis-1/6">
     <UButton
       icon="i-heroicons-minus-circle"
@@ -805,7 +806,7 @@ const onRemoveReport = async () => {
   <UDashboardModal 
     v-model="modalMeta.isNewReportModalOpen"
     :title="modalMeta.modalTitle"
-    :mainID="modalMeta.mainID"
+    
     :ui="{
       title: 'text-lg',
       header: {
@@ -823,6 +824,7 @@ const onRemoveReport = async () => {
     <NewReportModul
      @select="handleRowSelectedSerial"
      @close="closeSerialModal"
+     :mainID="modalMeta.mainID"
     />
   </UDashboardModal>
 </template>

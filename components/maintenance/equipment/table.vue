@@ -196,6 +196,8 @@ const fetchGridData = async () => {
       Math.ceil(gridMeta.value.numberOfChangeOrders / gridMeta.value.pageSize) |
       1;
   }
+
+  
   await useApiFetch("/api/maintenance/equipment/getTableData", {
   
     method: "GET",
@@ -306,9 +308,10 @@ const excelExport = () => {
       if (value !== null) return `${key}=${value}`;
     })
     .join("&");
-  location.href = `/api/engineering/changeorder/exportorder?${paramsString}`;
+  location.href = `/api/maintenance/equipment/exportorder?${paramsString}`;
   exportIsLoading.value = false;
 };
+
 
 const emit = defineEmits(["rowSelected", "rowDoubleClicked"]);
 const onSelect = (row) => {

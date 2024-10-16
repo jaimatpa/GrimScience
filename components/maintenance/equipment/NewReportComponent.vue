@@ -7,8 +7,7 @@ onMounted(async () => {
   await fetchAllByDataReport();
   await fetchAllWhereDataReport();
   await fetchAllCategoryList();
-   await fetchAllUOMList();
-
+  await fetchAllUOMList();
 });
 const emit = defineEmits(["rowSelectedProduct", "selectEco", "close"]);
 
@@ -22,12 +21,10 @@ const props = defineProps({
     default: true,
   },
   mainID: {
-    type: String, 
+    type: String,
     required: true,
   },
 });
-
-console.log(props.mainID); 
 
 const fetchAllByDataReport = async () => {
   try {
@@ -49,6 +46,26 @@ const fetchAllByDataReport = async () => {
   }
 };
 
+// const fetchAllTableReport = async () => {
+//   try {
+//     const { data } = await useFetch(
+//       "/api/maintenance/equipment/getAllReportData?type=tableData"
+//     );
+//     if (data._rawValue) {
+//       headerFilters.value.tableData.options = data._rawValue.search1List.map(
+//         (category) => ({
+//           label: category,
+//           value: category,
+//         })
+//       );
+//     } else {
+//       console.error("No type data found");
+//     }
+//   } catch (err) {
+//     console.error("Error fetching type data:", err);
+//   }
+// };
+
 const fetchAllWhereDataReport = async () => {
   try {
     const { data } = await useFetch(
@@ -69,8 +86,6 @@ const fetchAllWhereDataReport = async () => {
   }
 };
 
-
-
 const fetchAllCategoryList = async () => {
   try {
     const { data } = await useFetch(
@@ -78,6 +93,25 @@ const fetchAllCategoryList = async () => {
     );
     if (data._rawValue) {
       headerFilters.value.subList.options = data._rawValue.subList.map(
+        (category) => ({
+          label: category,
+          value: category,
+        })
+      );
+    } else {
+      console.error("No type data found");
+    }
+  } catch (err) {
+    console.error("Error fetching type data:", err);
+  }
+};
+const fetchReportTableData = async () => {
+  try {
+    const { data } = await useFetch(
+      "/api/maintenance/equipment/getAllReportData?type=reportTable"
+    );
+    if (data._rawValue) {
+      headerFilters.value.reportTable.options = data._rawValue.subList.map(
         (category) => ({
           label: category,
           value: category,
@@ -127,8 +161,23 @@ const headerFilters = ref({
     filter: "Category",
     options: [],
   },
-  
+
   instrument: {
+    label: "Sub Category",
+    filter: "subcategory",
+    options: [],
+  },
+  instrument01: {
+    label: "Sub Category",
+    filter: "subcategory",
+    options: [],
+  },
+  instrument02: {
+    label: "Sub Category",
+    filter: "subcategory",
+    options: [],
+  },
+  instrument03: {
     label: "Sub Category",
     filter: "subcategory",
     options: [],
@@ -143,9 +192,39 @@ const headerFilters = ref({
     filter: "PART",
     options: [],
   },
+  tableData: {
+    label: "Sub Category",
+    filter: "PART",
+    options: [],
+  },
   whereList: {
     label: "Sub Category",
     filter: "TYPE",
+    options: [],
+  },
+  reportTable: {
+    label: "Sub Category",
+    filter: "TYPE",
+    options: [],
+  },
+  numberValueOp: {
+    label: "IC1",
+    filter: "IC1",
+    options: [],
+  },
+  numberValueOp01: {
+    label: "IC1",
+    filter: "IC1",
+    options: [],
+  },
+  numberValueOp02: {
+    label: "IC1",
+    filter: "IC1",
+    options: [],
+  },
+  numberValueOp03: {
+    label: "IC1",
+    filter: "IC1",
     options: [],
   },
 });
@@ -168,8 +247,6 @@ const openNewReport = () => {
   modalMeta.value.modalTitle = "New Report";
   modalMeta.value.isNewReportModalOpen = true;
 };
-
-
 
 //  const clearValues = () => {
 //    handleVModel.value = {
@@ -231,7 +308,6 @@ const closeVendorsModal = () => {
 const handleRowSelectVendors = (row) => {
   console.log(row);
   handleVModel.value.vendorName = row.NAME;
-
 };
 
 //  const submitForm = async () => {
@@ -309,31 +385,25 @@ const init = async () => {};
 const inventoryDetailGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "No",
-      label: "Report",
+      key: "UOM",
+      label: "UOM",
       filterable: true,
     },
-
     {
-      key: "date",
-      label: "Date",
-    },
-
-    {
-      key: "by",
-      label: "By",
+      key: "Applied",
+      label: "Applied",
     },
     {
-      key: "",
-      label: "Report#",
+      key: "Reading",
+      label: "Reading",
     },
     {
-      key: "",
-      label: "Date",
+      key: "Adjusted",
+      label: "Adjusted",
     },
     {
-      key: "",
-      label: "MaintenanceBy",
+      key: "Adjusted",
+      label: "Status",
     },
   ],
 
@@ -343,6 +413,7 @@ const inventoryDetailGridMeta = ref({
   },
   details: [],
   selectedDetail: null,
+  reportTableData: "",
   isLoading: false,
 });
 
@@ -375,37 +446,64 @@ const inventoryDetailGridMeta = ref({
 //  };
 
 const handleVModel = ref({
+  UomData: "",
+  Accuracy: "",
+  APPlid: "",
+  Reading: "",
+  Status: "",
+
+  vendorName: "",
   byValue: "",
   whereValue: "",
-  numberValue: "",
-  UomData:"",
-  Accuracy:"",
-  APPlid:"",
-  Reading:"",
-  Status:"",
-  vendorName:"",
-
-
-
-
-  selectedRow: null,
-  uniqueId: "",
-  manValue: "",
-  category: "",
+  reportComments: "",
+  reportCreateData: "",
   subCategory: "",
+  subCategory01: "",
+  subCategory02: "",
+  subCategory03: "",
   instrumentValue: "",
-  equipment: "",
-  serialNo: "",
-  type: "",
-  location: "",
-  responsible: "",
-  dateInService: "",
-  nextReqService: "",
-  Maintenance: "",
-  selectedNoValue: null,
+  instrumentValue01: "",
+  instrumentValue02: "",
+  instrumentValue03: "",
+  numberValue: "",
+  numberValue01: "",
+  numberValue02: "",
+  numberValue03: "",
+  fileUpload01: null,
+  fileUpload02: null,
 });
 
 
+
+const CreateTable = async () => {
+  const formData = {
+    ReportID: props.mainID,
+    UOM: handleVModel.value.UomData?.value || "",
+    Applied: handleVModel.value.Accuracy,
+    Reading: handleVModel.value.APPlid,
+    Adjusted: handleVModel.value.Reading,
+    Min: handleVModel.value.Status,
+  };
+
+  try {
+    const { data, error } = await useFetch(
+      "/api/maintenance/equipment/tableInsertData",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (error.value) {
+      console.log("Form submitted successfully:", data.value);
+    } else {
+      // inventoryDetailGridMeta.value.reportTableData = data.body;
+      console.log("Form submitted successfully:", data.value);
+    }
+  } catch (err) {
+    console.error("Unexpected error:", err);
+  }
+};
 
 const onSelect = (row) => {
   handleVModel.value.selectedNoValue = row.No;
@@ -450,33 +548,13 @@ const onRemoveReport = async () => {
 const calibrationProcedureInput = ref(null);
 const thirdPartyReportInput = ref(null);
 const calibrationProcedureFile = ref(null);
-const thirdPartyReportFile = ref(null);
 
-const triggerFileUpload = (inputType) => {
-  if (inputType === "calibrationProcedure") {
-    calibrationProcedureInput.value.click();
-  } else if (inputType === "thirdPartyReport") {
-    thirdPartyReportInput.value.click();
-  }
-};
 
-const handleFileUpload = (fileType, event) => {
-  const file = event.target.files[0];
-  if (file) {
-    if (fileType === "calibrationProcedure") {
-      calibrationProcedureFile.value = file;
-    } else if (fileType === "thirdPartyReport") {
-      thirdPartyReportFile.value = file;
-    }
-    // You can add additional logic here, such as uploading the file to a server
-    console.log(`File selected for ${fileType}:`, file.name);
-  }
-};
+
 const fetchDataInstrumentCategory = async () => {
-  debugger;
   try {
-    const selectedSubCategory = handleVModel.value.subCategory.value; // Ensure this is correct
-    console.log("Selected SubCategory:", selectedSubCategory); // Log it here
+    const selectedSubCategory = handleVModel.value.subCategory.value;
+    console.log("Selected SubCategory:", selectedSubCategory);
     if (!selectedSubCategory) {
       console.error("No subcategory selected");
       return;
@@ -491,6 +569,176 @@ const fetchDataInstrumentCategory = async () => {
           value: category,
         })
       );
+    } else {
+      console.error("No type data found");
+    }
+  } catch (err) {
+    console.error("Error fetching type data:", err);
+  }
+};
+const fetchDataInstrumentCategory01 = async () => {
+  try {
+    const selectedSubCategory = handleVModel.value.subCategory01.value;
+    console.log("Selected SubCategory:", selectedSubCategory);
+    if (!selectedSubCategory) {
+      console.error("No subcategory selected");
+      return;
+    }
+    const { data } = await useFetch(
+      `/api/maintenance/equipment/getAllReportData?type=Search1&subCategory=${selectedSubCategory}`
+    );
+    if (data._rawValue) {
+      headerFilters.value.instrument01.options = data._rawValue.search1List.map(
+        (category) => ({
+          label: category,
+          value: category,
+        })
+      );
+    } else {
+      console.error("No type data found");
+    }
+  } catch (err) {
+    console.error("Error fetching type data:", err);
+  }
+};
+const fetchDataInstrumentCategory02 = async () => {
+  try {
+    const selectedSubCategory = handleVModel.value.subCategory02.value;
+    console.log("Selected SubCategory:", selectedSubCategory);
+    if (!selectedSubCategory) {
+      console.error("No subcategory selected");
+      return;
+    }
+    const { data } = await useFetch(
+      `/api/maintenance/equipment/getAllReportData?type=Search1&subCategory=${selectedSubCategory}`
+    );
+    if (data._rawValue) {
+      headerFilters.value.instrument02.options = data._rawValue.search1List.map(
+        (category) => ({
+          label: category,
+          value: category,
+        })
+      );
+    } else {
+      console.error("No type data found");
+    }
+  } catch (err) {
+    console.error("Error fetching type data:", err);
+  }
+};
+const fetchDataInstrumentCategory03 = async () => {
+  try {
+    const selectedSubCategory = handleVModel.value.subCategory03.value;
+    console.log("Selected SubCategory:", selectedSubCategory);
+    if (!selectedSubCategory) {
+      console.error("No subcategory selected");
+      return;
+    }
+    const { data } = await useFetch(
+      `/api/maintenance/equipment/getAllReportData?type=Search1&subCategory=${selectedSubCategory}`
+    );
+    if (data._rawValue) {
+      headerFilters.value.instrument03.options = data._rawValue.search1List.map(
+        (category) => ({
+          label: category,
+          value: category,
+        })
+      );
+    } else {
+      console.error("No type data found");
+    }
+  } catch (err) {
+    console.error("Error fetching type data:", err);
+  }
+};
+
+const instrumentFunction = async () => {
+  try {
+    const selectedSubCategory = handleVModel.value.instrumentValue.value;
+    debugger;
+    if (!selectedSubCategory) {
+      console.error("No subcategory selected");
+      return;
+    }
+    const { data } = await useFetch(
+      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${selectedSubCategory}`
+    );
+    if (data._rawValue) {
+      headerFilters.value.numberValueOp.options =
+        data._rawValue.search1List.map((IC1) => ({
+          label: IC1,
+          value: IC1,
+        }));
+    } else {
+      console.error("No type data found");
+    }
+  } catch (err) {
+    console.error("Error fetching type data:", err);
+  }
+};
+const instrumentFunction01 = async () => {
+  try {
+    const selectedSubCategory = handleVModel.value.instrumentValue01.value;
+    if (!selectedSubCategory) {
+      console.error("No subcategory selected");
+      return;
+    }
+    const { data } = await useFetch(
+      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${selectedSubCategory}`
+    );
+    if (data._rawValue) {
+      headerFilters.value.numberValueOp01.options =
+        data._rawValue.search1List.map((IC1) => ({
+          label: IC1,
+          value: IC1,
+        }));
+    } else {
+      console.error("No type data found");
+    }
+  } catch (err) {
+    console.error("Error fetching type data:", err);
+  }
+};
+const instrumentFunction02 = async () => {
+  try {
+    const selectedSubCategory = handleVModel.value.instrumentValue02.value;
+
+    if (!selectedSubCategory) {
+      console.error("No subcategory selected");
+      return;
+    }
+    const { data } = await useFetch(
+      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${selectedSubCategory}`
+    );
+    if (data._rawValue) {
+      headerFilters.value.numberValueOp02.options =
+        data._rawValue.search1List.map((IC1) => ({
+          label: IC1,
+          value: IC1,
+        }));
+    } else {
+      console.error("No type data found");
+    }
+  } catch (err) {
+    console.error("Error fetching type data:", err);
+  }
+};
+const instrumentFunction03 = async () => {
+  try {
+    const selectedSubCategory = handleVModel.value.instrumentValue03.value;
+    if (!selectedSubCategory) {
+      console.error("No subcategory selected");
+      return;
+    }
+    const { data } = await useFetch(
+      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${selectedSubCategory}`
+    );
+    if (data._rawValue) {
+      headerFilters.value.numberValueOp03.options =
+        data._rawValue.search1List.map((IC1) => ({
+          label: IC1,
+          value: IC1,
+        }));
     } else {
       console.error("No type data found");
     }
@@ -520,6 +768,123 @@ const fetchDataInstrumentCategory = async () => {
 //     console.error("Error fetching type data:", err);
 //   }
 // };
+// {{ handleVModel.manValue || 0 }}
+
+const files = ref([null, null, null]);
+
+const handleFileChange = (event, index) => {
+  console.log("file", event.target.files[0]);
+  const file = event.target.files[0];
+  if (file && file.type === "application/pdf") {
+    files.value[index] = file;
+  } else {
+    alert("Please select a PDF file.");
+    event.target.value = "";
+  }
+};
+
+const onSubmit = async (event: FormSubmitEvent<any>) => {
+  console.log("files are", files.value);
+
+  // Check if there are any files to upload
+  if (!files.value.some(file => file)) {
+    console.log('No files to upload.');
+    alert('Please upload at least one file.');
+    return;
+  }
+
+  const formData = new FormData();
+  const fileTypes = ['Drawing/Manual', 'PDS', 'SDS'];
+
+  // Loop through files and append only if a file exists
+  files.value.forEach((file, index) => {
+    if (file) {
+      formData.append(fileTypes[index], file);
+    }
+  });
+  try {
+    // Replace '/api/upload' with your actual upload endpoint
+    const response = await fetch('/api/file', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const responseData = await response.json(); // Parse the JSON response
+      console.log('Files uploaded successfully! Response:', responseData);
+      alert('Files uploaded successfully!');
+
+      // You can print individual file details
+      responseData.files.forEach(file => {
+        console.log(`File uploaded: ${file.originalName}, URL: ${file.url}`);
+        if (file.fileType === 'SDS') {
+          event.data.sds = file.url;
+        }
+        if (file.fileType === 'Drawing/Manual') {
+          
+        }
+
+
+      });
+
+      files.value = [null, null, null];
+    } else {
+      throw new Error('Upload failed');
+    }
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    alert('An error occurred while uploading the files. Please try again.');
+  }
+
+  const CreateReport = async () => {
+  const formData = {
+    vendorName: handleVModel.value.vendorName,
+    byValue: handleVModel.value.byValue,
+    whereValue: handleVModel.value.whereValue,
+    reportComments: handleVModel.value.reportComments,
+    reportCreateData: handleVModel.value.reportCreateData,
+    subCategory: handleVModel.value.subCategory,
+    subCategory01: handleVModel.value.subCategory01,
+    subCategory02: handleVModel.value.subCategory02,
+    subCategory03: handleVModel.value.subCategory03,
+    instrumentValue: handleVModel.value.instrumentValue,
+    instrumentValue01: handleVModel.value.instrumentValue01,
+    instrumentValue02: handleVModel.value.instrumentValue02,
+    instrumentValue03: handleVModel.value.instrumentValue03,
+    numberValue: handleVModel.value.numberValue,
+    numberValue01: handleVModel.value.numberValue01,
+    numberValue02: handleVModel.value.numberValue02,
+    numberValue03: handleVModel.value.numberValue03,
+    fileUpload01: handleVModel.value.fileUpload01,
+    fileUpload02: handleVModel.value.fileUpload02,
+  };
+
+  try {
+    const { data, error } = await useFetch(
+      "/api/maintenance/equipment/tableInsertData",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (error.value) {
+      console.error("Error submitting form:", error.value);
+    } else {
+      console.log("Form submitted successfully:", data.value);
+    }
+  } catch (err) {
+    console.error("Submission error:", err);
+  }
+};
+
+
+ 
+
+};
+
+
+
 </script>
 <template>
   <UCard class="mb-6">
@@ -530,8 +895,7 @@ const fetchDataInstrumentCategory = async () => {
           <p
             class="mt-[15px] p-[7px] bg-white text-black border border-green-500 rounded-md"
           >
-          {{manID}}
-            <!-- {{ handleVModel.manValue || 0 }} -->
+            {{ props.mainID }}
           </p>
         </div>
       </div>
@@ -540,7 +904,7 @@ const fetchDataInstrumentCategory = async () => {
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <h3>Date</h3>
           <UInput
-            v-model="handleVModel.nextReqService"
+            v-model="handleVModel.reportCreateData"
             type="date"
             class="w-40"
           />
@@ -578,48 +942,28 @@ const fetchDataInstrumentCategory = async () => {
 
       <div class="flex flex-row space-x-6">
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>GSI Calibration Procedure</h3>
           <div class="flex items-center">
-            <input
-              type="file"
-              @change="handleFileUpload('calibrationProcedure', $event)"
-              class="hidden"
-              ref="calibrationProcedureInput"
-            />
-            <UButton
-              @click="triggerFileUpload('calibrationProcedure')"
-              class="px-2 py-[10px] text-white bg-sky-700 hover:bg-sky-800 h-full flex justify-center items-center"
-            >
-              Choose File
-            </UButton>
-            <span class="ml-2">{{
-              calibrationProcedureFile
-                ? calibrationProcedureFile.name
-                : "No file chosen"
-            }}</span>
+            <UFormGroup label="GSI Calibration Procedure" name="SPECSHEET">
+              <UInput
+                type="file"
+                size="sm"
+                icon="i-heroicons-folder"
+                @change="(e) => handleFileChange(e, 0)"
+                accept="application/pdf"
+              />
+            </UFormGroup>
           </div>
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Third Party Report</h3>
-          <div class="flex items-center">
-            <input
+          <UFormGroup label="Third Party Report" name="PDS">
+            <UInput
               type="file"
-              @change="handleFileUpload('thirdPartyReport', $event)"
-              class="hidden"
-              ref="thirdPartyReportInput"
+              size="sm"
+              icon="i-heroicons-folder"
+              @change="(e) => handleFileChange(e, 1)"
+              accept="application/pdf"
             />
-            <UButton
-              @click="triggerFileUpload('thirdPartyReport')"
-              class="px-2 py-[10px] text-white bg-sky-700 hover:bg-sky-800 h-full flex justify-center items-center"
-            >
-              Choose File
-            </UButton>
-            <span class="ml-2">{{
-              thirdPartyReportFile
-                ? thirdPartyReportFile.name
-                : "No file chosen"
-            }}</span>
-          </div>
+          </UFormGroup>
         </div>
       </div>
 
@@ -627,7 +971,7 @@ const fetchDataInstrumentCategory = async () => {
         <div class="basis-1/2 w-[480px]">
           <h3>Comments</h3>
           <textarea
-            v-model="handleVModel.Maintenance"
+            v-model="handleVModel.reportComments"
             placeholder="Enter details"
             rows="3"
             class="border py-6 px-4 rounded w-full leading-[10px]"
@@ -653,64 +997,72 @@ const fetchDataInstrumentCategory = async () => {
           <UInputMenu
             v-model="handleVModel.instrumentValue"
             :options="headerFilters.instrument.options"
+            @change="instrumentFunction"
           />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
             <h3>IC#</h3>
-            <UInputMenu v-model="handleVModel.numberValue" />
+            <UInputMenu
+              v-model="handleVModel.numberValue"
+              :options="headerFilters.numberValueOp.options"
+            />
           </div>
         </div>
       </div>
+
       <div class="flex flex-row space-x-2">
         <div class="basis-3/2 mr-4">
           <h3>2</h3>
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-      
           <UInputMenu
-            v-model="handleVModel.subCategory"
+            v-model="handleVModel.subCategory01"
             :options="headerFilters.subList.options"
-            @change="fetchDataInstrumentCategory"
+            @change="fetchDataInstrumentCategory01"
           />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-     
           <UInputMenu
-            v-model="handleVModel.instrumentValue"
-            :options="headerFilters.instrument.options"
+            v-model="handleVModel.instrumentValue01"
+            :options="headerFilters.instrument01.options"
+            @change="instrumentFunction01"
           />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-           
-            <UInputMenu v-model="handleVModel.numberValue" />
+            <UInputMenu
+              v-model="handleVModel.numberValue01"
+              :options="headerFilters.numberValueOp01.options"
+            />
           </div>
         </div>
       </div>
+
       <div class="flex flex-row space-x-2">
         <div class="basis-3/2 mr-4">
           <h3>3</h3>
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-    
           <UInputMenu
-            v-model="handleVModel.subCategory"
+            v-model="handleVModel.subCategory02"
             :options="headerFilters.subList.options"
-            @change="fetchDataInstrumentCategory"
+            @change="fetchDataInstrumentCategory02"
           />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-   
           <UInputMenu
-            v-model="handleVModel.instrumentValue"
-            :options="headerFilters.instrument.options"
+            v-model="handleVModel.instrumentValue02"
+            :options="headerFilters.instrument02.options"
+            @change="instrumentFunction02"
           />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          
-            <UInputMenu v-model="handleVModel.numberValue" />
+            <UInputMenu
+              v-model="handleVModel.numberValue02"
+              :options="headerFilters.numberValueOp02.options"
+            />
           </div>
         </div>
       </div>
@@ -719,24 +1071,26 @@ const fetchDataInstrumentCategory = async () => {
           <h3>4</h3>
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          
           <UInputMenu
-            v-model="handleVModel.subCategory"
+            v-model="handleVModel.subCategory03"
             :options="headerFilters.subList.options"
-            @change="fetchDataInstrumentCategory"
+            @change="fetchDataInstrumentCategory03"
           />
         </div>
+
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-  
           <UInputMenu
-            v-model="handleVModel.instrumentValue"
-            :options="headerFilters.instrument.options"
+            v-model="handleVModel.instrumentValue03"
+            :options="headerFilters.instrument03.options"
+            @change="instrumentFunction03"
           />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-        
-            <UInputMenu v-model="handleVModel.numberValue" />
+            <UInputMenu
+              v-model="handleVModel.numberValue03"
+              :options="headerFilters.numberValueOp03.options"
+            />
           </div>
         </div>
       </div>
@@ -747,47 +1101,45 @@ const fetchDataInstrumentCategory = async () => {
           <UInputMenu
             v-model="handleVModel.UomData"
             :options="headerFilters.UOMLIST.options"
-          
           />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <h3>Accuracy</h3>
-          <UInput v-model="handleVModel.Accuracy"/>
+          <UInput v-model="handleVModel.Accuracy" />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <h3>APPlid</h3>
-          <UInput v-model="handleVModel.APPlid"/>
+          <UInput v-model="handleVModel.APPlid" />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <h3>Reading</h3>
-          <UInput v-model="handleVModel.Reading"/>
+          <UInput v-model="handleVModel.Reading" />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <h3>Status</h3>
           <UInput v-model="handleVModel.Status" />
         </div>
-   
-          <div class="basis-3/7  mt-5">
-            <UButton
-        icon="i-heroicons-plus"
-        variant="outline"
-        color="green"
-   
-      />
-          </div>
-          
-            <div class="basis-3/9 mt-5">
-              <UButton
-                icon="i-heroicons-minus-circle"
-                variant="outline"
-                color="red"
-              />
-          
-          </div>
+
+        <div class="basis-3/7 mt-5">
+          <UButton
+            icon="i-heroicons-plus"
+            variant="outline"
+            color="green"
+            @click="CreateTable"
+          />
         </div>
-     
+
+        <div class="basis-3/9 mt-5">
+          <UButton
+            icon="i-heroicons-minus-circle"
+            variant="outline"
+            color="red"
+          />
+        </div>
+      </div>
+      <!-- 
       <UTable
-        :rows="inventoryDetailGridMeta.details"
+        :rows="inventoryDetailGridMeta.reportTableData"
         :columns="inventoryDetailGridMeta.defaultColumns"
         :loading="inventoryDetailGridMeta.isLoading"
         class="w-full"
@@ -811,7 +1163,79 @@ const fetchDataInstrumentCategory = async () => {
         }"
         @select="onSelect"
       >
+        <template
+          v-for="column in inventoryDetailGridMeta.defaultColumns"
+          v-slot:[`${column.key}-header`]
+        >
+          <template v-if="column.kind !== 'actions'">
+            <div class="px-1 py-1">
+              <CommonSortAndInputFilter
+                :label="column.label"
+                :sortable="column.sortable"
+                :sort-key="column.key"
+                :filter-key="column.key"
+              />
+            </div>
+          </template>
 
+          <template v-else class="bg-slate-400">
+            <div class="flex justify-center text-center w-[53px]">
+              {{ column.label }}
+            </div>
+          </template>
+        </template>
+
+        <template #default="{ rows }">
+          <template v-for="row in rows" :key="row.uniqueid">
+            <tr
+              @click="onSelect(row)"
+              :class="{
+                'bg-red-500': isSelected(row),
+                'hover:bg-gray-200 cursor-pointer': !isSelected(row),
+              }"
+            >
+              <td>
+                <input
+                  type="checkbox"
+                  :checked="isSelected(row)"
+                  @change.stop="toggleRowSelection(row)"
+                />
+              </td>
+              <td
+                v-for="column in inventoryDetailGridMeta.defaultColumns"
+                :key="column.key"
+              >
+                {{ row[column.key] }}
+              </td>
+            </tr>
+          </template>
+        </template>
+      </UTable> -->
+      <UTable
+        :rows="inventoryDetailGridMeta.reportTableData"
+        :columns="inventoryDetailGridMeta.defaultColumns"
+        :loading="inventoryDetailGridMeta.isLoading"
+        class="w-full"
+        :ui="{
+          wrapper:
+            'overflow-y-auto h-60 border-2 border-gray-300 dark:border-gray-700',
+          divide: 'divide-gray-200 dark:divide-gray-800',
+          th: {
+            base: 'sticky top-0 z-10',
+            color: 'bg-white dark:text-gray dark:bg-[#111827]',
+            padding: 'p-0',
+          },
+          td: {
+            base: 'h-[31px]',
+            padding: 'py-0',
+          },
+        }"
+        :empty-state="{
+          icon: 'i-heroicons-circle-stack-20-solid',
+          label: 'No items.',
+        }"
+        @select="onSelect"
+      >
         <template
           v-for="column in inventoryDetailGridMeta.defaultColumns"
           v-slot:[`${column.key}-header`]
@@ -860,7 +1284,6 @@ const fetchDataInstrumentCategory = async () => {
           </template>
         </template>
       </UTable>
-
       <UDivider />
     </UForm>
   </UCard>
@@ -872,7 +1295,7 @@ const fetchDataInstrumentCategory = async () => {
         label="New Report"
         variant="outline"
         color="green"
-        @click="openNewReport()"
+        @click="CreateReport"
         :ui="{
           base: 'min-w-[200px] w-full',
           truncate: 'flex justify-center w-full',
@@ -880,7 +1303,6 @@ const fetchDataInstrumentCategory = async () => {
         truncate
       />
     </div>
-
   </div>
 
   <UDashboardModal
