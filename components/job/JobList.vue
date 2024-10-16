@@ -142,7 +142,7 @@ const headerFilters = ref({
   jobCat: {
     label: "Category",
     filter: "jobCat",
-    options: [""],
+    options: [],
   },
   jobTypes: {
     label: "Sub Category",
@@ -405,9 +405,13 @@ const handleBulkClose = async () => {
 }
 
 const onUpdatePercentage = async () => {
+  const jobs = gridMeta.value.organization.map(item => {
+    return item.UniqueID
+  })
   loadingOverlay.value = true
   await useApiFetch("/api/jobs/updatejobpercentage", {
     method: "PUT",
+    body: { jobs }
   });
 
   await fetchGridData()

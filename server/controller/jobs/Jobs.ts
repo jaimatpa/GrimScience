@@ -1984,7 +1984,7 @@ export const getJobCat = async () => {
     order: [['jobcat', 'ASC']],
     raw: true
   });
-
+  console.log("JobCat",result)
   const distinctjobcat = result.map((item: any) => item['jobcat']);
   return distinctjobcat;
 }
@@ -2052,17 +2052,14 @@ export const bulkCloseJobs = async (selectedJobs) => {
   }
 };
 
-export const updateJobPercentage = async () => {
+export const updateJobPercentage = async (jobs) => {
   try {
-    // Fetch all job items from the database
-    const jobItems = await sequelize.query(`SELECT * FROM tblJobs`, {
-      type: QueryTypes.SELECT
-    });
+    
 
     // Loop through each job item
-    for (const job of jobItems) {
+    for (const job of jobs) {
       let x = 0;
-      let lngjob = job.UniqueID;
+      let lngjob = job;
 
       // Check if the job type is "Sub Assembly"
       if (job.jobtype === "Sub Assembly") {
