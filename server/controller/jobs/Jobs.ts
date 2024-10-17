@@ -1,4 +1,4 @@
-import { tblJobDetail, tblJobs, tblSettings } from "~/server/models";
+import { tblJobDetail, tblJobs, tblSettings, tblCustomers } from "~/server/models";
 import { Sequelize, Op } from "sequelize";
 import  sequelize  from '../../utils/databse';  
 import { QueryTypes } from 'sequelize';
@@ -299,8 +299,14 @@ export const updateJob = async (id, reqData) => {
 }
 
 export const deleteJob = async (id) => {
-  await tblJobs.destroy({ where: { UniqueID: id } });
-  return id;
+  await tblJobs.destroy({ where: { UniqueID: job.UniqueID } });
+  return id
+}
+
+export const deleteJobs = async (jobs) => {
+  for( const job of jobs){
+    await tblJobs.destroy({ where: { UniqueID: job.UniqueID } });
+  }
 }
 
 export const createNewJob = async (data) => {
@@ -1927,19 +1933,6 @@ export const getProductionUsers = async () => {
 }
 
 export const getEmployees = async () => {
-  // const result = await tblJobs.findAll({
-  //   attributes: [
-  //     [Sequelize.fn('DISTINCT', Sequelize.col('ByEmployee')), 'ByEmployee']
-  //   ],
-  //   where: {
-  //     [Op.and]: [
-  //       { 'ByEmployee': { [Op.ne]: null } },
-  //       { 'ByEmployee': { [Op.ne]: '' } }
-  //     ]
-  //   },
-  //   order: [['ByEmployee', 'ASC']],
-  //   raw: true
-  // });
 
   let distinctByEmployees = await sequelize.query(`
       select '#' + payrollno + ' ' + lname + ', ' + fname from tblemployee where active = 1 order by payrollnumber asc
@@ -1949,6 +1942,29 @@ export const getEmployees = async () => {
 
   distinctByEmployees = distinctByEmployees.map((item: any) => item['']);
   return distinctByEmployees;
+}
+
+
+export const getCustomers = async () => {
+  
+  const result = await tblCustomers.findAll({
+    attributes: [
+      [Sequelize.fn('DISTINCT', Sequelize.col('company1')), 'company1']
+    ],
+    where: {
+      [Op.and]: [
+        { 'company1': { [Op.ne]: null } },
+        { 'company1': { [Op.ne]: '' } },
+        { 'company1': { [Op.ne]: ' ' } }
+      ]
+    },
+    order: [['company1', 'ASC']],
+    raw: true
+  });
+
+  const customers = result.map((item: any) => item['company1']);
+  console.log(customers)
+  return customers;
 }
 
 export const getProductLines = async () => {

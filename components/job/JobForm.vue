@@ -34,6 +34,7 @@ const productionUsers = ref([]);
 const getEmployeees = ref([]);
 const jobCat = ref([]);
 const jobsubcat = ref([]);
+const customers = ref([]);
 const productLines = ref([]);
 const models = ref([]);
 const begPRSerial = ref(null);
@@ -82,6 +83,7 @@ const formData = reactive({
   PRODUCTLINE: null,
   MODEL: null,
   InstanceID: null,
+  Customer: null
 });
 
 
@@ -222,6 +224,7 @@ const editInit = async () => {
   await getLinkedJobs()
   await getSerial()
   await calculateLatestUnitCost()
+  // await getCustomers()
 
   await propertiesInit();
   loadingOverlay.value = false;
@@ -353,6 +356,20 @@ const calculateLatestUnitCost = async () => {
     },
     onResponseError({}) {
       unitCost.value = null
+    },
+  });
+}
+
+const getCustomers = async () => {
+  await useApiFetch("/api/jobs/customers", {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        customers.value = response._data.body;
+      }
+    },
+    onResponseError() {
+      customers.value = [];
     },
   });
 }
@@ -1642,6 +1659,14 @@ else propertiesInit();
               </UFormGroup>
             </div>
           </div>
+
+          <!-- <div class="flex flex-row space-x-3">
+            <div class="basis-1/5">
+              <UFormGroup label="Customer" name="Customer">
+                <UInputMenu v-model="formData.Customer" v-model:query="formData.Customer" :options="customers" />
+              </UFormGroup>
+            </div>
+          </div> -->
         </div>
 
         <div class="flex flex-row space-x-4 justify-start mt-5">
@@ -1653,18 +1678,7 @@ else propertiesInit();
             <UButton icon="i-f7-rays" variant="outline" color="red" :label="'Clear'"
               :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" @click="handleClearCick" truncate />
           </div>
-          <!-- <div>
-          <UButton
-            icon="i-heroicons-eye"
-            label="View Position Details"
-            variant="outline"
-            :ui="{
-              base: 'min-w-[200px] w-full',
-              truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
-        </div> -->
+
           <div class="">
             <UButton
               icon="i-f7-arrow-clockwise"
