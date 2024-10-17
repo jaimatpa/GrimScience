@@ -2,6 +2,7 @@ import { Op, QueryTypes, Sequelize } from "sequelize";
 import { tblCustomers, tblBP,tblMaintainenceOrders,tblWorkStation,tblMaintainenceReports,tblMaintReportMeasurements } from "~/server/models";
 import { tblEmployee } from "~/server/models";
 import sequelize from "~/server/utils/databse";
+import util from 'util';
 // ok code
 const applyFilters = (params) => {
   const filterParams = [
@@ -27,18 +28,69 @@ const applyFilters = (params) => {
   return whereClause;
 };
 
+// export const getPDFDataById = async (params) => {
+//   const { uniqID } = params;
+//   let where = {};
+//   if (uniqID) where["MANO"] = uniqID;
+//   const reports = await tblMaintainenceOrders.findAll({
+//     where: where,
+//     raw: true,
+//   });
+//   return reports;
+// };
+
+
+
+
 export const getPDFDataById = async (params) => {
   const { uniqID } = params;
-  let where = {};
-  if (uniqID) where["MANO"] = uniqID;
-  const reports = await tblMaintainenceOrders.findAll({
-    where: where,
-    raw: true,
-  });
+  
+  if (!uniqID) {
+    throw new Error("uniqID is required");
+  }
 
+  try {
+    const orderQuery = `
+      SELECT * FROM tblMaintainenceOrders 
+      WHERE MANO = :uniqID
+    `;
 
-  return reports;
+    const reportQuery = `
+      SELECT * FROM tblMaintainenceReports 
+      WHERE OrderID = :uniqID
+    `;
+
+    const [orders, reports] = await Promise.all([
+      sequelize.query(orderQuery, {
+        replacements: { uniqID },
+        type: sequelize.QueryTypes.SELECT
+      }),
+      sequelize.query(reportQuery, {
+        replacements: { uniqID },
+        type: sequelize.QueryTypes.SELECT
+      })
+    ]);
+
+    if (orders.length === 0) {
+      console.log(`No orders found for uniqID: ${uniqID}`);
+      return [];
+    }
+
+    // Combine the order with its reports
+    const result = orders.map(order => ({
+      ...order,
+      reports: reports
+    }));
+
+    console.log('Result:', util.inspect(result, { depth: null, colors: true }));
+
+    return result;
+  } catch (error) {
+    console.error('Error in getPDFDataById:', error);
+    throw error;
+  }
 };
+
 
 
 // ok code
