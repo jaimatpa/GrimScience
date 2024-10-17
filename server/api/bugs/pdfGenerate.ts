@@ -17,7 +17,7 @@ export default eventHandler(async (event) => {
 
       let htmlContent = `
         <div style="display: flex; flex-direction: column; justify-content: center; margin-top: 30px;">
-          <h3>Complaints Summary</h3>
+          <h3>Bug Sheet</h3>
           <table>
             <thead>
               <tr>
