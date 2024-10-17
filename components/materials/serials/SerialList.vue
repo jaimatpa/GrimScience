@@ -15,6 +15,10 @@ const props = defineProps({
     isPage: {
         type: [Boolean, null],
     },
+    productModel: {
+        type: [String, Number, null],
+    },
+
 });
 
 const route = useRoute();
@@ -131,7 +135,7 @@ const modalMeta = ref({
 const filterValues = ref({
     Serial: null,
     Status: null,
-    MODEL: null, // From tblBP.MODEL
+    MODEL: props.productModel || null, // From tblBP.MODEL
     productLine: null, // From tblBP.PRODUCTLINE
     // Customer: null,
     number: null, // From tblCustomer.number

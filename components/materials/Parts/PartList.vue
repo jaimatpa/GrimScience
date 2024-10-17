@@ -64,9 +64,6 @@
             </template>
         </template>
 
-
-
-
         <template #edit-data="{ row }">
             <UTooltip text="Edit" class="flex justify-center">
                 <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
@@ -99,17 +96,34 @@
         body: { base: 'mt-0 gap-y-0 gms-modalForm' },
         width: 'w-[1500px] sm:max-w-9xl',
     }">
-        <MaterialsPartsForm @close="handleModalClose" @save="handleModalSave"
-            :selected-customer="gridMeta.selectedCustomerId" :selectedPartInstace="gridMeta.selectedPartInstanceId"
-            :is-modal="true" :selectedPartModel="gridMeta.selectedPartModdel" />
+        <MaterialsPartsForm 
+        @close="handleModalClose" 
+        @save="handleModalSave"
+        @productFormData="handleDataFromPartForm"
+        :selectedParts="gridMeta.selectedCustomerId" 
+        :selectedPartInstace="gridMeta.selectedPartInstanceId"
+        :is-modal="true" 
+        :selectedPartModel="gridMeta.selectedPartModdel"
+        :fromProductForm="props.fromProductForm"
+        />
+        
     </UDashboardModal>
 </template>
 
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
-const emit = defineEmits(["select", "close"])
+const emit = defineEmits(["select", "close", 'productFormData'])
 
 const props = defineProps({
+    category: {
+        type: [String, null],
+    },
+    subCategory: {
+        type: [String, null]
+    },
+    fromProductForm: {
+        type:[Boolean, null]
+    },
     isPage: {
         type: Boolean,
         default: false
@@ -209,13 +223,14 @@ const modalMeta = ref({
     modalTitle: "New Parts",
 });
 const filterValues = ref({
-    PARTTYPE: null,
-    SUBCATEGORY: null,
-    DESCRIPTION: null,
-    OnHand: null,
-    ETLCriticalComponent: null,
-    MODEL: null
+  PARTTYPE: props.category || null,
+  SUBCATEGORY: props.subCategory || null,
+  DESCRIPTION: null,
+  OnHand: null,
+  ETLCriticalComponent: null,
+  MODEL: props.fieldValue || null
 });
+
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
 
@@ -418,6 +433,11 @@ const handleSelect = () => {
     emit("select", gridMeta.value.description);
     emit("close");
 };
+const handleDataFromPartForm = (data) => {
+  emit('productFormData',data);
+  emit('close');
+}
+
 const onDblClick = async () => {
     if (gridMeta.value.selectedCustomerId) {
         modalMeta.value.modalTitle = "Edit";

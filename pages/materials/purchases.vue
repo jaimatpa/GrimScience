@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import PurchaseDetails from "~/components/materials/vendors/PurchaseDetails.vue";
 import CreatePurchaseModal from "~/components/purchase/CreatePurchaseModal.vue";
 import type { UTableColumn } from "~/types";
 
@@ -8,7 +9,8 @@ useSeoMeta({
 
 const route = useRoute();
 const toast = useToast();
-
+const startDate = ref('');
+const endDate = ref('');
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
 const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
@@ -95,6 +97,8 @@ const filterValues = ref({
   IRPHONE: null,
   TOTAL: null,
   OPENCLOSED: null,
+  startDate: null,
+  endDate: null,
 });
 
 const selectedColumns = ref(gridMeta.value.defaultColumns);
@@ -119,7 +123,15 @@ Object.entries(route.query).forEach(([key, value]) => {
       break;
   }
 });
+const onStartDateChange = (event: Event) => {
+  startDate.value = (event.target as HTMLInputElement).value;
+  filterValues.value.startDate = startDate.value;
+};
 
+const onEndDateChange = (event: Event) => {
+  endDate.value = (event.target as HTMLInputElement).value;
+  filterValues.value.endDate = endDate.value;
+};
 // fetch purchse list
 const fetchPurchasesData = async () => {
   gridMeta.value.isLoading = true;
@@ -139,11 +151,6 @@ const fetchPurchasesData = async () => {
       gridMeta.value.isLoading = false;
     },
   });
-};
-
-// open the modal for create purchase
-const triggerCreatePurchaseModal = () => {
-  createPurchaseModalMeta.value.isModalOpen = true;
 };
 
 // open view purchase moal
@@ -203,7 +210,11 @@ const onSelect = (row: any) => {
   gridMeta.value.selectedPO = row
   console.log(gridMeta.value.selectedPO);
 };
-
+// Handle date range lookup
+const handleDateRangeLookup = () => {
+  gridMeta.value.page = 1; // Reset to first page
+  fetchPurchasesData();
+};
 const onDblClick = () => console.log(gridMeta.value, "======> selected Data");
 
 // delete selected purchase
@@ -235,7 +246,9 @@ const deletePurchase = async () => {
     });
 };
 
-const handlePageChange = () => { };
+const handlePageChange = async () => {
+  fetchPurchasesData();
+};
 
 fetchPurchasesData();
 </script>
@@ -268,10 +281,10 @@ fetchPurchasesData();
               <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
                 @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
                 :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
-                    ? noneIcon
-                    : column?.sortDirection === 'asc'
-                      ? ascIcon
-                      : descIcon
+                  ? noneIcon
+                  : column?.sortDirection === 'asc'
+                    ? ascIcon
+                    : descIcon
                   " :filterable="column.filterable" :filter-key="column.key" />
             </div>
           </template>
@@ -286,10 +299,10 @@ fetchPurchasesData();
         <div class="flex flex-row justify-end mx-10 mt-1 gap-5">
           <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-3">
-              <UButton color="gms-gray" variant="outline">
+              <!-- <UButton color="gms-gray" variant="outline">
                 Select Purchase Order
-              </UButton>
-              <UButton @click="triggerCreatePurchaseModal" color="gms-gray" variant="outline">
+              </UButton> -->
+              <!-- <UButton @click="triggerCreatePurchaseModal" color="gms-gray" variant="outline">
                 Create Purchase Order
               </UButton> -->
             </div>
@@ -313,14 +326,15 @@ fetchPurchasesData();
       <div class="px-5 py-2 bg-gms-gray-100">
         <div class="flex items-center gap-10">
           <div class="flex items-center gap-2">
-            <label for="form">Form</label>
-            <input type="date" class="border border-solid border-gray-600 rounded-lg px-2" />
+            <label for="startDate">From</label>
+            <input type="date" class="border border-solid border-gray-600 rounded-lg px-2"
+              @change="onStartDateChange" />
           </div>
           <div class="flex items-center gap-2">
-            <label for="to">To</label>
-            <input type="date" class="border border-solid border-gray-600 rounded-lg px-2" />
+            <label for="endDate">To</label>
+            <input type="date" class="border border-solid border-gray-600 rounded-lg px-2" @change="onEndDateChange" />
           </div>
-          <UButton color="primary" variant="solid">
+          <UButton color="primary" variant="solid" @click="handleDateRangeLookup">
             Lookup
           </UButton>
         </div>
@@ -350,7 +364,8 @@ fetchPurchasesData();
       width: 'w-[90%] sm:max-w-9xl',
       height: 'h-[500px]',
     }">
-    <ViewPurchaseModal :modalMeta="viewPurchaseModalMeta" :purchaseId="gridMeta.selectedPurchaseId" />
+    <PurchaseDetails :is-creating="false" :modal-data="gridMeta.selectedPO"></PurchaseDetails>
+
   </UDashboardModal>
 </template>
 <style scoped></style>

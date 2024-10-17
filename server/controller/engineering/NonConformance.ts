@@ -47,7 +47,6 @@ export const getNonConformances = async (params) => {
     include: [
       {
         model: tblServiceReport,
-        model: tblServiceReport,
         attributes: ['COMPLAINTID'],
         include: [
           {

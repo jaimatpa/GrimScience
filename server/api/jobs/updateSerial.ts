@@ -1,14 +1,14 @@
-import { getEmployeeSchedules } from "~/server/controller/jobs";
+import { updateJobSerial } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
-    const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
+    const {  jobId, jobQty, begSerial } = getQuery(event);
     const method = event._method;
     
     switch(method.toUpperCase()){
-      case 'GET':
-        const list = await getEmployeeSchedules(page, pageSize, sortBy, sortOrder, filterParams);
-        return { body: list, message: '' }
+      case 'PUT':
+        const newSerials = await updateJobSerial( jobId, jobQty, begSerial)
+        return { body: newSerials, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };
