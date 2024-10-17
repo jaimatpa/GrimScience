@@ -1,7 +1,15 @@
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
+import Loading from 'vue-loading-overlay'
+const emit = defineEmits(["rowSelectedProduct", "close", "select"]);
 
-const emit = defineEmits(["close", "select"]);
+
+
+const handleSelect = ()=>{
+  emit("rowSelectedProduct",  gridMeta.value.selectProduct);
+  emit("close");
+}
+
 
 onMounted(() => {
   init();
@@ -25,8 +33,13 @@ const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 const activeTab = ref("lookup");
 
+const user = useCookie<string>('user');
+const username = "#"+user.value.payrollnumber+" "+user.value.fname+" "+user.value.lname
+
 function setActiveTab(tab) {
-  activeTab.value = tab;
+  if(!(tab === "history" && gridMeta.value.selectProduct === null)){
+    activeTab.value = tab;
+  }
 }
 
 const headerFilters = ref({
@@ -35,11 +48,37 @@ const headerFilters = ref({
     filter: "PRODUCTLINE",
     options: [],
   },
-
-
 });
+
+const headerCheckboxes = ref({
+  isActive: {
+    label: 'Show Active Only',
+    filterKey: 'CODE',
+    isChecked: true
+  }
+})
+
+const loadingOverlay = ref(false);
+const revisions = ref([]);
+const jobHistory = ref([]);
+const multipleProductSelect = ref([]);
+const sourceCloneModel = ref(null);
+const costCalculation = ref({
+  materialCost: null,
+  productLabor: null,
+  productLabourHours: null,
+  subAssemblyLaborCost: null,
+  subAssemblyLaborHours: null,
+  totalLaborCost: null,
+  totalHours: null,
+  totalCost: null,
+  suggestedPrice: null,
+  grossProfitPercent: null,
+  grossProfit: null
+})
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
+    
     {
       key: "MODEL",
       label: "Model",
@@ -62,6 +101,11 @@ const gridMeta = ref({
       filterable: true,
     },
     {
+      key: "select",
+      label: "Select",
+      kind: "actions",
+    },
+    {
       key: "edit",
       label: "Edit",
       kind: "actions",
@@ -71,6 +115,7 @@ const gridMeta = ref({
       label: "Delete",
       kind: "actions",
     },
+    
 
   ],
   page: 1,
@@ -88,33 +133,52 @@ const gridMeta = ref({
 const modalMeta = ref({
   isProductModalOpen: false,
   modalTitle: "New Product",
+  modalDescription: "Create new product",
+  isPartsModalOpen: false,
+  isOperationsModalOpen: false,
+  isSerialModalOpen: false,
+  isCloneModalOpen: false
 });
+
 const filterValues = ref({
   MODEL: null,
   DESCRIPTION: null,
   grossprofit: null,
+  CODE: true
 });
+
+const watchCheckbox = (property, filterKey) => {
+  watch(
+    () => headerCheckboxes.value[property].isChecked,
+    (newCheckedValue) => {
+      filterValues.value[filterKey] = newCheckedValue ? "1" : "0";
+    }
+  );
+}
+
+watchCheckbox('isActive', 'CODE');
+
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
 
 const revisionColumns = ref([
   {
-    key: "date",
+    key: "TODAY",
     label: "Date",
   },
   {
-    key: "type",
+    key: "CODE",
     label: "Type",
   },
 ]);
 
 const jobColumns = ref([
   {
-    key: "id",
+    key: "NUMBER",
     label: "Job#",
   },
   {
-    key: "closed",
+    key: "DATECLOSED",
     label: "Closed",
   },
 ]);
@@ -124,6 +188,7 @@ const columns = computed(() =>
     selectedColumns.value.includes(column)
   )
 );
+
 Object.entries(route.query).forEach(([key, value]) => {
   switch (key.toLowerCase()) {
     case "page":
@@ -198,9 +263,7 @@ const fetchGridData = async () => {
     },
   });
 };
-const excelExport = () => {
 
-};
 const onCreate = () => {
   gridMeta.value.selectedProductId = null;
   modalMeta.value.modalTitle = "New Product";
@@ -211,13 +274,86 @@ const onEdit = (row) => {
   modalMeta.value.modalTitle = "Edit";
   modalMeta.value.isProductModalOpen = true;
 };
-const onDelete = (row) => {
-  
+const onDelete = async(row: any) => {
+  await useApiFetch(`/api/products/${row?.UniqueID}`, {
+    method: "DELETE",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: "i-heroicons-trash-solid",
+          color: "green",
+        });
+        fetchGridData();
+      }
+    },
+  });
 };
-
+const onMultipleSelect = (row) => {
+  if(multipleProductSelect.value.includes(row.UniqueID) ){
+    const index = multipleProductSelect.value.indexOf(row.UniqueID)
+    multipleProductSelect.value.splice(index, 1)
+  } else {
+    multipleProductSelect.value = [...multipleProductSelect.value,row?.UniqueID]
+  }
+}
 const onSelect = async (row) => {
+  gridMeta.value.selectProduct = row
   gridMeta.value.selectedProductId = row?.UniqueID;
+  costCalculation.value = {
+    materialCost: null,
+    productLabor: null,
+    productLabourHours: null,
+    subAssemblyLaborCost: null,
+    subAssemblyLaborHours: null,
+    totalLaborCost: null,
+    totalHours: null,
+    totalCost: null,
+    suggestedPrice: null,
+    grossProfitPercent: null,
+    grossProfit: null
+  }
   gridMeta.value.products.forEach((pro) => {
+    if (pro.UniqueID === row.UniqueID) {
+      pro.class = "bg-gray-200";
+    } else {
+      delete pro.class;
+    }
+  });
+  gridMeta.value.selectProduct = row;
+  
+  await useApiFetch('/api/products/revisions/'+row?.UniqueID, {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        if(response._data.body.length > 0) {
+          revisions.value = response._data.body
+        }
+      }
+    }, 
+    onResponseError() {
+      revisions.value = []
+    }
+  })
+  await useApiFetch('/api/products/jobhistory/'+row?.UniqueID, {
+    method: 'GET',
+    onResponse({ response }) {
+      if(response.status === 200) {
+        if(response._data.body.length > 0) {
+          jobHistory.value = response._data.body;
+        }
+      }
+    }, 
+    onResponseError() {
+      jobHistory.value = []
+    }
+  })
+
+};
+const onRevisionSelect = async (row) => {
+  gridMeta.value.selectedProductId = row?.UniqueID;
+  revisions.value.forEach((pro) => {
     if (pro.UniqueID === row.UniqueID) {
       pro.class = "bg-gray-200";
     } else {
@@ -227,13 +363,60 @@ const onSelect = async (row) => {
   gridMeta.value.selectProduct = row;
 
 };
-
 const onDblClick = async () => {
   if (gridMeta.value.selectedProductId) {
     modalMeta.value.modalTitle = "Edit";
     modalMeta.value.isProductModalOpen = true;
   }
 };
+const handleBulkInactive = async () => {
+  loadingOverlay.value = true
+  await useApiFetch('/api/products/bulkInactiveProduct/', {
+    method: 'PUT',
+    body: {data:multipleProductSelect}, 
+    onResponse({ response }) {
+      if(response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: 'i-heroicons-check-circle',
+          color: 'green'
+        })
+      }
+    }
+  })
+  loadingOverlay.value = false
+}
+const handleCostCalculation = async () => {
+  if (!Number.isNaN(gridMeta.value.selectProduct.SELLINGPRICE)) {
+    loadingOverlay.value = true
+    await useApiFetch('/api/products/costandprofit/'+gridMeta.value.selectedProductId, {
+      method: 'GET',
+      onResponse({ response }) {
+        if(response.status === 200) {
+          costCalculation.value = response._data.body;
+        }
+      }, 
+      onResponseError() {
+        costCalculation.value = {
+          materialCost: null,
+          productLabor: null,
+          productLabourHours: null,
+          subAssemblyLaborCost: null,
+          subAssemblyLaborHours: null,
+          totalLaborCost: null,
+          totalHours: null,
+          totalCost: null,
+          suggestedPrice: null,
+          grossProfitPercent: null,
+          grossProfit: null
+        }
+      }
+    })
+    loadingOverlay.value = false
+  }
+  
+}
 const handleModalClose = () => {
   modalMeta.value.isProductModalOpen = false;
 };
@@ -286,10 +469,84 @@ const handleFilterInputChange = async (event, name) => {
   }
   fetchGridData();
 };
+const handlePartListModal = () => {
+  modalMeta.value.isPartsModalOpen = true
+}
+const handleOperationtModal = () => {
+  modalMeta.value.isOperationsModalOpen = true
+  modalMeta.value.modalTitle = "Manufacturing Secquence";
+  modalMeta.value.modalDescription = `Manufacturing Secquence ${
+    gridMeta.value.selectProduct.MODEL ? gridMeta.value.selectProduct.MODEL : gridMeta.value.selectProduct.MODEL
+  }`;
+}
+const handleSerialsModal = () => {
+  modalMeta.value.isSerialModalOpen = true
+  modalMeta.value.modalTitle = "Serial Record Finished Goods";
+  modalMeta.value.modalDescription = "Serial Record" 
+}
+
+const handleCloneModal = () => {
+  sourceCloneModel.value = null
+  modalMeta.value.isCloneModalOpen = true
+}
+
+const handleCloneModalClick = async () => {
+  if(sourceCloneModel.value){
+    loadingOverlay.value = true
+    await useApiFetch(`/api/products/productoperations/cloneoperation`, {
+      method: 'PUT',
+      body: { targetId:sourceCloneModel.value, sourceId:gridMeta.value.selectProduct.MODEL, username },
+      onResponse({ response }) {
+        if(response.status === 200) {
+          sourceCloneModel.value = null
+          modalMeta.value.isCloneModalOpen = false
+          toast.add({
+            title: "Success",
+            description: "Instruction cloned successfully",
+            icon: "i-heroicons-check-circle",
+            color: "green",
+          });
+        }
+      },
+      onResponseError({}) {
+        toast.add({
+          title: "Failed",
+          description: "Failed to clone instructions",
+          icon: "i-heroicons-exclamation-circle",
+          color: "red",
+        });
+      }
+    });
+    loadingOverlay.value = false
+  }else{
+    toast.add({
+      title: "Validation Error",
+      description: "Please provide a model",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
+    });
+  }
+}
+
+const closeCloneModal = () => {
+  sourceCloneModel.value = null
+  modalMeta.value.isCloneModalOpen = false
+}
+
 
 </script>
 
 <template>
+  <div class="vl-parent">
+    <loading
+      v-model:active="loadingOverlay"
+      :is-full-page="true"
+      color="#000000"
+      backgroundColor="#1B2533"
+      loader="dots"
+    />
+  </div>
+
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar
@@ -329,16 +586,29 @@ const handleFilterInputChange = async (event, name) => {
                 </div>
               </UFormGroup>
             </div>
+            <div class="flex flex-row px-10 mt-4">
+              <template v-for="checkbox in headerCheckboxes">
+                <div>
+                  <UCheckbox
+                    v-model="filterValues[checkbox.filterKey]"
+                    :label="checkbox.label"
+                    @update:model-value="handleFilterChange"
+                  />
+                </div>
+              </template>
+            </div>
           </div>
         </template>
         <template #right>
+          
           <UButton
-            color="green"
+            icon="i-heroicons-minus-circle-20-solid"
+            color="red"
             variant="outline"
             :loading="exportIsLoading"
-            label="Export to Excel"
+            label="Bulk Inactive"
             trailing-icon="i-heroicons-document-text"
-            @click="excelExport"
+            @click="handleBulkInactive"
           >
           </UButton>
           <UButton
@@ -346,7 +616,7 @@ const handleFilterInputChange = async (event, name) => {
             variant="outline"
             label="New Product"
             trailing-icon="i-heroicons-plus"
-            @click="onCreate()"
+            @click="onCreate"
           />
         </template>
       </UDashboardToolbar>
@@ -373,6 +643,7 @@ const handleFilterInputChange = async (event, name) => {
           Product History
         </button>
       </div>
+
       <UTable
         v-if="activeTab === 'lookup'"
         :rows="gridMeta.products"
@@ -396,6 +667,7 @@ const handleFilterInputChange = async (event, name) => {
         @select="onSelect"
         @dblclick="onDblClick"
       >
+      
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
             <div class="">
@@ -423,8 +695,15 @@ const handleFilterInputChange = async (event, name) => {
             </div>
           </template>
         </template>
+        <template  #select-data="{ row }">
+          <UTooltip v-if="row.CODE != 'Inactive'" text="Select" >
+            <UCheckbox
+              @change="onMultipleSelect(row)"
+            />
+          </UTooltip>
+        </template>
         <template #edit-data="{ row }">
-          <UTooltip text="Edit" class="flex">
+          <UTooltip text="Edit" >
             <UButton
               color="gray"
               variant="ghost"
@@ -434,7 +713,7 @@ const handleFilterInputChange = async (event, name) => {
           </UTooltip>
         </template>
         <template #delete-data="{ row }">
-          <UTooltip text="Delete" class="flex">
+          <UTooltip text="Delete" >
             <UButton
               color="gray"
               variant="ghost"
@@ -443,24 +722,15 @@ const handleFilterInputChange = async (event, name) => {
             />
           </UTooltip>
         </template>
+        
       </UTable>
       <div v-else class="flex flex-col overflow-y-scroll">
-        <div class="w-full mt-4 flex items-end justify-end pr-5">
-          <UButton
-            icon="i-f7-arrow-clockwise"
-            variant="outline"
-            color="green"
-            label="Refresh"
-            :ui="{ base: 'w-fit', truncate: 'flex justify-center w-full' }"
-            truncate
-          />
-        </div>
         <div class="grid grid-cols-2 gap-5 px-5">
           <div>
             <span>Revision History</span>
             <UTable
               :columns="revisionColumns"
-              :rows="[]"
+              :rows="revisions"
               :ui="{
                 wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
                 th: {
@@ -472,13 +742,15 @@ const handleFilterInputChange = async (event, name) => {
                   padding: 'py-1'
                 }
               }"
+              @select="onRevisionSelect"
+              @dblclick="onDblClick"
             />
           </div>
           <div>
             <span>Job History</span>
             <UTable
               :columns="jobColumns"
-              :rows="[]"
+              :rows="jobHistory"
               :ui="{
                 wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
                 th: {
@@ -489,11 +761,154 @@ const handleFilterInputChange = async (event, name) => {
               }"
             />
           </div>
+
+
+          <div>
+            <span>Cost</span>
+            <div class="space-y-4 border-2 p-2">
+              <div class="flex flex-row space-x-3">
+                
+              
+                <p class="basis-1/2">Selling Price</p>
+              
+                <p>$</p>
+                <UInput class="basis-1/2"
+                disabled
+                v-model="gridMeta.selectProduct.SELLINGPRICE"
+                  
+                />
+
+              </div>
+              <div class="flex flex-row space-x-3">
+                
+                
+                <p class="basis-1/2">Suggested Price</p>
+
+                <p>$</p>
+                <UInput class="basis-1/2"
+                disabled
+                  v-model="costCalculation.suggestedPrice"
+                />
+
+              </div>
+
+              <div class="flex flex-row space-x-3">
+                
+                
+                <p class="basis-1/3">Product Labor</p>
+
+                <p>$</p>
+                <UInput class="basis-1/3"
+                disabled
+                  v-model="costCalculation.productLabor"
+                />
+
+
+
+                <UInput class="basis-1/3"
+                disabled
+                  v-model="costCalculation.productLabourHours"
+                />
+                <p>hr</p>
+
+              
+              
+              </div>
+
+              <div class="flex flex-row space-x-3">
+                
+                
+                <p class="basis-1/3">Subassembly Labor</p>
+                <p>$</p>
+                <UInput class="basis-1/3"
+                disabled
+                   v-model="costCalculation.subAssemblyLaborCost"
+                />
+
+                <UInput class="basis-1/3"
+                disabled
+                  v-model="costCalculation.subAssemblyLaborHours"
+                />
+                <p>hr</p>
+              
+              
+              </div>
+
+              <div class="flex flex-row space-x-3 border-t border-gray-300 pt-3">
+                
+                
+                <p class="basis-1/3">Total Labor</p>
+                <p>$</p>
+                <UInput class="basis-1/3"
+                disabled
+                  v-model="costCalculation.totalCost"
+                />
+
+                <UInput class="basis-1/3"
+                disabled
+                  v-model="costCalculation.totalHours"
+                />
+                <p>hr</p>
+              
+              
+              </div>
+
+              <div class="flex flex-row space-x-3 ">
+                
+                
+                <p class="basis-1/3">Material Cost</p>
+                <p class="basis-1/3">$ {{ costCalculation.materialCost }}</p>
+
+              </div>
+
+              <div class="flex flex-row space-x-3">
+                
+                
+                <p class="basis-1/3">Total Cost</p>
+                <p class="basis-1/3">$ {{ costCalculation.totalCost }}</p>
+                
+
+              </div>
+
+              <div class="flex flex-row space-x-3">
+                
+                
+                <p class="basis-1/3">Gross Profit</p>
+                <p class="basis-1/3"> $ {{ costCalculation.grossProfit }}</p>
+                <p class="basis-1/3">{{ costCalculation.grossProfitPercent }} %</p>
+
+              
+              
+              </div>
+
+              <div class="flex flex-row space-x-2">
+                
+              
+                <p class="basis-1/2">Units Shipped   YTD = </p>
+                <p class="basis-1/2">Total=</p>
+              
+              
+              </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleOperationtModal" >View Operations</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleCloneModal" >Clone Operations</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handlePartListModal" >View Parts List</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleSerialsModal">View Serials</UButton>
+              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleCostCalculation" >View Costs</UButton>
+            </div>
+
+
+
+            </div>
+            
+          </div>
+
         </div>
       </div>
-      <!-- <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+      <!-- v-if="props.isPage && activeTab === 'lookup'" -->
+      <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div
-          v-if="props.isPage && activeTab === 'lookup'"
           class="flex flex-row justify-end mr-20 mt-1"
         >
           <UPagination
@@ -503,9 +918,9 @@ const handleFilterInputChange = async (event, name) => {
             v-model="gridMeta.page"
             @update:model-value="handlePageChange()"
           />
-        </div> -->
+        </div>
 
-        <!-- <div v-if="!props.isPage">
+        <div v-if="!props.isPage">
           <div class="mt-3 w-[120px]">
             <UButton
               icon="i-heroicons-cursor-arrow-ripple"
@@ -521,8 +936,8 @@ const handleFilterInputChange = async (event, name) => {
             >
             </UButton>
           </div>
-        </div> -->
-      <!-- </div> -->
+        </div>
+      </div>
     </UDashboardPanel>
   </UDashboardPage>
   <!-- New Product Detail Modal -->
@@ -544,6 +959,85 @@ const handleFilterInputChange = async (event, name) => {
     :selected-product="gridMeta.selectedProductId"
     :is-modal="true"
   />
-</UDashboardModal>
+  </UDashboardModal>
+
+   <!-- Parts List Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isPartsModalOpen"
+    title="Parts Listing"
+    :ui="{
+      width: 'w-[1000px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <ProductsPartList :selected-product="gridMeta.selectedProductId"/>
+  </UDashboardModal>
+
+  <!-- Manufacturing Sequnce Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isOperationsModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <ProductsManufacturingSequenceForm :selected-product="gridMeta.selectedProductId" :instance-id="gridMeta.selectProduct.instanceID" />
+  </UDashboardModal>
+
+  <!-- Serials Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isSerialModalOpen"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-7xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <MaterialsSerialsSerialList :is-page="true" :productModel="gridMeta.selectProduct.MODEL" />
+  </UDashboardModal>
+
+  <!-- Clone Operation Modal -->
+  <UDashboardModal
+      v-model="modalMeta.isCloneModalOpen"
+      :ui="{
+        header: {
+          base: 'flex flex-row min-h-[0] items-center',
+          padding: 'p-0 pt-1',
+        },
+        body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
+        width: 'w-[300px]',
+      }"
+    >
+      <div>
+        <div class="">
+          <div class="">What model would you like to clone these instructions to?</div>
+          
+        </div>
+        <div class="mt-3">
+          <UInput v-model="sourceCloneModel" ></UInput>
+        </div>
+        
+        <div class="flex flex-row-reverse mt-2">
+          <div class="min-w-[60px]">
+            <UButton
+              label="Clone"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
+              @click="handleCloneModalClick"
+              truncate
+            />
+          </div>
+          <div class="min-w-[60px] mr-3">
+            <UButton
+              label="Cancel"
+              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
+              truncate
+              @click="closeCloneModal"
+            />
+          </div>
+        </div>
+      </div>
+    </UDashboardModal>
+
 </template>
 <style scoped></style>

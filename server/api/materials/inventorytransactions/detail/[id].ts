@@ -5,7 +5,7 @@ export default eventHandler(async (event) => {
     const method = event._method;
     const id = event.context.params.id;
 
-    switch(method.toUpperCase()){
+    switch (method.toUpperCase()) {
       case 'GET':
         break;
       case 'PUT':

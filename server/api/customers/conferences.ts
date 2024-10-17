@@ -3,8 +3,8 @@ import { getConferences } from '~/server/controller/customers';
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
         const conferences = await getConferences()
         return { body: conferences, message: '' }

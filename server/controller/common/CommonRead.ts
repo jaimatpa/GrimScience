@@ -20,7 +20,7 @@ interface getTableRowWhereProps {
   where: object;
 }
 
-export const getTableList = async ({tblName}:getTableListProps) => {
+export const getTableList = async ({ tblName }: getTableListProps) => {
   try {
     if (models[tblName]) {
       const list = await models[tblName].findAll();
@@ -38,7 +38,7 @@ export const getTableDetail = async ({ tblName, id }: getTableDetailProps) => {
     if (models[tblName]) {
       const primaryKey = models[tblName].primaryKeyAttribute;
       const tableDetail = await models[tblName].findByPk(id);
-      if(tableDetail) {
+      if (tableDetail) {
         return tableDetail;
       } else {
         throw new Error(`Record with ${primaryKey} ${id} not found in ${tblName}`);
@@ -54,7 +54,7 @@ export const getTableDetail = async ({ tblName, id }: getTableDetailProps) => {
 export const getTableWhere = async ({ tblName, where, orderby }: getTableWhereProps) => {
   try {
     if (models[tblName]) {
-      const queryOptions:any = { where };
+      const queryOptions: any = { where };
       if (orderby) {
         queryOptions.order = orderby;
       }
@@ -75,7 +75,7 @@ export const getTableWhere = async ({ tblName, where, orderby }: getTableWherePr
 export const getTableRowWhere = async ({ tblName, where }: getTableRowWhereProps) => {
   try {
     if (models[tblName]) {
-      const tableDetail = await models[tblName].findOne({where});
+      const tableDetail = await models[tblName].findOne({ where });
       return tableDetail;
       // if(tableDetail) {
       //   return tableDetail;

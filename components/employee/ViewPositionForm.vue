@@ -46,7 +46,7 @@ const editInit = async () => {
           }
         }
       },
-      onResponseError({}) {
+      onResponseError({ }) {
         organizaationExist.value = false;
       },
     }
@@ -274,29 +274,15 @@ if (props.selectedOrganization !== null) editInit();
 
 <template>
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
   <template v-if="!props.isModal && !organizaationExist">
-    <CommonNotFound
-      :name="'Organization not found'"
-      :message="'The organization you are looking for does not exist'"
-      :to="'/employees/organization'"
-    />
+    <CommonNotFound :name="'Organization not found'" :message="'The organization you are looking for does not exist'"
+      :to="'/employees/organization'" />
   </template>
   <template v-else>
-    <UForm
-      :validate="validate"
-      :validate-on="['submit']"
-      :state="formData"
-      class="space-y-4"
-      @submit="onSubmit"
-    >
+    <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
       <div class="w-full flex gap-5">
         <div class="w-1/5 flex flex-col gap-y-2">
           <div class="">
@@ -318,12 +304,7 @@ if (props.selectedOrganization !== null) editInit();
 
           <div class="">
             <UFormGroup label="Position Description" name="WorkCenters">
-              <UTextarea
-                v-model="formData.JobDescription"
-                :rows="4"
-                type="text"
-                placeholder=""
-              />
+              <UTextarea v-model="formData.JobDescription" :rows="4" type="text" placeholder="" />
             </UFormGroup>
           </div>
           <div class="">
@@ -346,19 +327,15 @@ if (props.selectedOrganization !== null) editInit();
           <div class="">
             <UTabs :items="items" class="">
               <template #schedule="{ item }">
-                <UTable
-                  :columns="quotedColumns"
-                  :rows="[]"
-                  :ui="{
-                    wrapper:
-                      'h-96 border-2 border-gray-300 dark:border-gray-700',
-                    th: {
-                      base: 'sticky top-0 z-10',
-                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                      padding: 'p-1',
-                    },
-                  }"
-                />
+                <UTable :columns="quotedColumns" :rows="[]" :ui="{
+                  wrapper:
+                    'h-96 border-2 border-gray-300 dark:border-gray-700',
+                  th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-1',
+                  },
+                }" />
               </template>
 
               <template #add="{ item }">
@@ -370,26 +347,16 @@ if (props.selectedOrganization !== null) editInit();
                   </div>
                   <div class="">
                     <UFormGroup label="Scheduled Period" name="WorkCenters">
-                      <USelect
-                        :options="['Week', 'Month', 'Quarter', 'Year', 'Day']"
-                      />
+                      <USelect :options="['Week', 'Month', 'Quarter', 'Year', 'Day']" />
                     </UFormGroup>
                   </div>
 
                   <div class="w-[180px]">
-                    <UButton
-                      icon="i-heroicons-document-text"
-                      type="submit"
-                      variant="outline"
-                      color="green"
-                      :disabled="isLoading"
-                      label="Save"
-                      :ui="{
+                    <UButton icon="i-heroicons-document-text" type="submit" variant="outline" color="green"
+                      :disabled="isLoading" label="Save" :ui="{
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                    />
+                      }" truncate />
                   </div>
                 </div>
               </template>
@@ -398,19 +365,15 @@ if (props.selectedOrganization !== null) editInit();
           <div class="mt-5 h-44">
             <UTabs :items="goalsitems" class="">
               <template #goals="{ item }">
-                <UTable
-                  :columns="goalColumns"
-                  :rows="[]"
-                  :ui="{
-                    wrapper:
-                      'h-44 border-2 border-gray-300 dark:border-gray-700',
-                    th: {
-                      base: 'sticky top-0 z-10',
-                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                      padding: 'p-1',
-                    },
-                  }"
-                />
+                <UTable :columns="goalColumns" :rows="[]" :ui="{
+                  wrapper:
+                    'h-44 border-2 border-gray-300 dark:border-gray-700',
+                  th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-1',
+                  },
+                }" />
               </template>
 
               <template #add="{ item }">
@@ -422,26 +385,16 @@ if (props.selectedOrganization !== null) editInit();
                   </div>
                   <div class="">
                     <UFormGroup label="Scheduled Period" name="WorkCenters">
-                      <USelect
-                        :options="['Week', 'Month', 'Quarter', 'Year', 'Day']"
-                      />
+                      <USelect :options="['Week', 'Month', 'Quarter', 'Year', 'Day']" />
                     </UFormGroup>
                   </div>
 
                   <div class="w-[180px]">
-                    <UButton
-                      icon="i-heroicons-document-text"
-                      type="submit"
-                      variant="outline"
-                      color="green"
-                      :disabled="isLoading"
-                      label="Save"
-                      :ui="{
+                    <UButton icon="i-heroicons-document-text" type="submit" variant="outline" color="green"
+                      :disabled="isLoading" label="Save" :ui="{
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                    />
+                      }" truncate />
                   </div>
                 </div>
               </template>
@@ -453,19 +406,15 @@ if (props.selectedOrganization !== null) editInit();
           <div>
             <UTabs :items="routineitems" class="">
               <template #routines="{ item }">
-                <UTable
-                  :columns="routinesColumns"
-                  :rows="[]"
-                  :ui="{
-                    wrapper:
-                      'h-96 border-2 border-gray-300 dark:border-gray-700',
-                    th: {
-                      base: 'sticky top-0 z-10',
-                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                      padding: 'p-1',
-                    },
-                  }"
-                />
+                <UTable :columns="routinesColumns" :rows="[]" :ui="{
+                  wrapper:
+                    'h-96 border-2 border-gray-300 dark:border-gray-700',
+                  th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-1',
+                  },
+                }" />
               </template>
 
               <template #add="{ item }">
@@ -477,26 +426,16 @@ if (props.selectedOrganization !== null) editInit();
                   </div>
                   <div class="">
                     <UFormGroup label="Scheduled Period" name="WorkCenters">
-                      <USelect
-                        :options="['Week', 'Month', 'Quarter', 'Year', 'Day']"
-                      />
+                      <USelect :options="['Week', 'Month', 'Quarter', 'Year', 'Day']" />
                     </UFormGroup>
                   </div>
 
                   <div class="w-[180px]">
-                    <UButton
-                      icon="i-heroicons-document-text"
-                      type="submit"
-                      variant="outline"
-                      color="green"
-                      :disabled="isLoading"
-                      label="Save"
-                      :ui="{
+                    <UButton icon="i-heroicons-document-text" type="submit" variant="outline" color="green"
+                      :disabled="isLoading" label="Save" :ui="{
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                    />
+                      }" truncate />
                   </div>
                 </div>
               </template>
@@ -505,54 +444,33 @@ if (props.selectedOrganization !== null) editInit();
           <div class="mt-5">
             <UTabs :items="projectsitems" class="">
               <template #projects="{ item }">
-                <UTable
-                  :columns="projectColumns"
-                  :rows="[]"
-                  :ui="{
-                    wrapper:
-                      'h-32 border-2 border-gray-300 dark:border-gray-700',
-                    th: {
-                      base: 'sticky top-0 z-10',
-                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                      padding: 'p-1',
-                    },
-                  }"
-                />
+                <UTable :columns="projectColumns" :rows="[]" :ui="{
+                  wrapper:
+                    'h-32 border-2 border-gray-300 dark:border-gray-700',
+                  th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-1',
+                  },
+                }" />
                 <div class="flex flex-row space-x-4 justify-start mt-2">
                   <div class="w-[180px]">
-                    <UButton
-                      color="gray"
-                      label="Connect"
-                      :ui="{
-                        base: 'w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                      @click="handleConnectClick"
-                    />
+                    <UButton color="gray" label="Connect" :ui="{
+                      base: 'w-full',
+                      truncate: 'flex justify-center w-full',
+                    }" truncate @click="handleConnectClick" />
                   </div>
                   <div>
-                    <UButton
-                      label="Add New Project (Job)"
-                      color="gray"
-                      :ui="{
-                        base: 'min-w-[200px] w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      @click="onJobCreate()"
-                      truncate
-                    />
+                    <UButton label="Add New Project (Job)" color="gray" :ui="{
+                      base: 'min-w-[200px] w-full',
+                      truncate: 'flex justify-center w-full',
+                    }" @click="onJobCreate()" truncate />
                   </div>
                   <div>
-                    <UButton
-                      label="Disconnect"
-                      color="gray"
-                      :ui="{
-                        base: 'min-w-[200px] w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                    />
+                    <UButton label="Disconnect" color="gray" :ui="{
+                      base: 'min-w-[200px] w-full',
+                      truncate: 'flex justify-center w-full',
+                    }" truncate />
                   </div>
                 </div>
               </template>
@@ -566,26 +484,16 @@ if (props.selectedOrganization !== null) editInit();
                   </div>
                   <div class="">
                     <UFormGroup label="Scheduled Period" name="WorkCenters">
-                      <USelect
-                        :options="['Week', 'Month', 'Quarter', 'Year', 'Day']"
-                      />
+                      <USelect :options="['Week', 'Month', 'Quarter', 'Year', 'Day']" />
                     </UFormGroup>
                   </div>
 
                   <div class="w-[180px]">
-                    <UButton
-                      icon="i-heroicons-document-text"
-                      type="submit"
-                      variant="outline"
-                      color="green"
-                      :disabled="isLoading"
-                      label="Save"
-                      :ui="{
+                    <UButton icon="i-heroicons-document-text" type="submit" variant="outline" color="green"
+                      :disabled="isLoading" label="Save" :ui="{
                         base: 'w-full',
                         truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                    />
+                      }" truncate />
                   </div>
                 </div>
               </template>
@@ -596,60 +504,33 @@ if (props.selectedOrganization !== null) editInit();
 
       <div class="flex flex-row space-x-4 justify-start mt-2">
         <div class="w-[180px]">
-          <UButton
-            icon="i-heroicons-document-text"
-            type="submit"
-            variant="outline"
-            color="green"
-            :disabled="isLoading"
-            label="Save"
-            :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-            truncate
-          />
+          <UButton icon="i-heroicons-document-text" type="submit" variant="outline" color="green" :disabled="isLoading"
+            label="Save" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
         </div>
         <div>
-          <UButton
-            icon="i-heroicons-printer"
-            label="Print Report"
-            variant="outline"
-            :ui="{
-              base: 'min-w-[200px] w-full',
-              truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
+          <UButton icon="i-heroicons-printer" label="Print Report" variant="outline" :ui="{
+            base: 'min-w-[200px] w-full',
+            truncate: 'flex justify-center w-full',
+          }" truncate />
         </div>
       </div>
     </UForm>
   </template>
 
   <!-- Jobs List Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isJobsListModalOpen"
-    title="Jobs List"
-    :ui="{
-      width: 'w-[1600px] sm:max-w-8xl',
-      body: { padding: 'py-0 sm:pt-0' },
-    }"
-  >
+  <UDashboardModal v-model="modalMeta.isJobsListModalOpen" title="Jobs List" :ui="{
+    width: 'w-[1600px] sm:max-w-8xl',
+    body: { padding: 'py-0 sm:pt-0' },
+  }">
     <JobList />
   </UDashboardModal>
 
   <!-- New Organization Detail Modal -->
-  <UDashboardModal
-    v-model="jobModalMeta.isJobFormModalOpen"
-    :title="jobModalMeta.modalTitle"
-    :description="jobModalMeta.modalDescription"
-    :ui="{
+  <UDashboardModal v-model="jobModalMeta.isJobFormModalOpen" :title="jobModalMeta.modalTitle"
+    :description="jobModalMeta.modalDescription" :ui="{
       width: 'w-[1100px] sm:max-w-7xl',
       body: { padding: 'py-0 sm:pt-0' },
-    }"
-  >
-    <JobForm
-      @close="handleModalClose"
-      @save="handleModalSave"
-      :selected-job="null"
-      :is-modal="true"
-    />
+    }">
+    <JobForm @close="handleModalClose" @save="handleModalSave" :selected-job="null" :is-modal="true" />
   </UDashboardModal>
 </template>

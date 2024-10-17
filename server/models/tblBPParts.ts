@@ -27,6 +27,7 @@ const tblBPParts = sequelize.define('tblBPParts', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName: 'tblBPParts',
    timestamps: false
 });
 

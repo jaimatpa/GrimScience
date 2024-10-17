@@ -29,6 +29,7 @@ let readonlyPermission = ref(false);
 let permissionMessage = ref("");
 
 let selectedJobId = ref(null);
+let selectedJobInstanceId = ref(null);
 
 const gridMeta = ref({
     defaultColumns: <UTableColumn[]>[
@@ -79,7 +80,7 @@ const gridMeta = ref({
             label: "Approve",
             kind: "actions",
         },
-        
+
     ],
     page: 1,
     pageSize: 50,
@@ -130,6 +131,7 @@ const init = async () => {
     // fetchGridData();
 };
 const fetchGridData = async () => {
+
     gridMeta.value.isLoading = true;
     await useApiFetch("/api/engineering/approvals/numbers", {
         method: "GET",
@@ -268,9 +270,9 @@ const handleSelect = () => {
 };
 const onDblClick = async () => {
     if (gridMeta.value.selectedApprovalId) {
-
+        console.log("onDblClick", gridMeta.value.selectedApproval)
         selectedJobId.value = gridMeta.value.selectedApproval?.jobId;
-
+        selectedJobInstanceId.value = gridMeta.value.selectedApproval?.instanceID
         modalMeta.value.isManufacturingSequenceModalOpen = true;
     }
 };
@@ -284,45 +286,34 @@ const onDblClick = async () => {
     <div v-else>
         <UDashboardPage class=" max-h-screen">
             <UDashboardPanel grow>
-                <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader" title="Entries Approvals"> </UDashboardNavbar>
+                <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader" title="Entries Approvals">
+                </UDashboardNavbar>
                 <div v-if="props.isPage" class="px-4 py-2 gmsBlueTitlebar">
                     <h2>To Be Approved</h2>
                 </div>
 
-                <UTable
-                    :rows="gridMeta.approvals"
-                    :columns="columns"
-                    :loading="gridMeta.isLoading"
-                    class="w-full"
-                    :ui="{
-                        divide: 'divide-gray-200 dark:divide-gray-800',
-                        th: {
-                            base: 'sticky top-0 z-10',
-                            color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                            padding: 'p-0',
-                        },
-                        td: {
-                            padding: 'py-1',
-                        },
-                    }"
-                    :empty-state="{
-                        icon: 'i-heroicons-circle-stack-20-solid',
-                        label: 'No items.',
-                    }"
-                    @select="onSelect"
-                    @dblclick="onDblClick">
+                <UTable :rows="gridMeta.approvals" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
+                    divide: 'divide-gray-200 dark:divide-gray-800',
+                    th: {
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                        padding: 'p-0',
+                    },
+                    td: {
+                        padding: 'py-1',
+                    },
+                }" :empty-state="{
+                    icon: 'i-heroicons-circle-stack-20-solid',
+                    label: 'No items.',
+                }" @select="onSelect" @dblclick="onDblClick">
                     <template v-for="column in columns" v-slot:[`${column.key}-header`]>
                         <template v-if="column.kind !== 'actions'">
                             <div class="px-4 py-3.5">
-                                <CommonSortAndInputFilter
-                                    @handle-sorting-button="handleSortingButton"
-                                    @handle-input-change="handleFilterInputChange"
-                                    :label="column.label"
-                                    :sortable="column.sortable"
-                                    :sort-key="column.key"
+                                <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                                    @handle-input-change="handleFilterInputChange" :label="column.label"
+                                    :sortable="column.sortable" :sort-key="column.key"
                                     :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                                    :filterable="column.filterable"
-                                    :filter-key="column.key" />
+                                    :filterable="column.filterable" :filter-key="column.key" />
                             </div>
                         </template>
                         <template v-else class="bg-slate-400">
@@ -333,34 +324,25 @@ const onDblClick = async () => {
                     </template>
                     <template #approve-data="{ row }">
                         <UTooltip text="Approve" class="flex justify-center">
-                            <UButton :disabled="readonlyPermission" color="green" variant="outline" icon="i-heroicons-pencil-square" @click="onApprove(row)" />
+                            <UButton :disabled="readonlyPermission" color="green" variant="outline"
+                                icon="i-heroicons-pencil-square" @click="onApprove(row)" />
                         </UTooltip>
                     </template>
                 </UTable>
 
                 <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
                     <div v-if="props.isPage" class="flex flex-row justify-end mr-20 mt-1">
-                        <UPagination
-                            :max="7"
-                            :page-count="gridMeta.pageSize"
-                            :total="gridMeta.numberOfApprovals | 0"
-                            v-model="gridMeta.page"
-                            @update:model-value="handlePageChange()" />
+                        <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfApprovals | 0"
+                            v-model="gridMeta.page" @update:model-value="handlePageChange()" />
                     </div>
 
                     <div v-if="!props.isPage">
                         <div class="mt-3 w-[120px]">
-                            <UButton
-                                icon="i-heroicons-cursor-arrow-ripple"
-                                variant="outline"
-                                color="green"
-                                label="Select"
-                                :ui="{
+                            <UButton icon="i-heroicons-cursor-arrow-ripple" variant="outline" color="green"
+                                label="Select" :ui="{
                                     base: 'w-full',
                                     truncate: 'flex justify-center w-full',
-                                }"
-                                truncate
-                                @click="handleSelect">
+                                }" truncate @click="handleSelect">
                             </UButton>
                         </div>
                     </div>
@@ -370,16 +352,12 @@ const onDblClick = async () => {
     </div>
 
     <!-- Manufacturing Sequnce Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isManufacturingSequenceModalOpen"
-    title="Manufacturing Sequence"
-    description=""
-    :ui="{
-      width: 'w-[1800px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
-    }"
-  >
-    <JobManufacturingSequenceForm :selected-job="selectedJobId" />
-  </UDashboardModal>
+    <UDashboardModal v-model="modalMeta.isManufacturingSequenceModalOpen" title="Manufacturing Sequence" description=""
+        :ui="{
+            width: 'w-[1800px] sm:max-w-7xl',
+            body: { padding: 'py-0 sm:pt-0' },
+        }">
+        <JobManufacturingSequenceForm :selected-job="selectedJobId" :instance-id="selectedJobInstanceId" />
+    </UDashboardModal>
 </template>
 <style scoped></style>
