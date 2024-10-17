@@ -1,6 +1,22 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
-import PartsModalPage from "../../../pages/materials/parts/parts.vue"
+import { ref, reactive, onMounted } from "vue";
+import PartsModalPage from "../../../pages/materials/parts.vue";
+// onMounted(() => {
+//   init();
+//   fetchSignature();
+//   fetchEmployeeData();
+//   fetchReasonForChangeData();
+// });
+const toast = useToast();
+onMounted(async () => {
+  await fetchEmployeeData();
+  await Promise.all([
+    fetchEmployeeData(),
+    fetchSignature(),
+    fetchReasonForChangeData(),
+    init(),
+  ]);
+});
 
 const modalMeta = ref({
   isCustomerModalOpen: false,
@@ -11,122 +27,112 @@ const modalMeta = ref({
   modalTitle: "Products",
 });
 
-const onCreate = () => {
-  gridMeta.value.selectedCustomerId = null;
+const onOpenProduct = () => {
   modalMeta.value.modalTitle = "Products";
   modalMeta.value.isCustomerModalOpen = true;
 };
 
-const handleSelectedPart = (data) => {
-  console.log(data)
+const onOpenParts = () => {
+  partsMeta.value.modalTitle = "Parts";
+  partsMeta.value.isPartsModalOpen = true;
 };
 
+const partsMeta = ref({
+  isPartsModalOpen: false,
+  isOrderDetailModalOpen: false,
+  isQuoteDetailModalOpen: false,
+  isServiceOrderDetailModalOpen: false,
+  isSiteVisitModalOpen: false,
+  modalTitle: "Parts",
+});
 
 const onPrevieOrderBtnClick = () => {
   if (uniqueIDP.value) {
     const queryString = new URLSearchParams({ id: uniqueIDP.value }).toString();
-    
     const fetchData = async (id) => {
       const pdfUrl = `/api/engineering/changeorder/pdf/${id}`;
       try {
         const response = await fetch(pdfUrl);
         console.log(response);
-
         if (!response.ok) {
-          throw new Error('Failed to fetch PDF');
+          throw new Error("Failed to fetch PDF");
         }
-
         const blob = await response.blob();
-        const pdfContentUrl = URL.createObjectURL(blob); // Create a URL for the PDF blob
-        
-        // Open the PDF in a new tab/window after fetching
-        window.open(pdfContentUrl, '_blank');
+        const pdfContentUrl = URL.createObjectURL(blob);
+        window.open(pdfContentUrl, "_blank");
       } catch (error) {
         console.error(error);
-        alert('Error fetching the PDF. Please try again later.');
+        alert("Error fetching the PDF. Please try again later.");
       }
     };
-
-    // Call the fetchData function with the unique ID
     fetchData(uniqueIDP.value);
   } else {
-    alert('Unique ID is missing! The function cannot execute.');
+    alert("Unique ID is missing! The function cannot execute.");
   }
 };
 
+const emit = defineEmits(["rowSelectedProduct", "selectEco", "close"]);
 
-
-// ok code
-// const onPrevieOrderBtnClick = () => {
-//   if (uniqueIDP.value) {
-//     const queryString = new URLSearchParams({ id: uniqueIDP.value }).toString();
-//     window.open(`/engineering/pdf?${queryString}`, '_blank');
-//   } else {
-//     alert('Unique ID is missing! The function cannot execute.');
-//   }
-// };
-
-
-
-onMounted(() => {
-  init();
-  fetchSignature();
-  fetchEmployeeData();
-  fetchReasonForChangeData();
-});
-
-// redirectToProductsList() {
-//       // This will redirect to the specific path
-//       this.$router.push('/marketing/products/list');
-//     }
-
-const emit = defineEmits(["selectEco","close"]);
-
+const handleSelect = () => {
+  emit("selectEco", selectedRow);
+  // emit("rowSelectedProduct", rowSelectedProduct);
+  emit("close");
+};
 
 const props = defineProps({
+  isModal: {
+    type: [Boolean],
+  },
+  selectedEmployee: {
+    type: Object,
+    required: true,
+  },
   isPage: {
     type: Boolean,
-    required: false,
     default: true,
   },
-
 });
 
 const clearFields = () => {
-  selectedRowData.value = {
-    uniqueID: "",
-    DESCRIPTION: "",
-    REASONFORCHANGE: "",
-    ISSUE: "",
-    SOLUTION: "",
-    DetailReason: "",
-    PRODUCT: "",
-    FromModel: "",
-    ToModel: "",
-    PARTS: "",
-    ENGAPPROVER: "",
-    MARAPPROVER: "",
-    ORIGINATOR: "",
-    MANAPPROVER: "",
-    ENGAPPROVAL: "",
-    MARAPPROVAL: "",
-    MANAPPROVAL: "",
-    ENGDATEAPPROVED: "",
-    MARDATEAPPROVED: "",
-    MANDATEAPPROVED: "",
-    ORIGINATORDATE: "",
-    MANCOMMENTS: "",
-    MARCOMMENTS: "",
-    ENGCOMMENTS: "",
-    COMMENTS: "",
-    PRODUCTS: "",
-    VandVNotRequired: "",
-    MANUFACTURING: "",
-    ENGINEERING: "",
-    ProductsDetails:"",
-    PartsDetails:"",
-   
-  };
+  (selectedRowProducts.value = {
+    productsDetails: "",
+  }),
+    (selectedRowParts.value = {
+      partsDetails: "",
+    }),
+    (selectedRowData.value = {
+      uniqueID: "",
+      DESCRIPTION: "",
+      REASONFORCHANGE: "",
+      ISSUE: "",
+      SOLUTION: "",
+      DetailReason: "",
+      PRODUCT: "",
+      FromModel: "",
+      ToModel: "",
+      PARTS: "",
+      ENGAPPROVER: "",
+      MARAPPROVER: "",
+      ORIGINATOR: "",
+      MANAPPROVER: "",
+      ENGAPPROVAL: "",
+      MARAPPROVAL: "",
+      MANAPPROVAL: "",
+      ENGDATEAPPROVED: "",
+      MARDATEAPPROVED: "",
+      MANDATEAPPROVED: "",
+      ORIGINATORDATE: "",
+      MANCOMMENTS: "",
+      MARCOMMENTS: "",
+      ENGCOMMENTS: "",
+      COMMENTS: "",
+      PRODUCTS: "",
+      VandVNotRequired: "",
+      MANUFACTURING: "",
+      ENGINEERING: "",
+      ProductsDetails: "",
+      partsDetail: "",
+    });
 
   Description.value = "";
   IssueDetails.value = "";
@@ -140,13 +146,16 @@ const clearFields = () => {
   changeReasonData.value = "";
   engineeringBoolean.value = "";
   marketingData.value = "";
+  marketingDate.value = "";
   marketingBoolean.value = "";
   marketingComments.value = "";
+  marketingCheck.value = false;
   manufacturingCheck.value = false;
   manufacturingData.value = "";
   engineeringCheck.value = false;
   engineeringData.value = "";
   originatorData.value = "";
+  originatorDate.value = "";
   signature.value = "";
   CompleteBoolean.value = "";
   commentsComplete.value = "";
@@ -155,8 +164,10 @@ const clearFields = () => {
   engineeringComments.value = "";
   manufacturingDate.value = "";
   engineeringDate.value = "";
-  productsDetails.value ="";
-  partsDetails.value =""
+  productsDetails.value = "";
+  partsDetail.value = "";
+  CompleteDate.value = "";
+  verificationNotRequired.value = false;
 };
 
 const selectedRowData = ref({
@@ -170,10 +181,13 @@ const selectedRowData = ref({
   FromModel: "",
   ToModel: "",
   PARTS: "",
+  ProductsDetails: "",
+  PartsDetails: "",
   ENGAPPROVER: "",
   MARAPPROVER: "",
   ORIGINATOR: "",
   MANAPPROVER: "",
+  APPROVAL: "",
   ENGAPPROVAL: "",
   MARAPPROVAL: "",
   MANAPPROVAL: "",
@@ -184,20 +198,28 @@ const selectedRowData = ref({
   MANCOMMENTS: "",
   MARCOMMENTS: "",
   ENGCOMMENTS: "",
+  SIGNATURE: "",
   COMMENTS: "",
   PRODUCTS: "",
   VandVNotRequired: "",
   MANUFACTURING: "",
-  MARKETING:"",
-  ENGINEERING:"",
-  ProductsDetails:"",
-  PartsDetails:"",
+  MARKETING: "",
+  ENGINEERING: "",
 });
 
+const formatDate = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${year}-${month}-${day}`;
+};
+
 const handleRowSelected = (row) => {
+  console.log("functon okay ", row);
   uniqueIDP.value = row.uniqueID;
   selectedRow.value = row;
-
 
   selectedRowData.value = {
     uniqueID: row.uniqueID,
@@ -214,6 +236,7 @@ const handleRowSelected = (row) => {
     MARAPPROVER: row.MARAPPROVER,
     ORIGINATOR: row.ORIGINATOR,
     MANAPPROVER: row.MANAPPROVER,
+    APPROVAL: row.APPROVAL,
     ENGAPPROVAL: row.ENGAPPROVAL,
     MARAPPROVAL: row.MARAPPROVAL,
     MANAPPROVAL: row.MANAPPROVAL,
@@ -224,56 +247,184 @@ const handleRowSelected = (row) => {
     MANCOMMENTS: row.MANCOMMENTS,
     MARCOMMENTS: row.MARCOMMENTS,
     ENGCOMMENTS: row.ENGCOMMENTS,
+    SIGNATURE: row.SIGNATURE,
     COMMENTS: row.COMMENTS,
-    PRODUCTS: row.PRODUCTS,
     MARKETING: row.MARKETING,
     VandVNotRequired: row.VandVNotRequired,
     ENGINEERING: row.ENGINEERING,
-    MANUFACTURING:row.MANUFACTURING,
-    ProductsDetails:row.ProductsDetails,
-    PartsDetails:row.PartsDetails,
-  
-    
+    MANUFACTURING: row.MANUFACTURING,
+    ProductsDetails: row.ProductsDetails,
+    PRODUCTS: row.PRODUCTS,
+    PartsDetails: row.PartsDetails,
   };
-
-  Description.value = row.DESCRIPTION ;
-  IssueDetails.value = row.ISSUE ;
-  solutionOrder.value = row.SOLUTION ;
-  uniqueIdNumber.value = row.uniqueID ;
-  DetailsReasonChange.value = row.DetailReason ;
-  fromModel.value = row.FromModel ;
-  toModel.value = row.ToModel ;
-  PartsAffect.value = row.PARTS ;
-  productLineOption.value = row.PRODUCT ;
-  changeReasonData.value = row.REASONFORCHANGE ;
-  engineeringBoolean.value = row.ENGAPPROVAL ;
-  marketingData.value = row.MARAPPROVER ;
-  marketingBoolean.value = row.MARAPPROVAL ;
-  marketingComments.value = row.MARCOMMENTS ;
-  manufacturingCheck.value = row.MANUFACTURING  ||"";
-  manufacturingData.value = row.MANAPPROVER ;
-  engineeringCheck.value = row.ENGINEERING  || "";
-  engineeringData.value = row.ENGAPPROVER || "" ;
-  originatorData.value = row.ORIGINATOR ;
-  signature.value = row.SIGNATURE ;
-  CompleteBoolean.value = row.APPROVAL ;
-  commentsComplete.value = row.COMMENTS ;
-  manufacturingBoolean.value = row.MANAPPROVAL ;
-  manufacturingComments.value = row.MANCOMMENTS ;
-  engineeringComments.value = row.ENGCOMMENTS ;
-  CompleteDate.value = row.DISTRIBUTIONDATE ;
-  manufacturingDate.value = row.MANDATEAPPROVED ;
-  marketingDate.value =row.MARDATEAPPROVED ;
-  engineeringDate.value = row.ENGDATEAPPROVED ;
+  Description.value = row.DESCRIPTION;
+  IssueDetails.value = row.ISSUE;
+  solutionOrder.value = row.SOLUTION;
+  uniqueIdNumber.value = row.uniqueID;
+  number.value = row.NUMBER;
+  DetailsReasonChange.value = row.DetailReason;
+  fromModel.value = row.FromModel;
+  toModel.value = row.ToModel;
+  // PartsAffect.value = row.PARTS;
+  productLineOption.value = row.PRODUCT;
+  changeReasonData.value = row.REASONFORCHANGE;
+  engineeringBoolean.value = row.ENGAPPROVAL;
+  marketingData.value = row.MARAPPROVER;
+  marketingBoolean.value = row.MARAPPROVAL;
+  marketingComments.value = row.MARCOMMENTS;
+  marketingCheck.value = row.MARKETING === "1" ? true : false;
+  manufacturingCheck.value = row.MANUFACTURING === "1" ? true : false;
+  manufacturingData.value = row.MANAPPROVER;
+  engineeringCheck.value = row.ENGINEERING === "1" ? true : false;
+  verificationNotRequired.value = row.VandVNotRequired === "0" ? true : false;
+  engineeringData.value = row.ENGAPPROVER;
+  originatorData.value = row.ORIGINATOR;
+  signature.value = row.SIGNATURE;
+  CompleteBoolean.value = row.APPROVAL;
+  commentsComplete.value = row.COMMENTS;
+  manufacturingBoolean.value = row.MANAPPROVAL;
+  manufacturingComments.value = row.MANCOMMENTS;
+  engineeringComments.value = row.ENGCOMMENTS;
+  CompleteDate.value = row.DISTRIBUTIONDATE;
+  manufacturingDate.value = formatDate(row.MANDATEAPPROVED);
+  marketingDate.value = formatDate(row.MARDATEAPPROVED);
+  originatorDate.value = row.ORIGINATORDATE;
+  engineeringDate.value = formatDate(row.ENGDATEAPPROVED);
+  products.value = row.PRODUCTS;
   productsDetails.value = row.ProductsDetails;
-  partsDetails.value = row.PartsDetails;
-  verificationValue.value = row.VandVNotRequired.value ? -1 : 0;
+  parts.value = row.PARTS;
+  partsDetail.value = row.PartsDetails;
 
+  // Handle PRODUCTS field
+  if (typeof row.PRODUCTS === "string" && row.PRODUCTS.trim()) {
+    selectedRowProducts.value.productsArray = row.PRODUCTS.split(",").map(
+      (product) => {
+        const [uniqueID, ...productLineParts] = product.trim().split(" ");
+        const productLine = productLineParts.join(" ");
+        return {
+          UniqueID: uniqueID.trim(),
+          PRODUCTLINE: productLine.trim(),
+        };
+      }
+    );
+  } else {
+    selectedRowProducts.value.productsArray = [];
+  }
+
+  updateProductsDetails();
+
+  // ok code
+  if (typeof row.PARTS === "string" && row.PARTS.trim()) {
+    selectedRowParts.value.partsArray = row.PARTS.split(",").map((part) => {
+      const [model, ...descriptionParts] = part.trim().split(" ");
+      const description = descriptionParts.join(" ");
+      return {
+        MODEL: model.trim(),
+        DESCRIPTION: description.trim(),
+      };
+    });
+  } else {
+    selectedRowParts.value.partsArray = [];
+  }
+  updatePartsDetails();
 };
 
+// start list of PRODUCT
+const selectedRowProducts = ref({
+  productsArray: [],
+  productsData: "",
+  selectedIndex: null,
+});
 
+const handleRowSelectedProduct = (row) => {
+  const productExists = selectedRowProducts.value.productsArray.some(
+    (product) =>
+      product.UniqueID === row.UniqueID &&
+      product.PRODUCTLINE === row.PRODUCTLINE
+  );
 
+  if (!productExists) {
+    selectedRowProducts.value.productsArray.push({
+      UniqueID: row.UniqueID,
+      PRODUCTLINE: row.PRODUCTLINE,
+    });
+    updateProductsDetails();
+  }
+};
 
+const closeProductModal = () => {
+  modalMeta.value.isCustomerModalOpen = false;
+};
+
+const updateProductsDetails = () => {
+  selectedRowProducts.value.productsData =
+    selectedRowProducts.value.productsArray
+      .map((product) => `${product.UniqueID} ${product.PRODUCTLINE}`)
+      .join(", ");
+};
+
+const handleSelectProduct = (index) => {
+  selectedRowProducts.value.selectedIndex =
+    selectedRowProducts.value.selectedIndex === index ? null : index;
+};
+
+const handleRemoveProduct = () => {
+  const indexToRemove = selectedRowProducts.value.selectedIndex;
+  if (indexToRemove !== null) {
+    selectedRowProducts.value.productsArray.splice(indexToRemove, 1);
+    selectedRowProducts.value.selectedIndex = null;
+    updateProductsDetails();
+  }
+};
+
+const selectedRowParts = ref({
+  partsArray: [],
+  partsData: "",
+  selectedIndex: null,
+});
+
+const handleSelectedPart = (row) => {
+  console.log(row);
+  const partExists = selectedRowParts.value.partsArray.some(
+    (part) => part.MODEL === row.MODEL && part.DESCRIPTION === row.DESCRIPTION
+  );
+
+  if (!partExists) {
+    selectedRowParts.value.partsArray.push({
+      MODEL: row.MODEL,
+      DESCRIPTION: row.DESCRIPTION,
+    });
+    updatePartsDetails();
+  }
+};
+
+const closePartsModal = () => {
+  partsMeta.value.isPartsModalOpen = false;
+};
+
+const updatePartsDetails = () => {
+  selectedRowParts.value.partsData = selectedRowParts.value.partsArray
+    .map((part) => `${part.MODEL} ${part.DESCRIPTION}`)
+    .join(", ");
+};
+
+const handleSelectPart = (index) => {
+  selectedRowParts.value.selectedIndex =
+    selectedRowParts.value.selectedIndex === index ? null : index;
+};
+
+const handleRemovePart = () => {
+  const indexToRemove = selectedRowParts.value.selectedIndex;
+  if (indexToRemove !== null) {
+    selectedRowParts.value.partsArray.splice(indexToRemove, 1);
+    selectedRowParts.value.selectedIndex = null;
+    updatePartsDetails();
+  }
+};
+
+const partsSelectButton = ref(true);
+const shouldRefresh = ref(false);
+const fetchInterval = ref(null);
 const uniqueIDP = ref(null);
 const selectedRow = ref(null);
 const SignatureList = ref([]);
@@ -281,8 +432,10 @@ const employeeOptions = ref([]);
 const changeReason = ref([]);
 const originatorData = ref("");
 const originatorDate = ref("");
-const productsDetails = ref("")
-const partsDetails = ref("")
+const productsDetails = ref("");
+const products = ref("");
+const partsDetail = ref("");
+const parts = ref("");
 const engineeringCheck = ref(false);
 const engineeringData = ref("");
 const engineeringDate = ref("");
@@ -312,69 +465,55 @@ const toModel = ref("");
 const DetailsReasonChange = ref("");
 const PartsAffect = ref("");
 const ProductAffect = ref("");
+const number = ref("")
 const uniqueIdNumber = ref("");
 const verificationNotRequired = ref(false);
-const verificationValue = verificationNotRequired.value ? 0 : -1;
-
 
 const submitInsertForm = async () => {
-  const formatToSQLDateTime = (date) => {
-  if (!(date instanceof Date) || isNaN(date)) {
-    date = new Date(date);
-  }
-  if (isNaN(date)) {
-    throw new Error("Invalid date object");
-  }
-  const pad = (num) => String(num).padStart(2, '0');
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
-  const milliseconds = pad(date.getMilliseconds(), 3);
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
-};
-
-
-
   const formData = {
     uniqueID: uniqueIdNumber.value,
     REASONFORCHANGE: changeReasonData.value,
     PRODUCT: productLineOption.value,
+    // PRODUCTS: productsDetails.value,
+    PRODUCTS: selectedRowProducts.value.productsData,
     SOLUTION: solutionOrder.value,
     DESCRIPTION: Description.value,
     DetailReason: DetailsReasonChange.value,
     FromModel: fromModel.value,
     ToModel: toModel.value,
-    PARTS: PartsAffect.value,
+    // PARTS: parts.value,
+    PARTS: selectedRowParts.value.partsData,
+    ProductsDetails: productsDetails.value,
+    PartsDetails: partsDetail.value,
     ISSUE: IssueDetails.value,
-    VandVNotRequired: verificationValue,
-    ORIGINATOR: originatorData.value.label ,
-    ORIGINATORDATE: (originatorDate.value),
+    VandVNotRequired: verificationNotRequired.value ? "0" : "-1",
+    // VandVNotRequired: verificationNotRequired.value,
+    ORIGINATOR: originatorData.value.label || "",
+    ORIGINATORDATE: originatorDate.value,
     ENGINEERING: engineeringCheck.value,
-    ENGAPPROVER: engineeringData.value.label ,
-    // ENGDATEAPPROVED: engineeringDate.value, 
+    ENGAPPROVER: engineeringData.value.label || "",
+    ENGDATEAPPROVED: engineeringDate.value,
     ENGAPPROVAL: engineeringBoolean.value,
     ENGCOMMENTS: engineeringComments.value,
     MARKETING: marketingCheck.value,
-    MARAPPROVER: marketingData.value.label,
-    // MARDATEAPPROVED:marketingDate.value,
+    MARAPPROVER: marketingData.value.label || "",
+    MARDATEAPPROVED: marketingDate.value,
     MARAPPROVAL: marketingBoolean.value,
     MARCOMMENTS: marketingComments.value,
     MANUFACTURING: manufacturingCheck.value,
-   MANAPPROVER: manufacturingData.value.label,
-    // MANDATEAPPROVED: manufacturingDate.value, 
+    MANAPPROVER: manufacturingData.value.label || "",
+    MANDATEAPPROVED: manufacturingDate.value,
     MANAPPROVAL: manufacturingBoolean.value,
     MANCOMMENTS: manufacturingComments.value,
-    SIGNATURE: signature.value.label,
-    DISTRIBUTIONDATE:(CompleteDate.value), 
-    APPROVAL: CompleteBoolean.value,
+    SIGNATURE: signature.value.label || "",
+    DISTRIBUTIONDATE: CompleteDate.value,
+    APPROVAL: CompleteBoolean.value || "",
     COMMENTS: commentsComplete.value,
+    NUMBER:number.value
   };
 
-  console.log(formData);
-debugger
+  // console.log(formData);
+  // debugger
   try {
     const response = await useApiFetch(
       "/api/engineering/changeorder/postOrder",
@@ -384,17 +523,23 @@ debugger
       }
     );
 
-    if (response.status === 200) {
-      console.log(response.data);
+    if (response.body.success === true) {
+      toast.add({
+        title: "Success",
+        description: response.body.message,
+        icon: "i-heroicons-check-circle",
+        color: "green",
+      });
+
+      clearFields();
+      shouldRefresh.value = true;
     } else {
-      console.error("Submission failed:", response.error);
+      console.error("Submission failed:", response.body.message);
     }
   } catch (error) {
     console.error("Error during form submission:", error);
   }
 };
-
-const fetchInterval = ref(null);
 
 const fetchEmployeeData = async () => {
   try {
@@ -431,8 +576,6 @@ const fetchSignature = async () => {
           label: signature,
           value: signature,
         }));
-
-      console.log("Signature List:", SignatureList.value);
     } else {
       console.error("No valid signatures found", data.value);
       SignatureList.value = [];
@@ -468,7 +611,6 @@ const fetchReasonForChangeData = async () => {
   }
 };
 
-// Clear the interval when the component is unmounted
 onBeforeUnmount(() => {
   if (fetchInterval.value) {
     clearInterval(fetchInterval.value);
@@ -542,6 +684,7 @@ const init = async () => {
   for (const key in headerFilters.value) {
     const apiURL =
       headerFilters.value[key]?.api ?? `/api/service/orders/${key}`;
+
     await useApiFetch(apiURL, {
       method: "GET",
       onResponse({ response }) {
@@ -553,204 +696,166 @@ const init = async () => {
   }
 };
 
-const handleChange = (field, newValue) => {
-  formState[field] = newValue;
-};
-
-const handleSelect=()=>{
-  emit("selectEco", selectedRow.value);
-  emit("close")
-}
- 
+// const handleChange = (field, newValue) => {
+//   formState[field] = newValue;
+// };
 </script>
 <template>
   <!-- Top product line search option start-->
-  <EngineeringChangeOrderDetail
-    :is-page="true"
-    @row-selected="handleRowSelected"
-  />
+  <EngineeringChangeOrderDetail :is-page="true" @row-selected="handleRowSelected" :shouldRefresh="shouldRefresh" />
   <!-- Top product line search option End-->
-
   <UCard class="mb-6">
-    <UForm :schema="formSchema" :state="formState" class="space-y-6">
+    <!-- <UForm :schema="formSchema" :state="formState" class="space-y-6"> -->
+    <UForm class="space-y-6">
       <div class="flex flex-row space-x-6">
         <div class="basis-1/10 max-w-[300px] min-w-[150px]">
-          <p
-            class="mt-[15px] p-[7px] bg-gray-600 text-white border border-green-500 rounded-md"
-          >
-            {{ uniqueIdNumber || 0 }}
+          <p class="mt-[15px] p-[7px] bg-gray-600 text-white border border-green-500 rounded-md">
+            {{ number || 0 }}
           </p>
         </div>
-
-        <!-- Right side select dropdown -->
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <UFormGroup label="Product Line" name="productLine">
-            <USelect
-              v-model="productLineOption"
-              :options="headerFilters.productLines.options"
-              @change="handleChange('productLine', $event)"
-            />
+            <USelect v-model="productLineOption" :options="headerFilters.productLines.options"
+              @change="handleChange('productLine', $event)" />
           </UFormGroup>
         </div>
       </div>
 
       <div class="flex flex-row space-x-3 pb-4">
-        <!-- Left side select dropdown -->
         <div class="basis-1/5 max-w-[300px] min-w-[150px] mr-4">
           <UFormGroup label="Reason For Change" name="changeReason">
-            <USelect
-              v-model="changeReasonData"
-              :options="changeReason"
-              @change="handleChange('changeReasonOptions', $event)"
-            />
+            <USelect v-model="changeReasonData" :options="changeReason"
+              @change="handleChange('changeReasonOptions', $event)" />
           </UFormGroup>
         </div>
-
-        <!-- Right side textarea -->
         <div class="w-full">
-          <UFormGroup
-            label="Action/ Description (40 Characters )"
-            name="Description"
-          >
-            <UTextarea
-              v-model="Description"
-              placeholder="Action/ Description (40 Characters )"
-              class="w-full h-[1px]"
-            />
+          <UFormGroup label="Action/ Description (40 Characters )" name="Description">
+            <UTextarea v-model="Description" placeholder="Action/ Description (40 Characters )"
+              class="w-full h-[1px]" />
           </UFormGroup>
         </div>
       </div>
 
       <div class="pt-[4px]">
         <div class="w-full">
-          <UFormGroup
-            label="Issue( 100 characters or Less)"
-            name="IssueDetails"
-          >
+          <UFormGroup label="Issue( 100 characters or Less)" name="IssueDetails">
             <UTextarea v-model="IssueDetails" class="w-full" />
           </UFormGroup>
         </div>
       </div>
 
       <div class="flex flex-row space-x-4 mt-[4px]">
-        <!-- Left side: Textarea for Solution -->
         <div class="w-1/2">
-          <UFormGroup
-            label="Solution( 100 characters or Less)"
-            name="solutionOrder"
-          >
+          <UFormGroup label="Solution( 100 characters or Less)" name="solutionOrder">
             <UTextarea v-model="solutionOrder" />
           </UFormGroup>
         </div>
-
-        <!-- Right side: Checkbox -->
         <div class="w-1/2 mt-[30px] ml-[20px]">
-          <UCheckbox
-            v-model="verificationNotRequired"
-            label="Verification & Validation - Not Required"
-            help="Check if product has been 100% tested and inspected for specification conformity & effectiveness"
-          />
+          <UCheckbox v-model="verificationNotRequired" label="Verification & Validation - Not Required"
+            help="Check if product has been 100% tested and inspected for specification conformity & effectiveness" />
         </div>
       </div>
-
       <div class="flex flex-row space-x-4 mt-[4px]">
-        <!-- First input field -->
         <div class="w-1/4">
           <UFormGroup label="From Model" name="fromModel">
             <UInput v-model="fromModel" />
           </UFormGroup>
         </div>
-
         <div class="w-1/4">
           <UFormGroup label="To Model" name="toModel">
             <UInput v-model="toModel" />
           </UFormGroup>
         </div>
-
         <div class="w-1/2">
-          <UFormGroup
-            label="Please Details Reason For Change"
-            name="ResoneChange"
-          >
+          <UFormGroup label="Please Details Reason For Change" name="ResoneChange">
             <UTextarea v-model="DetailsReasonChange" class="w-full" />
           </UFormGroup>
         </div>
       </div>
-
       <div class="flex flex-row space-x-4">
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
-            <UFormGroup
-              class="flex-1"
-              label="Parts and Affect"
-              name="PartsAffect"
-            >
+            <UFormGroup class="flex-1" label="Parts and Affected" name="PartsAffect">
               <UInput class="h-full" />
             </UFormGroup>
-            <UButton
-              class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[30px] ml-[10px]"
-             
-            >
-              Fiend
+            <UButton @click="onOpenParts()"
+              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[30px] ml-[10px]">
+              Find
             </UButton>
           </div>
         </div>
-
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <h2 class="text-left">Products Affected</h2>
             <UButton
-              class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[30px]"
-               @click="onCreate()"
-            >
+              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[30px]"
+              @click="onOpenProduct()">
               Find
             </UButton>
           </div>
         </div>
       </div>
-
       <div class="flex flex-row space-x-4">
         <div class="w-3/4 flex flex-col">
-          <UTextarea v-model="PartsAffect" class="w-full" />
+          <div class="h-[70px] overflow-y-auto border-2 border-gray-300 rounded-md">
+            <div v-for="(part, index) in selectedRowParts.partsArray" :key="index"
+              class="flex items-center pl-[8px] pt-[5px]">
+              <div @click="handleSelectPart(index)" :class="[
+                'cursor-pointer',
+                {
+                  'bg-sky-200 px-[10px] ':
+                    selectedRowParts.selectedIndex === index,
+                },
+              ]">
+                #{{ part.MODEL }} {{ part.DESCRIPTION }}
+              </div>
+            </div>
+          </div>
         </div>
         <div class="w-3/4 flex flex-col">
-          <UTextarea v-model="ProductAffect" class="w-full" />
+          <div class="h-[70px] overflow-y-auto border-2 border-gray-300 rounded-md">
+            <div v-for="(product, index) in selectedRowProducts.productsArray" :key="index"
+              class="flex items-center pl-[8px] pt-[5px]">
+              <div @click="handleSelectProduct(index)" :class="[
+                'cursor-pointer',
+                {
+                  'bg-sky-200 px-[10px] ':
+                    selectedRowProducts.selectedIndex === index,
+                },
+              ]">
+                #{{ product.UniqueID }} {{ product.PRODUCTLINE }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
       <div class="flex flex-row space-x-4">
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup class="flex-1" name="firstInput">
-              <UInput class="h-full"  v-model="partsDetails" />
+              <UInput v-model="partsDetail" class="h-full" />
             </UFormGroup>
-            <UButton
-              class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
-            >
+            <UButton @click="handleRemovePart"
+              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[10px] ml-[10px]">
               Remove
             </UButton>
           </div>
         </div>
-
         <div class="w-3/4 flex flex-col">
           <div class="flex justify-between items-center">
             <UFormGroup class="flex-1" name="firstInput">
-              <UInput class="h-full" v-model="productsDetails"/>
+              <UInput v-model="productsDetails" class="h-full" />
             </UFormGroup>
-            <UButton
-              class="mb-2 px-[5px] w-1/4 text-white bg-red-500 hover:bg-red-600 flex justify-center items-center mt-[10px] ml-[10px]"
-            >
+            <UButton @click="handleRemoveProduct"
+              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[10px] ml-[10px]">
               Remove
             </UButton>
           </div>
         </div>
       </div>
-
       <div class="px-[20px] pb-[20px]">
         <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-8">
-          <div
-            class="lg:col-span-1 flex gap-1 flex items-center justify-center mt-6"
-          >
+          <div class="lg:col-span-1 flex gap-1 flex items-center justify-center mt-6">
             <h3>Originator</h3>
           </div>
           <div class="lg:col-span-1">
@@ -761,15 +866,15 @@ const handleSelect=()=>{
 
           <div class="lg:col-span-1">
             <h3>Date</h3>
-            <UInput
-              v-model="originatorDate"
-              type="date"
-              class="w-40 cursor-pointer"
-            />
+            <UInput v-model="originatorDate" type="date" class="w-40 cursor-pointer" />
           </div>
 
-          <div class="lg:col-span-1"><h3>Yes/No</h3></div>
-          <div class="lg:col-span-1"><h3>Comments</h3></div>
+          <div class="lg:col-span-1">
+            <h3>Yes/No</h3>
+          </div>
+          <div class="lg:col-span-1">
+            <h3>Comments</h3>
+          </div>
         </div>
 
         <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-2">
@@ -781,40 +886,20 @@ const handleSelect=()=>{
             <UInputMenu v-model="engineeringData" :options="employeeOptions" />
           </div>
           <div class="lg:col-span-1">
-            <UInput
-              v-model="engineeringDate"
-              type="DATE"
-              class="w-40 cursor-pointer"
-            />
+            <UInput v-model="engineeringDate" type="date" class="w-40 cursor-pointer" />
           </div>
           <div class="lg:col-span-1">
             <div class="flex items-center space-x-4">
-              <URadio
-                v-model="engineeringBoolean"
-                value="yes"
-                class="cursor-pointer"
-              />
+              <URadio v-model="engineeringBoolean" value="yes" class="cursor-pointer" />
               <span>Yes</span>
-              <URadio
-                v-model="engineeringBoolean"
-                value="no"
-                class="cursor-pointer"
-              />
+              <URadio v-model="engineeringBoolean" value="no" class="cursor-pointer" />
               <span>No</span>
-              <URadio
-                v-model="engineeringBoolean"
-                value="tbd"
-                class="cursor-pointer"
-              />
+              <URadio v-model="engineeringBoolean" value="tbd" class="cursor-pointer" />
               <span>TBD</span>
             </div>
           </div>
           <div class="lg:col-span-2 ml-[25px]">
-            <UInput
-              v-model="engineeringComments"
-              placeholder="Comments"
-              class="flex-grow"
-            />
+            <UInput v-model="engineeringComments" placeholder="Comments" class="flex-grow" />
           </div>
         </div>
 
@@ -827,7 +912,7 @@ const handleSelect=()=>{
             <UInputMenu v-model="marketingData" :options="employeeOptions" />
           </div>
           <div class="lg:col-span-1">
-            <UInput v-model="marketingDate" type="DATE" class="w-40" />
+            <UInput v-model="marketingDate" type="date" class="w-40" />
           </div>
           <div class="lg:col-span-1">
             <div class="flex items-center space-x-4">
@@ -840,11 +925,7 @@ const handleSelect=()=>{
             </div>
           </div>
           <div class="lg:col-span-2 ml-[25px]">
-            <UInput
-              v-model="marketingComments"
-              placeholder="Comments"
-              class="flex-grow"
-            />
+            <UInput v-model="marketingComments" placeholder="Comments" class="flex-grow" />
           </div>
         </div>
 
@@ -854,13 +935,10 @@ const handleSelect=()=>{
             <h3>Manufacturing</h3>
           </div>
           <div class="lg:col-span-1">
-            <UInputMenu
-              v-model="manufacturingData"
-              :options="employeeOptions"
-            />
+            <UInputMenu v-model="manufacturingData" :options="employeeOptions" />
           </div>
           <div class="lg:col-span-1">
-            <UInput v-model="manufacturingDate" type="DATE" class="w-40" />
+            <UInput v-model="manufacturingDate" type="date" class="w-40" />
           </div>
           <div class="lg:col-span-1">
             <div class="flex items-center space-x-4">
@@ -873,18 +951,12 @@ const handleSelect=()=>{
             </div>
           </div>
           <div class="lg:col-span-2 ml-[25px]">
-            <UInput
-              v-model="manufacturingComments"
-              placeholder="Comments"
-              class="flex-grow"
-            />
+            <UInput v-model="manufacturingComments" placeholder="Comments" class="flex-grow" />
           </div>
         </div>
 
         <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-2">
-          <div
-            class="lg:col-span-1 flex gap-5 flex items-center justify-center"
-          >
+          <div class="lg:col-span-1 flex gap-5 flex items-center justify-center">
             <h3>Complete</h3>
           </div>
           <div class="lg:col-span-1">
@@ -904,79 +976,61 @@ const handleSelect=()=>{
             </div>
           </div>
           <div class="lg:col-span-2 ml-[25px]">
-            <UInput
-              v-model="commentsComplete"
-              placeholder="Comments"
-              class="flex-grow"
-            />
+            <UInput v-model="commentsComplete" placeholder="Comments" class="flex-grow" />
           </div>
         </div>
       </div>
-
       <div class="flex justify-end space-x-4">
-        <UButton
-          @click="submitInsertForm"
-          color="green"
-          label="Add"
-          icon="i-heroicons-plus"
-        />
-        <UButton
-          @click="submitInsertForm"
-          color="blue"
-          label="Modify"
-          icon="i-heroicons-pencil"
-        />
+        <UButton class="px-[30px]" @click="submitInsertForm" color="green" label="Add" icon="i-heroicons-plus" />
+        <UButton class="px-[30px]" @click="submitInsertForm" color="blue" label="Modify" icon="i-heroicons-pencil" />
 
-        <UButton
-          @click="clearFields"
-          color="red"
-          label="Clear Form"
-          icon="i-heroicons-trash"
-        />
+        <UButton class="px-[30px]" @click="clearFields" color="red" label="Clear Form" icon="i-heroicons-trash" />
 
         <div>
-          <UButton
-            color="gray"
-            label="Preview ECO"
-            icon="i-heroicons-eye"
-          @click="onPrevieOrderBtnClick"
-          />
+          <UButton class="px-[30px]" color="gray" label="Preview ECO" icon="i-heroicons-eye"
+            @click="onPrevieOrderBtnClick" />
         </div>
       </div>
-<div v-if="!props.isPage" class="basis-1/3 flex justify-end">
-                <div class="min-w-[150px]">
-                    <UButton icon="i-heroicons-cursor-arrow-ripple" label="Select" variant="outline"
-                        :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
-                         @click="handleSelect" truncate />
-                </div>
-            </div>
-
+      <div v-if="!props.isPage" class="basis-1/3 flex justify-end">
+        <div class="min-w-[150px]">
+          <UButton icon="i-heroicons-cursor-arrow-ripple" label="Select" variant="outline" :ui="{
+            base: 'min-w-[200px] w-full',
+            truncate: 'flex justify-center w-full',
+          }" @click="handleSelect" truncate />
+        </div>
+      </div>
       <UDivider />
     </UForm>
   </UCard>
 
+  <UDashboardModal v-model="modalMeta.isCustomerModalOpen" :title="modalMeta.modalTitle" :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: {
+      base: 'gap-y-1',
+      padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+    },
+    width: 'w-[3000px] sm:max-w-7xl',
+  }">
+    <ProductsProductList @rowSelectedProduct="handleRowSelectedProduct" @close="closeProductModal" />
+  </UDashboardModal>
 
-
-
-
- 
-  <UDashboardModal
-          v-model="modalMeta.isCustomerModalOpen"
-          :title="modalMeta.modalTitle"
-          :ui="{
-            title: 'text-lg',
-            header: {
-              base: 'flex flex-row min-h-[0] items-center',
-              padding: 'pt-5 sm:px-9',
-            },
-            body: {
-              base: 'gap-y-1',
-              padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
-            },
-            width: 'w-[1000px] sm:max-w-7xl',
-          }"
-        >
-          <ProductsProductList @onPartSelect="handleSelectedPart"/>
-        </UDashboardModal>
-
+  <UDashboardModal v-model="partsMeta.isPartsModalOpen" :title="partsMeta.modalTitle" :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+    },
+    body: {
+      base: 'gap-y-1',
+      padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+    },
+    width: 'w-[4000px] sm:max-w-7xl',
+  }">
+    <PartsModalPage @rowSelectedParts="handleSelectedPart" @close="closePartsModal"
+      :isSelectButton="partsSelectButton" />
+  </UDashboardModal>
 </template>

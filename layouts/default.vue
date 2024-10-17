@@ -821,7 +821,9 @@ const getUiConfig = (link) => {
 
 const Logout = () => {
   const token = useCookie('token');
+  const user = useCookie('user');
   token.value = null;
+  user.value = null;
   navigateTo('/login');
 }
 

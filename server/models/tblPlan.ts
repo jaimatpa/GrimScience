@@ -46,4 +46,5 @@ const tblPlan = sequelize.define('tblPlan', {
    timestamps: false
 });
 
+
 export default tblPlan;
