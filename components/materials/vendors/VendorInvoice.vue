@@ -1,4 +1,3 @@
-<!-- VendorInvoiceModal.vue -->
 <template>
     <UCard>
 
@@ -51,7 +50,6 @@
                     </template>
                 </UCard>
             </div>
-            <!-- Payable -->
             <div class="col-span-2">
                 <UCard>
 
@@ -138,7 +136,6 @@
         <div class="mt-4 flex justify-between">
 
             <div>
-                <!-- <UButton @click="viewPO" color="blue" class="mr-2">View PO</UButton> -->
                 <UButton @click="save" color="gms-blue" class="mr-2">Save</UButton>
                 <UButton @click="deleteInvoice" variant="outline" color="red">Delete</UButton>
             </div>
@@ -148,8 +145,8 @@
         <CreateAssets />
     </UDashboardModal>
 </template>
-
 <script setup>
+
 import { ref } from 'vue';
 import CreateAssets from './CreateAssets.vue';
 const showCreateAssetModal = ref(false);

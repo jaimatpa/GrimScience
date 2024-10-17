@@ -3,13 +3,6 @@ export default defineNuxtConfig({
   css: ['~/gmsStyles.css'],
   extends: [process.env.NUXT_UI_PRO_PATH || '@nuxt/ui-pro'],
 
-  runtimeConfig: {
-    public: {
-      AUTHORIZE_API_LOGIN_KEY: process.env.AUTHORIZE_API_LOGIN_KEY,
-      AUTHORIZE_TRANSACTION_KEY: process.env.AUTHORIZE_TRANSACTION_KEY,
-    }
-  },
-
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
@@ -27,9 +20,8 @@ export default defineNuxtConfig({
   app: {
     head: {
       bodyAttrs: {
-        style: 'font-family: "Arial", sans-serif;'
+        style: 'font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;',
       }
-      // style: 'font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;',
     }
   },
 

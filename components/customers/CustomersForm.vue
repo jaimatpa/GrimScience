@@ -161,6 +161,8 @@ const validate = (state: any): FormError[] => {
   if (!state.fname) errors.push({ path: 'fname', message: 'Please enter your frist name.' })
   if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
   if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
+  if (!state.lname) errors.push({ path: 'lname', message: 'Please enter a your last name.' })
+  if (!state.email) errors.push({ path: 'email', message: 'Please enter an email.' })
   return errors
 }
 const handleClose = async () => {

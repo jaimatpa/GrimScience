@@ -3,10 +3,10 @@ import { getModels } from '~/server/controller/jobs';
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-
-    switch (method.toUpperCase()) {
+    const { productline } = getQuery(event);
+    switch(method.toUpperCase()){
       case 'GET':
-        const categories = await getModels()
+        const categories = await getModels(productline)
         return { body: categories, message: '' }
       default:
         setResponseStatus(event, 405);

@@ -2,10 +2,6 @@
 import type { UTableColumn } from '~/types';
 import { format } from 'date-fns'
 
-onMounted(() => {
-  init()
-})
-
 const emit = defineEmits(['close', 'link'])
 const props = defineProps({
   selectedCustomer: {
@@ -15,6 +11,88 @@ const props = defineProps({
     type: [Boolean, null],
   }
 })
+onMounted(() => {
+  init()
+})
+
+  const gridMeta = ref({
+    defaultColumns: <UTableColumn[]>[{
+      key: 'UniqueID',
+      label: 'Invoice#',
+      sortable: true,
+      sortDirection: 'none',
+      filterable: true
+    }, {
+      key: 'orderdate',
+      label: 'Order Date',
+      sortable: true,
+      sortDirection: 'none',
+      filterable: true
+    }, {
+      key: 'shipdate',
+      label: 'Ship Date',
+      sortable: true,
+      sortDirection: 'none',
+      filterable: true
+    }, {
+      key: 'customerid',
+      label: 'Customer#',
+      sortable: true,
+      sortDirection: 'none',
+      filterable: true
+    }, {
+      key: 'customer',
+      label: 'Customer',
+      sortable: true,
+      sortDirection: 'none',
+      filterable: true
+    }, {
+      key: 'company',
+      label: 'Company',
+      sortable: true,
+      sortDirection: 'none',
+      filterable: true
+    }, {
+      key: 'zip',
+      label: 'Zip',
+      sortable: true,
+      sortDirection: 'none',
+      filterable: true
+    }, {
+      key: 'source',
+      label: 'Source',
+      sortable: true,
+      sortDirection: 'none',
+      filterable: true
+    }, {
+      key: 'sourcedescription',
+      label: 'Description',
+      sortable: true,
+      sortDirection: 'none',
+      filterable: true
+    },
+      // {
+      //   key: 'edit',
+      //   label: 'Edit',
+      //   kind: 'actions'
+      // }, {
+      //   key: 'delete',
+      //   label: 'Delete',
+      //   kind: 'actions'
+      // }
+    ],
+    page: 1,
+    pageSize: 50,
+    numberOfOrders: 0,
+    orders: [],
+    selectedCustomerId: null,
+    selectedOrderId: null,
+    sort: {
+      column: 'UniqueID',
+      direction: 'desc'
+    },
+    isLoading: false
+  })
 const route = useRoute()
 const toast = useToast()
 
@@ -22,83 +100,83 @@ const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
 const descIcon = "i-heroicons-bars-arrow-down-20-solid"
 const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
-const gridMeta = ref({
-  defaultColumns: <UTableColumn[]>[{
-    key: 'UniqueID',
-    label: 'Invoice#',
-    sortable: true,
-    sortDirection: 'none',
-    filterable: true
-  }, {
-    key: 'orderdate',
-    label: 'Order Date',
-    sortable: true,
-    sortDirection: 'none',
-    filterable: true
-  }, {
-    key: 'shipdate',
-    label: 'Ship Date',
-    sortable: true,
-    sortDirection: 'none',
-    filterable: true
-  }, {
-    key: 'customerid',
-    label: 'Customer#',
-    sortable: true,
-    sortDirection: 'none',
-    filterable: true
-  }, {
-    key: 'customer',
-    label: 'Customer',
-    sortable: true,
-    sortDirection: 'none',
-    filterable: true
-  }, {
-    key: 'company',
-    label: 'Company',
-    sortable: true,
-    sortDirection: 'none',
-    filterable: true
-  }, {
-    key: 'zip',
-    label: 'Zip',
-    sortable: true,
-    sortDirection: 'none',
-    filterable: true
-  }, {
-    key: 'source',
-    label: 'Source',
-    sortable: true,
-    sortDirection: 'none',
-    filterable: true
-  }, {
-    key: 'sourcedescription',
-    label: 'Description',
-    sortable: true,
-    sortDirection: 'none',
-    filterable: true
-  }, {
-    key: 'edit',
-    label: 'Edit',
-    kind: 'actions'
-  }, {
-    key: 'delete',
-    label: 'Delete',
-    kind: 'actions'
-  }
-  ],
-  page: 1,
-  pageSize: 50,
-  numberOfOrders: 0,
-  orders: [],
-  selectedCustomerId: null,
-  selectedOrderId: null,
-  sort: {
-    column: 'UniqueID',
-    direction: 'desc'
-  },
-  isLoading: false
-})
+// const gridMeta = ref({
+//   defaultColumns: <UTableColumn[]>[{
+//     key: 'UniqueID',
+//     label: 'Invoice#',
+//     sortable: true,
+//     sortDirection: 'none',
+//     filterable: true
+//   }, {
+//     key: 'orderdate',
+//     label: 'Order Date',
+//     sortable: true,
+//     sortDirection: 'none',
+//     filterable: true
+//   }, {
+//     key: 'shipdate',
+//     label: 'Ship Date',
+//     sortable: true,
+//     sortDirection: 'none',
+//     filterable: true
+//   }, {
+//     key: 'customerid',
+//     label: 'Customer#',
+//     sortable: true,
+//     sortDirection: 'none',
+//     filterable: true
+//   }, {
+//     key: 'customer',
+//     label: 'Customer',
+//     sortable: true,
+//     sortDirection: 'none',
+//     filterable: true
+//   }, {
+//     key: 'company',
+//     label: 'Company',
+//     sortable: true,
+//     sortDirection: 'none',
+//     filterable: true
+//   }, {
+//     key: 'zip',
+//     label: 'Zip',
+//     sortable: true,
+//     sortDirection: 'none',
+//     filterable: true
+//   }, {
+//     key: 'source',
+//     label: 'Source',
+//     sortable: true,
+//     sortDirection: 'none',
+//     filterable: true
+//   }, {
+//     key: 'sourcedescription',
+//     label: 'Description',
+//     sortable: true,
+//     sortDirection: 'none',
+//     filterable: true
+//   }, {
+//     key: 'edit',
+//     label: 'Edit',
+//     kind: 'actions'
+//   }, {
+//     key: 'delete',
+//     label: 'Delete',
+//     kind: 'actions'
+//   }
+//   ],
+//   page: 1,
+//   pageSize: 50,
+//   numberOfOrders: 0,
+//   orders: [],
+//   selectedCustomerId: null,
+//   selectedOrderId: null,
+//   sort: {
+//     column: 'UniqueID',
+//     direction: 'desc'
+//   },
+//   isLoading: false
+// })
 const modalMeta = ref({
   isOrderDetailModalOpen: false,
   modalTitle: "New Invoice",
@@ -198,9 +276,6 @@ const fetchGridData = async () => {
       sortOrder: gridMeta.value.sort.direction,
       ...params
     },
-    isPage: {
-      type: [Boolean, null],
-    }
   })
   const route = useRoute()
   const toast = useToast()
@@ -209,84 +284,6 @@ const fetchGridData = async () => {
   const descIcon = "i-heroicons-bars-arrow-down-20-solid"
   const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 
-  const gridMeta = ref({
-    defaultColumns: <UTableColumn[]>[{
-        key: 'UniqueID',
-        label: 'Invoice#',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'orderdate',
-        label: 'Order Date',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'shipdate',
-        label: 'Ship Date',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'customerid',
-        label: 'Customer#',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'customer',
-        label: 'Customer',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'company',
-        label: 'Company',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'zip',
-        label: 'Zip',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'source',
-        label: 'Source',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, {
-        key: 'sourcedescription',
-        label: 'Description',
-        sortable: true,
-        sortDirection: 'none',
-        filterable: true
-      }, 
-      // {
-      //   key: 'edit',
-      //   label: 'Edit',
-      //   kind: 'actions'
-      // }, {
-      //   key: 'delete',
-      //   label: 'Delete',
-      //   kind: 'actions'
-      // }
-    ],
-    page: 1,
-    pageSize: 50,
-    numberOfOrders: 0, 
-    orders: [],
-    selectedCustomerId: null,
-    selectedOrderId: null,
-    sort: {
-      column: 'UniqueID', 
-      direction: 'desc'
-    }, 
-    isLoading: false
-  })
   const modalMeta = ref({
     isOrderDetailModalOpen: false,
     modalTitle: "New Invoice",
@@ -301,13 +298,13 @@ const fetchGridData = async () => {
     UniqueID: null,
     orderdate: null,
     shipdate: null,
-    customerid: props.selectedCustomer??null,
+    customerid: props.selectedCustomer ?? null,
     customer: null,
     company: null,
     lname: null,
     zip: null,
     source: null,
-    sourcedescription: null, 
+    sourcedescription: null,
     // from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
     from: oneMonthAgo,
     to: today,
@@ -318,7 +315,7 @@ const fetchGridData = async () => {
 
   const columns = computed(() => gridMeta.value.defaultColumns.filter(column => selectedColumns.value.includes(column)))
   Object.entries(route.query).forEach(([key, value]) => {
-    switch(key.toLowerCase()) {
+    switch (key.toLowerCase()) {
       case 'page':
         gridMeta.value.page = Number(value);
         break;
@@ -342,7 +339,7 @@ const fetchGridData = async () => {
     const params: Record<string, any> = {
       ...filterValues.value,
     };
-    
+
     if (!filterValues.value.UniqueID && !filterValues.value.customer) {
       if (filterValues.value.from) {
         params.from = filterValues.value.from;
@@ -354,26 +351,26 @@ const fetchGridData = async () => {
           filterValues.value.to.getDate() + 1
         );
       }
-    } else { 
+    } else {
       params.from = null
       params.to = null
     }
 
     await useApiFetch('/api/invoices/numbers', {
       method: 'GET',
-      params: params, 
+      params: params,
       onResponse({ response }) {
-        if(response.status === 200) {
+        if (response.status === 200) {
           gridMeta.value.numberOfOrders = response._data.body
         }
       }
     })
-    if(gridMeta.value.numberOfOrders === 0){
+    if (gridMeta.value.numberOfOrders === 0) {
       gridMeta.value.orders = []
       gridMeta.value.numberOfOrders = 0
       gridMeta.value.isLoading = false
     }
-  });
+  };
 }
 const onCreate = () => {
   gridMeta.value.selectedCustomerId = null
@@ -439,7 +436,7 @@ const handleSortingButton = async (btnName: string) => {
         }
         gridMeta.value.isLoading = false
       }
-    });
+    };
   }
   const onCreate = () => {
     gridMeta.value.selectedCustomerId = null
@@ -483,10 +480,10 @@ const handleSortingButton = async (btnName: string) => {
   }
   const handleSortingButton = async (btnName: string) => {
     gridMeta.value.page = 1
-    for(const column of columns.value) {
-      if(column.sortable) {
+    for (const column of columns.value) {
+      if (column.sortable) {
         if (column.key === btnName) {
-          switch(column.sortDirection) {
+          switch (column.sortDirection) {
             case 'none':
               column.sortDirection = 'asc';
               gridMeta.value.sort.column = btnName;
@@ -522,17 +519,17 @@ const handleSortingButton = async (btnName: string) => {
   const excelExport = async () => {
     exportIsLoading.value = true
     const params = {
-        sortBy: gridMeta.value.sort.column,
-        sortOrder: gridMeta.value.sort.direction,
-        ...filterValues.value,
-      }
+      sortBy: gridMeta.value.sort.column,
+      sortOrder: gridMeta.value.sort.direction,
+      ...filterValues.value,
+    }
     const paramsString = Object.entries(params)
       .filter(([_, value]) => value !== null)
       .map(([key, value]) => {
-        if(value !== null)
-        return `${key}=${value}`
+        if (value !== null)
+          return `${key}=${value}`
       })
-      .join("&") 
+      .join("&")
     location.href = `/api/customers/exportlist?${paramsString}`
     exportIsLoading.value = false
   }
@@ -541,8 +538,8 @@ const handleSortingButton = async (btnName: string) => {
     gridMeta.value.selectedCustomerId = row?.customerid
   }
   const onDblClick = async () => {
-    if(gridMeta.value.selectedOrderId){
-      if(props.isPage) {
+    if (gridMeta.value.selectedOrderId) {
+      if (props.isPage) {
         modalMeta.value.isOrderDetailModalOpen = true
       } else {
         column.sortDirection = 'none';

@@ -5,6 +5,9 @@ useSeoMeta({
 </script>
 
 <template>
-      <!-- <div class="w-full flex items-center text-center justify-center">This page is under development and not available yet.</div> -->
-       <EngineeringCapaDetail :selected-capa="null" />
+  <UDashboardPage>
+    <UDashboardPanel grow class="overflow-y-auto">
+      <EngineeringCapaDetail :selected-capa="null" />
+    </UDashboardPanel>
+  </UDashboardPage>
 </template>
