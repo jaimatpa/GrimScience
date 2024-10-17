@@ -167,7 +167,6 @@ const init = async () => {
 
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
-
   await useApiFetch("/api/bugs/numbers", {
     method: "GET",
     params: {
@@ -179,14 +178,12 @@ const fetchGridData = async () => {
       }
     },
   });
-
   if (gridMeta.value.numberOfBug === 0) {
     gridMeta.value.bug = [];
     gridMeta.value.numberOfBug = 0;
     gridMeta.value.isLoading = false;
     return;
   }
-
   if (
     gridMeta.value.page * gridMeta.value.pageSize >
     gridMeta.value.numberOfBug
@@ -194,7 +191,6 @@ const fetchGridData = async () => {
     gridMeta.value.page =
       Math.ceil(gridMeta.value.numberOfBug / gridMeta.value.pageSize) | 1;
   }
-
   await useApiFetch("/api/bugs", {
     method: "GET",
     params: {
@@ -283,7 +279,6 @@ const handleFilterInputChange = async (event, name) => {
   } else {
     console.error(`Filter does not have property: ${name}`);
   }
-
   fetchGridData();
 };
 
@@ -294,6 +289,33 @@ const handleModalClose = () => {
 const handleModalSave = async () => {
   handleModalClose();
   fetchGridData();
+};
+
+const printPDF = async () => {
+  try {
+    const response = await $fetch("/api/bugs/pdfGenerate", {
+      method: "GET",
+      params: {
+        page: gridMeta.value.page,
+        pageSize: gridMeta.value.pageSize,
+        sortBy: gridMeta.value.sort.column,
+        sortOrder: gridMeta.value.sort.direction,
+        ...filterValues.value,
+      },
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, "_blank");
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    toast.add({
+      title: "Error",
+      description: "Failed to generate PDF. Please try again.",
+      color: "red",
+    });
+  }
 };
 </script>
 
@@ -331,6 +353,19 @@ const handleModalSave = async () => {
             trailing-icon="i-heroicons-plus"
             @click="onCreate()"
           />
+          <div class="">
+            <UButton
+              icon="i-heroicons-bars-arrow-down-20-solid"
+              label="Print"
+              variant="outline"
+              :ui="{
+                base: 'min-w-[80px] w-full',
+                truncate: 'flex justify-center',
+              }"
+              truncate
+              @click="printPDF"
+            />
+          </div>
         </template>
       </UDashboardToolbar>
 
