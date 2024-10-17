@@ -53,7 +53,6 @@ const applyFilters = (params) => {
   };
 };
 
-
 export const getAllBugs = async (
   page,
   pageSize,
