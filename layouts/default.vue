@@ -679,6 +679,10 @@ const links = [
         to: "/utilities/settings",
       },
       {
+        label: "Work Centers",
+        to: "/utilities/work-centers",
+      },
+      {
         label: "App Projects",
         to: "/utilities/projects",
       },
