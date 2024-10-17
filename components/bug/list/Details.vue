@@ -2,7 +2,6 @@
 import type { UTableColumn } from "~/types";
 import BugForm from "./BugForm.vue";
 
-
 onMounted(() => {
   init();
 });
@@ -19,7 +18,8 @@ const toast = useToast();
 
 const selectStatus = ref("Open");
 
-const lableClass = "max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap"
+const lableClass =
+  "max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap";
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -102,16 +102,6 @@ const gridMeta = ref({
       sortDirection: "none",
       filterable: true,
       class: "min-w-[150px]",
-    },
-    {
-      key: "edit",
-      label: "Edit",
-      kind: "actions",
-    },
-    {
-      key: "delete",
-      label: "Delete",
-      kind: "actions",
     },
   ],
   page: 1,
@@ -239,15 +229,8 @@ const handlePageChange = async () => {
 
 const onCreate = () => {
   gridMeta.value.selectedBug = null;
-  modalMeta.value.modalTitle = "New Bug";
+  modalMeta.value.modalTitle = "Add Bug";
   modalMeta.value.modalDescription = "Add a new Bug";
-  modalMeta.value.isBugModalOpen = true;
-};
-
-const onEdit = (row) => {
-  gridMeta.value.selectedBug = row;
-  modalMeta.value.modalTitle = "Edit Bug";
-  modalMeta.value.modalDescription = "Edit bug information";
   modalMeta.value.isBugModalOpen = true;
 };
 
@@ -261,23 +244,6 @@ const onDblClick = async () => {
     modalMeta.value.modalDescription = "Edit bug information";
     modalMeta.value.isBugModalOpen = true;
   }
-};
-
-const onDelete = async (row: any) => {
-  await useApiFetch(`/api/bugs/${row?.uniqueid}`, {
-    method: "DELETE",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        toast.add({
-          title: "Success",
-          description: response._data.message,
-          icon: "i-heroicons-trash-solid",
-          color: "green",
-        });
-        fetchGridData();
-      }
-    },
-  });
 };
 
 const handleSortingButton = async (btnName: string) => {
@@ -337,15 +303,15 @@ const handleModalSave = async () => {
       <UDashboardNavbar class="bg-gms-pink-500" title="Bug Sheet">
       </UDashboardNavbar>
 
-      <!-- <div class="px-4 py-2 bg-gms-pink-400">
-        <h2>Sorting</h2>
-      </div> -->
-
       <UDashboardToolbar class="">
         <template #left>
           <UFormGroup label="Bug Status" name="state">
-            <USelect v-model="selectStatus" :options="['Open', 'Closed']" @change="handleSelectChange"
-              searchable="false" />
+            <USelect
+              v-model="selectStatus"
+              :options="['Open', 'Closed']"
+              @change="handleSelectChange"
+              searchable="false"
+            />
           </UFormGroup>
           <div class="flex flex-row space-x-3 ml-5">
             <div class="basis-1/7 max-w-[200px]">
@@ -358,8 +324,13 @@ const handleModalSave = async () => {
           </div>
         </template>
         <template #right>
-          <UButton variant="outline" label="Add Bug" class="bg-gmsTealHeader" trailing-icon="i-heroicons-plus"
-            @click="onCreate()" />
+          <UButton
+            variant="outline"
+            label="Add Bug"
+            class="bg-gmsTealHeader"
+            trailing-icon="i-heroicons-plus"
+            @click="onCreate()"
+          />
         </template>
       </UDashboardToolbar>
 
@@ -367,33 +338,48 @@ const handleModalSave = async () => {
         <h2>Bug Lookup</h2>
       </div>
 
-
-
-      <UTable :rows="gridMeta.bug" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
-        divide: 'divide-gray-200 dark:divide-gray-800',
-        th: {
-          base: 'sticky top-0 z-10',
-          color: 'bg-white dark:text-gray dark:bg-[#111827]',
-          padding: 'p-0',
-        },
-        td: {
-          padding: 'py-1',
-        },
-      }" :empty-state="{
-        icon: 'i-heroicons-circle-stack-20-solid',
-        label: 'No items.',
-      }" @select="onSelect" @dblclick="onDblClick">
+      <UTable
+        :rows="gridMeta.bug"
+        :columns="columns"
+        :loading="gridMeta.isLoading"
+        class="w-full"
+        :ui="{
+          divide: 'divide-gray-200 dark:divide-gray-800',
+          th: {
+            base: 'sticky top-0 z-10',
+            color: 'bg-white dark:text-gray dark:bg-[#111827]',
+            padding: 'p-0',
+          },
+          td: {
+            padding: 'py-1',
+          },
+        }"
+        :empty-state="{
+          icon: 'i-heroicons-circle-stack-20-solid',
+          label: 'No items.',
+        }"
+        @select="onSelect"
+        @dblclick="onDblClick"
+      >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
             <div class="px-4 py-3.5">
-              <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
-                :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
-                  ? noneIcon
-                  : column?.sortDirection === 'asc'
+              <CommonSortAndInputFilter
+                @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange"
+                :label="column.label"
+                :sortable="column.sortable"
+                :sort-key="column.key"
+                :sort-icon="
+                  column?.sortDirection === 'none'
+                    ? noneIcon
+                    : column?.sortDirection === 'asc'
                     ? ascIcon
                     : descIcon
-                  " :filterable="column.filterable" :filter-key="column.key" />
+                "
+                :filterable="column.filterable"
+                :filter-key="column.key"
+              />
             </div>
           </template>
           <template v-else class="bg-slate-400">
@@ -403,38 +389,37 @@ const handleModalSave = async () => {
           </template>
         </template>
 
-        <template v-for="column in columns" v-slot:[`${column.key}-data`]="{ row }">
+        <template
+          v-for="column in columns"
+          v-slot:[`${column.key}-data`]="{ row }"
+        >
           <div :class="column.class">
-            <template v-if="column.kind === 'actions'">
-              <template v-if="column.key === 'edit'">
-                <UTooltip text="Edit" class="flex justify-center">
-                  <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
-                </UTooltip>
-              </template>
-              <template v-else-if="column.key === 'delete'">
-                <UTooltip text="Delete" class="flex justify-center">
-                  <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
-                </UTooltip>
-              </template>
-            </template>
-            <template v-else>
+            <template v-if="column.kind !== 'actions'">
               {{ row[column.key] }}
             </template>
           </div>
         </template>
       </UTable>
+
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
-          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfBug || 0"
-            v-model="gridMeta.page" @update:model-value="handlePageChange()" />
+          <UPagination
+            :max="7"
+            :page-count="gridMeta.pageSize"
+            :total="gridMeta.numberOfBug || 0"
+            v-model="gridMeta.page"
+            @update:model-value="handlePageChange()"
+          />
         </div>
       </div>
     </UDashboardPanel>
   </UDashboardPage>
 
-
-  <UDashboardModal v-model="modalMeta.isBugModalOpen" :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription" :ui="{
+  <UDashboardModal
+    v-model="modalMeta.isBugModalOpen"
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription"
+    :ui="{
       title: 'text-lg',
       header: {
         base: 'flex flex-row min-h-[0] items-center',
@@ -442,8 +427,15 @@ const handleModalSave = async () => {
       },
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
       width: 'w-[600px] sm:max-w-8xl',
-    }">
-
-    <BugForm @close="handleModalClose" @save="handleModalSave" :selected-bug="gridMeta.selectedBug" :is-modal="true" />
+    }"
+  >
+    <BugForm
+      @close="handleModalClose"
+      @save="handleModalSave"
+      @fetchGridData="fetchGridData"
+      @onCreate="onCreate"
+      :selected-bug="gridMeta.selectedBug"
+      :is-modal="true"
+    />
   </UDashboardModal>
 </template>
