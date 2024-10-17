@@ -487,7 +487,7 @@ const CreateTable = async () => {
 
   try {
     const { data, error } = await useFetch(
-      "/api/maintenance/equipment/tableInsertData",
+      "/api/maintenance/equipment/tableInsertData?type=table",
       {
         method: "POST",
         body: formData,
@@ -655,7 +655,7 @@ const fetchDataInstrumentCategory03 = async () => {
 const instrumentFunction = async () => {
   try {
     const selectedSubCategory = handleVModel.value.instrumentValue.value;
-    debugger;
+   
     if (!selectedSubCategory) {
       console.error("No subcategory selected");
       return;
@@ -836,53 +836,54 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     alert('An error occurred while uploading the files. Please try again.');
   }
 
-  const CreateReport = async () => {
-  const formData = {
-    vendorName: handleVModel.value.vendorName,
-    byValue: handleVModel.value.byValue,
-    whereValue: handleVModel.value.whereValue,
-    reportComments: handleVModel.value.reportComments,
-    reportCreateData: handleVModel.value.reportCreateData,
-    subCategory: handleVModel.value.subCategory,
-    subCategory01: handleVModel.value.subCategory01,
-    subCategory02: handleVModel.value.subCategory02,
-    subCategory03: handleVModel.value.subCategory03,
-    instrumentValue: handleVModel.value.instrumentValue,
-    instrumentValue01: handleVModel.value.instrumentValue01,
-    instrumentValue02: handleVModel.value.instrumentValue02,
-    instrumentValue03: handleVModel.value.instrumentValue03,
-    numberValue: handleVModel.value.numberValue,
-    numberValue01: handleVModel.value.numberValue01,
-    numberValue02: handleVModel.value.numberValue02,
-    numberValue03: handleVModel.value.numberValue03,
-    fileUpload01: handleVModel.value.fileUpload01,
-    fileUpload02: handleVModel.value.fileUpload02,
-  };
+};
 
-  try {
-    const { data, error } = await useFetch(
-      "/api/maintenance/equipment/tableInsertData",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
 
-    if (error.value) {
-      console.error("Error submitting form:", error.value);
-    } else {
-      console.log("Form submitted successfully:", data.value);
+const CreateReport = async () => {
+
+const formData = {
+  ReportID: props.mainID,
+  vendorName: handleVModel.value.vendorName?.value || "",
+  byValue: handleVModel.value.byValue?.value || "",
+  whereValue: handleVModel.value.whereValue?.value || "",
+  reportComments: handleVModel.value.reportComments,
+  reportCreateData: handleVModel.value.reportCreateData,
+  subCategory: handleVModel.value.subCategory?.value || "",
+  subCategory01: handleVModel.value.subCategory01?.value || "",
+  subCategory02: handleVModel.value.subCategory02?.value || "",
+  subCategory03: handleVModel.value.subCategory03?.value || "",
+  instrumentValue: handleVModel.value.instrumentValue?.value || "",
+  instrumentValue01: handleVModel.value.instrumentValue01?.value || "",
+  instrumentValue02: handleVModel.value.instrumentValue02?.value || "",
+  instrumentValue03: handleVModel.value.instrumentValue03?.value || "",
+
+  numberValue: handleVModel.value.numberValue?.value || "",
+  numberValue01: handleVModel.value.numberValue01?.value || "",
+  numberValue02: handleVModel.value.numberValue02?.value || "",
+  numberValue03: handleVModel.value.numberValue03?.value || "",
+
+  fileUpload01: handleVModel.value.fileUpload01?.value || "",
+  fileUpload02: handleVModel.value.fileUpload02?.value || "",
+};
+
+try {
+  const { data, error } = await useFetch(
+    "/api/maintenance/equipment/tableInsertData?type=newReport",
+    {
+      method: "POST",
+      body: formData,
     }
-  } catch (err) {
-    console.error("Submission error:", err);
+  );
+
+  if (error.value) {
+    console.error("Error submitting form:", error.value);
+  } else {
+    console.log("Form submitted successfully:", data.value);
   }
+} catch (err) {
+  console.error("Submission error:", err);
+}
 };
-
-
- 
-
-};
-
 
 
 </script>
@@ -1134,9 +1135,15 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
             icon="i-heroicons-minus-circle"
             variant="outline"
             color="red"
+           
           />
         </div>
       </div>
+
+    
+
+    
+  
       <!-- 
       <UTable
         :rows="inventoryDetailGridMeta.reportTableData"
@@ -1286,6 +1293,8 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       </UTable>
       <UDivider />
     </UForm>
+
+   
   </UCard>
 
   <div class="flex justify-end space-x-4 pt-[10px]">
@@ -1295,16 +1304,16 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
         label="New Report"
         variant="outline"
         color="green"
-        @click="CreateReport"
         :ui="{
           base: 'min-w-[200px] w-full',
           truncate: 'flex justify-center w-full',
         }"
         truncate
+        @click="CreateReport"
       />
+
     </div>
   </div>
-
   <UDashboardModal
     v-model="modalMeta.isNewVendorsModalOpen"
     :title="modalMeta.modalTitle"

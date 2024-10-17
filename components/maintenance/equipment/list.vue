@@ -258,6 +258,8 @@ const handleRowSelectedSerial = (row) => {
   handleVModel.value.serialNo = row.Serial;
 };
 
+
+
 const submitForm = async () => {
   const formData = {
     CATAGORY: handleVModel.value.category,
@@ -291,6 +293,8 @@ const submitForm = async () => {
     console.error("Unexpected error:", err);
   }
 };
+
+
 
 const deleteEquipmentTableData = async () => {
   const uniqueId = handleVModel.value.uniqueId;

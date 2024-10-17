@@ -16,7 +16,7 @@ export default eventHandler(async (event) => {
       { header: 'CATAGORY#', key: 'CATAGORY', width: 32 },
       { header: 'SUBCATAGORY', key: 'SUBCATAGORY', width: 32 },
       { header: 'PART', key: 'PART', width: 32 },
-      { header: 'PART ', key: 'PART', width: 32 },
+      { header: 'SERIAL ', key: 'SERIAL', width: 32 },
       { header: 'PRODUCT', key: 'SERIAL', width: 32 },
      
 

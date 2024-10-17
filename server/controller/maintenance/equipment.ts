@@ -2,7 +2,7 @@ import { Op, QueryTypes, Sequelize } from "sequelize";
 import { tblCustomers, tblBP,tblMaintainenceOrders,tblWorkStation,tblMaintainenceReports,tblMaintReportMeasurements } from "~/server/models";
 import { tblEmployee } from "~/server/models";
 import sequelize from "~/server/utils/databse";
-
+// ok code
 const applyFilters = (params) => {
   const filterParams = [
     "MANO",
@@ -27,6 +27,21 @@ const applyFilters = (params) => {
   return whereClause;
 };
 
+export const getPDFDataById = async (params) => {
+  const { uniqID } = params;
+  let where = {};
+  if (uniqID) where["MANO"] = uniqID;
+  const reports = await tblMaintainenceOrders.findAll({
+    where: where,
+    raw: true,
+  });
+
+
+  return reports;
+};
+
+
+// ok code
 export const getEquipmentTableData= async (
   page,
   pageSize,
@@ -41,7 +56,8 @@ export const getEquipmentTableData= async (
     where: {
       ...whereClause,
     },
-    order: [[(sortBy as string) || "MANO", (sortOrder as string) || "DESC"]],
+
+    order: [[(sortBy as string) || "UniqueID","DESC"]],
     offset,
     limit,
     raw: true,
@@ -49,7 +65,7 @@ export const getEquipmentTableData= async (
   console.log(list);
   return list;
 };
-
+// ok code
 export const getNumberOfEquipment= async (filterParams) => {
   const whereClauseDB = applyFilters(filterParams);
   const numberOfCustomers = await tblMaintainenceOrders.count({
@@ -58,7 +74,7 @@ export const getNumberOfEquipment= async (filterParams) => {
   return numberOfCustomers;
 };
 
-
+// ok code
 export const getAllCategoryList = async () => {
   try {
     const reasons = await tblBP.findAll({
@@ -77,7 +93,7 @@ export const getAllCategoryList = async () => {
     return { error: error.message || "Failed to fetch reasons for change" }; // Handle any errors
   }
 };
-
+// ok code
 export const getAllSubCategoryList = async () => {
   try {
     const reasons = await tblBP.findAll({
@@ -97,6 +113,7 @@ export const getAllSubCategoryList = async () => {
   }
 };
 
+// ok code
 export const getAllEquipmentList = async () => {
   try {
     const reasons = await tblWorkStation.findAll({
@@ -115,6 +132,7 @@ export const getAllEquipmentList = async () => {
   }
 };
 
+// ok code
 export const getAllTypeList = async () => {
   try {
     const reasons = await tblMaintainenceOrders.findAll({
@@ -133,6 +151,7 @@ export const getAllTypeList = async () => {
   }
 };
 
+// ok code
 export const insertEquipmentData = async (body) => { 
 
   const formatDate = (dateString) => {
@@ -208,10 +227,7 @@ export const removeReportTableData = (id) => {
 };
 
 
-
-
-
-
+// ok code
 export const getAllMatchReportData = async (orderId, query) => {
   try {
     
@@ -234,41 +250,35 @@ export const getAllMatchReportData = async (orderId, query) => {
   }
 };
 
-
-
+// ok code
 export const getAllReportByData = async () => {
   try {
     const reports = await tblMaintainenceReports.findAll({
-      attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('By')), 'By']], // Get distinct values
-      order: [['By', 'DESC']], // Order the results by the 'By' column in descending order
+      attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('By')), 'By']], 
+      order: [['By', 'DESC']], 
     });
     
-    // Map the results to get an array of unique values
     const uniqueReports = reports.map(report => report.get('By'));
     
- // Log the unique reports
-    return uniqueReports; // Return the unique reports
+    return uniqueReports; 
   } catch (error) {
     throw new Error(`Error fetching reports: ${error.message}`);
   }
 };
-
+// ok code
 export const getAllReportWhereData = async () => {
   try {
     const reports = await tblMaintainenceReports.findAll({
-      attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('Inhouse')), 'Inhouse']], // Get distinct values
-      order: [['Inhouse', 'DESC']], // Order the results by the 'By' column in descending order
+      attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('Inhouse')), 'Inhouse']],
+      order: [['Inhouse', 'DESC']], 
     });
-    
-    // Map the results to get an array of unique values
     const uniqueReports = reports.map(report => report.get('Inhouse'));
-    
- // Log the unique reports
-    return uniqueReports; // Return the unique reports
+    return uniqueReports; 
   } catch (error) {
     throw new Error(`Error fetching reports: ${error.message}`);
   }
 };
+// ok code
 export const getAllReportSub1Data = async () => {
   try {
     const reports = await tblMaintainenceReports.findAll({
@@ -284,8 +294,7 @@ export const getAllReportSub1Data = async () => {
   }
 };
 
-
-
+// ok code
 export const getAllReportUOMData = async () => {
   try {
     const reports = await tblMaintReportMeasurements.findAll({
@@ -301,10 +310,7 @@ export const getAllReportUOMData = async () => {
   }
 };
 
-
-
-
-
+// ok code
 export const getAllReportSearchData = async (subCategory) => {
 
   try {
@@ -324,9 +330,7 @@ export const getAllReportSearchData = async (subCategory) => {
   }
 };
 
-
-
-
+// ok code
 export const getReportInstrumentData = async (subCategory) => {
 
   try {
@@ -348,19 +352,7 @@ export const getReportInstrumentData = async (subCategory) => {
   }
 };
  
-
-
-
-
-
-
-
-
-
-
-
-
-
+// ok code
 export const getAllEquipment= async (sortBy, sortOrder, filterParams) => {
 
   let whereClause = {};
@@ -425,6 +417,82 @@ export const getAllEquipment= async (sortBy, sortOrder, filterParams) => {
 };
 
 
+// ok code
+export const createNewReport = async (reportData) => {
+  const formatDate = (dateString) => {
+    if (!dateString || dateString === "" || dateString === null) {
+      return null; // Handle null or empty dates
+    }
+    const date = new Date(dateString);
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+
+  try {
+    // Step 1: Get the current maximum value for the No column
+    const result = await sequelize.query(
+      `SELECT COALESCE(MAX(No), 0) + 1 AS maxNumber FROM tblMaintainenceReports`,
+      { type: sequelize.QueryTypes.SELECT }
+    );
+
+    const maxNumber = result[0] ? parseInt(result[0].maxNumber, 10) : 1; 
+    const orderId = reportData.ReportID ? parseInt(reportData.ReportID, 10) : null; 
+    const formattedDate = formatDate(reportData.reportCreateData);
+
+    // Step 2: Build the INSERT statement dynamically
+    const columns = ['No', 'OrderID', 'Date', '[By]', 'DESCRIPTION', 'Inhouse', 'Vendor', 'Sub1', 'Sub2', 'Sub3', 'Sub4', 'Inst1', 'Inst2', 'Inst3', 'Inst4', 'IC1', 'IC2', 'IC3', 'IC4'];
+    const values = [
+      maxNumber,
+      orderId,
+      formattedDate,
+      reportData.byValue || null,
+      reportData.reportComments || null,
+      reportData.whereValue || null,
+      reportData.vendorName || null,
+      reportData.subCategory || null,
+      reportData.subCategory01 || null,
+      reportData.subCategory02 || null,
+      reportData.subCategory03 || null,
+      reportData.instrumentValue || null,
+      reportData.instrumentValue01 || null,
+      reportData.instrumentValue02 || null,
+      reportData.instrumentValue03 || null,
+      reportData.numberValue || null,
+      reportData.numberValue01 || null,
+      reportData.numberValue02 || null,
+      reportData.numberValue03 || null,
+    ];
+
+    // Filter out empty values and corresponding columns
+    const filteredColumns = columns.filter((_, index) => values[index] !== null);
+    const filteredValues = values.filter(value => value !== null);
+
+    // Build the query
+    const query = `
+      INSERT INTO tblMaintainenceReports 
+      (${filteredColumns.join(', ')})
+      VALUES (${filteredValues.map(value => `'${value}'`).join(', ')})
+    `;
+
+    // Step 3: Insert the new report using raw SQL
+    await sequelize.query(query);
+
+    return { message: 'Report created successfully' };
+  } catch (error) {
+    console.error('Error creating new report:', error);
+    throw new Error(`Error creating new report: ${error.message}`);
+  }
+};
+
+
+
+
 
   // export const insertEquipmentTableData = async (body) => {
   //   try {
@@ -477,15 +545,14 @@ export const getAllEquipment= async (sortBy, sortOrder, filterParams) => {
   
 
 
+
+// ok code
   export const insertEquipmentTableData = async (body) => {
     try {
-      // Parse the ReportID from the request body
       const reportID = parseInt(body.ReportID, 10);
       if (isNaN(reportID)) {
         throw new Error('Invalid ReportID, must be an integer');
       }
-  
-      // Find the report by OrderID to get the associated No value
       const report = await tblMaintainenceReports.findOne({
         where: {
           OrderID: reportID,
@@ -520,12 +587,12 @@ export const getAllEquipment= async (sortBy, sortOrder, filterParams) => {
         type: sequelize.QueryTypes.INSERT,
       });
   
-      // Fetch all records where ReportID matches noValue || 0
     const [insertedRecords] = await tblMaintReportMeasurements.findAll({
         where: {
           ReportID: noValue || 0,
         },
-        
+        order: [['ReportID', 'DESC']], 
+        raw: true,
       });
     
       console.log(insertedRecords)
