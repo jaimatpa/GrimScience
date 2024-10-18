@@ -69,7 +69,7 @@ const openNewReport = () => {
   const reportID = handleVModel.value.manValue
   if (reportID) { 
 
-    modalMeta.value.modalTitle = "New Report";
+    modalMeta.value.modalTitle = "Report";
     modalMeta.value.isNewReportModalOpen = true;
     modalMeta.value.mainID = reportID;
   } else {
@@ -352,11 +352,11 @@ const inventoryDetailGridMeta = ref({
       label: "By",
     },
     {
-      key: "",
+      key: "Report",
       label: "Report#",
     },
     {
-      key: "",
+      key: "Date",
       label: "Date",
     },
     {
@@ -376,7 +376,8 @@ const inventoryDetailGridMeta = ref({
 
 const onSelectReportMatchData = async () => {
   try {
-    const Id = handleVModel.value.uniqueId;
+
+    const Id = handleVModel.value.manValue;
     if (!Id) {
       console.error("Unique ID is missing");
       return;
@@ -441,6 +442,10 @@ const onRemoveReport = async () => {
               icon: "i-heroicons-check-circle",
               color: "green",
             });
+            
+            const Id = handleVModel.value.manValue;
+            onSelectReportMatchData(Id);
+
           } else {
             toast.add({
               title: "Error",
@@ -814,12 +819,13 @@ const onPrevieOrderBtnClick = () => {
     :ui="{
       title: 'text-lg',
       header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
+        base: 'flex flex-row min-h-[0] items-center bg-[#FFFF]',
+        padding: ' sm:px-9',
       },
       body: {
-        base: 'gap-y-1',
-        padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+        base: ' bg-[#FFFF]',
+        padding:'pb-[30px]',
+        
       },
       width: 'w-[3000px] sm:max-w-7xl',
     }"

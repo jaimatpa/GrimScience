@@ -117,6 +117,9 @@ export const getEquipmentTableData= async (
   console.log(list);
   return list;
 };
+
+
+
 // ok code
 export const getNumberOfEquipment= async (filterParams) => {
   const whereClauseDB = applyFilters(filterParams);
@@ -281,9 +284,14 @@ export const removeReportTableData = (id) => {
 
 // ok code
 export const getAllMatchReportData = async (orderId, query) => {
+
+
+
   try {
     
     const orderIdInt = parseInt(orderId, 10); 
+
+    console.log("tabel", orderIdInt)
 
     if (isNaN(orderIdInt)) {
       throw new Error('Invalid OrderID: must be a valid number');
@@ -599,12 +607,78 @@ export const createNewReport = async (reportData) => {
 
 
 // ok code
+  // export const insertEquipmentTableData = async (body) => {
+ 
+  //   try {
+  //     const reportID = parseInt(body.ReportID, 10);
+  //     if (isNaN(reportID)) {
+  //       throw new Error('Invalid ReportID, must be an integer');
+  //     }
+  //     const report = await tblMaintainenceReports.findOne({
+  //       where: {
+  //         OrderID: reportID,
+  //       },
+  //       attributes: ['No'],
+  //     });
+  
+  //     let noValue = null;
+  //     if (report) {
+  //       noValue = report.No; 
+  //       console.log('Fetched No value:', noValue); 
+  //     } else {
+  //       throw new Error('No record found for the given OrderID');
+  //     }
+  
+  //     // Step 3: Construct the raw SQL query for insertion
+  //     const sqlQuery = `
+  //       INSERT INTO tblMaintReportMeasurements (ReportID, UOM, Applied, Reading, Adjusted, Min)
+  //       VALUES (:ReportID, :UOM, :Applied, :Reading, :Adjusted, :Min)
+  //     `;
+  
+  //     // Execute the query with the values from the body
+  //     await sequelize.query(sqlQuery, {
+  //       replacements: {
+  //         ReportID: noValue || 0,
+  //         UOM: body.UOM,
+  //         Applied: body.Applied,
+  //         Reading: body.Reading,
+  //         Adjusted: body.Adjusted,
+  //         Min: body.Min,
+  //       },
+  //       type: sequelize.QueryTypes.INSERT,
+  //     });
+  
+
+      
+  //   const [insertedRecords] = await tblMaintReportMeasurements.findAll({
+  //       where: {
+  //         ReportID: noValue || 0,
+  //       },
+  //       order: [['ReportID', 'DESC']], 
+  //       raw: true,
+  //     });
+    
+  //     console.log(insertedRecords)
+  //     return insertedRecords;
+  
+  //   } catch (error) {
+  //     console.error('Error inserting equipment data:', error); 
+  //     throw new Error(`Error inserting equipment data: ${error.message}`); 
+  //   }
+  // };
+  
+  
+
+
+
   export const insertEquipmentTableData = async (body) => {
     try {
+      // Step 1: Validate ReportID and fetch the corresponding 'No' value
       const reportID = parseInt(body.ReportID, 10);
       if (isNaN(reportID)) {
         throw new Error('Invalid ReportID, must be an integer');
       }
+  
       const report = await tblMaintainenceReports.findOne({
         where: {
           OrderID: reportID,
@@ -614,19 +688,19 @@ export const createNewReport = async (reportData) => {
   
       let noValue = null;
       if (report) {
-        noValue = report.No; 
-        console.log('Fetched No value:', noValue); 
+        noValue = report.No;
+        console.log('Fetched No value:', noValue);
       } else {
         throw new Error('No record found for the given OrderID');
       }
   
-      // Step 3: Construct the raw SQL query for insertion
+      // Step 2: Construct the raw SQL query for insertion
       const sqlQuery = `
         INSERT INTO tblMaintReportMeasurements (ReportID, UOM, Applied, Reading, Adjusted, Min)
         VALUES (:ReportID, :UOM, :Applied, :Reading, :Adjusted, :Min)
       `;
   
-      // Execute the query with the values from the body
+      // Execute the insertion query
       await sequelize.query(sqlQuery, {
         replacements: {
           ReportID: noValue || 0,
@@ -639,28 +713,24 @@ export const createNewReport = async (reportData) => {
         type: sequelize.QueryTypes.INSERT,
       });
   
-    const [insertedRecords] = await tblMaintReportMeasurements.findAll({
-        where: {
-          ReportID: noValue || 0,
-        },
-        order: [['ReportID', 'DESC']], 
-        raw: true,
-      });
-    
-      console.log(insertedRecords)
-      return insertedRecords;
+      // Step 3: Fetch all records matching the fetched 'No' value (noValue)
+      const insertedRecords = await sequelize.query(
+        'SELECT * FROM tblMaintReportMeasurements WHERE ReportID = :reportId',
+        {
+          replacements: { reportId: noValue || 0 }, // Use the fetched noValue
+          type: sequelize.QueryTypes.SELECT, // Specify the query type
+        }
+      );
+  
+      console.log('Inserted Records:', insertedRecords);
+      return insertedRecords; // Return all matching records after insertion
   
     } catch (error) {
-      console.error('Error inserting equipment data:', error); 
-      throw new Error(`Error inserting equipment data: ${error.message}`); 
+      console.error('Error inserting equipment data:', error);
+      throw new Error(`Error inserting equipment data: ${error.message}`);
     }
   };
   
-  
-
-
-
-
 
 
 

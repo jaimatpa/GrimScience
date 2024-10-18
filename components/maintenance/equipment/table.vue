@@ -134,10 +134,19 @@ const filterValues = ref({
   REQUIRED: null,
 });
 
-const handleCheckboxChange = () => {
-  filterValues.value.APPROVAL =
-    filterValues.value.APPROVAL === "No" ? "Yes" : "No";
+const handleCategoryChange = (newValue) => {
+  debugger
+  filterValues.value.CATAGORY  = newValue;
+  fetchGridData();
 };
+
+const handleSubcategoryChange = (newValue) => {
+  filterValues.value.SUBCATAGORY  = newValue;
+  fetchGridData();
+};
+
+
+
 
 watch(
   filterValues,
@@ -157,24 +166,12 @@ const columns = computed(() =>
 
 const init = async () => {
   fetchGridData();
-
-  gridMeta.value.isLoading = true;
-  for (const key in headerFilters.value) {
-    const apiURL =
-      headerFilters.value[key]?.api ?? `/api/service/orders/${key}`;
-
-    await useApiFetch(apiURL, {
-      method: "GET",
-      onResponse({ response }) {
-        if (response.status === 200) {
-          headerFilters.value[key].options = [null, ...response._data.body];
-        }
-      },
-    });
-  }
+  gridMeta.value.isLoading = true
 };
 
+
 const fetchGridData = async () => {
+  debugger
   gridMeta.value.isLoading = true;
   await useApiFetch("/api/maintenance/equipment/totalNumber", {
     method: "GET",
@@ -223,7 +220,7 @@ const fetchCategoryData = async () => {
     const {data }= await useFetch("/api/maintenance/equipment/getAllCategory");
     if (data._rawValue) {
       headerFilters.value.categoryList.options = data._rawValue.map((category) => ({
-        label: category || 'Unnamed',
+        label: category ,
         value: category, 
       }));
   
@@ -240,7 +237,7 @@ const fetchSubCategoryData = async () => {
     const {data }= await useFetch("/api/maintenance/equipment/getAllSubCategory");
     if (data._rawValue) {
       headerFilters.value.subCategoryList.options = data._rawValue.map((category) => ({
-        label: category || 'Unnamed',
+        label: category,
         value: category, 
       }));
   
@@ -359,8 +356,83 @@ const onDblClick = () => {
           </div>
         </template>
       </UDashboardToolbar>
-
       <UTable
+  :rows="gridMeta.orders"
+  :columns="columns"
+  :loading="gridMeta.isLoading"
+  class="w-full"
+  :ui="{
+    divide: 'divide-gray-200 dark:divide-gray-800',
+    th: {
+      base: 'top-0 z-5 px-1',
+      padding: 'pb-0',
+    },
+    td: {
+      padding: 'py-0.5 px-1',
+    },
+  }"
+  :empty-state="{
+    icon: 'i-heroicons-circle-stack-20-solid',
+    label: 'No items.',
+  }"
+  @select="onSelect"
+  @dblclick="onDblClick"
+>
+  <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+    <div class="space-x-2"> 
+
+      
+      <template v-if="column.key === 'CATAGORY'">
+        <div class="w-full"> 
+          <USelect
+            v-model="filterValues.CATEGORY"
+            :options="headerFilters.categoryList.options"
+            @change="handleCategoryChange"
+            class="w-full" 
+          />
+          <span class="text-xs text-gray-500">Category</span>
+        </div>
+      </template>
+
+      <template v-if="column.key === 'SUBCATAGORY'">
+        <div class="w-full">
+          <USelect
+            v-model="filterValues.SUBCATEGORY"
+            :options="headerFilters.subCategoryList.options"
+            @change="handleSubcategoryChange"
+            class="w-full"
+          />
+          <span class="text-xs text-gray-500">Subcategory</span>
+        </div>
+      </template>
+
+   
+      <template
+        v-else-if="['MANO','PART', 'ORDEREDBY', 'SERIAL', 'REQUIRED'].includes(column.key)"
+      >
+        <div class="w-full">
+          <input
+            type="text"
+            v-model="filterValues[column.key]"
+            @input="filterTable"
+            placeholder="Search"
+            class="w-full mt-1 border border-gray-300 rounded px-2 py-1" 
+          /><br/>
+          <span class="text-xs text-gray-500">{{ column.label }}</span>
+        </div>
+      </template>
+
+      <template v-else>
+        <div class="w-full">
+          <span class="text-xs text-gray-500">{{ column.label }}</span>
+        </div>
+      </template>
+
+    </div>
+  </template>
+</UTable>
+
+      <!-- <UTable
         :rows="gridMeta.orders"
         :columns="columns"
         :loading="gridMeta.isLoading"
@@ -384,31 +456,32 @@ const onDblClick = () => {
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
          
-          <!-- Dropdown for CATAGORY without search -->
+     
           <template v-if="column.key === 'CATAGORY'">
             <div>
               <USelect
-                v-model="filterValues.CATEGORY"
+                v-model="filterValues.CATAGORY"
                 :options="headerFilters.categoryList.options" 
-                @change="() => handleCheckboxChange()"
+                @change="handleCategoryChange"
+                class="w-full"
               />
-              <span class="text-xs text-gray-500">CATAGORY</span>
+              <span class="text-xs text-gray-500">Category</span>
             </div>
           </template>
 
-          <!-- Dropdown for SUBCATAGORY without search -->
+       
           <template v-if="column.key === 'SUBCATAGORY'">
             <div>
               <USelect
-                v-model="filterValues.SUBCATEGORY"
+                v-model="filterValues.SUBCATAGORY"
                 :options="headerFilters.subCategoryList.options"
-                @change="() => handleCheckboxChange()"
+                @change="handleSubcategoryChange"
               />
-              <span class="text-xs text-gray-500">SUBCATAGORY</span>
+              <span class="text-xs text-gray-500">Subcategory</span>
             </div>
           </template>
 
-          <!-- Search input for the first five columns -->
+     
           <template
             v-else-if="
               ['MANO','PART', 'ORDEREDBY', 'SERIAL', 'REQUIRED'].includes(column.key)
@@ -421,19 +494,21 @@ const onDblClick = () => {
                 @input="filterTable"
                 placeholder="Search"
                 class="mt-1 border border-gray-300 rounded px-2 py-1"
-              />
+              /><br/>
               <span class="text-xs text-gray-500">{{ column.label }}</span>
             </div>
           </template>
 
-          <!-- Placeholder for other columns without search input -->
+      
           <template v-else>
             <div>
               <span class="text-xs text-gray-500">{{ column.label }}</span>
             </div>
           </template>
         </template>
-      </UTable>
+      </UTable> -->
+
+
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
           <UPagination

@@ -390,6 +390,10 @@ const inventoryDetailGridMeta = ref({
       filterable: true,
     },
     {
+      key: "Accuracy",
+      label: "Accuracy",
+    },
+    {
       key: "Applied",
       label: "Applied",
     },
@@ -398,11 +402,7 @@ const inventoryDetailGridMeta = ref({
       label: "Reading",
     },
     {
-      key: "Adjusted",
-      label: "Adjusted",
-    },
-    {
-      key: "Adjusted",
+      key: "Status",
       label: "Status",
     },
   ],
@@ -493,11 +493,11 @@ const CreateTable = async () => {
         body: formData,
       }
     );
-
+debugger
     if (error.value) {
       console.log("Form submitted successfully:", data.value);
     } else {
-      // inventoryDetailGridMeta.value.reportTableData = data.body;
+     inventoryDetailGridMeta.value.reportTableData = data._rawValue.body;
       console.log("Form submitted successfully:", data.value);
     }
   } catch (err) {
@@ -599,7 +599,7 @@ const fetchDataInstrumentCategory01 = async () => {
     }
   } catch (err) {
     console.error("Error fetching type data:", err);
-  }
+}
 };
 const fetchDataInstrumentCategory02 = async () => {
   try {
@@ -651,17 +651,12 @@ const fetchDataInstrumentCategory03 = async () => {
     console.error("Error fetching type data:", err);
   }
 };
-
-const instrumentFunction = async () => {
+const instrumentFunction = async (newValue) => {
   try {
-    const selectedSubCategory = handleVModel.value.instrumentValue.value;
+    const Value = encodeURIComponent(newValue.value); 
    
-    if (!selectedSubCategory) {
-      console.error("No subcategory selected");
-      return;
-    }
     const { data } = await useFetch(
-      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${selectedSubCategory}`
+      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${Value}`
     );
     if (data._rawValue) {
       headerFilters.value.numberValueOp.options =
@@ -676,15 +671,12 @@ const instrumentFunction = async () => {
     console.error("Error fetching type data:", err);
   }
 };
-const instrumentFunction01 = async () => {
+const instrumentFunction01 = async (newValue) => {
+
   try {
-    const selectedSubCategory = handleVModel.value.instrumentValue01.value;
-    if (!selectedSubCategory) {
-      console.error("No subcategory selected");
-      return;
-    }
+    const Value = encodeURIComponent(newValue.value);  
     const { data } = await useFetch(
-      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${selectedSubCategory}`
+      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${Value}`
     );
     if (data._rawValue) {
       headerFilters.value.numberValueOp01.options =
@@ -699,16 +691,13 @@ const instrumentFunction01 = async () => {
     console.error("Error fetching type data:", err);
   }
 };
-const instrumentFunction02 = async () => {
-  try {
-    const selectedSubCategory = handleVModel.value.instrumentValue02.value;
 
-    if (!selectedSubCategory) {
-      console.error("No subcategory selected");
-      return;
-    }
+const instrumentFunction02 = async (newValue) => {
+  try {
+    const Value = encodeURIComponent(newValue.value);  
+
     const { data } = await useFetch(
-      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${selectedSubCategory}`
+      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${Value}`
     );
     if (data._rawValue) {
       headerFilters.value.numberValueOp02.options =
@@ -723,29 +712,59 @@ const instrumentFunction02 = async () => {
     console.error("Error fetching type data:", err);
   }
 };
-const instrumentFunction03 = async () => {
+// const instrumentFunction03 = async () => {
+//   debugger
+//   try {
+//     const selectedSubCategory = handleVModel.value.instrumentValue03.value;
+//     if (!selectedSubCategory) {
+//       console.error("No subcategory selected");
+//       return;
+//     }
+//     const { data } = await useFetch(
+//       `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${selectedSubCategory}`
+//     );
+//     if (data._rawValue) {
+
+//       headerFilters.value.numberValueOp03.options =
+//         data._rawValue.search1List.map((IC1) => ({
+//           label: IC1,
+//           value: IC1,
+//         }));
+//     } else {
+//       console.error("No type data found");
+//     }
+//   } catch (err) {
+//     console.error("Error fetching type data:", err);
+//   }
+// };
+
+const instrumentFunction03 = async (newValue) => {
+  debugger
+  const Value = encodeURIComponent(newValue.value);  
   try {
-    const selectedSubCategory = handleVModel.value.instrumentValue03.value;
-    if (!selectedSubCategory) {
-      console.error("No subcategory selected");
-      return;
-    }
-    const { data } = await useFetch(
-      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${selectedSubCategory}`
+    const {data} = await useFetch(
+      `/api/maintenance/equipment/getAllReportData?type=instrument&subCategory=${Value}`
     );
-    if (data._rawValue) {
-      headerFilters.value.numberValueOp03.options =
-        data._rawValue.search1List.map((IC1) => ({
-          label: IC1,
-          value: IC1,
-        }));
+
+    console.log("API Response:", data);
+
+    if (data.value) {
+      console.log("Search1List:", data.value.search1List);
+      headerFilters.value.numberValueOp03.options = data.value.search1List.map((IC1) => ({
+        label: IC1,
+        value: IC1,
+      }));
+      console.log("Updated numberValueOp03 options:", headerFilters.value.numberValueOp03.options);
     } else {
-      console.error("No type data found");
+      console.error("No data found");
     }
   } catch (err) {
-    console.error("Error fetching type data:", err);
+    console.error("Error fetching data:", err);
   }
 };
+
+
+
 
 // const fetchDataInstrumentCategory = async () => {
 //   try {
@@ -888,18 +907,21 @@ try {
 
 </script>
 <template>
-  <UCard class="mb-6">
-    <UForm class="space-y-6">
-      <div class="flex flex-row space-x-6 bg-green-100">
-        <p>Maintenance Order</p>
-        <div class="basis-1/10 max-w-[300px] min-w-[150px]">
+
+    <UForm class="">
+      <div class="flex flex-row space-x-6 bg-[#024CAA] py-[10px] text-white">
+        <p>Report Details</p>
+        
+      </div>
+
+      <div class="basis-1/10 max-w-[90px] min-w-[90px] mb-[10px] mt-[10px]">
+        <span>#</span>
           <p
-            class="mt-[15px] p-[7px] bg-white text-black border border-green-500 rounded-md"
+            class="mt-[1px] p-[4px] bg-white text-black border border-green-500 rounded-md"
           >
             {{ props.mainID }}
           </p>
         </div>
-      </div>
 
       <div class="flex flex-row space-x-6">
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
@@ -941,7 +963,7 @@ try {
         </div>
       </div>
 
-      <div class="flex flex-row space-x-6">
+      <div class="flex flex-row space-x-6 mb-[10px] mt-[10px]">
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
           <div class="flex items-center">
             <UFormGroup label="GSI Calibration Procedure" name="SPECSHEET">
@@ -968,7 +990,7 @@ try {
         </div>
       </div>
 
-      <div class="w-full">
+      <div class="w-full mb-[10px] mt-[10px]">
         <div class="basis-1/2 w-[480px]">
           <h3>Comments</h3>
           <textarea
@@ -981,8 +1003,8 @@ try {
         </div>
       </div>
 
-      <div class="flex flex-row space-x-2">
-        <div class="basis-3/2 mr-4">
+      <div class="flex flex-row space-x-2 mt-[10px]">
+        <div class="basis-3/2 mr-4 mt-[20px]">
           <h3>1</h3>
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
@@ -1098,30 +1120,30 @@ try {
 
       <div class="flex flex-row space-x-2 pt-[50px]">
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>UOM</h3>
+ 
           <UInputMenu
             v-model="handleVModel.UomData"
             :options="headerFilters.UOMLIST.options"
           />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Accuracy</h3>
+     
           <UInput v-model="handleVModel.Accuracy" />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>APPlid</h3>
+    
           <UInput v-model="handleVModel.APPlid" />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Reading</h3>
+ 
           <UInput v-model="handleVModel.Reading" />
         </div>
         <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Status</h3>
+      
           <UInput v-model="handleVModel.Status" />
         </div>
 
-        <div class="basis-3/7 mt-5">
+        <div class="basis-3/7 ">
           <UButton
             icon="i-heroicons-plus"
             variant="outline"
@@ -1130,7 +1152,7 @@ try {
           />
         </div>
 
-        <div class="basis-3/9 mt-5">
+        <div class="basis-3/9 ">
           <UButton
             icon="i-heroicons-minus-circle"
             variant="outline"
@@ -1140,10 +1162,6 @@ try {
         </div>
       </div>
 
-    
-
-    
-  
       <!-- 
       <UTable
         :rows="inventoryDetailGridMeta.reportTableData"
@@ -1218,6 +1236,8 @@ try {
           </template>
         </template>
       </UTable> -->
+
+      
       <UTable
         :rows="inventoryDetailGridMeta.reportTableData"
         :columns="inventoryDetailGridMeta.defaultColumns"
@@ -1295,7 +1315,7 @@ try {
     </UForm>
 
    
-  </UCard>
+ 
 
   <div class="flex justify-end space-x-4 pt-[10px]">
     <div class="basis-1/6">

@@ -10,7 +10,7 @@ export default eventHandler(async (event) => {
     switch (method.toUpperCase()) {
       case 'GET':
         // Check for query parameters to differentiate between equipment and type requests
-        const { type, subCategory } = getQuery(event);
+        const { type, subCategory} = getQuery(event);
 
         if (type === 'by') {
           const equipmentList = await getAllReportByData();
