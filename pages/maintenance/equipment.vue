@@ -2,7 +2,6 @@
 import EquipmentPage from "../../components/maintenance/equipment/list.vue";
 </script>
 
-<!-- ChangeOrdersForm.vue -->
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
