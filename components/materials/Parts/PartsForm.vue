@@ -29,12 +29,15 @@ const props = defineProps({
   fromProductForm: {
     type: [Boolean, null],
   },
+  partTable: {
+    type: Object,
+  },
+  partColumns: {
+    type: Array,
+  },
 });
 
 const selectedPartsID = ref();
-console.log("Parets ID-------", props.selectedParts);
-console.log("Part Instace--------", props.selectedPartInstace);
-console.log("Part Model--------", props.selectedPartModel);
 
 const locationGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -306,8 +309,6 @@ const getPartsData = async () => {
   await useApiFetch(`/api/materials/parts/parts/${selectedPartsID.value}`, {
     method: "GET",
     onResponse({ response }) {
-      console.log("Get by ID ----", response);
-
       if (response.status === 200) {
         loadingOverlay.value = false;
         partsExist.value = true;
@@ -486,17 +487,6 @@ const propertiesInit = async () => {
           value: item.UniqueId,
         }));
 
-        // if (formData.WORKCENTERS) {
-        //   const workCenterIds = formData.WORKCENTERS.split(",")
-        //     .map((id) => id.trim())
-        //     .filter((id) => id !== "");
-
-        //   const filteredResponse = response._data.filter((val) =>
-        //     workCenterIds.includes(val.UniqueId)
-        //   );
-        //   locationGridMeta.value.options = filteredResponse;
-        // }
-
         if (formData.WORKCENTERS) {
           const workCenterIds = formData.WORKCENTERS.split(",")
             .map((id) => id.trim())
@@ -664,7 +654,6 @@ const onAdd = async (event: FormSubmitEvent<any>) => {
     method: "POST",
     body: event.data,
     onResponse({ response }) {
-      console.log("POST", response);
       if (response.status === 200) {
         toast.add({
           title: "Add Success",
@@ -697,7 +686,6 @@ const onEdit = async (event: FormSubmitEvent<any>) => {
     method: "PUT",
     body: event.data,
     onResponse({ response }) {
-      console.log("PUT", response);
       if (response.status === 200) {
         toast.add({
           title: "Modify Success",
@@ -880,7 +868,6 @@ const updateLocationTable = (selectedIds) => {
       location: option.label,
       UniqueId: option.value,
     }));
-  console.log("formData.WORKCENTERS", formData.WORKCENTERS);
 };
 
 watch(
@@ -941,8 +928,8 @@ watch(
   <template v-else>
     <UForm :state="formData" class="space-y-4">
       <div class="flex flex-col container">
-        <div class="flex">
-          <div class="basis-1/2 border-r-[3px] border-black">
+        <div class="grid grid-cols-2">
+          <div class="border-r-[3px] border-black">
             <div
               class="w-full px-3 py-1 gmsBlueTitlebar flex flex-row justify-between"
             >
@@ -955,12 +942,14 @@ watch(
             <!-- Part List -->
             <div class="w-full p-3 border-b-[3px] border-black">
               <div class="flex flex-col space-y-2">
-                <div>
+                <div class="max-w-full">
                   <UTable
+                    :columns="props.partColumns"
+                    :rows="props.partTable.partsList"
                     class="w-full"
                     :ui="{
                       wrapper:
-                        'h-[115px] overflow-y-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+                        'h-[115px] overflow-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
                       divide: 'divide-gray-200 dark:divide-gray-800',
                       tr: {
                         active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
@@ -1225,7 +1214,7 @@ watch(
           </div>
 
           <!-- Inventory -->
-          <div class="w-1/2">
+          <div class="">
             <div class="w-full px-3 py-1 gmsBlueTitlebar">Inventory</div>
             <div
               class="w-full flex flex-row p-3 space-x-3 border-b-[3px] border-black"
