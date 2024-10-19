@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { format, addDays, getISOWeeksInYear, getISOWeek } from "date-fns";
-import { BryntumGantt } from "@bryntum/gantt-vue-3";
+// import { BryntumGantt } from "@bryntum/gantt-vue-3";
 import "@bryntum/gantt/gantt.stockholm.css";
 
 import type { UTableColumn } from "~/types";
@@ -895,7 +895,9 @@ const onScheduletaskDblClick = async (event) => {
           },
           td: {
             padding: 'py-1',
+            base: 'border border-gray-300',
           },
+          
         }" :empty-state="{
             icon: 'i-heroicons-circle-stack-20-solid',
             label: 'No items.',
@@ -940,7 +942,7 @@ const onScheduletaskDblClick = async (event) => {
             </template>
           </template>
           <template #edit-data="{ row }">
-            <UTooltip text="Delete" class="flex justify-center">
+            <UTooltip text="Open" class="flex justify-center">
               <UButton color="gray" variant="ghost" icon="i-heroicons-eye" @click="onReportView(row)" />
             </UTooltip>
           </template>
