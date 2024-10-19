@@ -288,6 +288,8 @@ const handleSaveNonConformanceTags = async () => {
     }
   })
 };
+
+
 const deleteNonConformanceTag = async () => {
   await useApiFetch(`/api/engineering/nonconformances/tag?id=${tagEntriesGridMeta.value.selectedTagEntry.UniqueID}`, {
     method: 'DELETE',
@@ -314,6 +316,8 @@ const deleteNonConformanceTag = async () => {
     }
   })
 };
+
+
 const handleFilterChange = async (event, name) => {
   if (filterValues.value.hasOwnProperty(name)) {
     filterValues.value[name] = event;

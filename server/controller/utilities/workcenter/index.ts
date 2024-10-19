@@ -53,7 +53,7 @@ export const getAllWorkCenterData = async () => {
       };
     });
 
-    console.log('Combined results:', JSON.stringify(combinedResults, null, 2));
+    // console.log('Combined results:', JSON.stringify(combinedResults, null, 2));
 
     return combinedResults;
   } catch (error) {
@@ -83,7 +83,6 @@ export const insertDataWorkCenters = async (data) => {
 
 // ok code
 export const updateDataWorkCenters = async (data) => {
-  console.log(data)
   try {
     const workCenter = await tblWorkCenters.findByPk(data.uniqueID);
     
