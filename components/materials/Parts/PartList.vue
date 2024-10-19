@@ -455,7 +455,7 @@ const onDblClick = async () => {
 };
 </script>
 
-<template>
+<!-- <template>
   <div class="px-4 py-2 gmsBlueTitlebar">
     <h2>Part Lookup</h2>
   </div>
@@ -639,4 +639,4 @@ const onDblClick = async () => {
       :selectedPartModel="gridMeta.selectedPartModdel"
     />
   </UDashboardModal>
-</template>
+</template> -->

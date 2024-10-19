@@ -59,8 +59,60 @@ const init = () => {
 init();
 </script>
 
+ <template>
+  <div class="bg-gray-700 px-[20px] py-[30px]">
+    <div class="w-[360px]">
+ 
+      <div class="flex justify-center items-center mb-4">
+        <img src="../public/grimm_logo_menu_dropshadow_v2.png" alt="Grimm Logo" />
+      </div>
 
-<template>
+      <div class="vl-parent mb-4">
+        <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+          loader="dots" />
+      </div>
+
+
+      <UCard class="w-full bg-gray-500 border border-gray-600">
+        <div class="text-center text-2xl font-[1000] w-full text-white">
+          Welcome
+        </div>
+        <UForm :schema="schema" :state="formData" class="space-y-4" @submit="onSubmit">
+          <UFormGroup label="Username" name="user">
+            <UInputMenu v-model="formData.user" v-model:query="formData.user" :options="users" />
+          </UFormGroup>
+          <UFormGroup label="Password" name="password">
+            <UInput v-model="formData.password" type="password" />
+          </UFormGroup>
+          <UButton type="submit"
+          
+          :ui="{
+              base: 'w-full justify-center border border-gray-600 0 ',
+              
+              text: 'text-gray-600',
+             
+            }"
+             style="background-color: #2d3748;"
+            >
+            Login
+          </UButton>
+        </UForm>
+      </UCard>
+
+
+      <div class="mt-4 text-center text-white">
+        © Copyright 2024 - Grimm Scientific Industries
+      </div>
+      <div class="text-center text-white text-sm">
+        Commit ID {COMMIT}
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- <template>
+
+
   <div>
     <div class="w-[360px] flex justify-center items-center">
       <img src="../public/grimm_logo_menu_dropshadow_v2.png" alt="Grimm Logo" />
@@ -69,7 +121,7 @@ init();
       <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
         loader="dots" />
     </div>
-    <UCard class="w-[360px] bg-white/100 dark:bg-black backdrop-blur">
+    <UCard class="w-[360px]">
       <div class="text-center text-2xl font-[1000] w-full">
         Welcome
       </div>
@@ -94,4 +146,6 @@ init();
       Commit ID {COMMIT}
     </div>
   </div>
-</template>
+
+
+</template> -->
