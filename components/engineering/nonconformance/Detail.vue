@@ -217,19 +217,6 @@ const fetchNonConformanceTags = async (uid) => {
       }
     }
   })
-  //   {
-  //     UniqueID: null,
-  //       NonConformanceID: null,
-  //         DateTime: null,
-  //           Quantity: null,
-  //             ReceivedQty: null,
-  //               ByEmployee: null,,
-  //                 AssignedtoEmployee: null,
-  //                   Location: null,
-  //                     Status: null,
-  //                       Justification: null,
-  //                         DISPOSITION: null,
-  // }
   createTagEntriesFormData.value.NonConformanceID = uid;
   createTagEntriesFormData.value.DateTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
   loadingOverlay.value = false;
@@ -383,6 +370,135 @@ const validate = (state: any): FormError[] => {
 
   return errors
 }
+
+const handleSummary = async () => {
+  loadingOverlay.value = true
+  try {
+    const data = await useApiFetch('/api/engineering/nonconformances/generate-summary-pdf', {
+      method: 'GET',
+    });
+    console.log(data)
+    if (data) {
+      const summaryWindow = window.open('', '_blank')
+      summaryWindow.document.write(data)
+    } else {
+      throw new Error('Failed to generate summary HTML')
+    }
+  } catch (error) {
+    console.error('Error generating summary:', error)
+    toast.add({
+      title: "Error",
+      description: "Failed to generate summary",
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'red'
+    })
+  } finally {
+    loadingOverlay.value = false
+  }
+}
+const handleNonConformancePDFGeneration = async () => {
+  if (!nonConformanceGridMeta.value.selectedNonConformance) {
+    toast.add({
+      title: "Error",
+      description: "No non-conformance selected",
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'red'
+    })
+    return
+  }
+
+  loadingOverlay.value = true
+
+  try {
+    const selected = nonConformanceGridMeta.value.selectedNonConformance
+    const data = await useApiFetch('/api/engineering/nonconformances/generate-pdf', {
+      method: 'POST',
+      body: { selected },
+      responseType: 'blob'
+    })
+
+    if (data) {
+      // Create a Blob from the PDF data
+      const blob = new Blob([data], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+
+      // Open the PDF in a new tab
+      window.open(url, '_blank')
+
+      // Clean up the URL object
+      URL.revokeObjectURL(url)
+
+      toast.add({
+        title: "Success",
+        description: `Non-Conformance PDF generated successfully`,
+        icon: 'i-heroicons-check-circle',
+        color: 'green'
+      })
+    } else {
+      throw new Error(`Failed to generate PDF`)
+    }
+  } catch (error) {
+    console.error(`Error generating PDF:`, error)
+    toast.add({
+      title: "Error",
+      description: `Failed to generate PDF`,
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'red'
+    })
+  } finally {
+    loadingOverlay.value = false
+  }
+}
+
+const handlePrintLabel = async () => {
+  if (!nonConformanceGridMeta.value.selectedNonConformance) {
+    toast.add({
+      title: "Error",
+      description: "No non-conformance selected",
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'red'
+    })
+    return
+  }
+
+  try {
+    const data = await useApiFetch('/api/engineering/nonconformances/printLabel', {
+      method: 'POST',
+      body: {
+        data: nonConformanceGridMeta.value.selectedNonConformance
+      }
+    })
+
+    if (data) {
+      const printWindow = window.open('', '_blank')
+      if (printWindow) {
+        printWindow.document.write(data)
+        printWindow.document.close()
+
+
+        toast.add({
+          title: "Success",
+          description: "Label prepared for printing",
+          icon: 'i-heroicons-check-circle',
+          color: 'green'
+        })
+      } else {
+        throw new Error('Unable to open new window')
+      }
+    } else {
+      throw new Error('Failed to generate label HTML')
+    }
+  } catch (error) {
+    console.error('Error printing label:', error)
+    toast.add({
+      title: "Error",
+      description: "Failed to prepare label for printing",
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'red'
+    })
+  }
+}
+
 const handleClear = () => {
   tagEntryFormData.value = {
     poNum: 0,
@@ -427,7 +543,8 @@ else
             </div>
             <div class="min-w-[150px]">
               <UButton icon="i-heroicons-eye" label="Summary" variant="outline"
-                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
+                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate
+                @click="handleSummary" />
             </div>
           </div>
         </div>
@@ -617,12 +734,14 @@ else
           </div>
           <div class="flex flex-row space-x-3">
             <div class="basis-1/2 w-full">
-              <UButton icon="i-heroicons-plus" label="View Non-Conformance" variant="outline" color="green"
+              <UButton icon="i-heroicons-plus" label="View Non-Conformance" variant="outline"
+                @click="handleNonConformancePDFGeneration" color="green"
                 :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
             </div>
             <div class="basis-1/2 w-full">
               <UButton icon="i-heroicons-plus" label="Print Label" variant="outline" color="green"
-                :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
+                @click="handlePrintLabel" :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
+                truncate />
             </div>
           </div>
         </div>

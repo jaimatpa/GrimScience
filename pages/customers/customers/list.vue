@@ -113,15 +113,17 @@ const gridMeta = ref({
     key: 'siteVisit',
     label: 'Site Visit',
     kind: 'actions'
-  }, {
-    key: 'edit',
-    label: 'Edit',
-    kind: 'actions'
-  }, {
-    key: 'delete',
-    label: 'Del',
-    kind: 'actions'
-  }
+  },
+  
+  // {
+  //   key: 'edit',
+  //   label: 'Edit',
+  //   kind: 'actions'
+  // }, {
+  //   key: 'delete',
+  //   label: 'Del',
+  //   kind: 'actions'
+  // }
   ],
   page: 1,
   pageSize: 50,

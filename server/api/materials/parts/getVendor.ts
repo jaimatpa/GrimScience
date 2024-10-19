@@ -4,8 +4,6 @@ import { defineEventHandler, setResponseStatus } from 'h3';
 
 export default defineEventHandler(async (event) => {
   try {
-    console.log("vendor coming");
-
     const method = event.req.method; // Use event.req.method to get the HTTP method
 
     switch (method.toUpperCase()) {

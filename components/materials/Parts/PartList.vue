@@ -1,17 +1,133 @@
+<template>
+    <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Part Lookup</h2>
+    </div>
+
+    <UDashboardToolbar class="bg-gms-gray-100">
+        <template #left>
+            <div class="flex flex-row space-x-3" style="max-width:930px;">
+                <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
+                    <template v-if="value.options.length > 1">
+                        <div class="basis-1/7 max-w-[200px]">
+                            <UFormGroup :label="value.label" :name="key">
+                                <USelect v-model="filterValues[`${value.filter}`]" :options="value.options"
+                                    @change="handleFilterChange()" />
+                            </UFormGroup>
+                        </div>
+                    </template>
+                </template>
+
+            </div>
+        </template>
+        <template #right>
+            <UButton color="green" variant="outline" :loading="exportIsLoading" label="Export to Excel"
+                trailing-icon="i-heroicons-document-text" @click="excelExport">
+            </UButton>
+            <UButton color="green" variant="outline" label="New Part" trailing-icon="i-heroicons-plus"
+                @click="onCreate()" />
+        </template>
+    </UDashboardToolbar>
+
+    <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Lookup</h2>
+    </div>
+    <UTable :rows="gridMeta.parts" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
+        divide: 'divide-gray-200 dark:divide-gray-800',
+        th: {
+            base: 'sticky top-0 z-10',
+            padding: 'pb-0',
+        },
+        td: {
+            padding: 'py-1',
+        },
+    }" :empty-state="{
+        icon: 'i-heroicons-circle-stack-20-solid',
+        label: 'No items.',
+    }" @select="onSelect" @dblclick="onDblClick">
+        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+            <template v-if="column.kind !== 'actions'">
+                <div class="">
+                    <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                        @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
+                        :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
+                            ? noneIcon
+                            : column?.sortDirection === 'asc'
+                                ? ascIcon
+                                : descIcon
+                            " :filterable="column.filterable" :filter-key="column.key" />
+                </div>
+            </template>
+            <template v-else class="bg-slate-400">
+                <div class="flex justify-center text-center w-[53px]">
+                    {{ column.label }}
+                </div>
+            </template>
+        </template>
+
+        <template #edit-data="{ row }">
+            <UTooltip text="Edit" class="flex justify-center">
+                <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
+            </UTooltip>
+        </template>
+        <template #delete-data="{ row }">
+            <UTooltip text="Delete" class="flex justify-center">
+                <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
+            </UTooltip>
+        </template>
+    </UTable>
+    <div class="flex flex-row justify-end mr-20 mt-1">
+        <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfParts | 0"
+            v-model="gridMeta.page" @update:model-value="handlePageChange()" />
+    </div>
+    <div v-if="!props.isPage">
+        <div class="mt-3 w-[120px]">
+            <UButton icon="i-heroicons-cursor-arrow-ripple" variant="outline" color="green" label="Select" :ui="{
+                base: 'w-full',
+                truncate: 'flex justify-center w-full',
+            }" truncate @click="handleSelect">
+            </UButton>
+        </div>
+    </div>
+    <UDashboardModal v-model="modalMeta.isCustomerModalOpen" :title="modalMeta.modalTitle" :ui="{
+        title: 'text-lg text-white',
+        header: {
+            base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
+        },
+        body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+        width: 'w-[1500px] sm:max-w-9xl',
+    }">
+        <MaterialsPartsForm 
+        @close="handleModalClose" 
+        @save="handleModalSave"
+        @productFormData="handleDataFromPartForm"
+        :selectedParts="gridMeta.selectedCustomerId" 
+        :selectedPartInstace="gridMeta.selectedPartInstanceId"
+        :is-modal="true" 
+        :selectedPartModel="gridMeta.selectedPartModdel"
+        :fromProductForm="props.fromProductForm"
+        />
+        
+    </UDashboardModal>
+</template>
+
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
-const emit = defineEmits(["select", "close", "rowSelectedPart"]);
+const emit = defineEmits(["select", "close", 'productFormData'])
 
 const props = defineProps({
-  isPage: {
-    type: Boolean,
-    default: false,
-  },
-
-  isPageSerial: {
-    type: Boolean,
-    default: false,
-  },
+    category: {
+        type: [String, null],
+    },
+    subCategory: {
+        type: [String, null]
+    },
+    fromProductForm: {
+        type:[Boolean, null]
+    },
+    isPage: {
+        type: Boolean,
+        default: false
+    }
 });
 onMounted(() => {
   init();
@@ -108,13 +224,14 @@ const modalMeta = ref({
   modalTitle: "New Parts",
 });
 const filterValues = ref({
-  PARTTYPE: null,
-  SUBCATEGORY: null,
+  PARTTYPE: props.category || null,
+  SUBCATEGORY: props.subCategory || null,
   DESCRIPTION: null,
   OnHand: null,
   ETLCriticalComponent: null,
-  MODEL: null,
+  MODEL: props.fieldValue || null
 });
+
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
 
@@ -325,6 +442,11 @@ const handleSelect = () => {
   emit("select", gridMeta.value.description);
   emit("close");
 };
+const handleDataFromPartForm = (data) => {
+  emit('productFormData',data);
+  emit('close');
+}
+
 const onDblClick = async () => {
   if (gridMeta.value.selectedCustomerId) {
     modalMeta.value.modalTitle = "Edit";

@@ -1,11 +1,17 @@
 <script lang="ts" setup>
-import type jobCat from "~/server/api/jobs/jobCat";
 import type { UTableColumn } from "~/types";
+import Loading from "vue-loading-overlay";
+import { format } from "date-fns";
 
 useSeoMeta({
   title: "Grimm-Employees Organization",
 });
 
+const props = defineProps({
+  isPage: {
+    type: [Boolean, null],
+  },
+});
 onMounted(() => {
   init();
 });
@@ -16,16 +22,17 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const route = useRoute();
 const toast = useToast();
+const loadingOverlay = ref(false);
+const loadingDeleteButton = ref(false)
+const isOpen = ref(true)
+const isReleased = ref(false)
+const selected = ref([])
+const startDate = ref(new Date('2019-10-12'));
+const endDate = ref(new Date());
+const deleteJob = ref(null)
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
-    {
-      key: "UniqueID",
-      label: "UniqueID",
-      sortable: true,
-      sortDirection: "none",
-      filterable: true,
-    },
     {
       key: "NUMBER",
       label: "Job #",
@@ -135,7 +142,7 @@ const headerFilters = ref({
   jobCat: {
     label: "Category",
     filter: "jobCat",
-    options: [],
+    options: [""],
   },
   jobTypes: {
     label: "Sub Category",
@@ -144,11 +151,21 @@ const headerFilters = ref({
   },
 });
 
+const handleHeaderCheckboxChange = () => {
+  gridMeta.value.page = 1;
+  fetchGridData()
+}
+
+watch([startDate, endDate], () => {
+  fetchGridData();  // Fetch data whenever either startDate or endDate changes
+});
+
 const modalMeta = ref({
   isJobFormModalOpen: false,
   modalTitle: "New Job",
   modalDescription: "Add New Job",
   isPositionModalOpen: false,
+  isDeleteModalOpen: false,
 });
 
 const filterValues = ref({
@@ -159,10 +176,12 @@ const filterValues = ref({
   PerType: null,
   DATEOPENED: null,
   DATECLOSED: null,
+  ProductionDate: null,
   PercentageComplete: null,
   Cost: null,
   jobcat: null,
   jobsubcat: null,
+  
 });
 
 const selectedColumns = ref(gridMeta.value.defaultColumns);
@@ -206,11 +225,16 @@ const init = async () => {
 
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
-  // // handle number of jobs and pagination
+  // handle number of jobs and pagination
   await useApiFetch("/api/jobs/numbers", {
     method: "GET",
     params: {
+      isOpen: isOpen.value,
+      isReleased: isReleased.value,
+      startDate:startDate.value,
+      endDate:endDate.value,
       ...filterValues.value,
+      
     },
     onResponse({ response }) {
       if (response.status === 200) {
@@ -232,6 +256,7 @@ const fetchGridData = async () => {
       Math.ceil(gridMeta.value.numberOfOrganization / gridMeta.value.pageSize) |
       1;
   }
+  
   await useApiFetch("/api/jobs", {
     method: "GET",
     params: {
@@ -239,7 +264,12 @@ const fetchGridData = async () => {
       pageSize: gridMeta.value.pageSize,
       sortBy: gridMeta.value.sort.column,
       sortOrder: gridMeta.value.sort.direction,
+      isOpen: isOpen.value,
+      isReleased: isReleased.value,
+      startDate:startDate.value,
+      endDate:endDate.value,
       ...filterValues.value,
+      
     },
     onResponse({ response }) {
       if (response.status === 200) {
@@ -336,26 +366,78 @@ const onDblClick = async () => {
 };
 
 const onDelete = async (row: any) => {
-  await useApiFetch(`/api/jobs/${row?.UniqueID}`, {
-    method: "DELETE",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        toast.add({
-          title: "Success",
-          description: response._data.message,
-          icon: "i-heroicons-trash-solid",
-          color: "green",
-        });
-        fetchGridData();
-      }
-    },
-  });
+  deleteJob.value = row?.UniqueID
+  modalMeta.value.isDeleteModalOpen = true
 };
+
+const handleDeleteClick = async () => {
+  if(deleteJob.value != null){
+    loadingDeleteButton.value = true
+    await useApiFetch(`/api/jobs/${deleteJob.value}`, {
+      method: "DELETE",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          toast.add({
+            title: "Success",
+            description: response._data.message,
+            icon: "i-heroicons-trash-solid",
+            color: "green",
+          });
+          fetchGridData();
+        }
+      },
+    });
+    loadingDeleteButton.value = false
+    modalMeta.value.isDeleteModalOpen = false
+    deleteJob.value = null
+  }
+}
+
+const handleBulkClose = async () => {
+  loadingOverlay.value = true
+  await useApiFetch("/api/jobs/bulkclosejobs", {
+    method: "PUT",
+    body: { selectedJobs: selected.value },
+  });
+
+  await fetchGridData()
+  loadingOverlay.value = false
+}
+
+const onUpdatePercentage = async () => {
+  loadingOverlay.value = true
+  await useApiFetch("/api/jobs/updatejobpercentage", {
+    method: "PUT",
+  });
+
+  await fetchGridData()
+  loadingOverlay.value = false
+}
+
+const openJobDetailsForm = (jobId) => {
+  gridMeta.value.selectedJobId = jobId
+}
+
 </script>
 
 <template>
+  <div class="vl-parent">
+    <loading
+      v-model:active="loadingOverlay"
+      :is-full-page="true"
+      color="#000000"
+      backgroundColor="#1B2533"
+      loader="dots"
+    />
+  </div>
   <UDashboardPage>
     <UDashboardPanel grow>
+      <UDashboardNavbar class="gmsBlueHeader" title="Jobs"> </UDashboardNavbar>
+
+      <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Sort</h2>
+      </div>
+
       <UDashboardToolbar>
         <template #left>
           <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
@@ -378,26 +460,78 @@ const onDelete = async (row: any) => {
               </UFormGroup>
             </div>
           </div>
+          <div class="flex flex-row mt-4">
+              <div class="ml-5">
+                <UCheckbox
+                  v-model="isOpen"
+                  label="Show Open Only"
+                  @update:model-value="handleHeaderCheckboxChange"
+                />
+              </div>
+              <div class="ml-5">
+                <UCheckbox
+                  v-model="isReleased"
+                  label="Show Only Released"
+                  @update:model-value="handleHeaderCheckboxChange"
+                />
+              </div>
+          </div>
+
         </template>
+       
         <template #right>
-          <UButton label="Add New Job" color="gray" trailing-icon="i-heroicons-plus" @click="onCreate()" />
+          <UButton
+            icon="i-heroicons-minus-circle-20-solid"
+            color="red"
+            variant="outline"
+            label="Bulk Close Jobs"
+            trailing-icon="i-heroicons-document-text"
+            @click="handleBulkClose"
+          >
+          </UButton>
+
+          <UButton
+            icon="i-f7-arrow-clockwise"
+            label="Update Job Percentages"
+            variant="outline"
+            color="blue"
+            @click="onUpdatePercentage"
+          />
+    
+          <UButton
+            label="Add New Job"
+            variant="outline"
+            color="green"
+            trailing-icon="i-heroicons-plus"
+            @click="onCreate()"
+          />
         </template>
       </UDashboardToolbar>
-
-      <UTable :rows="gridMeta.organization" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
-        divide: 'divide-gray-200 dark:divide-gray-800',
-        th: {
-          base: 'sticky top-0 z-10',
-          color: 'bg-white dark:text-gray dark:bg-[#111827]',
-          padding: 'p-0',
-        },
-        td: {
-          padding: 'py-1',
-        },
-      }" :empty-state="{
+      <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Lookup</h2>
+      </div>
+      <UTable
+        :rows="gridMeta.organization"
+        :columns="columns"
+        :loading="gridMeta.isLoading"
+         v-model="selected"
+        class="w-full"
+        :ui="{
+          divide: 'divide-gray-200 dark:divide-gray-800',
+          th: {
+            base: 'sticky top-0 z-10',
+            color: 'bg-white dark:text-gray dark:bg-[#111827]',
+            padding: 'p-0',
+          },
+          td: {
+            padding: 'py-1',
+          },
+        }"
+        :empty-state="{
           icon: 'i-heroicons-circle-stack-20-solid',
           label: 'No items.',
         }" @select="onSelect" @dblclick="onDblClick">
+
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <template v-if="column.kind !== 'actions'">
             <div class="px-4 py-3.5">
@@ -430,19 +564,126 @@ const onDelete = async (row: any) => {
       </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
-          <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfOrganization || 0"
-            v-model="gridMeta.page" @update:model-value="handlePageChange()" />
+          <UPagination
+            :max="7"
+            :page-count="gridMeta.pageSize"
+            :total="gridMeta.numberOfOrganization || 0"
+            v-model="gridMeta.page"
+            @update:model-value="handlePageChange()"
+          />
+        </div>
+      </div>
+      <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Date Range Lookup</h2>
+      </div>
+      <div class="px-5 py-2 bg-gms-gray-100">
+        <div class="flex items-center gap-10">
+          <div class="flex items-center gap-2">
+            <p>From</p>
+            <UFormGroup name="From">
+                <UPopover :popper="{ placement: 'top-start' }">
+                  <UButton
+                    icon="i-heroicons-calendar-days-20-solid"
+                    :label="
+                      startDate &&
+                      format(startDate, 'MM/dd/yyyy')
+                    "
+                    variant="outline"
+                    :ui="{
+                      base: 'w-full',
+                      truncate: 'flex justify-center w-full',
+                    }"
+                    truncate
+                  />
+                  <template #panel="{ close }">
+                    <CommonDatePicker
+                      v-model="startDate"
+                      is-required
+                      @close="close"
+                    />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+          </div>
+          <div class="flex items-center gap-2">
+            <p>To</p>
+            <UFormGroup name="To">
+                <UPopover :popper="{ placement: 'top-start' }">
+                  <UButton
+                    icon="i-heroicons-calendar-days-20-solid"
+                    :label="
+                      endDate &&
+                      format(endDate, 'MM/dd/yyyy')
+                    "
+                    variant="outline"
+                    :ui="{
+                      base: 'w-full',
+                      truncate: 'flex justify-center w-full',
+                    }"
+                    truncate
+                  />
+                  <template #panel="{ close }">
+                    <CommonDatePicker
+                      v-model="endDate"
+                      is-required
+                      @close="close"
+                    />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+          </div>
+          <UButton color="primary" variant="solid">
+            Lookup
+          </UButton>
         </div>
       </div>
     </UDashboardPanel>
   </UDashboardPage>
 
-  <!-- New Organization Detail Modal -->
+  <!-- Job Detail Modal -->
   <UDashboardModal v-model="modalMeta.isJobFormModalOpen" :title="modalMeta.modalTitle"
     :description="modalMeta.modalDescription" :ui="{
       width: 'w-[1100px] sm:max-w-7xl',
       body: { padding: 'py-0 sm:pt-0' },
-    }">
-    <JobForm @close="handleModalClose" @save="handleModalSave" :selected-job="gridMeta.selectedJobId" />
+    }"
+  >
+    <JobForm
+      @close="handleModalClose"
+      @save="handleModalSave"
+      :selected-job="gridMeta.selectedJobId"
+      @open="openJobDetailsForm"
+    />
+  </UDashboardModal>
+
+  <!-- Delete Confirmation Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isDeleteModalOpen"
+    title="Delete operation"
+    description="Are you ABSOLUTELY sure you wish to delete this job?"
+    icon="i-heroicons-exclamation-circle"
+    prevent-close
+    :close-button="null"
+    :ui="{
+      icon: {
+        base: 'text-red-500 dark:text-red-400'
+      } as any,
+      footer: {
+        base: 'ml-16'
+      } as any
+    }"
+  >
+    <template #footer>
+      <UButton
+        color="red"
+        label="Delete"
+        :loading="loadingDeleteButton"
+        @click="handleDeleteClick"
+      />
+      <UButton
+        color="white"
+        label="Cancel"
+        @click="modalMeta.isDeleteModalOpen = false"
+      />
+    </template>
   </UDashboardModal>
 </template>

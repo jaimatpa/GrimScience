@@ -36,7 +36,6 @@ const handleSubmit = async () => {
     TimeEntryWithoutJob: formData.value.timeEntryWithoutJob,
     Paid: formData.value.paid,
   };
-
   try {
     loading.value = true;
     const response = await useApiFetch(
@@ -133,6 +132,7 @@ const handleWorkCenterSelect = (row) => {
   };
   console.log("Selected row with ID:", row.uniqueID);
 };
+
 const handleClearForm = async () => {
   formData.value = {
     number: "",
@@ -187,24 +187,15 @@ const handleModify = async () => {
   }
 };
 </script>
-
 <template>
-   <UDashboardNavbar class="gmsPurpleHeader" title="Work Center Information">
-      </UDashboardNavbar>
+  <div>
+    <div class="flex justify-between items-center bg-rose-400 py-[20px] px-[30px]">
+      <h2 class="text-xl font-semibold text-white">
+        Work Center Information
+      </h2>
+    </div>
 
-      <div class="px-4 py-2 gmsPurpleTitlebar">
-        <h2>Workcenter</h2>
-      </div>
-  <UCard>
- 
-      <!-- <div class="flex justify-between items-center bg-teal-100 mb-[15px]">
-        <h2 class="text-xl font-semibold text-blue-800  py-[20px] pl-[10px]">
-          Work Center Information
-        </h2>
-      </div> -->
-
-
-    <div class="space-y-6">
+    <div class="space-y-6 p-4">
       <div class="grid grid-cols-3 gap-4">
         <UFormGroup label="Number">
           <UInput v-model="formData.number" placeholder="number" />
@@ -212,6 +203,7 @@ const handleModify = async () => {
         <UFormGroup label="Name">
           <UInput v-model="formData.name" placeholder="Input Name" />
         </UFormGroup>
+        
         <UFormGroup label="Position Responsibility">
           <USelect
             v-model="formData.position"
@@ -230,54 +222,78 @@ const handleModify = async () => {
       </div>
 
       <!-- Action Buttons -->
-      <div class="grid grid-cols-5 gap-4 px-[1px] my-[5px] py-[1px] ">
-        <UButton
-        class="my-[2px] mx-[3px] pl-[20px]" 
-          icon="i-heroicons-plus"
-          color="green"
-          @click="handleSubmit"
-          :loading="loading"
-        >
-          Add
-        </UButton>
+      <div class="grid grid-cols-2 gap-[25px]">
+        <div>
+          <div class="grid grid-cols-3 gap-[15px]">
+            <UButton
+              icon="i-heroicons-plus"
+              label="Add"
+              variant="outline"
+              :ui="{
+                base: 'min-w-[100px] w-full py-[10px]',
+                truncate: 'flex justify-center w-full',
+              }"
+              truncate
+              @click="handleSubmit"
+              :loading="loading"
+            />
 
-        <UButton
-        class="my-[2px] mx-[3px] pl-[20px]" 
-          icon="i-heroicons-pencil"
-          color="yellow"
-          @click="handleModify"
-          :loading="loadingModify"
-        >
-          Modify
-        </UButton>
+            <UButton
+              variant="outline"
+              :ui="{
+                base: 'min-w-[100px] w-full py-[10px]',
+                truncate: 'flex justify-center w-full',
+              }"
+              truncate
+              icon="i-heroicons-pencil"
+              color="yellow"
+              label="Modify"
+              @click="handleModify"
+              :loading="loadingModify"
+            />
 
-        <UButton
-   
-          icon="i-heroicons-arrow-path"
-          class="bg-red-500 hover:bg-red-400 text-white py-[2px] px-[3px] pl-[20px]" 
-          variant="ghost"
-          @click="handleClearForm"
-        >
-          Clear Form maintanech 
-        </UButton>
+            <UButton
+              variant="outline"
+              :ui="{
+                base: 'min-w-[100px] w-full py-[10px]',
+                truncate: 'flex justify-center w-full',
+              }"
+              truncate
+              icon="i-heroicons-arrow-path"
+              label="Clear Form"
+              @click="handleClearForm"
+              color="red"
+            />
+          </div>
+        </div>
+        <div>
+          <UFormGroup label="Account" class="mt-[-25px]">
+            <div class="grid grid-cols-2 gap-4">
+              <USelect
+                v-model="formData.qbActivity"
+                :options="qbActivities"
+                placeholder="Select QB activity"
+              />
 
-        <UFormGroup label="Account">
-          <USelect
-          class="my-[2px] mx-[3px]" 
-            v-model="formData.qbActivity"
-            :options="qbActivities"
-            placeholder="Select QB activity"
-          />
-        </UFormGroup>
-
-        <UButton icon="i-heroicons-pencil"  class="my-[2px] mx-[3px] pl-[20px]"   color="blue">
-          Load QB
-        </UButton>
+              <UButton
+                variant="outline"
+                :ui="{
+                  base: 'min-w-[100px] w-full py-[10px]',
+                  truncate: 'flex justify-center w-full',
+                }"
+                truncate
+                icon="i-heroicons-pencil"
+                color="blue"
+                label="Load QB"
+              />
+            </div>
+          </UFormGroup>
+        </div>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
         <UTable
-        class="h-[480px]"
+          class="h-[480px]"
           :columns="tableColumns"
           :rows="workCenters"
           @select="handleWorkCenterSelect"
@@ -309,5 +325,6 @@ const handleModify = async () => {
         </div>
       </div>
     </div>
-  </UCard>
+  </div>
 </template>
+
