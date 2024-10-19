@@ -485,6 +485,7 @@ const onDblClick = async () => {
       <PartsForm
         @close="handleModalClose"
         @save="handleModalSave"
+        @refresh="onCreate"
         :selected-parts="gridMeta.selectedPartsId"
         :selectedPartInstace="gridMeta.selectedPartInstanceId"
         :is-modal="true"
