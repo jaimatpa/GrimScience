@@ -895,7 +895,9 @@ const onScheduletaskDblClick = async (event) => {
           },
           td: {
             padding: 'py-1',
+            base: 'border border-gray-300',
           },
+          
         }" :empty-state="{
             icon: 'i-heroicons-circle-stack-20-solid',
             label: 'No items.',
