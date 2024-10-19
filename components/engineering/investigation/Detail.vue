@@ -220,120 +220,68 @@ else
 </script>
 
 <template>
-  <div class="vl-parent">
-    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
-      loader="dots" />
-  </div>
-  <UForm :validate="validate" :validate-on="['submit']" :state="formData" @submit="onSubmit">
+  <UDashboardPage>
+    <div class="vl-parent">
+      <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+        loader="dots" />
+    </div>
+    <UForm :validate="validate" :validate-on="['submit']" :state="formData" @submit="onSubmit">
 
-    <div class="flex flex-col">
-      <div class="flex justify-end px-3 py-1 gmsBlueHeader">
-        <div class="w-1/6">
-          <UButton
-            color="green"
-            variant="outline"
-            :loading="exportIsLoading"
-            label="Export to Excel"
-            trailing-icon="i-heroicons-document-text"
-            @click="excelExport"
-            block
-          />
-        </div>
-      </div>
-      <div class="flex border-b-[3px] border-black">
-        <div class="w-2/3 border-r-[3px] border-black">
-          <div class="w-full px-3 py-1 gmsBlueTitlebar">
-            Lookup
+      <div class="flex flex-col">
+        <div class="flex justify-end px-3 py-1 gmsBlueHeader">
+          <div class="w-1/6">
+            <UButton color="green" variant="outline" :loading="exportIsLoading" label="Export to Excel"
+              trailing-icon="i-heroicons-document-text" @click="excelExport" block />
           </div>
-          <div class="flex flex-col space-y-2 p-3">
-            <div class="flex justify-end">
-              <UCheckbox v-model="filterValues.Status" label="Show Open Only" class="" />
+        </div>
+        <div class="flex border-b-[3px] border-black">
+          <div class="w-2/3 border-r-[3px] border-black">
+            <div class="w-full px-3 py-1 gmsBlueTitlebar">
+              Lookup
             </div>
-            <UTable :rows="investigationGridMeta.investigations" :columns="investigationGridMeta.defaultColumns"
-              class="w-full" :ui="{
-              wrapper: 'h-[225px] overflow-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
-              divide: 'divide-gray-200 dark:divide-gray-800',
-              tr: {
-                active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
-              },
-              th: {
-                base: 'sticky top-0 z-10',
-                color: 'bg-white',
-                padding: 'p-0'
-              },
-              td: {
-                padding: 'py-0'
-              }
-              }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-              @select="onInvestigationSelect" @dblclick="onInvestigationDblclick">
-              <template v-for="column in investigationGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
-                <template v-if="column.kind !== 'actions'">
-                  <template v-if="column.key === 'PRODLINE'">
-                    <div class="min-w-[160px]">
+            <div class="flex flex-col space-y-2 p-3">
+              <div class="flex justify-end">
+                <UCheckbox v-model="filterValues.Status" label="Show Open Only" class="" />
+              </div>
+              <UTable :rows="investigationGridMeta.investigations" :columns="investigationGridMeta.defaultColumns"
+                class="w-full" :ui="{
+                  wrapper: 'h-[225px] overflow-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+                  divide: 'divide-gray-200 dark:divide-gray-800',
+                  tr: {
+                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                  },
+                  th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white',
+                    padding: 'p-0'
+                  },
+                  td: {
+                    padding: 'py-0'
+                  }
+                }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
+                @select="onInvestigationSelect" @dblclick="onInvestigationDblclick">
+                <template v-for="column in investigationGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
+                  <template v-if="column.kind !== 'actions'">
+                    <template v-if="column.key === 'PRODLINE'">
+                      <div class="min-w-[160px]">
+                        <div class="p-1">
+                          <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
+                            :sortable="column.sortable" :sort-key="column.key" :filterable="column.filterable"
+                            :filter-key="column.key" />
+                        </div>
+                      </div>
+                    </template>
+                    <template v-else>
                       <div class="p-1">
                         <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
                           :sortable="column.sortable" :sort-key="column.key" :filterable="column.filterable"
                           :filter-key="column.key" />
                       </div>
-                    </div>
+                    </template>
                   </template>
-                  <template v-else>
-                    <div class="p-1">
-                      <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
-                        :sortable="column.sortable" :sort-key="column.key" :filterable="column.filterable"
-                        :filter-key="column.key" />
-                    </div>
-                  </template>
-                </template>
-                <template v-else class='bg-slate-400'>
-                  <div class="flex justify-center text-center w-[53px]">
-                    {{ column.label }}
-                  </div>
-                </template>
-              </template>
-              <template #empty-state>
-                <div></div>
-              </template>
-            </UTable>
-          </div>
-        </div>
-        <div class="w-1/3">
-          <div class="w-full px-3 py-1 gmsBlueTitlebar">
-            Complaints
-          </div>
-          <div class="flex p-3">
-            <div class="">
-              <UTable :rows="complaintGridMeta.complaints" :columns="complaintGridMeta.defaultColumns" class="w-full"
-                :ui="{
-              wrapper: 'h-[253px] overflow-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
-              divide: 'divide-gray-200 dark:divide-gray-800',
-              tr: {
-                active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
-              },
-              th: {
-                base: 'sticky top-0 z-10',
-                color: 'bg-white',
-                padding: 'p-0'
-              },
-              td: {
-                padding: 'py-0'
-              }
-                }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }">
-                <template v-for="column in complaintGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
-                  <template v-if="column.key === 'Shipdate'">
-                    <div class="min-w-[160px]">
-                      <div class="p-1">
-                        <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
-                          :sortable="column.sortable" :sort-key="column.key" :filterable="column.filterable"
-                          :filter-key="column.key" />
-                      </div>
-                    </div>
-                  </template>
-                  <template v-else>
-                    <div class="p-1">
-                      <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
-                        :sortable="column.sortable" :sort-key="column.key" :filterable="column.filterable"
-                        :filter-key="column.key" />
+                  <template v-else class='bg-slate-400'>
+                    <div class="flex justify-center text-center w-[53px]">
+                      {{ column.label }}
                     </div>
                   </template>
                 </template>
@@ -343,187 +291,229 @@ else
               </UTable>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div class="flex border-b-[3px] border-black">
-        <div class="w-2/3  border-r-[3px] border-black">
-          <div class="w-full px-3 py-1 gmsBlueTitlebar">
-            Investigation
-          </div>
-          <div class="flex flex-col space-y-2 p-3">
-            <div class="flex flex-row space-x-2">
-              <div class="basis-1/12">
-                <UFormGroup label="Number">
-                  <div class="">
-                    {{ formData.uniqueID }}
-                  </div>
-                </UFormGroup>
-              </div>
-              <div class="basis-3/12">
-                <UFormGroup label="Product Line">
-                  <USelect v-model="formData.PRODLLINE" :options="[formData.PRODLLINE]" />
-                </UFormGroup>
-              </div>
-              <div class="basis-3/12">
-                <UFormGroup label="Date">
-                  <UPopover :popper="{ placement: 'bottom-start' }">
-                    <UButton icon="i-heroicons-calendar-days-20-solid"
-                      :label="formData.DIAGDATE && format(formData.DIAGDATE, 'MM/dd/yyyy HH:mm:ss')" variant="outline"
-                      :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
-                    <template #panel="{ close }">
-                      <CommonDatePicker v-model="formData.DIAGDATE" is-required @close="close" />
+          <div class="w-1/3">
+            <div class="w-full px-3 py-1 gmsBlueTitlebar">
+              Complaints
+            </div>
+            <div class="flex p-3">
+              <div class="">
+                <UTable :rows="complaintGridMeta.complaints" :columns="complaintGridMeta.defaultColumns" class="w-full"
+                  :ui="{
+                    wrapper: 'h-[253px] overflow-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+                    divide: 'divide-gray-200 dark:divide-gray-800',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white',
+                      padding: 'p-0'
+                    },
+                    td: {
+                      padding: 'py-0'
+                    }
+                  }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }">
+                  <template v-for="column in complaintGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
+                    <template v-if="column.key === 'Shipdate'">
+                      <div class="min-w-[160px]">
+                        <div class="p-1">
+                          <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
+                            :sortable="column.sortable" :sort-key="column.key" :filterable="column.filterable"
+                            :filter-key="column.key" />
+                        </div>
+                      </div>
                     </template>
-                  </UPopover>
-                </UFormGroup>
-              </div>
-              <div class="basis-5/12">
-                <UFormGroup label="Description">
-                  <UInput v-model="formData.DESCRIPTION" />
-                </UFormGroup>
-              </div>
-            </div>
-            <div class="flex flex-row space-x-2">
-              <div class="basis-5/6">
-                <UFormGroup label="Define Investigations?">
-                  <UInput v-model="formData.PROBELMDESC" />
-                </UFormGroup>
-              </div>
-              <div class="basis-1/6">
-                <UFormGroup label="Diagnosed By">
-                  <USelect v-model="formData.DIAGBY" :options="[formData.DIAGBY]" />
-                </UFormGroup>
+                    <template v-else>
+                      <div class="p-1">
+                        <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
+                          :sortable="column.sortable" :sort-key="column.key" :filterable="column.filterable"
+                          :filter-key="column.key" />
+                      </div>
+                    </template>
+                  </template>
+                  <template #empty-state>
+                    <div></div>
+                  </template>
+                </UTable>
               </div>
             </div>
-            <div class="w-full">
-              <UFormGroup label="Investigation(Use the 5 Whys Method at a minium)">
-                <UTextarea v-model="formData.PROBELMDESC" :rows="6" />
-              </UFormGroup>
+          </div>
+        </div>
+
+        <div class="flex border-b-[3px] border-black">
+          <div class="w-2/3  border-r-[3px] border-black">
+            <div class="w-full px-3 py-1 gmsBlueTitlebar">
+              Investigation
             </div>
-            <div class="w-full">
-              <UFormGroup label="Root Cause">
-                <UInput v-model="formData.PROBLEMDIAG" />
-              </UFormGroup>
-            </div>
-            <div class="flex justify-between">
-              <div class="flex flex-row gap-5 p-2 border-[1px] border-slate-400">
-                <URadio v-for="status of statusGroup" :key='status.value' v-model="selectedStatus" v-bind="status" />
-              </div>
+            <div class="flex flex-col space-y-2 p-3">
               <div class="flex flex-row space-x-2">
-                <div class="flex items-center font-medium">
-                  Closed By
+                <div class="basis-1/12">
+                  <UFormGroup label="Number">
+                    <div class="">
+                      {{ formData.uniqueID }}
+                    </div>
+                  </UFormGroup>
                 </div>
-                <div class="flex items-center min-w-[200px]">
-                  <div class="w-full">
-                    <USelect v-model="formData.IMPLEMENTBY" />
-                  </div>
+                <div class="basis-3/12">
+                  <UFormGroup label="Product Line">
+                    <USelect v-model="formData.PRODLLINE" :options="[formData.PRODLLINE]" />
+                  </UFormGroup>
                 </div>
-              </div>
-              <div class="flex flex-row gap-2">
-                <div class="flex items-center font-medium">
-                  Closed Date
-                </div>
-                <div class="flex items-center min-w-[200px]">
-                  <div class="w-full">
+                <div class="basis-3/12">
+                  <UFormGroup label="Date">
                     <UPopover :popper="{ placement: 'bottom-start' }">
                       <UButton icon="i-heroicons-calendar-days-20-solid"
-                        :label="serviceOrderInfo.COMPLAINTDATE && format(serviceOrderInfo.COMPLAINTDATE, 'MM/dd/yyyy')"
-                        variant="outline" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+                        :label="formData.DIAGDATE && format(formData.DIAGDATE, 'MM/dd/yyyy HH:mm:ss')" variant="outline"
+                        :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
                       <template #panel="{ close }">
-                        <CommonDatePicker v-model="date" is-required @close="close" />
+                        <CommonDatePicker v-model="formData.DIAGDATE" is-required @close="close" />
                       </template>
                     </UPopover>
+                  </UFormGroup>
+                </div>
+                <div class="basis-5/12">
+                  <UFormGroup label="Description">
+                    <UInput v-model="formData.DESCRIPTION" />
+                  </UFormGroup>
+                </div>
+              </div>
+              <div class="flex flex-row space-x-2">
+                <div class="basis-5/6">
+                  <UFormGroup label="Define Investigations?">
+                    <UInput v-model="formData.PROBELMDESC" />
+                  </UFormGroup>
+                </div>
+                <div class="basis-1/6">
+                  <UFormGroup label="Diagnosed By">
+                    <USelect v-model="formData.DIAGBY" :options="[formData.DIAGBY]" />
+                  </UFormGroup>
+                </div>
+              </div>
+              <div class="w-full">
+                <UFormGroup label="Investigation(Use the 5 Whys Method at a minium)">
+                  <UTextarea v-model="formData.PROBELMDESC" :rows="6" />
+                </UFormGroup>
+              </div>
+              <div class="w-full">
+                <UFormGroup label="Root Cause">
+                  <UInput v-model="formData.PROBLEMDIAG" />
+                </UFormGroup>
+              </div>
+              <div class="flex justify-between">
+                <div class="flex flex-row gap-5 p-2 border-[1px] border-slate-400">
+                  <URadio v-for="status of statusGroup" :key='status.value' v-model="selectedStatus" v-bind="status" />
+                </div>
+                <div class="flex flex-row space-x-2">
+                  <div class="flex items-center font-medium">
+                    Closed By
+                  </div>
+                  <div class="flex items-center min-w-[200px]">
+                    <div class="w-full">
+                      <USelect v-model="formData.IMPLEMENTBY" />
+                    </div>
+                  </div>
+                </div>
+                <div class="flex flex-row gap-2">
+                  <div class="flex items-center font-medium">
+                    Closed Date
+                  </div>
+                  <div class="flex items-center min-w-[200px]">
+                    <div class="w-full">
+                      <UPopover :popper="{ placement: 'bottom-start' }">
+                        <UButton icon="i-heroicons-calendar-days-20-solid"
+                          :label="serviceOrderInfo.COMPLAINTDATE && format(serviceOrderInfo.COMPLAINTDATE, 'MM/dd/yyyy')"
+                          variant="outline" :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate />
+                        <template #panel="{ close }">
+                          <CommonDatePicker v-model="date" is-required @close="close" />
+                        </template>
+                      </UPopover>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="w-1/3 flex flex-col">
-          <div class="w-full px-3 py-1 gmsBlueTitlebar">
-            CAPAS
-          </div>
-          <div class="flex flex-col p-3 space-y-2">
-            <div class="">
-              <UTable :rows="complaintGridMeta.complaints" :columns="complaintGridMeta.defaultColumns" class="w-full"
-                :ui="{
-              wrapper: 'h-[354px] overflow-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
-              divide: 'divide-gray-200 dark:divide-gray-800',
-              tr: {
-                active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
-              },
-              th: {
-                base: 'sticky top-0 z-10',
-                color: 'bg-white',
-                padding: 'p-0'
-              },
-              td: {
-                padding: 'py-0'
-              }
-                }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }">
-                <template v-for="column in complaintGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
-                  <template v-if="column.key === 'Shipdate'">
-                    <div class="min-w-[160px]">
+          <div class="w-1/3 flex flex-col">
+            <div class="w-full px-3 py-1 gmsBlueTitlebar">
+              CAPAS
+            </div>
+            <div class="flex flex-col p-3 space-y-2">
+              <div class="">
+                <UTable :rows="complaintGridMeta.complaints" :columns="complaintGridMeta.defaultColumns" class="w-full"
+                  :ui="{
+                    wrapper: 'h-[354px] overflow-auto border border-gray-400 dark:border-gray-700 gms-ModalFormText',
+                    divide: 'divide-gray-200 dark:divide-gray-800',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50'
+                    },
+                    th: {
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white',
+                      padding: 'p-0'
+                    },
+                    td: {
+                      padding: 'py-0'
+                    }
+                  }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }">
+                  <template v-for="column in complaintGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
+                    <template v-if="column.key === 'Shipdate'">
+                      <div class="min-w-[160px]">
+                        <div class="p-1">
+                          <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
+                            :sortable="column.sortable" :sort-key="column.key" :filterable="column.filterable"
+                            :filter-key="column.key" />
+                        </div>
+                      </div>
+                    </template>
+                    <template v-else>
                       <div class="p-1">
                         <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
                           :sortable="column.sortable" :sort-key="column.key" :filterable="column.filterable"
                           :filter-key="column.key" />
                       </div>
-                    </div>
+                    </template>
                   </template>
-                  <template v-else>
-                    <div class="p-1">
-                      <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
-                        :sortable="column.sortable" :sort-key="column.key" :filterable="column.filterable"
-                        :filter-key="column.key" />
-                    </div>
+                  <template #empty-state>
+                    <div></div>
                   </template>
-                </template>
-                <template #empty-state>
-                  <div></div>
-                </template>
-              </UTable>
-            </div>
-            <div class="flex flex-row space-x-2">
-              <div class="w-1/2">
-                <UButton color="gms-blue" label="Add CAPA" block />
+                </UTable>
               </div>
-              <div class="w-1/2">
-                <UButton color="gms-blue" label="Remove CAPA" block />
+              <div class="flex flex-row space-x-2">
+                <div class="w-1/2">
+                  <UButton color="gms-blue" label="Add CAPA" block />
+                </div>
+                <div class="w-1/2">
+                  <UButton color="gms-blue" label="Remove CAPA" block />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="flex justify-between p-3">
-        <div class="w-2/3">
-          <div class="flex flex-row space-x-2">
-            <div class="basis-1/4">
-              <UButton icon="i-heroicons-eye" label="Preview Report" variant="outline"
-              block />
-            </div>
-            <div class="basis-1/4">
-              <UButton icon="i-heroicons-plus" label="Add" color="green" variant="outline"
-              block />
-            </div>
-            <div class="basis-1/4">
-              <UButton icon="i-heroicons-pencil" label="Modify" variant="outline"
-              block />
-            </div>
-            <div class="basis-1/4">
-              <UButton icon="i-f7-rays" label="Clear" color="red" variant="outline"
-                block />
+        <div class="flex justify-between p-3">
+          <div class="w-2/3">
+            <div class="flex flex-row space-x-2">
+              <div class="basis-1/4">
+                <UButton icon="i-heroicons-eye" label="Preview Report" variant="outline" block />
+              </div>
+              <div class="basis-1/4">
+                <UButton icon="i-heroicons-plus" label="Add" color="green" variant="outline" block />
+              </div>
+              <div class="basis-1/4">
+                <UButton icon="i-heroicons-pencil" label="Modify" variant="outline" block />
+              </div>
+              <div class="basis-1/4">
+                <UButton icon="i-f7-rays" label="Clear" color="red" variant="outline" block />
+              </div>
             </div>
           </div>
-        </div>
-        <div class="w-1/3 flex justify-end">
-          <div class="w-1/2">
-            <UButton icon="i-heroicons-cursor-arrow-ripple" label="Select" variant="outline"
-              block />
+          <div class="w-1/3 flex justify-end">
+            <div class="w-1/2">
+              <UButton icon="i-heroicons-cursor-arrow-ripple" label="Select" variant="outline" block />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </UForm>
+    </UForm>
+  </UDashboardPage>
 </template>
