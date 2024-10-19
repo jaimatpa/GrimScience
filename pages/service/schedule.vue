@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { format, addDays, getISOWeeksInYear, getISOWeek } from "date-fns";
-import { BryntumGantt } from "@bryntum/gantt-vue-3";
+
 import "@bryntum/gantt/gantt.stockholm.css";
 
 import type { UTableColumn } from "~/types";
