@@ -135,6 +135,7 @@ const watchCheckbox = (property, filterKey) => {
   );
 }
 
+
 // Watch for each checkbox
 watchCheckbox('injury', 'INJURYREPORTNO');
 watchCheckbox('open', 'OPENCASE');
