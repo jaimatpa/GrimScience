@@ -150,6 +150,7 @@ const tblWorkStation = sequelize.define('tblWorkStation', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName:"tblWorkStation",
    timestamps: false
 });
 
