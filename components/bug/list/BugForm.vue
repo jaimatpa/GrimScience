@@ -4,8 +4,7 @@ import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
 import { format } from "date-fns";
 
-const fileRef = ref<HTMLInputElement>();
-const emit = defineEmits(["close", "save"]);
+const emit = defineEmits(["close", "save", "fetchGridData", "onCreate"]);
 const props = defineProps({
   isModal: {
     type: Boolean,
@@ -15,6 +14,7 @@ const props = defineProps({
     required: true,
   },
 });
+
 
 const toast = useToast();
 
@@ -39,7 +39,6 @@ const versionList = ref([
 ]);
 
 const formList = ref([]);
-
 const employeeList = ref([]);
 
 const formData = reactive({
@@ -86,11 +85,6 @@ const editInit = async () => {
   loadingOverlay.value = false;
 };
 
-function onFileClick() {
-  fileRef.value?.click();
-}
-
-
 const propertiesInit = async () => {
   loadingOverlay.value = true;
 
@@ -102,9 +96,7 @@ const propertiesInit = async () => {
       }
     },
     onResponseError() {
-      formList.value = [
-        "Form 1", "Form 2", "Form 3",
-      ].slice(0, 20);
+      formList.value = []
     },
   });
 
@@ -116,9 +108,7 @@ const propertiesInit = async () => {
       }
     },
     onResponseError() {
-      employeeList.value = [
-        "AL", "AK", "AZ", "AR",
-      ].slice(0, 20);
+      employeeList.value = []
     },
   });
 
@@ -133,7 +123,7 @@ const validate = (state: any): FormError[] => {
     errors.push({ path: 'resolved', message: 'Status must be either "Open" or "Closed".' });
   }
   if (!state.formName) {
-    errors.push({ path: 'formName', message: 'Form Name is required.' });
+    errors.push({ path: 'formName', message: 'Form Reported is required.' });
   }
   if (!state.complaintText || state.complaintText.trim() === '') {
     errors.push({ path: 'complaintText', message: 'Description is required.' });
@@ -193,6 +183,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
 };
 
 const resetForm = () => {
+  emit("onCreate")
   formData.resolved = null;
   formData.formName = null;
   formData.employee = null;
@@ -202,6 +193,27 @@ const resetForm = () => {
   formData.cost = null;
   formData.approved = null;
   formData.resolveversion = null;
+};
+
+const onDelete = async (uniqueid: any) => {
+  loadingOverlay.value = true;
+  await useApiFetch(`/api/bugs/${uniqueid}`, {
+    method: "DELETE",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: "i-heroicons-trash-solid",
+          color: "green",
+        });
+        emit("fetchGridData");
+        loadingOverlay.value = true;
+        emit("close");
+      }
+    },
+  });
+  loadingOverlay.value = false;
 };
 
 if (props?.selectedBug) editInit();
@@ -264,7 +276,7 @@ else propertiesInit();
             </div>
 
             <div class="flex justify-between space-x-2">
-              <UFormGroup label="Form Name" name="formName" class="w-full">
+              <UFormGroup label="Form Reported" name="formName" class="w-full">
                 <UInputMenu v-model="formData.formName" :options="formList"  />
               </UFormGroup>
               <UFormGroup label="By" name="employee" class="w-full">
@@ -309,7 +321,7 @@ else propertiesInit();
                 />
               </div>
 
-              <div v-else class="w-[150px]">
+              <div v-if="props.selectedBug" class="w-[150px]">
                 <UButton
                   label="Modify Bug"
                   color="primary"
@@ -328,6 +340,17 @@ else propertiesInit();
                   icon="i-heroicons-x-circle"
                   block
                   @click="resetForm"
+                />
+              </div>
+
+              <div v-if="props.selectedBug" class="w-[150px]">
+                <UButton
+                  label="Delete"
+                  color="red"
+                  variant="outline"
+                  icon="i-heroicons-x-circle"
+                  block
+                  @click="onDelete(formData.uniqueid)"
                 />
               </div>
 

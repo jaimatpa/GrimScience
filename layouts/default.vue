@@ -679,6 +679,10 @@ const links = [
         to: "/utilities/settings",
       },
       {
+        label: "Work Centers",
+        to: "/utilities/work-centers",
+      },
+      {
         label: "App Projects",
         to: "/utilities/projects",
       },
@@ -821,7 +825,9 @@ const getUiConfig = (link) => {
 
 const Logout = () => {
   const token = useCookie('token');
+  const user = useCookie('user');
   token.value = null;
+  user.value = null;
   navigateTo('/login');
 }
 

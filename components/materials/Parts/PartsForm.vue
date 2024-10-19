@@ -9,7 +9,7 @@ import PurchaseDetails from "../vendors/PurchaseDetails.vue";
 import InventoryTransactions from "../transactions/InventoryTransactions.vue";
 import ProductsForm from "~/components/products/ProductsForm.vue";
 
-const emit = defineEmits(["close", "save", "refresh"]);
+const emit = defineEmits(["close", "save", "refresh", "productFormData"]);
 const props = defineProps({
   selectedParts: {
     type: [String, Number, null],
@@ -25,6 +25,9 @@ const props = defineProps({
   selectedPartModel: {
     type: [String, Number, null],
     required: true,
+  },
+  fromProductForm: {
+    type: [Boolean, null],
   },
 });
 
@@ -829,6 +832,11 @@ const optionOnhandITD = () => {
       inventory.class = inventory.onhandITD > 0 ? "bg-orange-400" : undefined;
     });
   }
+};
+
+const selectPartForProductForm = (model) => {
+  emit("productFormData", model);
+  emit("close");
 };
 
 const modalMeta = ref({

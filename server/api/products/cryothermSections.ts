@@ -1,14 +1,13 @@
-import { getEmployeeSchedules } from "~/server/controller/jobs";
+import { getCryothermSections } from '~/server/controller/products';
 
 export default eventHandler(async (event) => {
   try {
-    const { page, pageSize, sortBy, sortOrder, ...filterParams } = getQuery(event);
     const method = event._method;
     
     switch(method.toUpperCase()){
       case 'GET':
-        const list = await getEmployeeSchedules(page, pageSize, sortBy, sortOrder, filterParams);
-        return { body: list, message: '' }
+        const cryothermSections = await getCryothermSections()
+        return { body: cryothermSections, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

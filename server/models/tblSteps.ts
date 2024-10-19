@@ -21,7 +21,9 @@ const tblSteps = sequelize.define('tblSteps', {
       type: DataTypes.TEXT,
    },
 }, {
-   timestamps: false
+   tableName: 'tblSteps',
+   timestamps: false 
 });
+
 
 export default tblSteps;
