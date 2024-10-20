@@ -60,7 +60,7 @@ init();
 </script>
 
 <template>
-  <div class="w-full min-h-screen bg-gradient-to-l from-blue-100 via-purple-100 to-pink-100 flex items-center justify-center">
+  <div class="">
     <div class="w-full max-w-[360px]">
       <div class="flex justify-center items-center mb-4">
         <img src="../public/grimm_logo_menu_dropshadow_v2.png" alt="Grimm Logo" />
