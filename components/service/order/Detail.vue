@@ -27,6 +27,10 @@ const props = defineProps({
     type: [Number, String, null],
     required: true
   },
+  mainID: {
+    type: String,
+    required: true,
+  },
 })
 
 const complaintUniquueId = ref(props.selectedOrder)
@@ -1039,9 +1043,9 @@ else {
         </div>
         <div class="flex flex-row px-3 py-2">
           <div class="basis-5/12 leading-6">
-            <!-- <div class="font-bold">{{ serviceOrderInfo?.['SR#'] ? `# ${serviceOrderInfo['SR#']}` : '' }}</div> -->
-            <div class="font-bold">{{ serviceOrderInfo?.COMPLAINTNUMBER ? `# ${serviceOrderInfo.COMPLAINTNUMBER}` : '' }}
-            </div>
+            <div class="font-bold">{{ props.mainID }}</div>
+            <!-- <div class="font-bold">{{ serviceOrderInfo?.COMPLAINTNUMBER ? `# ${serviceOrderInfo.COMPLAINTNUMBER}` : '' }}
+            </div> -->
             <div>{{ serviceOrderInfo?.PRODUCTDESC }}</div>
             <div>{{ serviceOrderInfo?.SERIALNO ? `Serial ${serviceOrderInfo.SERIALNO}` : '' }}</div>
           </div>
