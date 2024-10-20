@@ -75,8 +75,8 @@ export default eventHandler(async (event) => {
         const createdId = await createParts(reqData);
 
         return { body: { createdId }, message: "Part created successfully" };
-      
-        default:
+
+      default:
         setResponseStatus(event, 405);
         return { error: "Method Not Allowed" };
     }
