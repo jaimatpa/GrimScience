@@ -59,10 +59,17 @@ const onSubmit = (event: FormSubmitEvent<FormDataSchema>) => {
 init();
 </script>
 
+<style scoped>
+.logo-container {
+  position: relative; 
+  z-index:1; 
+}
+</style>
+
 <template>
   <div class="">
     <div class="w-full max-w-[360px]">
-      <div class="flex justify-center items-center mb-4">
+      <div class="flex justify-center items-center mb-4 logo-container">
         <img src="../public/grimm_logo_menu_dropshadow_v2.png" alt="Grimm Logo" />
       </div>
       <div class="vl-parent">
