@@ -1,4 +1,4 @@
-import { tblJobDetail, tblJobs } from "~/server/models";
+import { tblJobDetail, tblJobs, tblSettings, tblCustomers } from "~/server/models";
 import { Sequelize, Op } from "sequelize";
 import  sequelize  from '../../utils/databse';  
 import { QueryTypes } from 'sequelize';
@@ -7,7 +7,7 @@ import { calculateUnitCosts } from "./Operation";
 // import path from 'path'; 
 
 const formatDate = (date) => {
-  const today = new Date(date);
+  const today = new Date(date);a
   return String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
   String(today.getDate()).padStart(2, '0') + '/' + 
   today.getFullYear();
@@ -1933,22 +1933,38 @@ export const getProductionUsers = async () => {
 }
 
 export const getEmployees = async () => {
-  const result = await tblJobs.findAll({
+
+  let distinctByEmployees = await sequelize.query(`
+      select '#' + payrollno + ' ' + lname + ', ' + fname from tblemployee where active = 1 order by payrollnumber asc
+  `, {
+      type: QueryTypes.SELECT
+  });
+
+  distinctByEmployees = distinctByEmployees.map((item: any) => item['']);
+  return distinctByEmployees;
+}
+
+
+export const getCustomers = async () => {
+  
+  const result = await tblCustomers.findAll({
     attributes: [
-      [Sequelize.fn('DISTINCT', Sequelize.col('ByEmployee')), 'ByEmployee']
+      [Sequelize.fn('DISTINCT', Sequelize.col('company1')), 'company1']
     ],
     where: {
       [Op.and]: [
-        { 'ByEmployee': { [Op.ne]: null } },
-        { 'ByEmployee': { [Op.ne]: '' } }
+        { 'company1': { [Op.ne]: null } },
+        { 'company1': { [Op.ne]: '' } },
+        { 'company1': { [Op.ne]: ' ' } }
       ]
     },
-    order: [['ByEmployee', 'ASC']],
+    order: [['company1', 'ASC']],
     raw: true
   });
 
-  const distinctByEmployees = result.map((item: any) => item['ByEmployee']);
-  return distinctByEmployees;
+  const customers = result.map((item: any) => item['company1']);
+  console.log(customers)
+  return customers;
 }
 
 export const getProductLines = async () => {
@@ -2022,3 +2038,134 @@ export const getModels = async (productline) => {
   return distinctMODEL;
 }
 
+export const bulkCloseJobs = async (selectedJobs) => {
+  try {
+    // Check if there are jobs selected
+    if (!selectedJobs || selectedJobs.length === 0) {
+      throw new Error('No Job Selected')
+    }
+
+    // Get the current date in a format similar to VB.NET's Now.ToShortDateString()
+    const dateClosed =  formatDate(new Date())
+
+    // Update each selected job's 'DateClosed' field
+    for (const job of selectedJobs){
+      await sequelize.query(
+        `update tblJobs set DATECLOSED = :dateClosed Where uniqueID=:uniqueId`,
+        {
+          replacements: {
+            dateClosed,
+            uniqueId: job.UniqueID
+          },
+          type: QueryTypes.UPDATE
+        }
+      );
+    }
+
+  } catch (error) {
+    console.error("Error closing jobs:", error.message);
+    throw new Error('Error closing jobs:', error.message);
+  }
+};
+
+export const updateJobPercentage = async (jobs) => {
+  try {
+    
+
+    // Loop through each job item
+    for (const job of jobs) {
+      let x = 0;
+      let lngjob = job;
+
+      // Check if the job type is "Sub Assembly"
+      if (job.jobtype === "Sub Assembly") {
+        // Get job details ordered by ship date
+        const jobDetails = await sequelize.query(`
+          SELECT * FROM tblJobDetail 
+          WHERE JobID = :lngjob 
+          ORDER BY shipdate
+        `, {
+          replacements: { lngjob },
+          type: QueryTypes.SELECT
+        });
+
+        // Accumulate quantity from the job details
+        for (const detail of jobDetails) {
+          x += parseFloat(detail.Quantity || 0);
+        }
+      } else {
+        // Get job details ordered by serial
+        const jobDetails = await sequelize.query(`
+          SELECT * FROM tblJobDetail 
+          WHERE JobID = :lngjob 
+          ORDER BY Serial
+        `, {
+          replacements: { lngjob },
+          type: QueryTypes.SELECT
+        });
+
+        // Count the entries where 'dateEntered' is not empty
+        for (const detail of jobDetails) {
+          if (detail.dateEntered && detail.dateEntered.trim() !== '') {
+            x += 1;
+          }
+        }
+      }
+
+      // Calculate the percentage complete and update the job record
+      const percentageComplete = x / parseFloat(job.Quantity || 1);
+
+      await sequelize.query(`
+        UPDATE tblJobs 
+        SET PercentageComplete = :percentageComplete 
+        WHERE UniqueID = :lngjob
+      `, {
+        replacements: { percentageComplete, lngjob },
+        type: QueryTypes.UPDATE
+      });
+    }
+
+  } catch (error) {
+    console.error('Error processing job completion:', error.message);
+    throw new Error(error.message);
+  }
+};
+
+export const refreshJobCosts = async (lngJob, latestUnitCost) => {
+  try {
+    const jobDetails = await sequelize.query(
+        `SELECT * FROM tblJobDetail WHERE JobID = :lngJob AND dateEntered <> '' AND dateEntered IS NOT NULL`,
+        {
+            replacements: { lngJob },
+            type: QueryTypes.SELECT
+        }
+    );
+
+    for (const row of jobDetails) {
+        row.CostPerUnit = latestUnitCost;
+    }
+
+    for (const row of jobDetails) {
+      await sequelize.query(
+          `UPDATE tblJobDetail SET CostPerUnit = :cost WHERE JobID = :lngJob AND UniqueID = :uniqueID`,
+          {
+              replacements: { cost: row.CostPerUnit, lngJob, uniqueID: row.UniqueID },
+              type: QueryTypes.UPDATE
+          }
+      );
+    }
+
+    const recJOnCost = await calculateJobCost(lngJob)
+    let cost = recJOnCost || 0.00;
+    await sequelize.query(
+      `UPDATE tblJobs SET Cost = :cost WHERE UniqueID = :lngJob`,
+      { replacements: { cost, lngJob }, type: QueryTypes.UPDATE }
+    );
+
+    return recJOnCost;
+
+  }catch (error) {
+    console.error("Error in refreshJobCosts:", error.message);
+    throw new Error(error.message);
+  }
+};
