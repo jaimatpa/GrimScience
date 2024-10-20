@@ -20,7 +20,7 @@ const loadingOverlay = ref(false);
 const rows = ref({});
 const selectedRow = ref({});
 
-const columns = ref([
+const POColumns = ref([
     {
         key: 'PONUMBER',
         label: 'PO Number',

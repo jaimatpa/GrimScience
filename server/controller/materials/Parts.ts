@@ -87,7 +87,7 @@ export const getCategoryList = async () => {
 
   return partCategories
     .map(item => item.PARTTYPE)
-    .filter(category => category !== null && category.trim() !== ''); 
+    .filter(category => category !== null && category.trim() !== '');
 };
 
 
@@ -99,7 +99,7 @@ export const getSubCategoryForCategory = async (category) => {
       [Sequelize.fn('DISTINCT', Sequelize.col('SUBCATEGORY')), 'SUBCATEGORY']
     ],
     where: {
-      PARTTYPE: decodedCategory,  
+      PARTTYPE: decodedCategory,
     },
     order: [["SUBCATEGORY", "ASC"]],
     raw: true,
@@ -107,7 +107,7 @@ export const getSubCategoryForCategory = async (category) => {
 
   return subcategoryList
     .map(item => item.SUBCATEGORY)
-    .filter(subcategory => subcategory !== null && subcategory.trim() !== ''); 
+    .filter(subcategory => subcategory !== null && subcategory.trim() !== '');
 }
 
 
@@ -461,12 +461,12 @@ export const getPOPartsDetailsByUniqueId = async (UniqueID) => {
       replacements: { UniqueID },
       type: QueryTypes.SELECT,
     });
+    console.log(results);
+    // if (results.length > 0) {
+    return results;
+    // }
 
-    if (results.length > 0) {
-      return results;
-    }
-
-    throw new Error("PODetail not found");
+    // throw new Error("PODetail not found");
   } catch (error) {
     console.error("Error querying PO parts details:", error);
     throw error;
