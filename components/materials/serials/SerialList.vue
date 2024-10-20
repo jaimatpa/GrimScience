@@ -324,6 +324,7 @@ const excelExport = async () => {
 };
 
 const onSelect = async (row) => {
+ 
     gridMeta.value.selectedSerialId = row?.uid;
 
     gridMeta.value.serials.forEach((ser) => {

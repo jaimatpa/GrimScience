@@ -36,6 +36,7 @@ const tblMaintReportMeasurements = sequelize.define('tblMaintReportMeasurements'
       type: DataTypes.STRING,
    },
 }, {
+   tableName:"tblMaintReportMeasurements",
    timestamps: false
 });
 

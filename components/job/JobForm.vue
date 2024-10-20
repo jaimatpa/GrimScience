@@ -390,6 +390,14 @@ const fetchJobOperation = async () => {
             }
             return item
           });
+          prodOperationGridMeta.value.operations = response._data.body.map((item) => {
+            if(!item.PID){
+              item.class = 'bg-red-500'
+            }else{
+              item.class = 'bg-white'
+            }
+            return item
+          });
           prodDesOperations.value = response._data.body.map(
             (item) =>{
               return {name: item.Operation, value: item.uniqueID }

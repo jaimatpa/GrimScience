@@ -19,11 +19,6 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const emit = defineEmits(["rowSelectedParts", "close"]);
 
-const handleSelect = () => {
-  emit("rowSelectedParts", gridMeta.value.selectProduct);
-  emit("close");
-}
-
 const props = defineProps({
   isPage: {
     type: Boolean,
@@ -32,7 +27,7 @@ const props = defineProps({
   isSelectButton: {
     type: Boolean,
     default: false,
-  }
+  },
 });
 
 const headerFilters = ref({
@@ -47,7 +42,6 @@ const headerFilters = ref({
     options: [],
   },
 });
-
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -140,6 +134,7 @@ const columns = computed(() =>
     selectedColumns.value.includes(column)
   )
 );
+
 Object.entries(route.query).forEach(([key, value]) => {
   switch (key.toLowerCase()) {
     case "page":
@@ -334,7 +329,8 @@ const onDblClick = async () => {
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader" title="Parts"> </UDashboardNavbar>
+      <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader" title="Parts">
+      </UDashboardNavbar>
 
       <div class="px-4 py-2 gmsBlueTitlebar">
         <h2>Part Lookup</h2>
@@ -485,6 +481,9 @@ const onDblClick = async () => {
       <PartsForm
         @close="handleModalClose"
         @save="handleModalSave"
+        @refresh="onCreate"
+        :part-table="gridMeta"
+        :part-columns="columns"
         :selected-parts="gridMeta.selectedPartsId"
         :selectedPartInstace="gridMeta.selectedPartInstanceId"
         :is-modal="true"

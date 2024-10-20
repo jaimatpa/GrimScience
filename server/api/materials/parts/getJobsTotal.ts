@@ -2,11 +2,11 @@ import { QueryTypes } from "sequelize";
 import sequelize from "~/server/utils/databse";
 
 export default eventHandler(async (event) => {
-    const method = event.node.req.method;
-    switch (method.toUpperCase()) {
-        case 'GET':
-            const { instanceId } = getQuery(event);
-            const query = `
+  const method = event.node.req.method;
+  switch (method.toUpperCase()) {
+    case "GET":
+      const { instanceId } = getQuery(event);
+      const query = `
                 SELECT DISTINCT 
                     '#' + tblA.MODEL + ' ' + tblA.DESCRIPTION AS Expr1, 
                     tblA.instanceID 
@@ -19,18 +19,17 @@ export default eventHandler(async (event) => {
                 ORDER BY 
                     '#' + tblA.MODEL + ' ' + tblA.DESCRIPTION DESC;
             `;
-            const data = await sequelize.query(query, {
-                replacements: { instanceId },
-                type: QueryTypes.SELECT,
-                plain: false,
-                raw: true
-            });
-            // console.log('Query Results:', met    adata);
+      const data = await sequelize.query(query, {
+        replacements: { instanceId },
+        type: QueryTypes.SELECT,
+        plain: false,
+        raw: true,
+      });
 
-            return data
+      return data;
 
-        default:
-            event.node.res.statusCode = 405;
-            return { error: 'Method Not Allowed' };
-    }
+    default:
+      event.node.res.statusCode = 405;
+      return { error: "Method Not Allowed" };
+  }
 });

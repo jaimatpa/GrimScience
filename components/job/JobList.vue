@@ -127,7 +127,7 @@ const headerFilters = ref({
   jobCat: {
     label: "Category",
     filter: "jobCat",
-    options: [],
+    options: [""],
   },
   jobTypes: {
     label: "Sub Category",
@@ -651,6 +651,7 @@ const openJobDetailsForm = (jobId) => {
     </UDashboardPanel>
   </UDashboardPage>
 
+  <!-- Job Detail Modal -->
   <!-- Job Detail Modal -->
   <UDashboardModal v-model="modalMeta.isJobFormModalOpen" :title="modalMeta.modalTitle"
     :description="modalMeta.modalDescription" :ui="{
