@@ -28,6 +28,7 @@
     </div>
   </div>
 
+      <!-- Service Order Modal -->
   <UDashboardModal
     v-model="modalMeta.isServiceOrderModalOpen"
     title="Service Order"
@@ -48,6 +49,7 @@
     />
   </UDashboardModal>
 
+      <!-- Invoice Detail Modal -->
   <UDashboardModal
     v-model="modalMeta.isOrderDetailModalOpen"
     title="Order"
@@ -67,6 +69,20 @@
       @close="handleModalClose"
     />
   </UDashboardModal>
+
+    <!-- Site Visit Modal -->
+    <UDashboardModal v-model="modalMeta.isSiteVisitModalOpen" title="Site Visit" :ui="{
+    title: 'text-lg',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center',
+      padding: 'pt-5 sm:px-9',
+    },
+    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+    width: 'w-[1800px] sm:max-w-9xl',
+  }">
+    <CustomersSiteVisitDetail :selected-customer="gridMeta.selectedCustomerId" />
+  </UDashboardModal>
+  
 </template>
 
 <script setup lang="ts">
