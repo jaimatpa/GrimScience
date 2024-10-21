@@ -2,46 +2,21 @@
 import { ref, onMounted } from "vue";
 import OrderDetailsTable from "./table.vue";
 
-
-
-
 onMounted(async () => {
   await init();
-  await fetchCategoryData(); 
+  await fetchCategoryData();
   await fetchSubCategoryData();
-  await fetchEquipmentList();
-  await fetchEmployeeData();
-  await fetchAllTypeList();
+  await fetchGridData();
 });
 
 const headerFilters = ref({
-  productLines: {
-    label: "Product Line",
-    filter: "PRODUCT",
-    api: "/api/materials/productlines",
-    options: [],
-  },
-  categoryList: {
-    label: "Category",
-    filter: "Category",
-    options: [],
-  },
+
   subCategoryList: {
     label: "Sub Category",
     filter: "subcategory",
     options: [],
   },
-  equipmentList: {
-    label: "Sub Category",
-    filter: "PART",
-    options: [],
-  },
-
-  typeList: {
-    label: "Sub Category",
-    filter: "TYPE",
-    options: [],
-  },
+ 
   EmployeeList: {
     filter: "EMPLOYEE",
     options: [],
@@ -53,62 +28,17 @@ const toast = useToast();
 const modalMeta = ref({
   isSerialModalOpen: false,
   modalTitle: "Serial",
-  isNewReportModalOpen:false,
-  mainID:""
-  
+  isNewReportModalOpen: false,
+  mainID: "",
 });
 
-const openSerialRecord = () => {
-  modalMeta.value.modalTitle = "Serial list";
-  modalMeta.value.isSerialModalOpen = true;
-};
-
-
-
-const openNewReport = () => {
-  const reportID = handleVModel.value.manValue
-  if (reportID) { 
-
-    modalMeta.value.modalTitle = "Report";
-    modalMeta.value.isNewReportModalOpen = true;
-    modalMeta.value.mainID = reportID;
-  } else {
-    console.log("manValue is empty, modal will not open.");
-  }
-};
-
-const fetchEmployeeData = async () => {
-  try {
-    const { data, error } = await useFetch(
-      "/api/engineering/changeorder/getEmploy"
-    );
-
-    if (data.value?.body) {
-      headerFilters.value.employeeList.options = data.value.body.map(
-        (employee) => ({
-          label: `${employee.fname} ${employee.lname}`,
-          value: employee.fname,
-        })
-      );
-    } else {
-      console.error("No employee data found");
-    }
-
-    if (error.value) {
-      console.error("Error fetching employee data:", error.value);
-    }
-  } catch (err) {
-    console.error("Error fetching employee data:", err);
-  }
-};
-
-const fetchEquipmentList = async () => {
+const fetchCategoryData = async () => {
   try {
     const { data } = await useFetch(
-      "/api/maintenance/equipment/getAllEquipment"
+      "/api/maintenance/equipment/getAllCategory"
     );
     if (data._rawValue) {
-      headerFilters.value.equipmentList.options = data._rawValue.map(
+      headerFilters.value.categoryList.options = data._rawValue.map(
         (category) => ({
           label: category || "Unnamed",
           value: category,
@@ -122,200 +52,17 @@ const fetchEquipmentList = async () => {
   }
 };
 
-const fetchAllTypeList = async () => {
-  try {
-    const { data } = await useFetch(
-      "/api/maintenance/equipment/getAllTypeList"
-    );
-    if (data._rawValue) {
-      headerFilters.value.typeList.options = data._rawValue.map((category) => ({
-        label: category || "Unnamed",
-        value: category,
-      }));
-    } else {
-      console.error("No category data found");
-    }
-  } catch (err) {
-    console.error("Error fetching category data:", err);
-  }
-};
-
-const fetchCategoryData = async () => {
-  try {
-    const { data } = await useFetch(
-      "/api/maintenance/equipment/getAllCategory"
-    );
-    if (data._rawValue) {
-      headerFilters.value.categoryList.options = data._rawValue.map(
-        (category) => ({
-          label: category || "Unnamed", // If category is a string
-          value: category,
-        })
-      );
-    } else {
-      console.error("No category data found");
-    }
-  } catch (err) {
-    console.error("Error fetching category data:", err);
-  }
-};
-
-
 const emit = defineEmits(["rowSelectedProduct", "selectEco", "close"]);
-
-const props = defineProps({
-  isModal: {
-    type: [Boolean],
-  },
-  selectedEmployee: {
-    type: Object,
-    required: true,
-  },
-  isPage: {
-    type: Boolean,
-    default: true,
-  },
-});
-
-const clearValues = () => {
-  handleVModel.value = {
-    uniqueId: "",
-    manValue: "",
-    category: "",
-    subCategory: "",
-    equipment: "",
-    serialNo: "",
-    type: "",
-    location: "",
-    responsible: "",
-    dateInService: "",
-    nextReqService: "",
-    Maintenance: "",
-  };
-};
-const uniqueIDP = ref(null);
-
-const handleRowSelected = (row) => {
-  uniqueIDP.value = row.MANO;
-  // Function to format date to YYYY-MM-DD
-  const formatDateToYYYYMMDD = (dateString) => {
-    const dateParts = dateString.split("/");
-    return `${dateParts[2]}-${dateParts[0].padStart(
-      2,
-      "0"
-    )}-${dateParts[1].padStart(2, "0")}`;
-  };
-  const requiredDate = row.REQUIRED
-    ? formatDateToYYYYMMDD(row.REQUIRED.split(" ")[0])
-    : "";
-  const dataData = row.DATE
-    ? formatDateToYYYYMMDD(row.REQUIRED.split(" ")[0])
-    : "";
-
-  handleVModel.value = {
-    uniqueId: row.UniqueID || "",
-    manValue: row.MANO || "",
-    category: row.CATAGORY || "",
-    subCategory: row.SUBCATAGORY || "",
-    equipment: row.PART || "",
-    serialNo: row.SERIAL || "",
-    type: row.TYPE || "",
-    location: row.LOCATION || "",
-    responsible: row.ORDEREDBY || "",
-    dateInService: dataData,
-    nextReqService: requiredDate,
-    Maintenance: row.MAINTAINANCE,
-  };
-
-  onSelectReportMatchData();
-};
-
-const closeSerialModal = () => {
-  modalMeta.value.isSerialModalOpen = false;
-};
-
-const handleRowSelectedSerial = (row) => {
-  handleVModel.value.serialNo = row.Serial;
-};
-
-
-
-const submitForm = async () => {
-  const formData = {
-    CATAGORY: handleVModel.value.category,
-    SUBCATAGORY: handleVModel.value.subCategory,
-    PART: handleVModel.value.equipment,
-    SERIAL: handleVModel.value.serialNo,
-    TYPE: handleVModel.value.type,
-    LOCATION: handleVModel.value.location,
-    ORDEREDBY: handleVModel.value.responsible,
-    DATE: handleVModel.value.dateInService,
-    REQUIRED: handleVModel.value.nextReqService,
-    MANO: handleVModel.value.manValue,
-    MAINTAINANCE: handleVModel.value.Maintenance,
-  };
-
-  try {
-    const { data, error } = await useFetch(
-      "/api/maintenance/equipment/insertData",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    if (error.value) {
-      console.error("Error submitting form:", error.value);
-    } else {
-      console.log("Form submitted successfully:", data.value);
-    }
-  } catch (err) {
-    console.error("Unexpected error:", err);
-  }
-};
-
-
-
-const deleteEquipmentTableData = async () => {
-  const uniqueId = handleVModel.value.uniqueId;
-
-  if (!uniqueId) {
-    toast.add({
-      title: "Error",
-      description: "Undefine ID. Cannot delete.",
-      icon: "i-heroicons-exclamation-circle",
-      color: "red",
-    });
-    return;
-  }
-
-  await useApiFetch(`/api/maintenance/equipment/deleteData?id=${uniqueId}`, {
-    method: "DELETE",
-    onResponse({ response }) {
-      console.log(response);
-      if (response.status === 200) {
-        toast.add({
-          title: "Successfully Delete",
-          description: response._data.message,
-          icon: "i-heroicons-check-circle",
-          color: "green",
-        });
-      } else {
-        toast.add({
-          title: "Failed",
-          description: response._data.message,
-          icon: "i-heroicons-x-circle",
-          color: "red",
-        });
-      }
-    },
-  });
-};
 
 const init = async () => {};
 
 const inventoryDetailGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
+    {
+      key: "checkbox",
+      label: "",
+      kind: "actions",
+    },
     {
       key: "No",
       label: "Report",
@@ -354,37 +101,6 @@ const inventoryDetailGridMeta = ref({
   isLoading: false,
 });
 
-const onSelectReportMatchData = async () => {
-  try {
-
-    const Id = handleVModel.value.manValue;
-    if (!Id) {
-      console.error("Unique ID is missing");
-      return;
-    }
-    const response = await useApiFetch(
-      `/api/maintenance/equipment/getMatchDataById/${Id}`,
-      {
-        method: "GET",
-      }
-    );
-
-    if (response && response.status === 200) {
-      console.log(response.body)
-      
-      inventoryDetailGridMeta.value.details = response.body;
-    } else {
-      console.error(
-        `Error: ${response?.status} - ${
-          response?.statusText || "No response text"
-        }`
-      );
-    }
-  } catch (error) {
-    console.error("Error fetching data:", error.message);
-  }
-};
-
 const handleVModel = ref({
   selectedRow: null,
   uniqueId: "",
@@ -403,70 +119,61 @@ const handleVModel = ref({
 });
 
 const onSelect = (row) => {
-  console.log(row.No)
-  handleVModel.value.selectedNoValue = row.No;
+  console.log("select  row ", row);
+  handleVModel.value.selectedNoValue = row.uniqueID;
 };
 
-const onRemoveReport = async () => {
-  if (handleVModel.value.selectedNoValue) {
-    const serialNo = handleVModel.value.selectedNoValue;
-    await useApiFetch(
-      `/api/maintenance/equipment/removeTableData?id=${serialNo}`,
-      {
-        method: "DELETE",
-        onResponse({ response }) {
-          if (response.status === 200) {
-            toast.add({
-              title: "Success",
-              description: "Item deleted successfully.",
-              icon: "i-heroicons-check-circle",
-              color: "green",
-            });
-            
-            const Id = handleVModel.value.manValue;
-            onSelectReportMatchData(Id);
+const deleteEquipmentTableData = async () => {
+  debugger;
+  const uniqueId = handleVModel.value.selectedNoValue;
 
-          } else {
-            toast.add({
-              title: "Error",
-              description: "Failed to delete the item.",
-              icon: "i-heroicons-exclamation-triangle",
-              color: "red",
-            });
-          }
-        },
-      }
-    );
-  } else {
+  if (!uniqueId) {
     toast.add({
-      title: "",
-      description: "Select item to delete.",
-      icon: "i-heroicons-exclamation-triangle",
-      color: "yellow",
+      title: "Error",
+      description: "Undefine ID. Cannot delete.",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
     });
+    return;
   }
+
+  await useApiFetch(`/api/materials/requisitions/deleteData?id=${uniqueId}`, {
+    method: "DELETE",
+    onResponse({ response }) {
+      console.log(response);
+      if (response.status === 200) {
+        toast.add({
+          title: "Successfully Delete",
+          description: response._data.message,
+          icon: "i-heroicons-check-circle",
+          color: "green",
+        });
+        fetchGridData();
+      } else {
+        toast.add({
+          title: "Failed",
+          description: response._data.message,
+          icon: "i-heroicons-x-circle",
+          color: "red",
+        });
+      }
+    },
+  });
 };
 
-
-
-
-
-// new COde 
+// new COde
 const fetchSubCategoryData = async () => {
   try {
     const { data } = await useFetch(
       "/api/materials/requisitions/getAllDataApi?type=employee"
-      
     );
     if (data._rawValue) {
-
-      console.log("okay", data._rawValue)
-      headerFilters.value.EmployeeList.options = data._rawValue.employeeList.map(
-        (category) => ({
+      console.log("okay", data._rawValue);
+      headerFilters.value.EmployeeList.options =
+        data._rawValue.employeeList.map((category) => ({
           label: category,
           value: category,
-        })
-      );
+        }));
     } else {
       console.error("No category data found");
     }
@@ -475,59 +182,194 @@ const fetchSubCategoryData = async () => {
   }
 };
 
+const gridMeta = ref({
+  defaultColumns: <UTableColumn[]>[
+    {
+      key: "STOCKNUMBER",
+      label: "Part#",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "DESCRIPTION",
+      label: "Description",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "PoNumber",
+      label: "PO",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "QTY",
+      label: "Needed",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "EMPLOYEE",
+      label: "By",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+    {
+      key: "reqdate",
+      label: "Date",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+  ],
+  page: 1,
+  pageSize: 200,
+  numberOfChangeOrders: 0,
+  orders: [],
+  selectedOrderId: null,
+  selectedSerialRow: null,
+  selectedCustomerId: null,
+  submitPropsData: null,
+  sort: {
+    column: "STOCKNUMBER",
+    direction: "desc",
+  },
+  isLoading: false,
+});
 
+const filterValues = ref({
+  QTY: null,
+  reqdate: null,
+  DESCRIPTION: null,
+  STOCKNUMBER: null,
+  PoNumber: null,
+  EMPLOYEE: null,
+});
+
+const searchBYEmpleey = (newDate) => {
+  filterValues.value.EMPLOYEE = newDate.label;
+  fetchGridData();
+};
+
+const fetchGridData = async () => {
+  await useApiFetch("/api/materials/requisitions/table2?type=table2", {
+    method: "GET",
+    params: {
+      page: gridMeta.value.page,
+      pageSize: gridMeta.value.pageSize,
+      sortBy: gridMeta.value.sort.column,
+      sortOrder: gridMeta.value.sort.direction,
+      ...filterValues.value,
+    },
+
+    onResponse({ response }) {
+      if (response.status === 200) {
+        gridMeta.value.orders = response._data.tableData;
+      }
+      gridMeta.value.isLoading = false;
+    },
+  });
+};
 </script>
+
 <template>
-  <OrderDetailsTable
-    :is-page="true"
-    @row-selected="handleRowSelected"
-    :shouldRefresh="shouldRefresh"
-  />
+  <OrderDetailsTable :is-page="true" />
 
-
-    <UForm class="space-y-6">
-      <div class="flex flex-row space-x-6 bg-green-100">
-        <p class="py-[10px]">Requisitions Lookup</p>
+  <UForm class="mt-[20px]">
+    <div class="flex flex-row space-x-6 bg-[#4682B4] w-full">
+      <p class="py-[10px]">Requisitions Lookup</p>
+    </div>
+    <div class="flex flex-row space-x-6 pt-[20px] pb-[30px]">
+      <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
+        <h3>Show History</h3>
       </div>
-      <div class="flex flex-row space-x-6">
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Show History</h3>
-       
-        </div>
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>By</h3>
-          <UInputMenu
-            v-model="handleVModel.subCategory"
-            :options="headerFilters.EmployeeList.options"
-          />
-        </div>
+      <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
+        <h3>By</h3>
 
-       
-      
+        <UInputMenu
+          @change="searchBYEmpleey"
+          v-model="handleVModel.subCategory"
+          :options="headerFilters.EmployeeList.options"
+        />
       </div>
-   
-   
-
-      <div class="flex flex-row space-x-4">
-        <div class="w-3/4 flex flex-col"></div>
+    </div>
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-4"
+    >
+      <div class="">
+        <UInput
+          v-model="input1"
+          label="Input 1"
+          placeholder="Enter text"
+          class="mb-4"
+        />
       </div>
 
-  
-      <UDivider />
-    </UForm>
+      <div class="">
+        <UInput
+          v-model="input2"
+          label="Input 2"
+          placeholder="Enter text"
+          class="mb-4"
+        />
+      </div>
 
-  <div class="basis-1/2">
+      <div class="">
+        <UInput
+          v-model="input3"
+          label="Input 3"
+          placeholder="Enter text"
+          class="mb-4"
+        />
+      </div>
+
+      <div class="">
+        <UInput
+          v-model="input4"
+          label="Input 4"
+          placeholder="Enter text"
+          class="mb-4"
+        />
+      </div>
+
+      <div class="">
+        <UInput
+          v-model="input5"
+          label="Input 5"
+          placeholder="Enter text"
+          class="mb-4"
+        />
+      </div>
+
+      <div class=" ">
+        <UInput
+          v-model="input6"
+          label="Input 6"
+          placeholder="Enter text"
+          class="mb-4"
+        />
+      </div>
+    </div>
+
+    <UDivider />
+  </UForm>
+
+  <div class="">
     <UTable
-      :rows="inventoryDetailGridMeta.details"
-      :columns="inventoryDetailGridMeta.defaultColumns"
-      :loading="inventoryDetailGridMeta.isLoading"
+      :rows="gridMeta.orders"
+      :columns="gridMeta.defaultColumns"
+      :loading="gridMeta.isLoading"
       class="w-full"
       :ui="{
-        wrapper:
-          'overflow-y-auto h-60 border-2 border-gray-300 dark:border-gray-700',
+        wrapper: ' h-60 border-2 border-gray-300 dark:border-gray-700',
         divide: 'divide-gray-200 dark:divide-gray-800',
         th: {
-          base: 'sticky top-0 z-10',
+          base: 'top-0',
           color: 'bg-white dark:text-gray dark:bg-[#111827]',
           padding: 'p-0',
         },
@@ -590,12 +432,15 @@ const fetchSubCategoryData = async () => {
         </template>
       </template>
     </UTable>
+  
+      
   </div>
+
   <div class="flex justify-end space-x-4 pt-[10px]">
     <div class="basis-1/6">
       <UButton
         icon="i-heroicons-plus"
-        label="New Report"
+        label="Uncheck All"
         variant="outline"
         color="green"
         @click="openNewReport()"
@@ -607,43 +452,32 @@ const fetchSubCategoryData = async () => {
       />
     </div>
     <div class="basis-1/6">
-    <UButton
-      icon="i-heroicons-minus-circle"
-      label="Remove Report"
-      variant="outline"
-      color="red"
-      :ui="{
-        base: 'min-w-[200px] w-full',
-        truncate: 'flex justify-center w-full',
-      }"
-      truncate
-      @click="onRemoveReport"
-    />
+      <UButton
+        icon="i-heroicons-plus"
+        label="Ordered"
+        variant="outline"
+        color="green"
+        @click="openNewReport()"
+        :ui="{
+          base: 'min-w-[200px] w-full',
+          truncate: 'flex justify-center w-full',
+        }"
+        truncate
+      />
+    </div>
+    <div class="basis-1/6">
+      <UButton
+        icon="i-heroicons-minus-circle"
+        label="Delete Requisition"
+        variant="outline"
+        color="red"
+        :ui="{
+          base: 'min-w-[200px] w-full',
+          truncate: 'flex justify-center w-full',
+        }"
+        truncate
+        @click="deleteEquipmentTableData"
+      />
+    </div>
   </div>
-  </div>
-
-
-  <UDashboardModal
-    v-model="modalMeta.isSerialModalOpen"
-    :title="modalMeta.modalTitle"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: {
-        base: 'gap-y-1',
-        padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
-      },
-      width: 'w-[3000px] sm:max-w-7xl',
-    }"
-  >
-    <MaterialsSerialsSerialList
-      @select="handleRowSelectedSerial"
-      @close="closeSerialModal"
-    />
-  </UDashboardModal>
-
-
 </template>

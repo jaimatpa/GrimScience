@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
 import { defineEmits } from "vue";
+import PopupCard from "./popup.vue";
 
 onMounted(async () => {
   await init();
@@ -42,26 +43,26 @@ const headerFilters = ref({
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
-      key: "CATAGORY",
+      key: "PARTTYPE",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "SUBCATAGORY",
+      key: "SUBCATEGORY",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "PART",
+      key: "STOCKNUMBER",
       label: "Stock #",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
     {
-      key: "ORDEREDBY",
+      key: "DESCRIPTION",
       label: "Description",
       sortable: true,
       sortDirection: "none",
@@ -73,37 +74,37 @@ const gridMeta = ref({
   numberOfChangeOrders: 0,
   orders: [],
   selectedOrderId: null,
+  selectedSerialRow: null,
   selectedCustomerId: null,
-  selectedCompaintNumber: null,
-  selectedSerialNumber: null,
+  submitPropsData:null,
   sort: {
-    column: "MANO",
+    column: "PARTTYPE",
     direction: "desc",
   },
   isLoading: false,
 });
 
-const modalMeta = ref({
-  isServiceOrderModalOpen: false,
-});
+const submitData = ref({
+  employeeOption: "",
+  inputData: "",
+  requireDate: "",
 
+});
 const filterValues = ref({
-  MANO: null,
-  CATAGORY: null,
-  SUBCATAGORY: null,
-  PART: null,
-  ORDEREDBY: null,
-  SERIAL: null,
-  REQUIRED: null,
+  PARTTYPE: "Computer",
+  SUBCATEGORY: null,
+  DESCRIPTION: null,
+  STOCKNUMBER: null,
 });
 
 const handleCategoryChange = (newValue) => {
-  filterValues.value.CATAGORY = newValue;
+  debugger;
+  filterValues.value.PARTTYPE = newValue;
   fetchGridData();
 };
 
 const handleSubcategoryChange = (newValue) => {
-  filterValues.value.SUBCATAGORY = newValue;
+  filterValues.value.SUBCATEGORY = newValue;
   fetchGridData();
 };
 
@@ -129,7 +130,7 @@ const init = async () => {
 };
 
 const fetchGridData = async () => {
-  await useApiFetch("/api/maintenance/equipment/getTableData", {
+  await useApiFetch("/api/materials/requisitions/getAllDataApi?type=table", {
     method: "GET",
     params: {
       page: gridMeta.value.page,
@@ -140,8 +141,9 @@ const fetchGridData = async () => {
     },
 
     onResponse({ response }) {
+      console.log(response);
       if (response.status === 200) {
-        gridMeta.value.orders = response._data.body;
+        gridMeta.value.orders = response._data.tableData.data;
       }
       gridMeta.value.isLoading = false;
     },
@@ -168,9 +170,6 @@ const fetchCategoryData = async () => {
   }
 };
 
-const handleModalClose = () => {
-  modalMeta.value.isServiceOrderModalOpen = false;
-};
 const handleModalSave = async () => {
   handleModalClose();
   fetchGridData();
@@ -210,9 +209,27 @@ const handleSortingButton = async (btnName: string) => {
 };
 
 const emit = defineEmits(["rowSelected", "rowDoubleClicked"]);
-const onSelect = (row) => {
-  emit("rowSelected", row);
+
+const handleModalClose = () => {
+  modalMeta.value.isServiceOrderModalOpen = false;
 };
+const modalMeta = ref({
+  isServiceOrderModalOpen: false,
+});
+
+
+
+
+const onSelect = (row) => {
+  gridMeta.value.selectedSerialRow = row;
+  gridMeta.value.submitPropsData = {
+    employeeOption: submitData.value.employeeOption.label || "",
+    inputData: submitData.value.inputData || "",
+    requireDate: submitData.value.requireDate || "",
+  };
+  modalMeta.value.isServiceOrderModalOpen = true;
+};
+
 const onDblClick = () => {
   emit("rowDoubleClicked");
 };
@@ -224,7 +241,7 @@ const fetchSubCategoryData = async () => {
       "/api/materials/requisitions/getAllDataApi?type=employee"
     );
     if (data._rawValue) {
-      console.log("okay", data._rawValue);
+    
       headerFilters.value.EmployeeList.options =
         data._rawValue.employeeList.map((category) => ({
           label: category,
@@ -244,7 +261,7 @@ const fetchSubCategoryData = async () => {
     <UDashboardPanel grow>
       <UDashboardNavbar
         v-show="props.isPage"
-        class="gmsPurpleHeader"
+        class="bg-[#4682B4] w-full"
         title="Requisitions"
       >
       </UDashboardNavbar>
@@ -255,14 +272,15 @@ const fetchSubCategoryData = async () => {
             <div class="w-1/2 flex">
               <h1>Emplayee</h1>
 
-              <USelect
+              <UInputMenu
+                v-model="submitData.employeeOption"
                 :options="headerFilters.EmployeeList.options"
                 class="w-full"
               />
             </div>
             <div class="w-1/2 flex">
               <h1>Date</h1>
-              <UInput type="date" class="w-40" />
+              <UInput v-model="submitData.inputData" type="date" class="w-40" />
             </div>
           </div>
         </div>
@@ -270,84 +288,14 @@ const fetchSubCategoryData = async () => {
         <div class="w-1/2 ml-auto">
           <div class="w-1/2 flex">
             <h1>Date Required</h1>
-            <UInput type="date" class="w-40" />
+            <UInput v-model="submitData.requireDate" type="date" class="w-40" />
           </div>
         </div>
       </div>
 
-      <div class="bg-green-500">
+      <div class="bg-[#4682B4]">
         <h1 class="pt-[20px]">Parts Lookup</h1>
       </div>
-
-      <!-- <UTable
-        :rows="gridMeta.orders"
-        :columns="columns"
-        :loading="gridMeta.isLoading"
-        class="w-full"
-        :ui="{
-          divide: 'divide-gray-200 dark:divide-gray-800',
-          th: {
-            base: 'top-0 z-5 px-1',
-            padding: 'pb-0',
-          },
-          td: {
-            padding: 'py-0.5 px-1',
-          },
-        }"
-        :empty-state="{
-          icon: 'i-heroicons-circle-stack-20-solid',
-          label: 'No items.',
-        }"
-        @select="onSelect"
-        @dblclick="onDblClick"
-      >
-        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-          <div class="space-x-2">
-            <template v-if="column.key === 'CATAGORY'">
-              <div class="w-full">
-                <USelect
-                  v-model="filterValues.CATEGORY"
-                  :options="headerFilters.categoryList.options"
-                  @change="handleCategoryChange"
-                  class="w-full"
-                />
-                <span class="text-xs text-gray-500">Category</span>
-              </div>
-            </template>
-
-            <template v-if="column.key === 'SUBCATAGORY'">
-              <div class="w-full">
-                <USelect
-                  v-model="filterValues.SUBCATEGORY"
-                  :options="headerFilters.EmployeeList.options"
-                  @change="handleSubcategoryChange"
-                  class="w-full"
-                />
-                <span class="text-xs text-gray-500">Sub </span>
-              </div>
-            </template>
-
-            <template v-else-if="['PART', 'ORDEREDBY'].includes(column.key)">
-              <div class="w-full">
-                <input
-                  type="text"
-                  v-model="filterValues[column.key]"
-                  @input="filterTable"
-                  placeholder="Search"
-                  class="w-full mt-1 border border-gray-300 rounded px-2 py-1"
-                /><br />
-                <span class="text-xs text-gray-500">{{ column.label }}</span>
-              </div>
-            </template>
-
-            <template v-else>
-              <div class="w-full">
-                <span class="text-xs text-gray-500">{{ column.label }}</span>
-              </div>
-            </template>
-          </div>
-        </template>
-      </UTable> -->
       <UTable
         :rows="gridMeta.orders"
         :columns="columns"
@@ -376,10 +324,10 @@ const fetchSubCategoryData = async () => {
       >
         <template v-for="column in columns" v-slot:[`${column.key}-header`]>
           <div class="space-x-2">
-            <template v-if="column.key === 'CATAGORY'">
+            <template v-if="column.key === 'PARTTYPE'">
               <div class="w-full">
-                <USelect
-                  v-model="filterValues.CATEGORY"
+                <UInputMenu
+                  v-model="filterValues.PARTTYPE"
                   :options="headerFilters.categoryList.options"
                   @change="handleCategoryChange"
                   class="w-full"
@@ -388,9 +336,9 @@ const fetchSubCategoryData = async () => {
               </div>
             </template>
 
-            <template v-if="column.key === 'SUBCATAGORY'">
+            <template v-if="column.key === 'SUBCATEGORY'">
               <div class="w-full">
-                <USelect
+                <UInputMenu
                   v-model="filterValues.SUBCATEGORY"
                   :options="headerFilters.EmployeeList.options"
                   @change="handleSubcategoryChange"
@@ -400,7 +348,9 @@ const fetchSubCategoryData = async () => {
               </div>
             </template>
 
-            <template v-else-if="['PART', 'ORDEREDBY'].includes(column.key)">
+            <template
+              v-else-if="['STOCKNUMBER', 'DESCRIPTION'].includes(column.key)"
+            >
               <div class="w-full">
                 <input
                   type="text"
@@ -424,26 +374,27 @@ const fetchSubCategoryData = async () => {
     </UDashboardPanel>
   </UDashboardPage>
 
+
+
   <UDashboardModal
     v-model="modalMeta.isServiceOrderModalOpen"
-    title="Service Order"
+    title="How Many Items Would You Like To Request ? "
     :ui="{
       title: 'text-lg text-white',
       header: {
-        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+        base: 'flex flex-row min-h-[0] items-center bg-[#4682B4] py-5 gms-modalHeader',
       },
       body: { base: 'mt-0 gap-y-0 gms-modalForm' },
-      width: 'w-[1250px] sm:max-w-9xl',
+      width: 'w-[650px] sm:max-w-9xl',
     }"
   >
-    <ServiceOrderDetail
+    <PopupCard
       @close="handleModalClose"
       @save="handleModalSave"
-      :form-action="null"
-      :selected-serial="gridMeta.selectedSerialNumber"
-      :selected-customer="gridMeta.selectedCustomerId"
-      :selected-complaint="gridMeta.selectedCompaintNumber"
-      :selected-order="gridMeta.selectedOrderId"
+      :selectedRow="gridMeta.selectedSerialRow"
+      :submitData="gridMeta.submitPropsData"
     />
   </UDashboardModal>
+
+  
 </template>
