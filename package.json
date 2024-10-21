@@ -11,7 +11,7 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "@bryntum/calendar": "npm:@bryntum/calendar-trial@^6.0.1",
+    "@bryntum/calendar": "npm:@bryntum/calendar-trial@^6.1.2",
     "@bryntum/calendar-vue-3": "^6.0.1",
     "@bryntum/calendar-vue-3-thin": "^6.0.1",
     "@bryntum/core-vue-3-thin": "^6.0.1",
@@ -38,8 +38,6 @@
     "maska": "^3.0.0",
     "msnodesqlv8": "^4.2.1",
     "nuxt": "^3.11.2",
-    "nuxt-file-storage": "^0.2.7",
-    "pg-hstore": "^2.3.4",
     "nuxt-file-storage": "^0.2.7",
     "pg-hstore": "^2.3.4",
     "puppeteer": "^22.12.1",
