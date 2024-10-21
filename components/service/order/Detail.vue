@@ -27,6 +27,10 @@ const props = defineProps({
     type: [Number, String, null],
     required: true
   },
+  mainID: {
+    type: String,
+    required: true,
+  },
 })
 
 const complaintUniquueId = ref(props.selectedOrder)
@@ -170,7 +174,8 @@ const serviceOrderInfo = ref({
   ValidComplaintReason: null,
   FAILINVEST: null,
   CLOSEDOUTBY: null,
-  MODELNO: null
+  MODELNO: null,
+  
 })
 const WARRANTYUNTIL = ref(null)
 const typeOfServiceInfo = ref({
@@ -219,6 +224,7 @@ const propertiesInit = async () => {
         loadingOverlay.value = false
         for (const key in response._data.body) {
           if (response._data.body[key]) {
+            console.log(response._data.body[key])
             formData[key] = response._data.body[key]
           }
         }
@@ -249,7 +255,6 @@ const fetchEmployess = async () => {
           const formattedEmployees = employees.map(employee =>
             `#${employee.payrollnumber || 'n/a'} ${employee.fname || ''} ${employee.lname || ''}`
           );
-
           serviceOrderInfo.value.RECBYOptions = formattedEmployees
           return formattedEmployees;
         }
@@ -391,6 +396,8 @@ const linkNonConformance = async (nonConformanceID) => {
 
 }
 const onSerialSelect = async (row) => {
+
+console.log(row)
   if (JSON.stringify({ ...serialGridMeta.value.selectedSerial, class: "" }) !== JSON.stringify({ ...row, class: "" })) {
     serialGridMeta.value.selectedSerial = { ...row, class: "" }
     serialGridMeta.value.serials.forEach((serial) => {
@@ -400,6 +407,7 @@ const onSerialSelect = async (row) => {
         delete serial.class
       }
     })
+
     invoiceGridMeta.value.invoices = []
     invoiceGridMeta.value.selectedInvoice = null
     serviceReportGridMeta.value.serviceReports = []
@@ -442,6 +450,7 @@ const onSerialSelect = async (row) => {
     }
   }
 }
+
 const onComplaintSelect = async (row) => {
   complaintGridMeta.value.selectedComplaint = { ...row, class: "" }
   complaintGridMeta.value.complaints.forEach((complaint) => {
@@ -1034,8 +1043,9 @@ else {
         </div>
         <div class="flex flex-row px-3 py-2">
           <div class="basis-5/12 leading-6">
-            <div class="font-bold">{{ serviceOrderInfo?.COMPLAINTNUMBER ? `# ${serviceOrderInfo.COMPLAINTNUMBER}` : '' }}
-            </div>
+            <div class="font-bold">{{ props.mainID }}</div>
+            <!-- <div class="font-bold">{{ serviceOrderInfo?.COMPLAINTNUMBER ? `# ${serviceOrderInfo.COMPLAINTNUMBER}` : '' }}
+            </div> -->
             <div>{{ serviceOrderInfo?.PRODUCTDESC }}</div>
             <div>{{ serviceOrderInfo?.SERIALNO ? `Serial ${serviceOrderInfo.SERIALNO}` : '' }}</div>
           </div>

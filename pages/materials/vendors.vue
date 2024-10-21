@@ -1,13 +1,26 @@
 <script lang="ts" setup>
 import type { UTableColumn } from '~/types';
+
 const props = defineProps({
   isPage: {
     type: Boolean,
     required: false,
     default: true
+  },
+  isNewReport: {
+    type: Boolean,
+    required:false,
+    default: true
   }
 });
-const emit = defineEmits(['handleSelect'])
+const emit = defineEmits(['handleSelect' , 'close'])
+
+const handleSelectRow = () => {
+    const ser = gridMeta.value.selectedVendor;
+    emit("handleSelect", ser);
+    emit("close");
+};
+
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
 const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
@@ -171,6 +184,8 @@ const handleFilterInputChange = async (event, name) => {
 const onSelect = async (row) => {
   gridMeta.value.isLoadingDetails = true;
   gridMeta.value.modalData = row;
+  gridMeta.value.neReportData = row;
+  
   gridMeta.value.selectedVendor = row;
   try {
     await useApiFetch('/api/materials/vendors/vendorSuppliedParts', {

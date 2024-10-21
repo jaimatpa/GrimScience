@@ -6,6 +6,7 @@ import type { UTableColumn } from '~/types';
 import { format } from 'date-fns'
 
 const emit = defineEmits(['close', 'save'])
+
 const props = defineProps({
   selectedComplaint: {
     type: [Number, String, null],
@@ -13,8 +14,12 @@ const props = defineProps({
   },
   selectedServiceReport: {
     type: [Number, String, null],
-  }
+  },
+
 })
+
+
+
 const toast = useToast()
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid"
 const descIcon = "i-heroicons-bars-arrow-down-20-solid"
@@ -23,6 +28,7 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid"
 const loadingOverlay = ref(false)
 const partsTotalAmount = ref('0.00')
 const formData = reactive({
+
   uniqueID: null,
   REPAIRSMADE: null,
   REPAIRDESC: null,
