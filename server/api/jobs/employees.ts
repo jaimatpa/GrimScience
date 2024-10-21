@@ -1,13 +1,13 @@
-import { getEmployees, getJobCategories } from '~/server/controller/jobs';
+import { getEmployees } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    
-    switch(method.toUpperCase()){
+
+    switch (method.toUpperCase()) {
       case 'GET':
-        const categories = await getEmployees()
-        return { body: categories, message: '' }
+        const employees = await getEmployees()
+        return { body: employees, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

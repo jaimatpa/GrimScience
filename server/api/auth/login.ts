@@ -6,7 +6,7 @@ export default eventHandler(async (event) => {
     setResponseStatus(event, 405);
     return { error: "Method not allowed" };
   }
-  
+
   try {
     const body = await readBody(event);
     const name = body.user.split(' ');
@@ -18,9 +18,9 @@ export default eventHandler(async (event) => {
     }
 
     let userData;
- 
-    if(body.user == 'test' || body.user == 'test test'){
-      if(body.password == 'test'){
+
+    if (body.user == 'test' || body.user == 'test test') {
+      if (body.password == 'test') {
         userData = {
           UniqueID: 'test',
           fname: 'test',
@@ -29,13 +29,13 @@ export default eventHandler(async (event) => {
             SECURITYCODE: 'test'
           }
         }
-      }else {
+      } else {
         setResponseStatus(event, 404);
         return { error: "Incorrect password. Please re-enter your password." };
       }
-    }else 
-      userData = await getTableRowWhere({tblName:'tblEmployee', where});
-    
+    } else
+      userData = await getTableRowWhere({ tblName: 'tblEmployee', where });
+
     if (!userData) {
       setResponseStatus(event, 404);
       return { error: "User not found. Please check your username and try again." };
@@ -44,9 +44,9 @@ export default eventHandler(async (event) => {
         setResponseStatus(event, 403);
         return { error: "Incorrect password. Please re-enter your password." };
       } else {
-        const tokenData:tokenDataProps = {
+        const tokenData: tokenDataProps = {
           UniqueID: userData.UniqueID,
-          fname: userData.fname, 
+          fname: userData.fname,
           lname: userData.lname,
         };
         const token = generateToken(tokenData);

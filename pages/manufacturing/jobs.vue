@@ -5,4 +5,5 @@ useSeoMeta({
 </script>
 
 <template>
+  <JobList :is-page="true" />
 </template>

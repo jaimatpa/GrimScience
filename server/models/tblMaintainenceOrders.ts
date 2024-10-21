@@ -114,6 +114,7 @@ const tblMaintainenceOrders = sequelize.define('tblMaintainenceOrders', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName: 'tblMaintainenceOrders', 
    timestamps: false
 });
 

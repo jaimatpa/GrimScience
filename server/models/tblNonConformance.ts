@@ -16,7 +16,7 @@ const tblNonConformance = sequelize.define('tblNonConformance', {
    },
    SERIAL: {
       type: DataTypes.STRING,
-   }, 
+   },
    DATEASSIGNED: {
       type: DataTypes.DATE
    },

@@ -42,7 +42,9 @@ const tblPlan = sequelize.define('tblPlan', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName: 'tblPlan',
    timestamps: false
 });
+
 
 export default tblPlan;

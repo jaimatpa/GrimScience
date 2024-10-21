@@ -5,4 +5,5 @@ useSeoMeta({
 </script>
 
 <template>
+  <EngineeringInvestigationDetail :selected-investigation="null" />
 </template>

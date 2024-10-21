@@ -6,25 +6,25 @@ export default <Partial<Config>>{
   theme: {
     extend: {
       fontFamily: {
-        sans: ['DM Sans', ...defaultTheme.fontFamily.sans]
+        sans: ['Arial', ...defaultTheme.fontFamily.sans]
       },
 
       colors: {
-// green: {
-//         '50': '#edfff4',
-//         '100': '#d6ffe7',
-//         '200': '#afffd0',
-//         '300': '#71ffad',
-//         '400': '#2dfb82',
-//         '500': '#02e561',
-//         '600': '#00bf4d',
-//         '700': '#00903d',
-//         '800': '#067536',
-//         '900': '#085f2e',
-//         '950': '#003618',
-//         'DEFAULT': '#00903d',
-//     },
-    
+        // green: {
+        //         '50': '#edfff4',
+        //         '100': '#d6ffe7',
+        //         '200': '#afffd0',
+        //         '300': '#71ffad',
+        //         '400': '#2dfb82',
+        //         '500': '#02e561',
+        //         '600': '#00bf4d',
+        //         '700': '#00903d',
+        //         '800': '#067536',
+        //         '900': '#085f2e',
+        //         '950': '#003618',
+        //         'DEFAULT': '#00903d',
+        //     },
+
 
 
 
@@ -131,6 +131,5 @@ export default <Partial<Config>>{
   //     backgroundColor: ['hover'],
   //   },
   // }
-  
-}
 
+}

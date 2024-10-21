@@ -1,9 +1,6 @@
 import { Op, Sequelize } from 'sequelize';
 import { tblOrder, tblOrderDetail, tblCustomers, tblServiceReport } from "~/server/models";
 
-import { APIContracts } from 'authorizenet'
-import { APIControllers } from 'authorizenet';
-
 export const orderExistByID = async (id: number | string) => {
   const tableDetail = await tblOrder.findByPk(id);
   if (tableDetail)
@@ -60,32 +57,32 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
     limit,
     disticnt: true
   };
-  if (filterParams.UniqueID) queryOptions.where['UniqueID'] = { [Op.like]: `%${filterParams.UniqueID}%` }
-  if (filterParams.orderdate) queryOptions.where['orderdate'] = { [Op.like]: `%${filterParams.orderdate}%` };
-  if (filterParams.shipdate) queryOptions.where['shipdate'] = { [Op.like]: `%${filterParams.shipdate}%` };
-  if (filterParams.source) queryOptions.where['source'] = { [Op.like]: `%${filterParams.source}%` };
-  if (filterParams.sourcedescription) queryOptions.where['sourcedescription'] = { [Op.like]: `%${filterParams.sourcedescription}%` };
-  if (!filterParams.orderdate && !filterParams.shipdate) queryOptions.where[Op.and] = [
-    {
-      [Op.and]: [
-        Sequelize.where(Sequelize.fn('convert', Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')), '>=', `${filterParams.from.replace(/"/g, '')}`),
-        Sequelize.where(Sequelize.fn('convert', Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')), '<=', `${filterParams.to.replace(/"/g, '')}`)
-      ]
-    }, {
-      [Op.and]: [
-        Sequelize.where(Sequelize.fn('convert', Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')), '>=', `${filterParams.from.replace(/"/g, '')}`),
-        Sequelize.where(Sequelize.fn('convert', Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')), '<=', `${filterParams.to.replace(/"/g, '')}`)
-      ]
-    }
-  ]
+  if(filterParams.UniqueID) queryOptions.where['UniqueID'] = {[Op.like]: `%${filterParams.UniqueID}%`}
+  if(filterParams.orderdate) queryOptions.where['orderdate'] = {[Op.like]: `%${filterParams.orderdate}%`};
+  if(filterParams.shipdate) queryOptions.where['shipdate'] = {[Op.like]: `%${filterParams.shipdate}%`};
+  if(filterParams.source) queryOptions.where['source'] = {[Op.like]: `%${filterParams.source}%`};
+  if(filterParams.sourcedescription) queryOptions.where['sourcedescription'] = {[Op.like]: `%${filterParams.sourcedescription}%`};
+  if(!filterParams.orderdate && !filterParams.shipdate && filterParams.from && filterParams.to) queryOptions.where[Op.and] =[
+      {
+        [Op.and]: [
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')),  '>=', `${filterParams.from.replace(/"/g, '')}`),
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')),  '<=', `${filterParams.to.replace(/"/g, '')}`)
+        ]
+      }, {
+        [Op.and]: [
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')),  '>=', `${filterParams.from.replace(/"/g, '')}`),
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')),  '<=', `${filterParams.to.replace(/"/g, '')}`)
+        ]
+      }
+    ] 
   // console.log(queryOptions)
-  const list = await tblOrder.findAll(queryOptions);
+  const list = await tblOrder.findAll(queryOptions);  
   const formattedList = list.map((item: any) => {
-    const parsedOrderDate = new Date(item.orderdate);
-    let formattedOrderDate = `${(parsedOrderDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedOrderDate.getDate().toString().padStart(2, '0')}/${parsedOrderDate.getFullYear()}`;
-    const parsedShipDate = new Date(item.shipdate);
-    let formattedShipDate = `${(parsedShipDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedShipDate.getDate().toString().padStart(2, '0')}/${parsedShipDate.getFullYear()}`;
-
+    const parsedOrderDate = item.orderdate ? new Date(item.orderdate) : null;
+    let formattedOrderDate = parsedOrderDate ? `${(parsedOrderDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedOrderDate.getDate().toString().padStart(2, '0')}/${parsedOrderDate.getFullYear()}` : null;
+    const parsedShipDate = item.shipdate ? new Date(item.shipdate) : null;
+    let formattedShipDate = parsedShipDate ? `${(parsedShipDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedShipDate.getDate().toString().padStart(2, '0')}/${parsedShipDate.getFullYear()}` : null;
+    
     return {
       UniqueID: item.UniqueID,
       orderdate: formattedOrderDate,
@@ -96,6 +93,8 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
       customer: `${item.tblCustomer.fname} ${item.tblCustomer.lname}`,
       company: item.tblCustomer.company1,
       zip: item.tblCustomer.zip,
+      price: item.total,
+      totalPrice: item.tblOrderDetails
     }
   })
   return formattedList;
@@ -150,24 +149,24 @@ export const getNumberOfOrders = async (filterParams) => {
     },
     disticnt: true
   };
-  if (filterParams.UniqueID) queryOptions.where['UniqueID'] = { [Op.like]: `%${filterParams.UniqueID}%` }
-  if (filterParams.orderdate) queryOptions.where['orderdate'] = { [Op.like]: `%${filterParams.orderdate}%` };
-  if (filterParams.shipdate) queryOptions.where['shipdate'] = { [Op.like]: `%${filterParams.shipdate}%` };
-  if (filterParams.source) queryOptions.where['source'] = { [Op.like]: `%${filterParams.source}%` };
-  if (filterParams.sourcedescription) queryOptions.where['sourcedescription'] = { [Op.like]: `%${filterParams.sourcedescription}%` };
-  if (!filterParams.orderdate && !filterParams.shipdate) queryOptions.where[Op.and] = [
-    {
-      [Op.and]: [
-        Sequelize.where(Sequelize.fn('convert', Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')), '>=', `${filterParams.from.replace(/"/g, '')}`),
-        Sequelize.where(Sequelize.fn('convert', Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')), '<=', `${filterParams.to.replace(/"/g, '')}`)
-      ]
-    }, {
-      [Op.and]: [
-        Sequelize.where(Sequelize.fn('convert', Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')), '>=', `${filterParams.from.replace(/"/g, '')}`),
-        Sequelize.where(Sequelize.fn('convert', Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')), '<=', `${filterParams.to.replace(/"/g, '')}`)
-      ]
-    }
-  ]
+  if(filterParams.UniqueID) queryOptions.where['UniqueID'] = {[Op.like]: `%${filterParams.UniqueID}%`}
+  if(filterParams.orderdate) queryOptions.where['orderdate'] = {[Op.like]: `%${filterParams.orderdate}%`};
+  if(filterParams.shipdate) queryOptions.where['shipdate'] = {[Op.like]: `%${filterParams.shipdate}%`};
+  if(filterParams.source) queryOptions.where['source'] = {[Op.like]: `%${filterParams.source}%`};
+  if(filterParams.sourcedescription) queryOptions.where['sourcedescription'] = {[Op.like]: `%${filterParams.sourcedescription}%`};
+  if(!filterParams.orderdate && !filterParams.shipdate && filterParams.from && filterParams.to) queryOptions.where[Op.and] =[
+      {
+        [Op.and]: [
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')),  '>=', `${filterParams.from.replace(/"/g, '')}`),
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.orderdate')),  '<=', `${filterParams.to.replace(/"/g, '')}`)
+        ]
+      }, {
+        [Op.and]: [
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')),  '>=', `${filterParams.from.replace(/"/g, '')}`),
+          Sequelize.where(Sequelize.fn('convert',Sequelize.literal('date'), Sequelize.col('tblOrder.shipdate')),  '<=', `${filterParams.to.replace(/"/g, '')}`)
+        ]
+      }
+    ] 
   const numberOfOrders = await tblOrder.count(queryOptions);
   return numberOfOrders;
 }
@@ -309,99 +308,4 @@ export const getSerials = async (params) => {
     }
   });
   return result;
-}
-
-export const processCreditCard = async (merchantinfo, orderInfo) => {
-  const apiLoginKey = process.env.AUTHORIZE_API_LOGIN_KEY
-  const transactionKey = process.env.AUTHORIZE_TRANSACTION_KEY
-  const { cardnumber, expirationmonth, expirationyear, ccv, amount } = merchantinfo
-  const { fname, lname, company, country, state, city, address, zip } = orderInfo
-
-  const merchantAuthenticationType = new APIContracts.MerchantAuthenticationType();
-  merchantAuthenticationType.setName(apiLoginKey);
-  merchantAuthenticationType.setTransactionKey(transactionKey);
-
-  const creditCard = new APIContracts.CreditCardType();
-  creditCard.setCardNumber(`${cardnumber}`);
-  creditCard.setExpirationDate(`${expirationmonth.toString().padStart(2, '0')}${expirationyear.toString().padStart(2, '0')}`);
-  creditCard.setCardCode(`${ccv}`);
-
-  const paymentType = new APIContracts.PaymentType();
-  paymentType.setCreditCard(creditCard);
-
-  const billTo = new APIContracts.CustomerAddressType();
-  billTo.setFirstName(fname ?? null);
-  billTo.setLastName(lname ?? null);
-  billTo.setCompany(company ?? null);
-  billTo.setCountry(country ?? null);
-  billTo.setState(state ?? null);
-  billTo.setCity(city ?? null);
-  billTo.setAddress(address ?? null);
-  billTo.setZip(zip ?? null);
-
-  const transactionRequestType = new APIContracts.TransactionRequestType();
-  transactionRequestType.setTransactionType(APIContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
-  transactionRequestType.setPayment(paymentType);
-  transactionRequestType.setAmount(amount)
-  transactionRequestType.setBillTo(billTo);
-
-  const createRequest = new APIContracts.CreateTransactionRequest();
-  createRequest.setMerchantAuthentication(merchantAuthenticationType);
-  createRequest.setTransactionRequest(transactionRequestType);
-
-  const ctrl = new APIControllers.CreateTransactionController(createRequest.getJSON());
-
-  const refundedPaymentPromise = new Promise((resolve, reject) => {
-    ctrl.execute(() => {
-      const apiResponse = ctrl.getResponse()
-      const response = new APIContracts.CreateTransactionResponse(apiResponse)
-      console.log(JSON.stringify(response, null, 2))
-
-      const transactionResult = {
-        statusCode: 200,
-        message: '',
-        transactionID: ''
-      }
-      console.log(response.getTransactionResponse().getErrors())
-      if (response != null) {
-        if (response.getMessages().getResultCode() == APIContracts.MessageTypeEnum.OK) {
-          if (response.getTransactionResponse().getMessages() != null) {
-            transactionResult.statusCode = 200
-            transactionResult.message = response
-              .getTransactionResponse()
-              .getMessages()
-              .getMessage()[0]
-              .getDescription()
-            transactionResult.transactionID = response.getTransactionResponse().getTransId()
-            resolve(transactionResult)
-          } else {
-            if (response.getTransactionResponse().getErrors() != null) {
-              transactionResult.statusCode = 400
-              transactionResult.message = response
-                .getTransactionResponse()
-                .getErrors()
-                .getError()[0]
-                .getErrorText();
-            }
-            reject(transactionResult)
-          }
-        } else {
-          if (response.getTransactionResponse() != null && response.getTransactionResponse().getErrors() != null) {
-            transactionResult.statusCode = 400
-            transactionResult.message = response
-              .getTransactionResponse()
-              .getErrors()
-              .getError()[0]
-              .getErrorText();
-            reject(transactionResult)
-          }
-        }
-      } else {
-        transactionResult.statusCode = 424
-        transactionResult.message = "Unable to process the payemnt"
-        reject(transactionResult)
-      }
-    })
-  })
-  return await refundedPaymentPromise
 }

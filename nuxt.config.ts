@@ -3,16 +3,19 @@ export default defineNuxtConfig({
   css: ['~/gmsStyles.css'],
   extends: [process.env.NUXT_UI_PRO_PATH || '@nuxt/ui-pro'],
 
-  runtimeConfig: {
-    AUTHORIZE_API_LOGIN_KEY: process.env.AUTHORIZE_API_LOGIN_KEY
-  },
-
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
     '@nuxt/fonts',
-    '@vueuse/nuxt'
+    '@vueuse/nuxt',
+    'nuxt-file-storage'
   ],
+
+  fileStorage: {
+    // enter the absolute path to the location of your storage
+    mount: 'public',
+
+  },
 
   app: {
     head: {
@@ -49,10 +52,10 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/login': {ssr: false},
-    '/customers/:id': {ssr: false}, 
-    'service/serviceordersorders/:id': {ssr: false}
+    '/login': { ssr: false },
+    '/customers/:id': { ssr: false },
+    'service/serviceordersorders/:id': { ssr: false }
   },
 
-  compatibilityDate: '2024-07-13'
+  compatibilityDate: '2024-07-14'
 })

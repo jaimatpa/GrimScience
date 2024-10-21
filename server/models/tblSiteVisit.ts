@@ -48,7 +48,8 @@ const tblSiteVisit = sequelize.define('tblSiteVisit', {
       type: DataTypes.INTEGER,
    },
 }, {
-   timestamps: false
+   timestamps: false,
+   tableName: 'tblSiteVisit'
 });
 
 export default tblSiteVisit;
