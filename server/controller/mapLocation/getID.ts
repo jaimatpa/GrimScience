@@ -1,4 +1,4 @@
-import { tblComplaints, tblOrder, tblSiteVisit } from "~/server/models";
+import { tblComplaints, tblOrder, tblOrderDetail, tblSiteVisit } from "~/server/models";
 
 export const customerIDFromComplaints = async (id) => {
   const customerID = await tblComplaints.findOne({
@@ -12,7 +12,7 @@ export const customerIDFromComplaints = async (id) => {
 
 export const customerIDFromOrder = async (id) => {
   const customerID = await tblOrder.findOne({
-    attributes: ["customerID", "orderid"],
+    attributes: ["customerid", "orderid"],
     where: {
       uniqueID: id,
     },
@@ -22,9 +22,20 @@ export const customerIDFromOrder = async (id) => {
 
 export const customerIDFromSite = async (id) => {
   const customerID = await tblSiteVisit.findOne({
-    attributes: ["CustomerID", "orderid"],
+    attributes: ["CustomerID"],
     where: {
-      uniqueID: id,
+      VisitID: id,
+    },
+  });
+  return customerID;
+};
+
+
+export const customerIDFromOrderDetail = async (id) => {
+  const customerID = await tblOrderDetail.findOne({
+    attributes: ["orderid"],
+    where: {
+      UniqueID: id,
     },
   });
   return customerID;

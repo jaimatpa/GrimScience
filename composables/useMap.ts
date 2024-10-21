@@ -90,6 +90,7 @@ export const useMap = () => {
     params: { action: "getPins" },
     key: "map-pins",
   });
+  console.log("Pin--------", pins.value);
 
   const initMap = () => {
     if (!mapRef.value) return;
@@ -505,72 +506,89 @@ export const useMap = () => {
   };
 
   const modalMeta = ref({
-    isServiceOrderModalOpen: false,
-    isOrderDetailModalOpen: false,
     isSiteVisitModalOpen: false,
+    isQuoteModalOpen: false,
+    isInvoiceModalOpen: false,
+    isServiceOrderModalOpen: false,
   });
 
   const gridMeta = ref({
     selectedCustomerId: null,
     selectedOrderId: null,
+    selectedComplaint: null,
   });
 
-  const handleModalClose = () => {
-    gridMeta.value.selectedCustomerId = "";
-    modalMeta.value.isServiceOrderModalOpen = false;
-    modalMeta.value.isOrderDetailModalOpen = false;
-
-    modalMeta.value.isSiteVisitModalOpen = false;
-  };
-
-  const getInfo = async (tblName: string, id: number) => {
+  const getInvoice = async (tblName: string, id: number) => {
     await useApiFetch(`/api/mapLocation/${tblName}/${id}`, {
-        
       method: "GET",
       onResponse({ response }) {
-        
-        console.log(`/api/mapLocation/${tblName}/${id}`)
+        if (response.status === 200) {
+          gridMeta.value.selectedCustomerId = response._data.body.customerid;
+          gridMeta.value.selectedOrderId = response._data.body.orderid;
+          modalMeta.value.isInvoiceModalOpen = true;
+        }
+      },
+    });
+  };
+
+  const getQuoteInfo = async (tblName: string, id: number) => {
+    await useApiFetch(`/api/mapLocation/${tblName}/${id}`, {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          gridMeta.value.selectedCustomerId = response._data.body.customerid;
+          gridMeta.value.selectedOrderId = response._data.body.orderid;
+          modalMeta.value.isQuoteModalOpen = true;
+        }
+      },
+    });
+  };
+
+  const getSiteVisit = async (tblName: string, id: number) => {
+    await useApiFetch(`/api/mapLocation/${tblName}/${id}`, {
+      method: "GET",
+      onResponse({ response }) {
+        if (response.status === 200) {
+          // gridMeta.value.selectedOrderId = response._data.body.orderid;
+          gridMeta.value.selectedCustomerId = response._data.body.CustomerID;
+          modalMeta.value.isSiteVisitModalOpen = true;
+        }
+      },
+    });
+  };
+
+  const getServiceOrder = async (tblName: string, id: number) => {
+    await useApiFetch(`/api/mapLocation/${tblName}/${id}`, {
+      method: "GET",
+      onResponse({ response }) {
         if (response.status === 200) {
           if (tblName === "tblComplaints") {
             gridMeta.value.selectedCustomerId = response._data.body.CustomerID;
+            gridMeta.value.selectedComplaint = id;
             modalMeta.value.isServiceOrderModalOpen = true;
-          }
-
-          if (tblName === "tblOrder") {
-            gridMeta.value.selectedCustomerId = response._data.body.customerID;
-            gridMeta.value.selectedOrderId = response._data.body.orderid;
-            modalMeta.value.isOrderDetailModalOpen = true;
           }
         }
       },
-      onRequestError({ response }) {
-        
-        console.log(`/api/mapLocation/${tblName}/${id}`)
-        
-      },
-
     });
   };
 
   const openDetails = (type: string, id: number) => {
-    if ((id && type?.name === "checkups") || type?.name === "serviceReports") {
-      getInfo("tblComplaints", id);
+    //invoice 1, 7
+    if (id && type?.name === "pendingInstalls" || type?.name === "shippedOrders") {
+      getInvoice("tblOrder", id);
     }
-
-    if (
-      (id && type?.name === "pendingInstalls") ||
-      type?.name === "shippedOrders"
-    ) {
-      getInfo("tblOrder", id);
+    //Service Order  2, 3
+    if (id && type?.name === "checkups" || type?.name === "serviceReports") {
+      getServiceOrder("tblComplaints", id);
+      getServiceOrder("tblOrder", id);
     }
-
+    //Site Visit  4
     if (id && type?.name === "siteVisits") {
-      getInfo("tblOrder", id);
+      getSiteVisit("tblSiteVisit", id);
     }
-    
-    else {
-      console.log("Type---", type.name);
-      console.log("ID----- ", id);
+    //Quotes  5, 6
+    if (id && type?.name === "orderPendings" || type?.name === "openQuotes") {
+      getQuoteInfo("tblOrder", id);
     }
   };
 
@@ -597,6 +615,5 @@ export const useMap = () => {
     openDetails,
     modalMeta,
     gridMeta,
-    handleModalClose,
   };
 };
