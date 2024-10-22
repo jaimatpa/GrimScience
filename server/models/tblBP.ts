@@ -411,7 +411,7 @@ const tblBP = sequelize.define(
     },
   },
   {
-    tableName: "tblBp",
+    tableName: "tblBP",
     timestamps: false,
   }
 );

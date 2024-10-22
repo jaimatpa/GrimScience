@@ -86,30 +86,28 @@ export const getCategoryList = async () => {
   });
 
   return partCategories
-    .map(item => item.PARTTYPE)
-    .filter(category => category !== null && category.trim() !== ''); 
+    .map((item) => item.PARTTYPE)
+    .filter((category) => category !== null && category.trim() !== "");
 };
-
 
 export const getSubCategoryForCategory = async (category) => {
   const decodedCategory = decodeURIComponent(category);
 
   const subcategoryList = await tblBP.findAll({
     attributes: [
-      [Sequelize.fn('DISTINCT', Sequelize.col('SUBCATEGORY')), 'SUBCATEGORY']
+      [Sequelize.fn("DISTINCT", Sequelize.col("SUBCATEGORY")), "SUBCATEGORY"],
     ],
     where: {
-      PARTTYPE: decodedCategory,  
+      PARTTYPE: decodedCategory,
     },
     order: [["SUBCATEGORY", "ASC"]],
     raw: true,
   });
 
   return subcategoryList
-    .map(item => item.SUBCATEGORY)
-    .filter(subcategory => subcategory !== null && subcategory.trim() !== ''); 
-}
-
+    .map((item) => item.SUBCATEGORY)
+    .filter((subcategory) => subcategory !== null && subcategory.trim() !== "");
+};
 
 export const getProductInfos = async (params) => {
   const { productline, category, subcategory, model, stock } = params;
@@ -152,7 +150,6 @@ export const getProductInfos = async (params) => {
 };
 
 export const getParts = async (filterParams) => {
-  console.log("param for part", filterParams);
   const { UniqueID, PARTTYPE, SUBCATEGORY, MODEL, DESCRIPTION } = filterParams;
   let where = {};
   if (UniqueID) where["UniqueID"] = UniqueID;
@@ -346,8 +343,6 @@ const formatDate = (isoDateString: string): string => {
 };
 
 export const updateParts = async (id, updateData) => {
-  console.log("Updated data:", updateData, id);
-
   const filteredData = Object.keys(updateData).reduce((acc, key) => {
     if (
       updateData[key] !== null &&
@@ -361,7 +356,6 @@ export const updateParts = async (id, updateData) => {
 
   try {
     if (Object.keys(filteredData).length === 0) {
-      console.log("No fields to update.");
       return;
     }
 
@@ -383,7 +377,6 @@ export const updateParts = async (id, updateData) => {
       type: QueryTypes.UPDATE,
     });
 
-    console.log("Update successful. Affected rows:", metadata);
     return metadata > 0 ? id : null;
   } catch (error) {
     console.error("Error updating parts:", error);
@@ -589,16 +582,14 @@ export const getInventoryTransactionsByModel = async (model: any) => {
 export const getVendorNames = async () => {
   try {
     const vendorList = await tblVendors.findAll({
-      attributes: [
-        [Sequelize.fn('DISTINCT', Sequelize.col('Name')), 'Name']
-      ],
+      attributes: [[Sequelize.fn("DISTINCT", Sequelize.col("Name")), "Name"]],
       order: [["Name", "ASC"]],
       raw: true,
     });
 
     const names = vendorList
       .map((vendor) => vendor.Name)
-      .filter((name) => name !== null && name.trim() !== '');
+      .filter((name) => name !== null && name.trim() !== "");
 
     return names;
   } catch (error) {
@@ -652,13 +643,9 @@ export const getTotalRequiredByModel = async (model: string) => {
 
     return { jobs, totalRequired, ordered };
   } catch (error) {
-    throw new Error(
-      `Error fetching data for model ${model}: ${error.message}`
-    );
+    throw new Error(`Error fetching data for model ${model}: ${error.message}`);
   }
 };
-
-
 
 export const getAccountList = async () => {
   try {

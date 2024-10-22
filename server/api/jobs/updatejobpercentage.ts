@@ -3,10 +3,10 @@ import { updateJobPercentage } from '~/server/controller/jobs';
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-
+    const { jobs } = await readBody(event);
     switch(method.toUpperCase()){
       case 'PUT':
-        await updateJobPercentage()
+        await updateJobPercentage(jobs)
         return { body: '', message: '' }
       default:
         setResponseStatus(event, 405);

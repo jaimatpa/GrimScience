@@ -3,7 +3,7 @@ import { tblOrder, tblOrderDetail, tblCustomers, tblServiceReport } from "~/serv
 
 export const orderExistByID = async (id: number | string) => {
   const tableDetail = await tblOrder.findByPk(id);
-  if(tableDetail)
+  if (tableDetail)
     return true;
   else
     return false;
@@ -11,9 +11,9 @@ export const orderExistByID = async (id: number | string) => {
 
 export const orderDetailExistByUniqueID = async (id: number | string) => {
   const tableDetail = await tblOrderDetail.findOne({
-    where: {UniqueID: id}
+    where: { UniqueID: id }
   });
-  if(tableDetail)
+  if (tableDetail)
     return true;
   else
     return false;
@@ -23,34 +23,34 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
   const limit = parseInt(pageSize as string, 10) || 10;
   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
 
-  tblOrder.belongsTo(tblCustomers, {foreignKey: 'customerid', targetKey: 'UniqueID' })
+  tblOrder.belongsTo(tblCustomers, { foreignKey: 'customerid', targetKey: 'UniqueID' })
   tblOrder.hasMany(tblOrderDetail, { foreignKey: 'orderid', sourceKey: 'UniqueID' })
 
   let customerWhere = {}
   let orderDetailWhere = {}
 
-  if(filterParams.customerid) customerWhere['UniqueID'] = {[Op.like]: `%${filterParams.customerid}%`};
-  if(filterParams.company) customerWhere['company1'] = {[Op.like]: `%${filterParams.company}%`};
-  if(filterParams.zip) customerWhere['zip'] = {[Op.like]: `%${filterParams.zip}%`};
-  if(filterParams.customer) customerWhere[Op.and] = Sequelize.where(Sequelize.fn('concat', Sequelize.col('fname'), Sequelize.col('lname')), 'LIKE', `%${filterParams.customer}%`)
-  if(filterParams.serial) orderDetailWhere['serial'] = {[Op.like]: `%${filterParams.serial}%`};
-  let queryOptions:any = {
+  if (filterParams.customerid) customerWhere['UniqueID'] = { [Op.like]: `%${filterParams.customerid}%` };
+  if (filterParams.company) customerWhere['company1'] = { [Op.like]: `%${filterParams.company}%` };
+  if (filterParams.zip) customerWhere['zip'] = { [Op.like]: `%${filterParams.zip}%` };
+  if (filterParams.customer) customerWhere[Op.and] = Sequelize.where(Sequelize.fn('concat', Sequelize.col('fname'), Sequelize.col('lname')), 'LIKE', `%${filterParams.customer}%`)
+  if (filterParams.serial) orderDetailWhere['serial'] = { [Op.like]: `%${filterParams.serial}%` };
+  let queryOptions: any = {
     include: [
       {
         model: tblCustomers,
         required: true,
-        order:[['UniqueID', 'ASC']],
+        order: [['UniqueID', 'ASC']],
         where: customerWhere
       },
       {
         model: tblOrderDetail,
         required: true,
-        order:[['UniqueID', 'ASC']], 
+        order: [['UniqueID', 'ASC']],
         where: orderDetailWhere
       }
     ],
     order: [['UniqueID', sortOrder as string || 'ASC']],
-    where:{
+    where: {
       status: 'Open'
     },
     offset,
@@ -103,7 +103,7 @@ export const getOrders = async (page, pageSize, sortBy, sortOrder, filterParams)
 export const getOrderDetail = async (params) => {
   const { orderid } = params
   let whereClause = {}
-  if(orderid) whereClause['orderid'] = orderid
+  if (orderid) whereClause['orderid'] = orderid
   const list = await tblOrderDetail.findAll({
     where: whereClause,
     order: [['UniqueID', 'ASC']],
@@ -111,24 +111,24 @@ export const getOrderDetail = async (params) => {
   return list;
 }
 
-export const getLastCusomterID  = async () => {
+export const getLastCusomterID = async () => {
   const result = await tblOrder.max('UniqueID')
   return result;
 }
 
 export const getNumberOfOrders = async (filterParams) => {
-  tblOrder.belongsTo(tblCustomers, {foreignKey: 'customerid', targetKey: 'UniqueID' })
+  tblOrder.belongsTo(tblCustomers, { foreignKey: 'customerid', targetKey: 'UniqueID' })
   tblOrder.hasMany(tblOrderDetail, { foreignKey: 'orderid', sourceKey: 'UniqueID' })
 
   let customerWhere = {}
   let orderDetailWhere = {}
 
-  if(filterParams.customerid) customerWhere['UniqueID'] = {[Op.like]: `%${filterParams.customerid}%`};
-  if(filterParams.company) customerWhere['company1'] = {[Op.like]: `%${filterParams.company}%`};
-  if(filterParams.zip) customerWhere['zip'] = {[Op.like]: `%${filterParams.zip}%`};
-  if(filterParams.customer) customerWhere[Op.or] = Sequelize.where(Sequelize.fn('concat', Sequelize.col('fname'), Sequelize.col('lname')), 'LIKE', `%${filterParams.customer}%`)
-  if(filterParams.serial) orderDetailWhere['serial'] = {[Op.like]: `%${filterParams.serial}%`};
-  let queryOptions:any = {
+  if (filterParams.customerid) customerWhere['UniqueID'] = { [Op.like]: `%${filterParams.customerid}%` };
+  if (filterParams.company) customerWhere['company1'] = { [Op.like]: `%${filterParams.company}%` };
+  if (filterParams.zip) customerWhere['zip'] = { [Op.like]: `%${filterParams.zip}%` };
+  if (filterParams.customer) customerWhere[Op.or] = Sequelize.where(Sequelize.fn('concat', Sequelize.col('fname'), Sequelize.col('lname')), 'LIKE', `%${filterParams.customer}%`)
+  if (filterParams.serial) orderDetailWhere['serial'] = { [Op.like]: `%${filterParams.serial}%` };
+  let queryOptions: any = {
     attributes: { exclude: [] },
     include: [
       {
@@ -144,7 +144,7 @@ export const getNumberOfOrders = async (filterParams) => {
         where: orderDetailWhere
       }
     ],
-    where:{
+    where: {
       status: 'Open'
     },
     disticnt: true
@@ -172,7 +172,7 @@ export const getNumberOfOrders = async (filterParams) => {
 }
 
 export const createOrder = async (data) => {
-  try{
+  try {
     let newData = {}
     const keys = Object.keys(data);
     for (let i = 0; i < keys.length; i++) {
@@ -193,16 +193,16 @@ export const createOrder = async (data) => {
     }
     const newOrder = await tblOrder.create(newData);
     return newOrder
-  }catch(error){
+  } catch (error) {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }
 }
 
 export const creteOrderDetail = async (data) => {
-  try{
+  try {
     const newOrderDetail = await tblOrderDetail.create(data);
     return newOrderDetail
-  }catch(error){
+  } catch (error) {
     throw new Error(`Error fetching data from table: ${error.message}`);
   }
 }
@@ -227,14 +227,14 @@ export const updateOrderDetail = async (id, reqData) => {
 }
 
 export const deleteOrderDetail = async (id) => {
-  await tblOrderDetail.destroy({where: { UniqueID: id }});
+  await tblOrderDetail.destroy({ where: { UniqueID: id } });
   return id
 }
 
 export const getServiceOrderInvoices = async (params) => {
   const { COMPLAINTID } = params
   let where = {}
-  if(COMPLAINTID) where['COMPLAINTID'] = COMPLAINTID
+  if (COMPLAINTID) where['COMPLAINTID'] = COMPLAINTID
   let invoiceList = []
   let invoiceListTmp = await tblServiceReport.findAll({
     attributes: [
@@ -246,10 +246,10 @@ export const getServiceOrderInvoices = async (params) => {
   })
   invoiceListTmp = invoiceListTmp.map((item: any) => item.INVOICES)
   invoiceListTmp.map((item: any) => {
-    if(item !=='' && item !== null) {
+    if (item !== '' && item !== null) {
       const tmp = item.split('=')
       tmp.map((invoice: any) => {
-        if(!invoiceList.includes(invoice) && Number(invoice)) invoiceList.push(invoice)
+        if (!invoiceList.includes(invoice) && Number(invoice)) invoiceList.push(invoice)
       })
     }
   })
@@ -266,7 +266,7 @@ export const getServiceOrderInvoices = async (params) => {
           invoicenumber: {
             [Op.in]: invoiceList
           }
-        }, 
+        },
         { complaintID: COMPLAINTID }
       ]
     }
@@ -277,26 +277,26 @@ export const getServiceOrderInvoices = async (params) => {
 export const getSerials = async (params) => {
   const { customerid } = params
   let whereClause = {}
-  if(customerid) whereClause['customerid'] = customerid
+  if (customerid) whereClause['customerid'] = customerid
   tblOrderDetail.hasOne(tblOrder, { foreignKey: 'UniqueID', sourceKey: 'orderid' })
   const list = await tblOrderDetail.findAll({
-    attributes: [ 
+    attributes: [
       'UniqueID',
       'serial'
-    ], 
+    ],
     where: {
       serial: {
         [Op.not]: null,
         [Op.ne]: ''
       }
-    }, 
+    },
     include: [
       {
         model: tblOrder,
         attributes: ['UniqueID'],
         where: whereClause,
         required: true,
-      }, 
+      },
     ],
     order: [['serial', 'ASC']],
     raw: true
