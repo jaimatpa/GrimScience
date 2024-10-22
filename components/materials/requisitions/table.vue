@@ -38,16 +38,22 @@ const headerFilters = ref({
     filter: "EMPLOYEE",
     options: [],
   },
+  SubCategoryList: {
+    filter: "EMPLOYEE",
+    options: [],
+  },
 });
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
+
     {
       key: "PARTTYPE",
       sortable: true,
       sortDirection: "none",
       filterable: true,
     },
+
     {
       key: "SUBCATEGORY",
       sortable: true,
@@ -97,11 +103,7 @@ const filterValues = ref({
   STOCKNUMBER: null,
 });
 
-const handleCategoryChange = (newValue) => {
-  debugger;
-  filterValues.value.PARTTYPE = newValue;
-  fetchGridData();
-};
+
 
 const handleSubcategoryChange = (newValue) => {
   filterValues.value.SUBCATEGORY = newValue;
@@ -125,9 +127,37 @@ const columns = computed(() =>
 );
 
 const init = async () => {
-  fetchGridData();
   gridMeta.value.isLoading = true;
 };
+
+// const fetchGridData = async () => {
+//   await useApiFetch("/api/materials/requisitions/getAllDataApi?type=table", {
+//     method: "GET",
+//     params: {
+//       page: gridMeta.value.page,
+//       pageSize: gridMeta.value.pageSize,
+//       sortBy: gridMeta.value.sort.column,
+//       sortOrder: gridMeta.value.sort.direction,
+//       ...filterValues.value,
+//     },
+
+//     onResponse({ response }) {
+//       console.log(response);
+//       if (response.status === 200) {
+//       console.log( response._data.tableData.data)
+//         gridMeta.value.orders = response._data.tableData.data;
+
+//          headerFilters.value.SubCategoryList.options =  response._data.tableData.data.SUBCATEGORY.map(
+//         (SUBCATEGORY) => ({
+//           label: SUBCATEGORY,
+//           value: SUBCATEGORY,
+//         })
+//       );
+//       }
+//       gridMeta.value.isLoading = false;
+//     },
+//   });
+// };
 
 const fetchGridData = async () => {
   await useApiFetch("/api/materials/requisitions/getAllDataApi?type=table", {
@@ -141,9 +171,24 @@ const fetchGridData = async () => {
     },
 
     onResponse({ response }) {
-      console.log(response);
       if (response.status === 200) {
+        // Store the full data in gridMeta
         gridMeta.value.orders = response._data.tableData.data;
+
+        // Extract unique SUBCATEGORY values
+        const uniqueSubcategories = [...new Set(
+          response._data.tableData.data
+            .filter(item => item.SUBCATEGORY) // Filter out null values
+            .map(item => item.SUBCATEGORY)
+        )];
+
+        // Update headerFilters with formatted options
+        headerFilters.value.SubCategoryList.options = uniqueSubcategories.map(
+          subcategory => ({
+            label: subcategory,
+            value: subcategory,
+          })
+        );
       }
       gridMeta.value.isLoading = false;
     },
@@ -169,6 +214,7 @@ const fetchCategoryData = async () => {
     console.error("Error fetching category data:", err);
   }
 };
+
 
 const handleModalSave = async () => {
   handleModalClose();
@@ -254,6 +300,13 @@ const fetchSubCategoryData = async () => {
     console.error("Error fetching category data:", err);
   }
 };
+
+const handleCategoryChange = (newValue) => {
+  debugger;
+  filterValues.value.PARTTYPE = newValue.label;
+  fetchGridData();
+};
+
 </script>
 
 <template>
@@ -270,7 +323,7 @@ const fetchSubCategoryData = async () => {
         <div class="w-1/2">
           <div class="flex gap-4">
             <div class="w-1/2 flex">
-              <h1>Emplayee</h1>
+              <h1 class="pr-[8px]">Emplayee</h1>
 
               <UInputMenu
                 v-model="submitData.employeeOption"
@@ -279,7 +332,7 @@ const fetchSubCategoryData = async () => {
               />
             </div>
             <div class="w-1/2 flex">
-              <h1>Date</h1>
+              <h1 class="pr-[8px]">Date</h1>
               <UInput v-model="submitData.inputData" type="date" class="w-40" />
             </div>
           </div>
@@ -287,7 +340,7 @@ const fetchSubCategoryData = async () => {
 
         <div class="w-1/2 ml-auto">
           <div class="w-1/2 flex">
-            <h1>Date Required</h1>
+            <h1 class="pr-[8px]">Date Required</h1>
             <UInput v-model="submitData.requireDate" type="date" class="w-40" />
           </div>
         </div>
@@ -340,7 +393,7 @@ const fetchSubCategoryData = async () => {
               <div class="w-full">
                 <UInputMenu
                   v-model="filterValues.SUBCATEGORY"
-                  :options="headerFilters.EmployeeList.options"
+                  :options="headerFilters.SubCategoryList.options"
                   @change="handleSubcategoryChange"
                   class="w-full"
                 />

@@ -9,14 +9,54 @@ onMounted(async () => {
   await fetchGridData();
 });
 
-const headerFilters = ref({
 
+
+const fetchGridData = async () => {
+  gridMeta.value.isLoading = true;
+  if (
+    gridMeta.value.page * gridMeta.value.pageSize >
+    gridMeta.value.numberOfChangeOrders
+  ) {
+    gridMeta.value.page =
+      Math.ceil(gridMeta.value.numberOfChangeOrders / gridMeta.value.pageSize) |
+      1;
+  }
+
+  const params = {
+    page: gridMeta.value.page,
+    pageSize: gridMeta.value.pageSize,
+    sortBy: gridMeta.value.sort.column,
+    sortOrder: gridMeta.value.sort.direction,
+    ...Object.fromEntries(
+      Object.entries(filterValues.value).filter(([_, value]) => value != null)
+    ),
+  };
+
+  try {
+    await useApiFetch("/api/materials/requisitions/table2?type=table2", {
+      method: "GET",
+      params,
+      onResponse({ response }) {
+        console.log("hello controller", response._data.tableData);
+        if (response.status === 200) {
+          gridMeta.value.orders = response._data.tableData;
+        }
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  } finally {
+    gridMeta.value.isLoading = false;
+  }
+};
+
+const headerFilters = ref({
   subCategoryList: {
     label: "Sub Category",
     filter: "subcategory",
     options: [],
   },
- 
+
   EmployeeList: {
     filter: "EMPLOYEE",
     options: [],
@@ -54,52 +94,9 @@ const fetchCategoryData = async () => {
 
 const emit = defineEmits(["rowSelectedProduct", "selectEco", "close"]);
 
-const init = async () => {};
-
-const inventoryDetailGridMeta = ref({
-  defaultColumns: <UTableColumn[]>[
-    {
-      key: "checkbox",
-      label: "",
-      kind: "actions",
-    },
-    {
-      key: "No",
-      label: "Report",
-      filterable: true,
-    },
-
-    {
-      key: "date",
-      label: "Date",
-    },
-
-    {
-      key: "by",
-      label: "By",
-    },
-    {
-      key: "Report",
-      label: "Report#",
-    },
-    {
-      key: "Date",
-      label: "Date",
-    },
-    {
-      key: "",
-      label: "MaintenanceBy",
-    },
-  ],
-
-  sort: {
-    column: "UniqueID",
-    direction: "asc",
-  },
-  details: [],
-  selectedDetail: null,
-  isLoading: false,
-});
+const init = async () => {
+  fetchGridData();
+};
 
 const handleVModel = ref({
   selectedRow: null,
@@ -124,7 +121,6 @@ const onSelect = (row) => {
 };
 
 const deleteEquipmentTableData = async () => {
-  debugger;
   const uniqueId = handleVModel.value.selectedNoValue;
 
   if (!uniqueId) {
@@ -185,6 +181,13 @@ const fetchSubCategoryData = async () => {
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
+      key: "checkbox",
+      label: "",
+      sortable: false,
+      filterable: false,
+      width: 40,
+    },
+    {
       key: "STOCKNUMBER",
       label: "Part#",
       sortable: true,
@@ -199,8 +202,16 @@ const gridMeta = ref({
       filterable: true,
     },
     {
-      key: "PoNumber",
+      key: "PONumber",
       label: "PO",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+
+    {
+      key: "QTYORDER",
+      label: "On Order",
       sortable: true,
       sortDirection: "none",
       filterable: true,
@@ -212,6 +223,14 @@ const gridMeta = ref({
       sortDirection: "none",
       filterable: true,
     },
+    {
+      key: "OnHand",
+      label: "On Hand",
+      sortable: true,
+      sortDirection: "none",
+      filterable: true,
+    },
+
     {
       key: "EMPLOYEE",
       label: "By",
@@ -228,7 +247,7 @@ const gridMeta = ref({
     },
   ],
   page: 1,
-  pageSize: 200,
+  pageSize: 10,
   numberOfChangeOrders: 0,
   orders: [],
   selectedOrderId: null,
@@ -237,17 +256,26 @@ const gridMeta = ref({
   submitPropsData: null,
   sort: {
     column: "STOCKNUMBER",
-    direction: "desc",
+    direction: "DESC",
   },
   isLoading: false,
 });
+
+// const formattedOrders = computed(() => {
+//   return gridMeta.value.orders.map((order) => {
+//     return {
+//       ...order,
+//       DESCRIPTION: order.DESCRIPTION.split(" ").slice(0, 5).join(" "),
+//     };
+//   });
+// });
 
 const filterValues = ref({
   QTY: null,
   reqdate: null,
   DESCRIPTION: null,
   STOCKNUMBER: null,
-  PoNumber: null,
+  PONumber: null,
   EMPLOYEE: null,
 });
 
@@ -256,24 +284,94 @@ const searchBYEmpleey = (newDate) => {
   fetchGridData();
 };
 
-const fetchGridData = async () => {
-  await useApiFetch("/api/materials/requisitions/table2?type=table2", {
-    method: "GET",
-    params: {
-      page: gridMeta.value.page,
-      pageSize: gridMeta.value.pageSize,
-      sortBy: gridMeta.value.sort.column,
-      sortOrder: gridMeta.value.sort.direction,
-      ...filterValues.value,
-    },
+// const fetchGridData = async () => {
+//   await useApiFetch("/api/materials/requisitions/table2?type=table2", {
+//     method: "GET",
+//     params: {
+//       page: gridMeta.value.page,
+//       pageSize: gridMeta.value.pageSize,
+//       sortBy: gridMeta.value.sort.column,
+//       sortOrder: gridMeta.value.sort.direction,
+//       ...filterValues.value,
+//     },
 
-    onResponse({ response }) {
-      if (response.status === 200) {
-        gridMeta.value.orders = response._data.tableData;
+//     onResponse({ response }) {
+//       if (response.status === 200) {
+//         gridMeta.value.orders = response._data.tableData;
+//       }
+//       gridMeta.value.isLoading = false;
+//     },
+//   });
+// };
+
+const selectedColumns = ref(gridMeta.value.defaultColumns);
+const exportIsLoading = ref(false);
+
+const columns = computed(() =>
+  gridMeta.value.defaultColumns.filter((column) =>
+    selectedColumns.value.includes(column)
+  )
+);
+
+const handleFilterInputChange = async (event, name) => {
+  gridMeta.value.page = 1;
+  if (filterValues.value.hasOwnProperty(name)) {
+    filterValues.value[name] = event.target?.value || event;
+  }
+  await fetchGridData();
+};
+
+const handleSortingButton = async (btnName: string) => {
+  gridMeta.value.page = 1;
+  for (const column of columns.value) {
+    if (column.sortable) {
+      if (column.key === btnName) {
+        switch (column.sortDirection) {
+          case "none":
+            column.sortDirection = "asc";
+            gridMeta.value.sort.column = btnName;
+            gridMeta.value.sort.direction = "asc";
+            break;
+          case "asc":
+            column.sortDirection = "desc";
+            gridMeta.value.sort.column = btnName;
+            gridMeta.value.sort.direction = "desc";
+            break;
+          default:
+            column.sortDirection = "none";
+            gridMeta.value.sort.column = "STOCKNUMBER";
+            gridMeta.value.sort.direction = "desc";
+            break;
+        }
+      } else {
+        column.sortDirection = "none";
       }
-      gridMeta.value.isLoading = false;
-    },
-  });
+    }
+  }
+  init();
+};
+const handlePageChange = async () => {
+  fetchGridData();
+};
+
+const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
+const descIcon = "i-heroicons-bars-arrow-down-20-solid";
+const noneIcon = "i-heroicons-arrows-up-down-20-solid";
+
+const selectedRows = ref(new Set());
+
+
+
+const toggleRow = (stockNumber: string, checked: boolean) => {
+  if (checked) {
+    selectedRows.value.add(stockNumber);
+  } else {
+    selectedRows.value.delete(stockNumber);
+  }
+};
+
+const clearAllSelections = () => {
+  selectedRows.value.clear();
 };
 </script>
 
@@ -285,8 +383,9 @@ const fetchGridData = async () => {
       <p class="py-[10px]">Requisitions Lookup</p>
     </div>
     <div class="flex flex-row space-x-6 pt-[20px] pb-[30px]">
-      <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-        <h3>Show History</h3>
+      <div class="flex basis-3/5 max-w-[300px] min-w-[150px] mr-4">
+        <UCheckbox :model-value="isAllSelected" />
+        <h3 class="pl-[5px]">Show History</h3>
       </div>
       <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
         <h3>By</h3>
@@ -298,7 +397,8 @@ const fetchGridData = async () => {
         />
       </div>
     </div>
-    <div
+
+    <!-- <div
       class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-4"
     >
       <div class="">
@@ -354,87 +454,82 @@ const fetchGridData = async () => {
           class="mb-4"
         />
       </div>
-    </div>
+    </div> -->
 
     <UDivider />
   </UForm>
 
-  <div class="">
-    <UTable
-      :rows="gridMeta.orders"
-      :columns="gridMeta.defaultColumns"
-      :loading="gridMeta.isLoading"
-      class="w-full"
-      :ui="{
-        wrapper: ' h-60 border-2 border-gray-300 dark:border-gray-700',
-        divide: 'divide-gray-200 dark:divide-gray-800',
-        th: {
-          base: 'top-0',
-          color: 'bg-white dark:text-gray dark:bg-[#111827]',
-          padding: 'p-0',
-        },
-        td: {
-          base: 'h-[31px]',
-          padding: 'py-0',
-        },
-      }"
-      :empty-state="{
-        icon: 'i-heroicons-circle-stack-20-solid',
-        label: 'No items.',
-      }"
-      @select="onSelect"
-    >
-      <template
-        v-for="column in inventoryDetailGridMeta.defaultColumns"
-        v-slot:[`${column.key}-header`]
+  <!-- :rows="gridMeta.orders" -->
+
+    <div>
+      <UTable
+        :rows="gridMeta.orders"
+        :columns="columns"
+        :loading="gridMeta.isLoading"
+        class="w-full"
+        :ui="{
+          divide: 'divide-gray-200 dark:divide-gray-800',
+          th: {
+            base: 'sticky top-0 z-10',
+            padding: 'pb-0',
+          },
+          td: {
+            padding: 'py-1',
+          },
+        }"
+        :empty-state="{
+          icon: 'i-heroicons-circle-stack-20-solid',
+          label: 'No items.',
+        }"
+        @select="onSelect"
       >
-        <template v-if="column.kind !== 'actions'">
-          <div class="px-1 py-1">
-            <CommonSortAndInputFilter
-              :label="column.label"
-              :sortable="column.sortable"
-              :sort-key="column.key"
-              :filter-key="column.key"
+        <!-- Add this template for checkbox column header -->
+        <template #checkbox-header>
+          <div class="flex items-center justify-center">
+            <UCheckbox
+              :model-value="isAllSelected"
+              @update:model-value="toggleAllRows"
             />
           </div>
         </template>
 
-        <template v-else class="bg-slate-400">
-          <div class="flex justify-center text-center w-[53px]">
-            {{ column.label }}
+        <!-- Add this template for checkbox column cells -->
+        <template #checkbox-data="{ row }">
+          <div class="flex items-center justify-center">
+            <UCheckbox
+              :model-value="selectedRows.has(row.STOCKNUMBER)"
+              @update:model-value="
+                (checked) => toggleRow(row.STOCKNUMBER, checked)
+              "
+            />
           </div>
         </template>
-      </template>
 
-      <template #default="{ rows }">
-        <template v-for="row in rows" :key="row.uniqueid">
-          <tr
-            @click="onSelect(row)"
-            :class="{
-              'bg-red-500': isSelected(row),
-              'hover:bg-gray-200 cursor-pointer': !isSelected(row),
-            }"
-          >
-            <td>
-              <input
-                type="checkbox"
-                :checked="isSelected(row)"
-                @change.stop="toggleRowSelection(row)"
+        <!-- Your existing column headers -->
+        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+          <template v-if="column.key !== 'checkbox'">
+            <div>
+              <CommonSortAndInputFilter
+                @handle-sorting-button="handleSortingButton"
+                @handle-input-change="handleFilterInputChange"
+                :label="column.label"
+                :sortable="column.sortable"
+                :sort-key="column.key"
+                :sort-icon="
+                  column?.sortDirection === 'none'
+                    ? noneIcon
+                    : column?.sortDirection === 'asc'
+                    ? ascIcon
+                    : descIcon
+                "
+                :filterable="column.filterable"
+                :filter-key="column.key"
               />
-            </td>
-            <td
-              v-for="column in inventoryDetailGridMeta.defaultColumns"
-              :key="column.key"
-            >
-              {{ row[column.key] }}
-            </td>
-          </tr>
+            </div>
+          </template>
         </template>
-      </template>
-    </UTable>
-  
-      
-  </div>
+      </UTable>
+    </div>
 
   <div class="flex justify-end space-x-4 pt-[10px]">
     <div class="basis-1/6">
@@ -443,7 +538,7 @@ const fetchGridData = async () => {
         label="Uncheck All"
         variant="outline"
         color="green"
-        @click="openNewReport()"
+        @click="clearAllSelections"
         :ui="{
           base: 'min-w-[200px] w-full',
           truncate: 'flex justify-center w-full',

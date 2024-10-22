@@ -42,6 +42,8 @@ export const getAllEmployeeList = async () => {
 };
 
 
+
+
 // ok code
 
 export const insertRequisitionData = async (body) => {
@@ -102,6 +104,8 @@ export const insertRequisitionData = async (body) => {
   }
 };
   
+
+
 // ok code
 export const deleteRequisitionData = (id) => {
   if (!id) {
@@ -114,9 +118,306 @@ export const deleteRequisitionData = (id) => {
 };
 
 
-  
+
+// table 02
+// export const getAllTRefutationData = async (filterParams) => {
+//   console.log("table --------------------------------------------------------------------------------02",filterParams)
+
+//   const {
+//     page,
+//     pageSize,
+//     sortBy,
+//     sortOrder,
+//     search,
+//     QTY,
+//     DESCRIPTION,
+//     STOCKNUMBER,
+//     PONumber,
+//     EMPLOYEE,
+//     reqdate
+//   } = filterParams;
+
+//   const pageInt = parseInt(page, 10);
+//   const pageSizeInt = parseInt(pageSize, 10);
+
+//   if (isNaN(pageInt) || isNaN(pageSizeInt)) {
+//     return { error: "Page and pageSize must be valid integers." };
+//   }
+
+//   try {
+//     let whereClause = "1=1";
+//     const replacements = {
+//       offset: (pageInt - 1) * pageSizeInt,
+//       pageSize: pageSizeInt
+//     };
+
+//     // Build where conditions
+//     if (search) {
+//       whereClause += ` AND (
+//         rq.QTY LIKE :search
+//         OR rq.DESCRIPTION LIKE :search
+//         OR rq.PONumber LIKE :search
+//         OR rq.STOCKNUMBER LIKE :search
+//         OR rq.EMPLOYEE LIKE :search
+//         OR rq.reqdate LIKE :search
+//         OR bp.PARTTYPE LIKE :search
+//         OR bp.SUBCATEGORY LIKE :search
+//       )`;
+//       replacements.search = `%${search}%`;
+//     }
+
+//     if (QTY) {
+//       whereClause += ` AND rq.QTY LIKE :QTY`;
+//       replacements.QTY = `%${QTY}%`;
+//     }
+//     if (PONumber) {
+//       whereClause += ` AND rq.PONumber LIKE :PONumber`;
+//       replacements.PONumber = `%${PONumber}%`;
+//     }
+//     if (DESCRIPTION) {
+//       whereClause += ` AND rq.DESCRIPTION LIKE :DESCRIPTION`;
+//       replacements.DESCRIPTION = `%${DESCRIPTION}%`;
+//     }
+//     if (STOCKNUMBER) {
+//       whereClause += ` AND rq.STOCKNUMBER LIKE :STOCKNUMBER`;
+//       replacements.STOCKNUMBER = `%${STOCKNUMBER}%`;
+//     }
+//     if (EMPLOYEE) {
+//       whereClause += ` AND rq.EMPLOYEE LIKE :EMPLOYEE`;
+//       replacements.EMPLOYEE = `%${EMPLOYEE}%`;
+//     }
+//     if (reqdate) {
+//       whereClause += ` AND rq.reqdate LIKE :reqdate`;
+//       replacements.reqdate = `%${reqdate}%`;
+//     }
+
+//     // Main query with join
+//     const query = `
+//       SELECT 
+//         rq.uniqueID,
+//         rq.QTY,
+//         rq.DESCRIPTION,
+//         rq.STOCKNUMBER,
+//         rq.PONumber,
+//         rq.EMPLOYEE,
+//         rq.reqdate,
+//         bp.PARTTYPE,
+//         bp.SUBCATEGORY,
+//         bp.OnHand,
+//         bp.ORDERCOST
+//       FROM 
+//         tblRequisitionDetail AS rq
+//       LEFT JOIN (
+//         SELECT b1.* 
+//         FROM tblBP b1
+//         INNER JOIN (
+//           SELECT model, MAX(uniqueID) as maxID
+//           FROM tblBP
+//           GROUP BY model
+//         ) b2 ON b1.model = b2.model AND b1.uniqueID = b2.maxID
+//       ) bp ON rq.STOCKNUMBER = bp.model
+//       WHERE ${whereClause}
+//       ORDER BY rq.${sortBy || 'STOCKNUMBER'} ${sortOrder || 'DESC'}
+//       OFFSET :offset ROWS
+//       FETCH NEXT :pageSize ROWS ONLY
+//     `;
+
+//     // Get total count for pagination
+//     const countQuery = `
+//       SELECT COUNT(*) as total
+//       FROM tblRequisitionDetail AS rq
+//       LEFT JOIN tblBP AS bp ON rq.STOCKNUMBER = bp.model
+//       WHERE ${whereClause}
+//     `;
 
 
+
+
+//     // Execute queries
+//     const results = await Promise.all([
+//       sequelize.query(query, {
+//         replacements,
+//         type: sequelize.QueryTypes.SELECT
+//       }),
+//       sequelize.query(countQuery, {
+//         replacements,
+//         type: sequelize.QueryTypes.SELECT
+//       })
+//     ]);
+
+//     const categories = results;
+//     return categories.length ? categories : { error: "No data found" };
+
+//   } catch (error) {
+//     console.error("Database error:", error);
+//     return { 
+//       success: false, 
+//       error: error.message || "Failed to fetch data" 
+//     };
+//   }
+// };
+export const getAllTRefutationData = async (filterParams) => {
+  console.log("table --------------------------------------------------------------------------------02", filterParams)
+
+  const {
+    page,
+    pageSize,
+    sortBy,
+    sortOrder,
+    search,
+    QTY,
+    DESCRIPTION,
+    STOCKNUMBER,
+    PONumber,
+    EMPLOYEE,
+    reqdate
+  } = filterParams;
+
+  const pageInt = parseInt(page, 10);
+  const pageSizeInt = parseInt(pageSize, 10);
+
+  if (isNaN(pageInt) || isNaN(pageSizeInt)) {
+    return { error: "Page and pageSize must be valid integers." };
+  }
+
+  try {
+    let whereClause = "1=1";
+    const replacements = {
+      offset: (pageInt - 1) * pageSizeInt,
+      pageSize: pageSizeInt
+    };
+
+    // Build where conditions
+    if (search) {
+      whereClause += ` AND (
+        rq.QTY LIKE :search
+        OR rq.DESCRIPTION LIKE :search
+        OR rq.PONumber LIKE :search
+        OR rq.STOCKNUMBER LIKE :search
+        OR rq.EMPLOYEE LIKE :search
+        OR rq.reqdate LIKE :search
+        OR bp.PARTTYPE LIKE :search
+        OR bp.SUBCATEGORY LIKE :search
+      )`;
+      replacements.search = `%${search}%`;
+    }
+
+    if (QTY) {
+      whereClause += ` AND rq.QTY LIKE :QTY`;
+      replacements.QTY = `%${QTY}%`;
+    }
+    if (PONumber) {
+      whereClause += ` AND rq.PONumber LIKE :PONumber`;
+      replacements.PONumber = `%${PONumber}%`;
+    }
+    if (DESCRIPTION) {
+      whereClause += ` AND rq.DESCRIPTION LIKE :DESCRIPTION`;
+      replacements.DESCRIPTION = `%${DESCRIPTION}%`;
+    }
+    if (STOCKNUMBER) {
+      whereClause += ` AND rq.STOCKNUMBER LIKE :STOCKNUMBER`;
+      replacements.STOCKNUMBER = `%${STOCKNUMBER}%`;
+    }
+    if (EMPLOYEE) {
+      whereClause += ` AND rq.EMPLOYEE LIKE :EMPLOYEE`;
+      replacements.EMPLOYEE = `%${EMPLOYEE}%`;
+    }
+    if (reqdate) {
+      whereClause += ` AND rq.reqdate LIKE :reqdate`;
+      replacements.reqdate = `%${reqdate}%`;
+    }
+
+    // Main query with join
+    const query = `
+      SELECT 
+        rq.uniqueID,
+        rq.QTY,
+        rq.DESCRIPTION,
+        rq.STOCKNUMBER,
+        rq.PONumber,
+        rq.EMPLOYEE,
+        rq.reqdate,
+        bp.PARTTYPE,
+        bp.SUBCATEGORY,
+        bp.OnHand,
+        bp.ORDERCOST
+      FROM 
+        tblRequisitionDetail AS rq
+      LEFT JOIN (
+        SELECT b1.* 
+        FROM tblBP b1
+        INNER JOIN (
+          SELECT model, MAX(uniqueID) as maxID
+          FROM tblBP
+          GROUP BY model
+        ) b2 ON b1.model = b2.model AND b1.uniqueID = b2.maxID
+      ) bp ON rq.STOCKNUMBER = bp.model
+      WHERE ${whereClause}
+      ORDER BY rq.${sortBy || 'STOCKNUMBER'} ${sortOrder || 'DESC'}
+      OFFSET :offset ROWS
+      FETCH NEXT :pageSize ROWS ONLY
+    `;
+
+    // Get total count for pagination
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM tblRequisitionDetail AS rq
+      LEFT JOIN tblBP AS bp ON rq.STOCKNUMBER = bp.model
+      WHERE ${whereClause}
+    `;
+
+    console.log(query);
+
+    // Execute queries
+    const results = await Promise.all([
+      sequelize.query(query, {
+        replacements,
+        type: sequelize.QueryTypes.SELECT
+      }),
+      sequelize.query(countQuery, {
+        replacements,
+        type: sequelize.QueryTypes.SELECT
+      })
+    ]);
+
+    const requisitions = results[0]; 
+ 
+
+    // Fetch QTYORDER for each requisition's stockNumber
+    for (const req of requisitions) {
+      const qtyOrderQuery = `
+        SELECT SUM((ORDERED - received) * multiple) AS QTYORDER
+        FROM tblPODETAIL 
+        JOIN tblBP B ON B.model = tblPODetail.Stocknumber 
+        AND B.uniqueID = (
+            SELECT MAX(uniqueID) 
+            FROM tblBP C 
+            WHERE B.model = C.model
+        )
+        WHERE tblPODetail.STOCKNUMBER = :stockNumber
+      `;
+      const qtyOrderResult = await sequelize.query(qtyOrderQuery, {
+        replacements: { stockNumber: req.STOCKNUMBER },
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      req.QTYORDER = qtyOrderResult[0]?.QTYORDER || 0;
+    }
+
+    const categories = requisitions;
+  return categories.length ? categories : { error: "No data found" };
+
+  } catch (error) {
+    console.error("Database error:", error);
+    return { 
+      success: false, 
+      error: error.message || "Failed to fetch data" 
+    };
+  }
+};
+
+
+// ok code
 // export const getAllTRefutationData = async (filterParams) => {
 //   const {
 //     page,
@@ -127,59 +428,57 @@ export const deleteRequisitionData = (id) => {
 //     QTY,
 //     DESCRIPTION,
 //     STOCKNUMBER,
-//     PONumber,  // Make sure this field exists in the model
+//     PONumber, 
+//     EMPLOYEE,
+//     reqdate
 //   } = filterParams;
+//   const pageInt = parseInt(page, 10);
+//   const pageSizeInt = parseInt(pageSize, 10);
+
+//   if (isNaN(pageInt) || isNaN(pageSizeInt)) {
+//     return { error: "Page and pageSize must be valid integers." };
+//   }
 
 //   try {
-//     // Build dynamic conditions for filtering
 //     const whereConditions = {};
-
-//     // If a search term is provided, apply it across multiple fields
 //     if (search) {
 //       whereConditions[Op.or] = [
 //         { QTY: { [Op.like]: `%${search}%` } },
 //         { DESCRIPTION: { [Op.like]: `%${search}%` } },
 //         { PONumber: { [Op.like]: `%${search}%` } },
 //         { STOCKNUMBER: { [Op.like]: `%${search}%` } },
+//         { EMPLOYEE: { [Op.like]: `%${search}%` } },
+//         { reqdate: { [Op.like]: `%${search}%` } },  
 //       ];
 //     }
-
-//     // Filter by QTY if provided
 //     if (QTY) {
 //       whereConditions.QTY = { [Op.like]: `%${QTY}%` };
 //     }
-
-//     // Filter by PONumber if provided
 //     if (PONumber) {
 //       whereConditions.PONumber = { [Op.like]: `%${PONumber}%` };
 //     }
 
-//     // Filter by DESCRIPTION if provided
 //     if (DESCRIPTION) {
 //       whereConditions.DESCRIPTION = { [Op.like]: `%${DESCRIPTION}%` };
 //     }
-
-//     // Filter by STOCKNUMBER if provided
 //     if (STOCKNUMBER) {
 //       whereConditions.STOCKNUMBER = { [Op.like]: `%${STOCKNUMBER}%` };
 //     }
-
-//     // Query the database with the filter conditions
+//     if (EMPLOYEE) {
+//       whereConditions.EMPLOYEE = { [Op.like]: `%${EMPLOYEE}%` };
+//     }
+//     if (reqdate) {
+//       whereConditions.reqdate = { [Op.like]: `%${reqdate}%` };
+//     }
 //     const requisitionDetails = await tblRequisitionDetail.findAll({
-//       where: whereConditions,  // Apply the dynamic where conditions
-//       order: [[sortBy || "STOCKNUMBER", sortOrder || "ASC"]],  // Sorting by the given column or default to STOCKNUMBER
-//       offset: (page - 1) * pageSize,  // Pagination - offset for the page
-//       limit: pageSize,  // Limit the number of records
-//       raw: true,  // Get plain data (without Sequelize model instance)
+//       where: whereConditions, 
+//       order: [[sortBy || "STOCKNUMBER", sortOrder || "DESC"]],
+//       offset: (pageInt - 1) * pageSizeInt,  
+//       limit: pageSizeInt,  
+//       raw: true,  
 //     });
 
-//     // Map the result to extract STOCKNUMBER or any other desired field
-//     const categories = requisitionDetails.map(item => item.STOCKNUMBER);
-
-//     // Log the categories for debugging
-//     console.log(categories);
-
-//     // Return the results or an error message if no results found
+//     const categories = requisitionDetails;
 //     return categories.length ? categories : { error: "No data found" };
 //   } catch (error) {
 //     // Handle any errors that occur during the query
@@ -189,152 +488,8 @@ export const deleteRequisitionData = (id) => {
 // };
 
 
-
-export const getAllTRefutationData = async (filterParams) => {
-  const {
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
-    search,
-    QTY,
-    DESCRIPTION,
-    STOCKNUMBER,
-    PONumber, 
-    EMPLOYEE
-  } = filterParams;
-  const pageInt = parseInt(page, 10);
-  const pageSizeInt = parseInt(pageSize, 10);
-
-  if (isNaN(pageInt) || isNaN(pageSizeInt)) {
-    return { error: "Page and pageSize must be valid integers." };
-  }
-
-  try {
-    const whereConditions = {};
-    if (search) {
-      whereConditions[Op.or] = [
-        { QTY: { [Op.like]: `%${search}%` } },
-        { DESCRIPTION: { [Op.like]: `%${search}%` } },
-        { PONumber: { [Op.like]: `%${search}%` } },
-        { STOCKNUMBER: { [Op.like]: `%${search}%` } },
-        { EMPLOYEE: { [Op.like]: `%${search}%` } },
-        
-      ];
-    }
-
-    // Filter by QTY if provided
-    if (QTY) {
-      whereConditions.QTY = { [Op.like]: `%${QTY}%` };
-    }
-
-    // Filter by PONumber if provided
-    if (PONumber) {
-      whereConditions.PONumber = { [Op.like]: `%${PONumber}%` };
-    }
-
-    // Filter by DESCRIPTION if provided
-    if (DESCRIPTION) {
-      whereConditions.DESCRIPTION = { [Op.like]: `%${DESCRIPTION}%` };
-    }
-
-    // Filter by STOCKNUMBER if provided
-    if (STOCKNUMBER) {
-      whereConditions.STOCKNUMBER = { [Op.like]: `%${STOCKNUMBER}%` };
-    }
-    if (EMPLOYEE) {
-      whereConditions.EMPLOYEE = { [Op.like]: `%${EMPLOYEE}%` };
-    }
-    // Query the database with the filter conditions
-    const requisitionDetails = await tblRequisitionDetail.findAll({
-      where: whereConditions,  // Apply the dynamic where conditions
-      order: [[sortBy || "STOCKNUMBER", sortOrder || "ASC"]],  // Sorting by the given column or default to STOCKNUMBER
-      offset: (pageInt - 1) * pageSizeInt,  // Pagination - offset for the page
-      limit: pageSizeInt,  // Limit the number of records
-      raw: true,  // Get plain data (without Sequelize model instance)
-    });
-
-    const categories = requisitionDetails;
-    return categories.length ? categories : { error: "No data found" };
-  } catch (error) {
-    // Handle any errors that occur during the query
-    console.error("Database error:", error);
-    return { error: error.message || "Failed to fetch data" };
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// export const getAllTableDataForRequisition = async () => {
-//   try {
-//     const reasons = await tblRequisitionDetail.findAll({
-
-
-//       attributes: [
-//         [Sequelize.fn("DISTINCT", Sequelize.col("Description")), "EMPLOYEE"]
-//       ],
-//       order: [["EMPLOYEE", "ASC"]],
-//       raw: true,
-//     });
-
-//     const categories = reasons.map(item => item.EMPLOYEE);
-
-//     return categories.length ? categories : { error: "No reasons found" };
-//   } catch (error) {
-//     console.error("Database error:", error);
-//     return { error: error.message || "Failed to fetch reasons for change" };
-//   }
-// };
-
-// export const getAllTableDataForRequisition = async (page = 1, pageSize = 500) => {
-//   const offset = (page - 1) * pageSize;
-//   try {
-//     const rawQuery = `
-//       SELECT 
-//         bp.PARTTYPE, 
-//         bp.SUBCATEGORY, 
-//         rq.DESCRIPTION, 
-//         rq.STOCKNUMBER 
-//       FROM 
-//         tblBP AS bp
-//       LEFT JOIN 
-//         tblRequisitionDetail AS rq
-//       ON 
-//         bp.uniqueid = rq.partnumber
-//       ORDER BY bp.uniqueid 
-//       OFFSET :offset ROWS
-//       FETCH NEXT :pageSize ROWS ONLY;
-//     `;
-
-//     // Execute raw SQL query
-//     const results = await sequelize.query(rawQuery, {
-//       replacements: { offset, pageSize },
-//       type: sequelize.QueryTypes.SELECT,
-//       raw: true
-//     });
-    
-
-//     return results;
-//   } catch (error) {
-//     console.error("Database error:", error);
-//     throw new Error(error.message || "Failed to fetch data for requisitions");
-//   }
-// };
-
 export const getAllTableDataForRequisition = async (filterParams) => {
+
   const {
     page,
     pageSize ,
@@ -388,7 +543,6 @@ export const getAllTableDataForRequisition = async (filterParams) => {
       FETCH NEXT :pageSize ROWS ONLY;
     `;
 
-    // Prepare replacements object
     const replacements = {
       offset,
       pageSize: parseInt(pageSize),
@@ -399,9 +553,6 @@ export const getAllTableDataForRequisition = async (filterParams) => {
       STOCKNUMBER: STOCKNUMBER ? `%${STOCKNUMBER}%` : undefined,
     };
 
-    // Execute raw SQL query
-
- 
     const results = await sequelize.query(rawQuery, {
       replacements,
       type: sequelize.QueryTypes.SELECT,

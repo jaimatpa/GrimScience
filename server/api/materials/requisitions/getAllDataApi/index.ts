@@ -11,7 +11,8 @@ export default eventHandler(async (event) => {
         if (type === 'employee') {
           const employeeList = await getAllEmployeeList();
           return { employeeList };
-        } else if (type === 'table') {
+
+        }else if (type === 'table') {
           const tableData = await getAllTableDataForRequisition(filterParams);
           return { tableData };
         }else if (type === 'table2') {
