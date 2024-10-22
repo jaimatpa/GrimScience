@@ -36,6 +36,7 @@ const tblRequisitionDetail = sequelize.define('tblRequisitionDetail', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName:"tblRequisitionDetail",
    timestamps: false
 });
 
