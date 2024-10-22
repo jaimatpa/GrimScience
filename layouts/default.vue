@@ -470,6 +470,10 @@ const links = [
         label: "Receivables",
         to: "/accounting/receivables",
       },
+      {
+        label: "Chart Of Accounts",
+        to: "/accounting/chartOfAccounting",
+      },
     ],
   },
   {
