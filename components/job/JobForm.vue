@@ -2317,7 +2317,7 @@ else propertiesInit();
             </div>
 
             <div v-if="formData.JobType === 'Product'" class="flex flex-col items-center justify-center">
-              <div class="w-28">
+              <div class="w-32">
                 <UPopover :popper="{ placement: 'bottom-start' }">
                   <UButton
                     icon="i-heroicons-calendar-days-20-solid"
