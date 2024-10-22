@@ -1,4 +1,3 @@
-import { ModelLinkClass } from "@bryntum/gantt";
 import { Op, QueryTypes, Sequelize } from "sequelize";
 import { tblAccounts, tblBP, tblVendors } from "~/server/models";
 import sequelize from "~/server/utils/databse";
@@ -86,8 +85,8 @@ export const getCategoryList = async () => {
   });
 
   return partCategories
-    .map((item) => item.PARTTYPE)
-    .filter((category) => category !== null && category.trim() !== "");
+    .map(item => item.PARTTYPE)
+    .filter(category => category !== null && category.trim() !== '');
 };
 
 export const getSubCategoryForCategory = async (category) => {
@@ -105,9 +104,10 @@ export const getSubCategoryForCategory = async (category) => {
   });
 
   return subcategoryList
-    .map((item) => item.SUBCATEGORY)
-    .filter((subcategory) => subcategory !== null && subcategory.trim() !== "");
-};
+    .map(item => item.SUBCATEGORY)
+    .filter(subcategory => subcategory !== null && subcategory.trim() !== '');
+}
+
 
 export const getProductInfos = async (params) => {
   const { productline, category, subcategory, model, stock } = params;
@@ -454,12 +454,12 @@ export const getPOPartsDetailsByUniqueId = async (UniqueID) => {
       replacements: { UniqueID },
       type: QueryTypes.SELECT,
     });
+    console.log(results);
+    // if (results.length > 0) {
+    return results;
+    // }
 
-    if (results.length > 0) {
-      return results;
-    }
-
-    throw new Error("PODetail not found");
+    // throw new Error("PODetail not found");
   } catch (error) {
     console.error("Error querying PO parts details:", error);
     throw error;
