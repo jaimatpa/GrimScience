@@ -1,8 +1,8 @@
-<template>
+<!-- <template>
     <UCard>
 
         <div class="space-y-4">
-            <div class="grid grid-cols-3 gap-4">
+            <div class="flex">
                 <UCard>
                     <template #header>
                         <h4 class="font-bold mb-2">Details</h4>
@@ -68,7 +68,6 @@
                         </UFormGroup>
                     </div>
                 </UCard>
-
                 <UCard>
                     <template #header>
                         <h4 class="font-bold mb-2">Parts On Order</h4>
@@ -104,6 +103,7 @@
                     </template>
                 </UCard>
             </div>
+
 
             <UCard>
                 <UTable :rows="suppliedParts" @select="handleSelectRow" :columns="partsCols" class="w-full" :ui="{
@@ -175,9 +175,11 @@
         </div>
     </UDashboardModal>
 
-</template>
+</template>-->
 
 <script setup lang="ts">
+import Loading from "vue-loading-overlay";
+import "vue-loading-overlay/dist/css/index.css";
 import { ref, computed } from 'vue'
 import VendorInvoice from './VendorInvoice.vue';
 import { format } from 'date-fns';
@@ -204,7 +206,6 @@ const shipToOptions = ref([
 ])
 const toast = useToast()
 
-// const terms = ref('');
 interface ModalData {
     UniqueID: string;
     PONUMBER: number;
@@ -488,17 +489,13 @@ const fetchVendorSuppliedParts = async () => {
     }
 }
 const fetchPOByInstanceId = async (UniqueID) => {
-    if (props.isCreating) {
-        orderDetails.value = [];
-        return;
-    }
-
     isLoadingDetails.value = true;
     try {
-        await useApiFetch('/api/materials/vendors/getPOByUniqueId', {
+        await useApiFetch('/api/materials/parts/getPOByUniqueId', {
             method: 'GET',
             params: { UniqueID },
             onResponse({ response }) {
+                console.log(response)
                 if (response.status === 200) {
                     orderDetails.value = response._data.body || [];
                 }
@@ -511,13 +508,7 @@ const fetchPOByInstanceId = async (UniqueID) => {
     }
 };
 fetchVendorSuppliedParts();
-watch(() => props.isCreating, (isCreating) => {
-    if (!isCreating) {
-        fetchPOByInstanceId(props.modalData.UniqueID);
-    } else {
-        console.log('need to fetch all PO', props.modalData)
-    }
-}, { immediate: true });
+await fetchPOByInstanceId(props.modalData.UniqueID);
 
 
 
@@ -646,7 +637,6 @@ const handleSelectRow = (row) => {
     formData.value.DESCRIPTION = row.DESCRIPTION;
     formData.value.STOCKNUMBER = row.MODEL;
     formData.value.PARTNUMBER = row.ALTER1MANNUM;
-    // formData.value.UNITPRICE = row.ALTER1PRICE1;
     formData.value.UNIT = row.UNIT;
     formData.value.POUID = row.UniqueID;
     formData.value.PTNUM = row.instanceID;
@@ -691,3 +681,274 @@ const confirmationModalUIConfig = {
     width: 'w-96 sm:max-w-9xl',
 };
 </script>
+
+<template>
+    <div class="vl-parent">
+        <loading v-model:active="isLoadingDetails" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+            loader="dots" />
+    </div>
+    <div class="flex flex-col gap-4 p-4 h-full bg-white">
+        <div class="px-4 py-2 gmsBlueTitlebar">
+            <h2>Purchase Lookup</h2>
+        </div>
+        <div class="grid grid-cols-11 gap-4  bg-white">
+            <div class="col-span-2">
+                <div class="px-4 py-2 gmsBlueTitlebar">
+                    <h2>Details</h2>
+                </div>
+                <div class="bg-white shadow p-4">
+                    <div class="flex flex-col gap-3">
+                        <UFormGroup label="Po">
+                            <UInput v-model="poNumber" :disabled="true" />
+                        </UFormGroup>
+                        <UFormGroup label="Date">
+                            <UInput v-model="poDate" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                        <UFormGroup label="Ship To">
+                            <UInputMenu v-model="shipTo" :options="shipToOptions" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                        <div class="mt-3">
+                            <UCheckbox v-model="openclosed" label="Order Closed" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-4 ">
+                <div class="px-4 py-2 gmsBlueTitlebar">
+                    <h2>Vendor Information</h2>
+                </div>
+                <div class="p-4">
+                    <p>{{ vendorName }}</p>
+                    <p>{{ vendorAddress }}</p>
+                    <p>{{ vendorCityStateZip }}</p>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <UFormGroup label="To">
+                            <UInput v-model="irName" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                        <UFormGroup label="TEL">
+                            <UInput v-model="irPhone" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                        <UFormGroup label="FAX">
+                            <UInput v-model="irFax" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                        <UFormGroup label="EMAIL">
+                            <UInput v-model="irEmail" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                        <UFormGroup label="WEBSITE">
+                            <UInput v-model="website" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                        <UFormGroup label="Date Required">
+                            <UInput v-model="vendorDate" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                        <UFormGroup label="Ship Via">
+                            <UInput v-model="vendorShip" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                        <UFormGroup label="FOB">
+                            <USelect v-model="vendorFob" :options="fobOptions" />
+                        </UFormGroup>
+                        <UFormGroup label="Terms">
+                            <UInput v-model="vendorTerms" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                        <UFormGroup label="Our Customer">
+                            <UInput v-model="vendorCustomerNumber" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                        <UFormGroup label="Sales Order #">
+                            <UInput v-model="salesOrder" icon="i-heroicons-envelope" />
+                        </UFormGroup>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parts On Order -->
+            <div class="col-span-5 bg-white">
+                <div class="px-4 py-2 gmsBlueTitlebar">
+                    <h2>Parts On Order</h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 p-4 ">
+                    <!-- Stock # -->
+                    <div class="flex flex-col items-start gap-2">
+                        <UCard>
+                            <div class="flex gap-3 flex-1">
+                                <label class="font-bold">Stock #</label>
+                                <p>190021</p>
+                                <UButton color="blue">Remove</UButton>
+                            </div>
+
+                        </UCard>
+                        <UCard>
+                            <div class="flex items-center justify-center flex-1">
+                                <UButton color="blue">Non Conformance</UButton>
+                            </div>
+                        </UCard>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label for="qty1">Qty:</label>
+                            <input id="qty1" type="text" value="1"
+                                class="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="price1">Price:</label>
+                            <input id="price1" type="text" value="5.94"
+                                class="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        </div>
+
+                        <div class="flex flex-col">
+                            <label for="qty2">Qty:</label>
+                            <input id="qty2" type="text" value="25"
+                                class="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="price2">Price:</label>
+                            <input id="price2" type="text" value="5.94"
+                                class="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        </div>
+
+                        <div class="flex flex-col">
+                            <label for="qty3">Qty:</label>
+                            <input id="qty3" type="text" value="200"
+                                class="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="price3">Price:</label>
+                            <input id="price3" type="text" value="4.31"
+                                class="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        </div>
+
+                        <div class="flex flex-col">
+                            <label for="qty4">Qty:</label>
+                            <input id="qty4" type="text" value="50"
+                                class="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="price4">Price:</label>
+                            <input id="price4" type="text" value="4.00"
+                                class="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        </div>
+
+                        <div class="flex flex-col">
+                            <label for="qty5">Qty:</label>
+                            <input id="qty5" type="text" value="300"
+                                class="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="price5">Price:</label>
+                            <input id="price5" type="text" value="3.50"
+                                class="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        </div>
+                        <div class="flex gap-2 mt-2">
+                            <UButton icon="i-heroicons-arrow-path" color="blue">Refresh</UButton>
+                            <UButton icon="i-heroicons-arrow-path" color="blue" variant="outline">Update Pricing
+                            </UButton>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="grid grid-cols-11 gap-4 overflow-hidden">
+            <!-- Parts Lookup Table -->
+            <div class="col-span-6">
+                <div class="px-4 py-2 gmsBlueTitlebar">
+                    <h2>Parts Lookup</h2>
+                </div>
+                <div class="overflow-auto h-[40vh] mt-2">
+                    <UTable :rows="suppliedParts" @select="handleSelectRow" :loading="isLoadingDetails"
+                        :columns="partsCols" class="w-full" :ui="{
+                            divide: 'divide-gray-200 dark:divide-gray-800',
+                            th: {
+                                base: 'sticky top-0 z-10',
+                                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                                padding: 'p-1'
+                            },
+                            td: {
+                                padding: 'p-1'
+                            }
+                        }" />
+                </div>
+            </div>
+            <div class="col-span-5">
+                <div class="bg-white shadow p-4">
+                    <ul class="flex border-b">
+                        <li class="mr-4">
+                            <button class="pb-2 px-4 text-blue-500 border-b-2 border-blue-500">Details</button>
+                        </li>
+                        <li>
+                            <button class="pb-2 px-4 text-gray-500">Accounts</button>
+                        </li>
+                    </ul>
+                    <div class="overflow-auto h-[40vh] mt-2">
+                        <UTable :rows="orderDetails" :loading="isLoadingDetails" :columns="detailsColumns"
+                            @select="row => setStockDetails(row)" class="w-full" :ui="{
+                                divide: 'divide-gray-200 dark:divide-gray-800',
+                                th: {
+                                    base: 'sticky top-0 z-10',
+                                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                                    padding: 'p-1'
+                                },
+                                td: {
+                                    padding: 'p-1 border border-gray-200'
+                                }
+                            }" />
+                    </div>
+                </div>
+
+                <div class="flex justify-between">
+                    <div class="flex gap-4">
+                        <div class="mt-4 flex gap-3 justify-end">
+                            <UButton color="" icon="i-heroicons-clipboard-document-list" variant="outline">Save
+                            </UButton>
+                            <UButton icon="i-heroicons-eye" variant="outline">Preview Purchase</UButton>
+                            <UButton icon="i-heroicons-eye" variant="outline" @click="openVendorInvoice">Receive Goods
+                            </UButton>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex justify-between">
+                            <span>Freight:</span>
+                            <span>$0.00</span>
+                        </div>
+                        <div class="font-bold text-lg mt-2">
+                            <span>Total:</span>
+                            <span>$225.72</span>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="flex flex-col bg-white shadow p-4">
+                    <div class="flex flex-col">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes"
+                            class="border border-gray-300 p-2 rounded mt-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            rows="2">Electronics Inventory</textarea>
+                    </div>
+                    <div class="flex items-center ml-4">
+                        <UFormGroup label="Authorized">
+                            <USelect v-model="authorized" :options="authorizedUsers" />
+                        </UFormGroup>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <UDashboardModal v-model="showVendorInvoice" title="Vendor Invoice" :ui="modalUIConfig">
+        <VendorInvoice :ponum="modalData.UniqueID" />
+    </UDashboardModal>
+    <UDashboardModal v-model="addNewPoItemModal.isOpen" title="Order PO Items" :ui="confirmationModalUIConfig">
+        <div>
+            <UFormGroup label="Enter Qty">
+                <UInput v-model="formData.ORDERED" />
+            </UFormGroup>
+            <div class="flex gap-4 mt-4">
+                <UButton @click="handleCreatePo">
+                    Submit
+                </UButton>
+            </div>
+        </div>
+    </UDashboardModal>
+</template>

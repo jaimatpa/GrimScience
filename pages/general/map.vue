@@ -28,29 +28,10 @@
     </div>
   </div>
 
+  <!-- Invoice Modal -->
   <UDashboardModal
-    v-model="modalMeta.isServiceOrderModalOpen"
-    title="Service Order"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[1800px] sm:max-w-9xl',
-    }"
-  >
-    <ServiceOrderDetail
-      @close="handleModalClose"
-      @save="handleModalClose"
-      :selected-customer="gridMeta.selectedCustomerId"
-    />
-  </UDashboardModal>
-
-  <UDashboardModal
-    v-model="modalMeta.isOrderDetailModalOpen"
-    title="Order"
+    v-model="modalMeta.isInvoiceModalOpen"
+    title="Invoice"
     :ui="{
       title: 'text-lg',
       header: {
@@ -64,7 +45,62 @@
     <InvoiceDetail
       :selected-customer="gridMeta.selectedCustomerId"
       :selected-order="gridMeta.selectedOrderId"
-      @close="handleModalClose"
+      @close="modalMeta.isInvoiceModalOpen = false"
+    />
+  </UDashboardModal>
+
+  <!-- Quote Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isQuoteModalOpen"
+    title="Quote"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1000px] sm:max-w-7xl',
+    }"
+  >
+    <CustomersQuoteDetail
+      :selected-customer="gridMeta.selectedCustomerId"
+      :selected-order="gridMeta.selectedOrderId"
+    />
+  </UDashboardModal>
+
+  <!-- Service Order Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isServiceOrderModalOpen"
+    title="Service Order"
+    :ui="{
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
+    }"
+  >
+    <ServiceOrderDetail :selected-customer="gridMeta.selectedCustomerId" />
+  </UDashboardModal>
+
+  <!-- Site Visit Modal -->
+  <UDashboardModal
+    v-model="modalMeta.isSiteVisitModalOpen"
+    title="Site Visit"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+      width: 'w-[1800px] sm:max-w-9xl',
+    }"
+  >
+    <CustomersSiteVisitDetail
+      :selected-customer="gridMeta.selectedCustomerId"
     />
   </UDashboardModal>
 </template>
@@ -72,15 +108,7 @@
 <script setup lang="ts">
 import InvoiceDetail from "~/components/invoice/InvoiceDetail.vue";
 import { useMap } from "../../composables/useMap";
-const {
-  mapRef,
-  filters,
-  initMap,
-  openDetails,
-  modalMeta,
-  gridMeta,
-  handleModalClose,
-} = useMap();
+const { mapRef, filters, initMap, openDetails, modalMeta, gridMeta } = useMap();
 
 onMounted(() => {
   const script = document.createElement("script");

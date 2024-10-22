@@ -479,7 +479,6 @@ const fetchGridData = async () => {
     },
     onResponse({ response }) {
       if (response.status === 200) {
-        console.log("hello shdsfglkjdsgdfgdfgfd", response._data.body);
         gridMeta.value.schedules = response._data.body;
       }
 
@@ -669,12 +668,14 @@ const handleModalSave = async () => {
 };
 
 const onSelect = async (row) => {
+  console.log(row)
   // gridMeta.value.selectedCustomerId = null;
+
   await getCustomerByUniqueID(row["Cust #"]);
   gridMeta.value.selectedServiceId = row?.uniqueID;
   gridMeta.value.selectedCompaintNumber = row["SO#"];
-  // gridMeta.value.selectedCustomerId = row['Cust #'];
-  gridMeta.value.selectedSerialNumber = row["SN#"];
+  gridMeta.value.selectedSerialNumber = row["SO#"];
+
 };
 
 const onDblClick = async () => {};
@@ -1050,6 +1051,7 @@ const onScheduletaskDblClick = async (event) => {
     />
   </UDashboardModal>
 
+
   <UDashboardModal
     v-model="modalMeta.isSoOrderModalOpen"
     title="Service Report"
@@ -1061,12 +1063,14 @@ const onScheduletaskDblClick = async (event) => {
     <ServiceOrderDetail
       @close="handleModalClose"
       @save="onServiceReportSave"
-      :selected-serial="gridMeta.selectedSerialNumber"
+      :selectedSerial="gridMeta.selectedSerialNumber"
       :selected-customer="gridMeta.selectedCustomerId"
       :selected-complaint="gridMeta.selectedComplaintNumber"
       :selected-order="gridMeta.selectedServiceId"
       :form-action="null"
+       :mainID="gridMeta.selectedSerialNumber"
     />
   </UDashboardModal>
+
 </template>
 <style></style>
