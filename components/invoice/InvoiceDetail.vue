@@ -208,67 +208,67 @@ const updatedPrice = ref(null)
 const mdetChecked = ref(false)
 const processCreditCardSuccess = ref(false)
 
-  const editInit = async () => {
-    loadingOverlay.value = true
-    await useApiFetch(`/api/invoices/${props.selectedOrder}`, {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          for (const key in response._data.body) {
-            if (response._data.body[key] !== undefined && response._data.body[key] !== ' ') {
-              formData[key] = response._data.body[key]
-            }
+const editInit = async () => {
+  loadingOverlay.value = true
+  await useApiFetch(`/api/invoices/${props.selectedOrder}`, {
+    method: 'GET',
+    onResponse({ response }) {
+      if (response.status === 200) {
+        for (const key in response._data.body) {
+          if (response._data.body[key] !== undefined && response._data.body[key] !== ' ') {
+            formData[key] = response._data.body[key]
           }
         }
       }
-    })
-    await useApiFetch(`/api/tbl/tblSourceCodes?source=${formData.source}`, {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          sourcedescriptionOptions.value = response._data.body.map((item) => item.description)
+    }
+  })
+  await useApiFetch(`/api/tbl/tblSourceCodes?source=${formData.source}`, {
+    method: 'GET',
+    onResponse({ response }) {
+      if (response.status === 200) {
+        sourcedescriptionOptions.value = response._data.body.map((item) => item.description)
+      }
+    }
+  })
+  await useApiFetch(`/api/invoices/detail/`, {
+    method: 'GET',
+    params: {
+      orderid: props.selectedOrder
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        for (let i = 0; i < response._data.body.length; i++) {
+          let item = response._data.body[i];
+          const newOrder = {
+            UniqueID: item.UniqueID,
+            bpid: item.bpid,
+            quantity: item.quantity,
+            DESCRIPTION: item.name,
+            PRIMARYPRICE1: item.price,
+            serial: item.serial
+          }
+          orderList.value.push(newOrder)
         }
       }
-    })
-    await useApiFetch(`/api/invoices/detail/`, {
-      method: 'GET',
-      params: {
-        orderid: props.selectedOrder
-      },
-      onResponse({ response }) {
-        if(response.status === 200) {
-          for (let i = 0; i < response._data.body.length; i++) {
-            let item = response._data.body[i];
-            const newOrder = {
-              UniqueID: item.UniqueID,
-              bpid: item.bpid,
-              quantity: item.quantity,
-              DESCRIPTION: item.name,
-              PRIMARYPRICE1: item.price,
-              serial: item.serial
-            }
-            orderList.value.push(newOrder)
+    }
+  })
+  await propertiesInit()
+}
+const propertiesInit = async () => {
+  loadingOverlay.value = true
+  await useApiFetch(`/api/customers/${props.selectedCustomer ? props.selectedCustomer : formData.customerid}`, {
+    method: 'GET',
+    onResponse({ response }) {
+      if (response.status === 200) {
+        for (const key in response._data.body) {
+          if (response._data.body[key]) {
+            customerData[key] = response._data.body[key]
           }
         }
       }
-    })
-    await propertiesInit()
-  }
-  const propertiesInit = async () => {
-    loadingOverlay.value = true
-    await useApiFetch(`/api/customers/${props.selectedCustomer ? props.selectedCustomer : formData.customerid}`, {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          for (const key in response._data.body) {
-            if (response._data.body[key]) {
-              customerData[key] = response._data.body[key]
-            }
-          }
-        }
-      }
-    })
-    !props.selectedOrder &&
+    }
+  })
+  !props.selectedOrder &&
     await useApiFetch(`/api/invoices/lastorderid`, {
       method: 'GET',
       onResponse({ response }) {
@@ -751,7 +751,8 @@ else
                   </div>
                   <div class="flex flex-col mt-4 space-y-3">
                     <div>
-                      {{ customerData.fname ? customerData.fname : '' }} {{ customerData.lname ? customerData.lname : '' }}
+                      {{ customerData.fname ? customerData.fname : '' }} {{ customerData.lname ? customerData.lname : ''
+                      }}
                     </div>
                     <div>
                       {{ customerData.company1 ? customerData.company1 : '' }}
@@ -763,9 +764,10 @@ else
                       {{ customerData.address ? customerData.address : '' }}
                     </div>
                     <div>
-                      {{ customerData.city ? customerData.city : '' }} {{ customerData.state ? `, ${customerData.state}` : '' }}
+                      {{ customerData.city ? customerData.city : '' }} {{ customerData.state ? `, ${customerData.state}`
+                      : '' }}
                       {{
-                        customerData.zip ? `, ${customerData.zip}`:'' }}
+                        customerData.zip ? `, ${customerData.zip}` : '' }}
                     </div>
                     <div class="flex flex-row">
                       <div class="basis-1/2">
@@ -799,7 +801,7 @@ else
                     </div>
                     <div>
                       {{ customerData.billcity ? customerData.billcity : '' }} {{ customerData.billstate ? `,
-                      ${customerData.billstate}`:'' }} {{ customerData.billzip ? `, ${customerData.billzip}` : '' }}
+                      ${customerData.billstate}` : '' }} {{ customerData.billzip ? `, ${customerData.billzip}` : '' }}
                     </div>
                     <div>
                       {{ customerData.billphone ? `P: ${customerData.billphone}` : '' }}
@@ -1101,8 +1103,8 @@ else
                       9: { pattern: /[0-9]/, optional: true },
                     }
                   }" :ui="{
-                      base: lessdiscountStyle + ' text-right'
-                    }" @change="onCalculateInvoiceValues" />
+                    base: lessdiscountStyle + ' text-right'
+                  }" @change="onCalculateInvoiceValues" />
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
@@ -1118,8 +1120,8 @@ else
                       9: { pattern: /[0-9]/, optional: true },
                     }
                   }" :ui="{
-                      base: lessdownStyle + ' text-right'
-                    }" @change="onCalculateInvoiceValues" />
+                    base: lessdownStyle + ' text-right'
+                  }" @change="onCalculateInvoiceValues" />
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
@@ -1149,8 +1151,8 @@ else
                       9: { pattern: /[0-9]/, optional: true },
                     }
                   }" :ui="{
-                      base: taxStyle + ' text-right'
-                    }" @change="onCalculateInvoiceValues" />
+                    base: taxStyle + ' text-right'
+                  }" @change="onCalculateInvoiceValues" />
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
@@ -1180,8 +1182,8 @@ else
                       9: { pattern: /[0-9]/, optional: true },
                     }
                   }" :ui="{
-                      base: mdetStyle + ' text-right'
-                    }" @change="onCalculateInvoiceValues" />
+                    base: mdetStyle + ' text-right'
+                  }" @change="onCalculateInvoiceValues" />
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
@@ -1197,8 +1199,8 @@ else
                       9: { pattern: /[0-9]/, optional: true },
                     }
                   }" :ui="{
-                      base: codStyle + ' text-right'
-                    }" @change="onCalculateInvoiceValues" />
+                    base: codStyle + ' text-right'
+                  }" @change="onCalculateInvoiceValues" />
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
@@ -1214,8 +1216,8 @@ else
                       9: { pattern: /[0-9]/, optional: true },
                     }
                   }" :ui="{
-                      base: shippingStyle + ' text-right'
-                    }" @change="onCalculateInvoiceValues" />
+                    base: shippingStyle + ' text-right'
+                  }" @change="onCalculateInvoiceValues" />
                 </div>
               </div>
               <div class="flex flex-row space-x-2">
@@ -1253,12 +1255,12 @@ else
                 <UInput v-model="formData.checking" v-maska="'####'" :ui="{
                   base: checkingStyle
                 }" @change="() => {
-                    if (formData.checking < 4) {
-                      checkingStyle = 'outline outline-2 outline-[red]'
-                    } else {
-                      checkingStyle = 'outline-none'
-                    }
-                  }" />
+                  if (formData.checking < 4) {
+                    checkingStyle = 'outline outline-2 outline-[red]'
+                  } else {
+                    checkingStyle = 'outline-none'
+                  }
+                }" />
               </UFormGroup>
             </div>
           </div>
@@ -1278,10 +1280,10 @@ else
                     <UInput v-model="formData.checknoorcreditcardinfo" v-maska="'####'" :ui="{
                       base: checknoStyle
                     }" @change="() => {
-                        if (formData.checknoorcreditcardinfo.length < 4) {
-                          checknoStyle = 'outline outline-2 outline-[red]'
-                        } else checknoStyle = 'outline-none'
-                      }" />
+                      if (formData.checknoorcreditcardinfo.length < 4) {
+                        checknoStyle = 'outline outline-2 outline-[red]'
+                      } else checknoStyle = 'outline-none'
+                    }" />
                   </div>
                 </div>
               </div>
@@ -1325,7 +1327,8 @@ else
           </div>
           <div class="w-full">
             <UButton icon="i-heroicons-arrow-path-rounded-square" label="Transfer to Quickbooks" color="purple"
-              variant="outline" :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }" truncate />
+              variant="outline" :ui="{ base: 'min-w-[200px] w-full', truncate: 'flex justify-center w-full' }"
+              truncate />
           </div>
         </div>
       </div>
@@ -1410,11 +1413,11 @@ else
               <UInput v-model="creditCardMeta.expirationyear" placeholder="YYYY" type="number" v-maska="'####'" :ui="{
                 base: expirationyearStyle
               }" @change="() => {
-                  if (creditCardMeta.expirationyear < 1) {
-                    expirationyearStyle = 'outline outline-2 outline-[red]'
-                    return
-                  } else expirationyearStyle = 'outline-none'
-                }" />
+                if (creditCardMeta.expirationyear < 1) {
+                  expirationyearStyle = 'outline outline-2 outline-[red]'
+                  return
+                } else expirationyearStyle = 'outline-none'
+              }" />
             </div>
           </div>
         </UFormGroup>

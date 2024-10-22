@@ -1,6 +1,8 @@
 import {
   customerIDFromComplaints,
   customerIDFromOrder,
+  customerIDFromOrderDetail,
+  customerIDFromSite,
 } from "~/server/controller/mapLocation/getID";
 
 export default eventHandler(async (event) => {
@@ -11,19 +13,23 @@ export default eventHandler(async (event) => {
 
     switch (method.toUpperCase()) {
       case "GET":
-        if (tblName === "tblComplaints") {
-          const customerID = await customerIDFromComplaints(id);
-          return { body: customerID, message: "Success!" };
-        }
+        
         if (tblName === "tblOrder") {
           const customerID = await customerIDFromOrder(id);
           return { body: customerID, message: "Success!" };
         }
-
-      case "POST":
-
-      case "PUT":
-
+        if (tblName === "tblOrderDetail") {
+          const customerID = await customerIDFromOrderDetail(id);
+          return { body: customerID, message: "Success!" };
+        }
+        if (tblName === "tblComplaints") {
+          const customerID = await customerIDFromComplaints(id);
+          return { body: customerID, message: "Success!" };
+        }
+        if (tblName === "tblSiteVisit") {
+          const customerID = await customerIDFromSite(id);
+          return { body: customerID, message: "Success!" };
+        }
       default:
         setResponseStatus(event, 405);
         return { error: "Method Not Allowed" };

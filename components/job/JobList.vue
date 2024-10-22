@@ -110,21 +110,6 @@ const gridMeta = ref({
       sortDirection: "none",
       filterable: true,
     },
-    // {
-    //   key: "view",
-    //   label: "View Position Details",
-    //   kind: "actions",
-    // },
-    {
-      key: "edit",
-      label: "Edit",
-      kind: "actions",
-    },
-    {
-      key: "delete",
-      label: "Delete",
-      kind: "actions",
-    },
   ],
   page: 1,
   pageSize: 50,
@@ -371,10 +356,11 @@ const onDelete = async (row: any) => {
 };
 
 const handleDeleteClick = async () => {
-  if(deleteJob.value != null){
+  if(selected.value.length > 0){
     loadingDeleteButton.value = true
-    await useApiFetch(`/api/jobs/${deleteJob.value}`, {
+    await useApiFetch(`/api/jobs/deleteJobs`, {
       method: "DELETE",
+      body: { selectedJobs: selected.value },
       onResponse({ response }) {
         if (response.status === 200) {
           toast.add({
@@ -389,25 +375,32 @@ const handleDeleteClick = async () => {
     });
     loadingDeleteButton.value = false
     modalMeta.value.isDeleteModalOpen = false
-    deleteJob.value = null
+    selected.value = []
   }
 }
 
 const handleBulkClose = async () => {
-  loadingOverlay.value = true
-  await useApiFetch("/api/jobs/bulkclosejobs", {
-    method: "PUT",
-    body: { selectedJobs: selected.value },
-  });
+  if(selected.value.length > 0) { 
+    loadingOverlay.value = true
+    await useApiFetch("/api/jobs/bulkclosejobs", {
+      method: "PUT",
+      body: { selectedJobs: selected.value },
+    });
 
-  await fetchGridData()
-  loadingOverlay.value = false
+    await fetchGridData()
+    loadingOverlay.value = false
+    selected.value = []
+  }
 }
 
 const onUpdatePercentage = async () => {
+  const jobs = gridMeta.value.organization.map(item => {
+    return item.UniqueID
+  })
   loadingOverlay.value = true
   await useApiFetch("/api/jobs/updatejobpercentage", {
     method: "PUT",
+    body: { jobs }
   });
 
   await fetchGridData()
@@ -480,15 +473,7 @@ const openJobDetailsForm = (jobId) => {
         </template>
        
         <template #right>
-          <UButton
-            icon="i-heroicons-minus-circle-20-solid"
-            color="red"
-            variant="outline"
-            label="Bulk Close Jobs"
-            trailing-icon="i-heroicons-document-text"
-            @click="handleBulkClose"
-          >
-          </UButton>
+          
 
           <UButton
             icon="i-f7-arrow-clockwise"
@@ -577,69 +562,96 @@ const openJobDetailsForm = (jobId) => {
         <h2>Date Range Lookup</h2>
       </div>
       <div class="px-5 py-2 bg-gms-gray-100">
-        <div class="flex items-center gap-10">
-          <div class="flex items-center gap-2">
-            <p>From</p>
-            <UFormGroup name="From">
-                <UPopover :popper="{ placement: 'top-start' }">
-                  <UButton
-                    icon="i-heroicons-calendar-days-20-solid"
-                    :label="
-                      startDate &&
-                      format(startDate, 'MM/dd/yyyy')
-                    "
-                    variant="outline"
-                    :ui="{
-                      base: 'w-full',
-                      truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
-                  <template #panel="{ close }">
-                    <CommonDatePicker
-                      v-model="startDate"
-                      is-required
-                      @close="close"
+        <div class="flex justify-between gap-10">
+          <div class="flex items-center gap-10">
+            <div class="flex items-center gap-2">
+              <p>From</p>
+                <UFormGroup name="From">
+                  <UPopover :popper="{ placement: 'top-start' }">
+                    <UButton
+                      icon="i-heroicons-calendar-days-20-solid"
+                      :label="
+                        startDate &&
+                        format(startDate, 'MM/dd/yyyy')
+                      "
+                      variant="outline"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }"
+                      truncate
                     />
-                  </template>
-                </UPopover>
-              </UFormGroup>
-          </div>
-          <div class="flex items-center gap-2">
-            <p>To</p>
-            <UFormGroup name="To">
-                <UPopover :popper="{ placement: 'top-start' }">
-                  <UButton
-                    icon="i-heroicons-calendar-days-20-solid"
-                    :label="
-                      endDate &&
-                      format(endDate, 'MM/dd/yyyy')
-                    "
-                    variant="outline"
-                    :ui="{
-                      base: 'w-full',
-                      truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
-                  <template #panel="{ close }">
-                    <CommonDatePicker
-                      v-model="endDate"
-                      is-required
-                      @close="close"
+                    <template #panel="{ close }">
+                      <CommonDatePicker
+                        v-model="startDate"
+                        is-required
+                        @close="close"
+                      />
+                    </template>
+                  </UPopover>
+                </UFormGroup>
+            </div>
+            <div class="flex items-center gap-2">
+              <p>To</p>
+              <UFormGroup name="To">
+                  <UPopover :popper="{ placement: 'top-start' }">
+                    <UButton
+                      icon="i-heroicons-calendar-days-20-solid"
+                      :label="
+                        endDate &&
+                        format(endDate, 'MM/dd/yyyy')
+                      "
+                      variant="outline"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }"
+                      truncate
                     />
-                  </template>
-                </UPopover>
-              </UFormGroup>
+                    <template #panel="{ close }">
+                      <CommonDatePicker
+                        v-model="endDate"
+                        is-required
+                        @close="close"
+                      />
+                    </template>
+                  </UPopover>
+                </UFormGroup>
+            </div>
+            <UButton color="primary" variant="solid">
+              Lookup
+            </UButton>
           </div>
-          <UButton color="primary" variant="solid">
-            Lookup
+
+          <div class="space-x-1">
+            <UButton
+            icon="i-heroicons-minus-circle-20-solid"
+            color="red"
+            variant="outline"
+            label="Bulk Close Jobs"
+            trailing-icon="i-heroicons-document-text"
+            @click="handleBulkClose"
+           >
           </UButton>
+            <UButton
+              icon="i-heroicons-minus-circle-20-solid"
+              color="red"
+              variant="outline"
+              label="Delete Job"
+              @click="onDelete"
+            >
+            </UButton>
+          </div>
+          
+
+          
         </div>
+       
       </div>
     </UDashboardPanel>
   </UDashboardPage>
 
+  <!-- Job Detail Modal -->
   <!-- Job Detail Modal -->
   <UDashboardModal v-model="modalMeta.isJobFormModalOpen" :title="modalMeta.modalTitle"
     :description="modalMeta.modalDescription" :ui="{
@@ -659,7 +671,7 @@ const openJobDetailsForm = (jobId) => {
   <UDashboardModal
     v-model="modalMeta.isDeleteModalOpen"
     title="Delete operation"
-    description="Are you ABSOLUTELY sure you wish to delete this job?"
+    description="Are you ABSOLUTELY sure you wish to delete?"
     icon="i-heroicons-exclamation-circle"
     prevent-close
     :close-button="null"

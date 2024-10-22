@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { format, addDays, getISOWeeksInYear, getISOWeek } from "date-fns";
-
+// import { BryntumGantt } from "@bryntum/gantt-vue-3";
 import "@bryntum/gantt/gantt.stockholm.css";
 
 import type { UTableColumn } from "~/types";
@@ -21,7 +21,7 @@ const route = useRoute();
 const toast = useToast();
 const exportIsLoading = ref(false);
 const schedulerView = ref(false);
-const getCurrentYearName = ref()
+const getCurrentYearName = ref();
 const curentWeeks = ref([]);
 
 const headerCheckboxes = ref({
@@ -199,6 +199,7 @@ const gridMeta = ref({
   selectedCompaintNumber: null,
   selectedSerialNumber: null,
   selectedCustomerId: null,
+  selectedComplaintNumber:null,
   sort: {
     column: "uniqueID",
     direction: "asc",
@@ -315,8 +316,7 @@ const setCurrentWeekOfYear = () => {
   getCurrentYearName.value = currentDate.getFullYear().toString().slice(-2);
   const currentWeek = getISOWeek(currentDate);
   const lastTwoDigits = currentYear.toString().slice(-2);
-  filterValues.value.Week = `${lastTwoDigits}-${currentWeek}`;//
-
+  filterValues.value.Week = `${lastTwoDigits}-${currentWeek}`; //
 };
 
 const getCurrentYearWeeks = () => {
@@ -439,8 +439,9 @@ watch(
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
 
-
-  filterValues.value.Week = filterValues.value.Week ? filterValues.value.Week : getCurrentYearName.value;
+  filterValues.value.Week = filterValues.value.Week
+    ? filterValues.value.Week
+    : getCurrentYearName.value;
   // handle number of organization and pagination
   await useApiFetch("/api/service/schedule/numbers", {
     method: "GET",
@@ -480,6 +481,7 @@ const fetchGridData = async () => {
       if (response.status === 200) {
         gridMeta.value.schedules = response._data.body;
       }
+
       gridMeta.value.isLoading = false;
     },
   });
@@ -500,7 +502,7 @@ const fetchScheduleData = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         let schedules = response._data.body;
-        console.log("check schedules", schedules)
+        console.log("check schedules", schedules);
         let employees = [];
         schedules.forEach((schedule) => {
           if (!employees.includes(schedule["Service Tech"])) {
@@ -552,8 +554,8 @@ const fetchScheduleData = async () => {
                   name: schedule["SR#"],
                   startDate: schedule["SR Date"],
                   duration: 1,
-                  "SrNo": serialNum,
-                  "CustId": custNum,
+                  SrNo: serialNum,
+                  CustId: custNum,
                   manuallyScheduled: true,
                 };
               });
@@ -666,20 +668,21 @@ const handleModalSave = async () => {
 };
 
 const onSelect = async (row) => {
+  console.log(row)
   // gridMeta.value.selectedCustomerId = null;
+
   await getCustomerByUniqueID(row["Cust #"]);
   gridMeta.value.selectedServiceId = row?.uniqueID;
   gridMeta.value.selectedCompaintNumber = row["SO#"];
-  // gridMeta.value.selectedCustomerId = row['Cust #'];
-  gridMeta.value.selectedSerialNumber = row["SN#"];
+  gridMeta.value.selectedSerialNumber = row["SO#"];
+
 };
 
-const onDblClick = async () => { };
+const onDblClick = async () => {};
 
 const onServiceReportSave = async () => {
   modalMeta.value.isSoOrderModalOpen = false;
   if (schedulerView.value) {
-
     fetchScheduleData();
   } else {
     fetchGridData();
@@ -723,33 +726,36 @@ const excelExport = async () => {
 const onScheduletaskDblClick = async (event) => {
   const str = event.taskRecord?.originalData?.name;
   const number = str.match(/\d+/)[0]; // \d+ matches one or more digits
-  let param = '';
-  let setParam = '';
+  let param = "";
+  let setParam = "";
   let serviceReportID = 0;
   if (Array.isArray(event.taskRecord?.originalData?.children)) {
     if (event.taskRecord?.originalData?.eventColor) {
-      param = 'emp#'
-      setParam = number
-      console.log(event.taskRecord?.originalData?.name)
+      param = "emp#";
+      setParam = number;
+      console.log(event.taskRecord?.originalData?.name);
     } else {
-      param = 'so#'
-      console.log(event.taskRecord?.originalData?.name)
-      setParam = number
+      param = "so#";
+      console.log(event.taskRecord?.originalData?.name);
+      setParam = number;
 
       gridMeta.value.selectedServiceId = setParam;
 
-      await getCustomerByUniqueID(event.taskRecord?.originalData?.children[0]?.CustId);
+      await getCustomerByUniqueID(
+        event.taskRecord?.originalData?.children[0]?.CustId
+      );
       gridMeta.value.selectedServiceId = setParam;
       gridMeta.value.selectedCompaintNumber = setParam;
-      gridMeta.value.selectedSerialNumber = event.taskRecord?.originalData?.children[0]?.SrNo;
+      gridMeta.value.selectedSerialNumber =
+        event.taskRecord?.originalData?.children[0]?.SrNo;
       modalMeta.value.modalTitle = "So Service Report";
       modalMeta.value.modalDescription = "so Service Report";
       modalMeta.value.isSoOrderModalOpen = true;
     }
   } else {
-    param = 'sr#'
-    console.log(event.taskRecord?.originalData?.name)
-    setParam = number
+    param = "sr#";
+    console.log(event.taskRecord?.originalData?.name);
+    setParam = number;
     await useApiFetch(`/api/service/servicereports/`, {
       method: "GET",
       params: {
@@ -766,7 +772,6 @@ const onScheduletaskDblClick = async (event) => {
     modalMeta.value.modalDescription = "sr Service Report";
     modalMeta.value.isReportModalOpen = true;
   }
-
 
   // if (!event.taskRecord.originalData.children) {
   //   await useApiFetch(`/api/service/servicereports/`, {
@@ -816,12 +821,18 @@ const onScheduletaskDblClick = async (event) => {
         <div class="flex flex-col w-full">
           <div class="flex justify-between items-center w-full">
             <div class="flex space-x-2">
-              <template v-for="[key, value] in Object.entries(headerFilters)" :key="key">
+              <template
+                v-for="[key, value] in Object.entries(headerFilters)"
+                :key="key"
+              >
                 <template v-if="value.options.length > 1">
                   <div class="basis-1/7 max-w-[200px]">
                     <UFormGroup :label="value.label" :name="key">
-                      <USelect v-model="filterValues[`${value.filter}`]" :options="value.options"
-                        @change="handleFilterChange()" />
+                      <USelect
+                        v-model="filterValues[`${value.filter}`]"
+                        :options="value.options"
+                        @change="handleFilterChange()"
+                      />
                     </UFormGroup>
                   </div>
                 </template>
@@ -830,7 +841,11 @@ const onScheduletaskDblClick = async (event) => {
               <div class="grid grid-cols-3 ml-10">
                 <template v-for="checkbox in headerCheckboxes">
                   <div class="basis-1/5">
-                    <UCheckbox v-model="checkbox.isChecked" :label="checkbox.label" @change="handleCheckboxChange" />
+                    <UCheckbox
+                      v-model="checkbox.isChecked"
+                      :label="checkbox.label"
+                      @change="handleCheckboxChange"
+                    />
                   </div>
                 </template>
               </div>
@@ -852,10 +867,20 @@ const onScheduletaskDblClick = async (event) => {
                 <UToggle color="primary" xsize="2xl" v-model="schedulerView" />
                 Scheduler
               </div>
-              <UButton :loading="exportIsLoading" label="Export to Excel" color="green" variant="outline" class="h-fit"
-                :disabled="exportIsLoading" @click="excelExport">
+              <UButton
+                :loading="exportIsLoading"
+                label="Export to Excel"
+                color="green"
+                variant="outline"
+                class="h-fit"
+                :disabled="exportIsLoading"
+                @click="excelExport"
+              >
                 <template #trailing>
-                  <UIcon name="i-heroicons-document-text" class="text-green-500 w-5 h-5" />
+                  <UIcon
+                    name="i-heroicons-document-text"
+                    class="text-green-500 w-5 h-5"
+                  />
                 </template>
               </UButton>
               <!-- </template> -->
@@ -887,30 +912,48 @@ const onScheduletaskDblClick = async (event) => {
       </UDashboardToolbar>
 
       <template v-if="!schedulerView">
-        <UTable :rows="gridMeta.schedules" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
-          divide: 'divide-gray-200 dark:divide-gray-800',
-          th: {
-            base: 'sticky top-0 z-10',
-            padding: 'pb-0',
-          },
-          td: {
-            padding: 'py-1',
-          },
-        }" :empty-state="{
+        <UTable
+          :rows="gridMeta.schedules"
+          :columns="columns"
+          :loading="gridMeta.isLoading"
+          class="w-full"
+          :ui="{
+            divide: 'divide-gray-200 dark:divide-gray-800',
+            th: {
+              base: 'sticky top-0 z-10',
+              padding: 'pb-0',
+            },
+            td: {
+              padding: 'py-1',
+              base: 'border border-gray-300',
+            },
+          }"
+          :empty-state="{
             icon: 'i-heroicons-circle-stack-20-solid',
             label: 'No items.',
-          }" @select="onSelect" @dblclick="onDblClick">
+          }"
+          @select="onSelect"
+          @dblclick="onDblClick"
+        >
           <template v-for="column in columns" v-slot:[`${column.key}-header`]>
             <template v-if="column.kind !== 'actions'">
               <div class="">
-                <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
-                  @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
-                  :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
+                <CommonSortAndInputFilter
+                  @handle-sorting-button="handleSortingButton"
+                  @handle-input-change="handleFilterInputChange"
+                  :label="column.label"
+                  :sortable="column.sortable"
+                  :sort-key="column.key"
+                  :sort-icon="
+                    column?.sortDirection === 'none'
                       ? noneIcon
                       : column?.sortDirection === 'asc'
-                        ? ascIcon
-                        : descIcon
-                    " :filterable="column.filterable" :filter-key="column.key" />
+                      ? ascIcon
+                      : descIcon
+                  "
+                  :filterable="column.filterable"
+                  :filter-key="column.key"
+                />
               </div>
             </template>
             <template v-else class="bg-slate-400">
@@ -920,17 +963,28 @@ const onScheduletaskDblClick = async (event) => {
             </template>
           </template>
 
-          <template v-for="column in gridMeta.schedules" v-slot:[`cell-${column.key}`]="{ row }">
+          <template
+            v-for="column in gridMeta.schedules"
+            v-slot:[`cell-${column.key}`]="{ row }"
+          >
             <template v-if="column.kind !== 'actions'">
               <div class="">
-                <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
-                  @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
-                  :sort-key="column.key" :sort-icon="column?.sortDirection === 'none'
+                <CommonSortAndInputFilter
+                  @handle-sorting-button="handleSortingButton"
+                  @handle-input-change="handleFilterInputChange"
+                  :label="column.label"
+                  :sortable="column.sortable"
+                  :sort-key="column.key"
+                  :sort-icon="
+                    column?.sortDirection === 'none'
                       ? noneIcon
                       : column?.sortDirection === 'asc'
-                        ? ascIcon
-                        : descIcon
-                    " :filterable="column.filterable" :filter-key="column.key" />
+                      ? ascIcon
+                      : descIcon
+                  "
+                  :filterable="column.filterable"
+                  :filter-key="column.key"
+                />
               </div>
             </template>
             <template v-else class="bg-slate-400">
@@ -940,8 +994,13 @@ const onScheduletaskDblClick = async (event) => {
             </template>
           </template>
           <template #edit-data="{ row }">
-            <UTooltip text="Delete" class="flex justify-center">
-              <UButton color="gray" variant="ghost" icon="i-heroicons-eye" @click="onReportView(row)" />
+            <UTooltip text="Open" class="flex justify-center">
+              <UButton
+                color="gray"
+                variant="ghost"
+                icon="i-heroicons-eye"
+                @click="onReportView(row)"
+              />
             </UTooltip>
           </template>
         </UTable>
@@ -958,33 +1017,60 @@ const onScheduletaskDblClick = async (event) => {
         </div> -->
       </template>
       <template v-else style="height: 100%">
-        <bryntum-gantt ref="gantt" :tasks="ganttMeta.tasks" :startDate="ganttMeta.startDate"
-          :endDate="ganttMeta.endDate" :height="100" :parentAreaFeature="true" :scrollButtonsFeature="true"
-          :taskEditFeature="false" :taskDragFeature="false" :taskCopyPasteFeature="false" :taskMenuFeature="false"
-          @taskDblClick="onScheduletaskDblClick" />
+        <bryntum-gantt
+          ref="gantt"
+          :tasks="ganttMeta.tasks"
+          :startDate="ganttMeta.startDate"
+          :endDate="ganttMeta.endDate"
+          :height="100"
+          :parentAreaFeature="true"
+          :scrollButtonsFeature="true"
+          :taskEditFeature="false"
+          :taskDragFeature="false"
+          :taskCopyPasteFeature="false"
+          :taskMenuFeature="false"
+          @taskDblClick="onScheduletaskDblClick"
+        />
       </template>
     </UDashboardPanel>
   </UDashboardPage>
 
   <!-- New Organization Detail Modal -->
-  <UDashboardModal v-model="modalMeta.isReportModalOpen" title="Service Report" :ui="{
-    width: 'w-[1800px] sm:max-w-9xl',
-    body: { padding: 'py-0 sm:pt-0' },
-  }">
-    <ServiceReportDetail :selected-complaint="null" :selected-service-report="gridMeta.selectedServiceId"
-      @save="onServiceReportSave" />
-
+  <UDashboardModal
+    v-model="modalMeta.isReportModalOpen"
+    title="Service Report"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-9xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <ServiceReportDetail
+      :selected-complaint="null"
+      :selected-service-report="gridMeta.selectedServiceId"
+      @save="onServiceReportSave"
+    />
   </UDashboardModal>
 
-  <UDashboardModal v-model="modalMeta.isSoOrderModalOpen" title="Service Report" :ui="{
-    width: 'w-[1800px] sm:max-w-9xl',
-    body: { padding: 'py-0 sm:pt-0' },
-  }">
 
-    <ServiceOrderDetail @close="handleModalClose" @save="onServiceReportSave"
-      :selected-serial="gridMeta.selectedSerialNumber" :selected-customer="gridMeta.selectedCustomerId"
-      :selected-complaint="gridMeta.selectedCompaintNumber" :selected-order="gridMeta.selectedServiceId"
-      :form-action="null" />
+  <UDashboardModal
+    v-model="modalMeta.isSoOrderModalOpen"
+    title="Service Report"
+    :ui="{
+      width: 'w-[1800px] sm:max-w-9xl',
+      body: { padding: 'py-0 sm:pt-0' },
+    }"
+  >
+    <ServiceOrderDetail
+      @close="handleModalClose"
+      @save="onServiceReportSave"
+      :selectedSerial="gridMeta.selectedSerialNumber"
+      :selected-customer="gridMeta.selectedCustomerId"
+      :selected-complaint="gridMeta.selectedComplaintNumber"
+      :selected-order="gridMeta.selectedServiceId"
+      :form-action="null"
+       :mainID="gridMeta.selectedSerialNumber"
+    />
   </UDashboardModal>
+
 </template>
 <style></style>

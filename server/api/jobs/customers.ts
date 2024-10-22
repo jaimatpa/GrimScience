@@ -1,13 +1,13 @@
-import { updateJobPercentage } from '~/server/controller/jobs';
+import { getCustomers } from '~/server/controller/jobs';
 
 export default eventHandler(async (event) => {
   try {
     const method = event._method;
-    const { jobs } = await readBody(event);
-    switch(method.toUpperCase()){
-      case 'PUT':
-        await updateJobPercentage(jobs)
-        return { body: '', message: '' }
+
+    switch (method.toUpperCase()) {
+      case 'GET':
+        const customers = await getCustomers()
+        return { body: customers, message: '' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

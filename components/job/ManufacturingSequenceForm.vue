@@ -171,17 +171,17 @@ const handleProdOperationSelect = async (row) => {
 
   skillGridMeta.value.isLoading = true;
 
-  await useApiFetch("/api/jobs/operations/mfg/operationskills/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
-    method: "GET",
-    onResponse({ response }) {
-      if (response.status === 200) {
-        skillGridMeta.value.skills = response._data.body.skills;
-      }
-    },
-    onResponseError() {
-      skillGridMeta.value.skills = [];
-    },
-  });
+  // await useApiFetch("/api/jobs/operations/mfg/operationskills/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+  //   method: "GET",
+  //   onResponse({ response }) {
+  //     if (response.status === 200) {
+  //       skillGridMeta.value.skills = response._data.body.skills;
+  //     }
+  //   },
+  //   onResponseError() {
+  //     skillGridMeta.value.skills = [];
+  //   },
+  // });
 
   skillGridMeta.value.isLoading = false;
 
