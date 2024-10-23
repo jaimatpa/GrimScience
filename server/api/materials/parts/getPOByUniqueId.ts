@@ -5,6 +5,7 @@ export default eventHandler(async (event) => {
   try {
     const method = event._method;
     const { UniqueID } = getQuery(event);
+    console.log({ UniqueID });
 
     if (!UniqueID) {
       event.node.res.statusCode = 400;

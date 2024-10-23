@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import PurchaseDetails from "~/components/materials/vendors/PurchaseDetails.vue";
-import CreatePurchaseModal from "~/components/purchase/CreatePurchaseModal.vue";
 import type { UTableColumn } from "~/types";
 
 useSeoMeta({
@@ -15,15 +14,8 @@ const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
 const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
-const createPurchaseModalMeta = ref({
-  isModalOpen: false,
-  modalTitle: "New Invoice",
-  modalDescription: "Add a new invoice to your database",
-});
-
 const viewPurchaseModalMeta = ref({
   isModalOpen: false,
-  modalTitle: "View Purchase",
   modalDescription: "Add a new invoice to your database",
 });
 
@@ -299,12 +291,6 @@ fetchPurchasesData();
         <div class="flex flex-row justify-end mx-10 mt-1 gap-5">
           <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-3">
-              <!-- <UButton color="gms-gray" variant="outline">
-                Select Purchase Order
-              </UButton> -->
-              <!-- <UButton @click="triggerCreatePurchaseModal" color="gms-gray" variant="outline">
-                Create Purchase Order
-              </UButton> -->
             </div>
             <div class="flex items-center gap-3">
               <UButton @click="triggerViewPurchaseModal" color="primary" variant="outline">
@@ -342,28 +328,17 @@ fetchPurchasesData();
     </UDashboardPanel>
   </UDashboardPage>
 
-  <UDashboardModal v-model="createPurchaseModalMeta.isModalOpen" title="Create Purchase" :ui="{
+
+  <UDashboardModal v-model="viewPurchaseModalMeta.isModalOpen" class="h-[50vh] overflow-y-auto" :ui="{
     title: 'text-lg',
     header: {
       base: 'flex flex-row min-h-[0] items-center',
       padding: 'pt-5 sm:px-9',
     },
     body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-    width: 'w-[60%] sm:max-w-9xl',
+    width: 'w-[90%] sm:max-w-9xl',
+    height: 'h-[500px]',
   }">
-    <CreatePurchaseModal :modalMeta="createPurchaseModalMeta" />
-  </UDashboardModal>
-  <UDashboardModal v-model="viewPurchaseModalMeta.isModalOpen" title="View Purchase" class="h-[50vh] overflow-y-auto"
-    :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
-      body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-      width: 'w-[90%] sm:max-w-9xl',
-      height: 'h-[500px]',
-    }">
     <PurchaseDetails :is-creating="false" :modal-data="gridMeta.selectedPO"></PurchaseDetails>
 
   </UDashboardModal>

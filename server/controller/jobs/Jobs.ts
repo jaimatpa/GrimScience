@@ -7,7 +7,7 @@ import { calculateUnitCosts } from "./Operation";
 // import path from 'path'; 
 
 const formatDate = (date) => {
-  const today = new Date(date);a
+  const today = new Date(date);
   return String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
   String(today.getDate()).padStart(2, '0') + '/' + 
   today.getFullYear();
@@ -122,7 +122,7 @@ export const getNumberOfJobs = async (isOpen, isReleased, filterParams, startDat
 
   // Convert DATEOPENED from string to date for comparison in the range filter
   if (!filterParams.DATEOPENED && startDate && endDate) {
-    whereClause[Sequelize.Op.and] = [
+    whereClause[Op.and] = [
       Sequelize.literal(`CAST(DATEOPENED AS DATETIME) BETWEEN '${startDate}' AND '${endDate}'`)
     ];
   }
