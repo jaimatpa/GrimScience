@@ -1112,10 +1112,20 @@ const fetchGridData = async () => {
 const handlePageChange = async () => {
   fetchGridData();
 };
+
+const showETLCritical = computed({
+  get: () => filterValues.value.ETLCriticalComponent === 1,
+  set: (newValue) => {
+    filterValues.value.ETLCriticalComponent = newValue ? 1 : null;
+    handleFilterChange();
+  },
+});
+
 const handleFilterChange = () => {
   gridMeta.value.page = 1;
   fetchGridData();
 };
+
 const handleSortingButton = async (btnName: string) => {
   gridMeta.value.page = 1;
   for (const column of columns.value) {
@@ -1228,7 +1238,10 @@ if (selectedPartsID.value !== null) {
             >
               <div>Part Lookup</div>
               <div class="bg-gms-gray-100">
-                <UCheckbox label="Show ETL Critical Components" />
+                <UCheckbox
+                  v-model="showETLCritical"
+                  label="Show ETL Critical Components"
+                />
               </div>
             </div>
 
