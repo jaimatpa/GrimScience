@@ -1,10 +1,13 @@
-<script lang="ts" setup>
-useSeoMeta({
-  title: 'Grimm-Utilities settings'
-})
+<script setup lang="ts">
+import SettingsPage from "../../components/utilities/Settings/Settings.vue";
 </script>
 
 <template>
-  <div class="w-full flex items-center text-center justify-center">This page is under development and not available yet.
-  </div>
+  <UDashboardPage>
+    <UDashboardPanel grow>
+      <UDashboardPanelContent class="p-0 bg-gms-gray-100">
+        <SettingsPage />
+      </UDashboardPanelContent>
+    </UDashboardPanel>
+  </UDashboardPage>
 </template>

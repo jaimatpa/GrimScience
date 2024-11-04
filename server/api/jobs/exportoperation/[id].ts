@@ -12,7 +12,7 @@ export default eventHandler(async (event) => {
     switch (method) {
       case "GET":
     
-        const data = await getOperationReportData(id)
+        const { reportData: data, job } = await getOperationReportData(id)
 
         const filteredData = data.filter(item => item.Number === 1);
 
@@ -26,6 +26,8 @@ export default eventHandler(async (event) => {
             return acc;
           }, {})
         );
+
+        console.log(reportData)
         
         let htmlContent = "";
         if(reportData.length !== 0){
@@ -33,13 +35,13 @@ export default eventHandler(async (event) => {
           <body style="font-family: Arial; max-width: 1024px; margin: 0 auto;">
             <div style="display: flex; justify-content: space-between;">
                 <div>
-                    <h3 style="margin: 0;">Job #</h3>
+                    <h3 style="margin: 0;">Job # </h3>
                 </div>
                 <div style="width: 20%; text-align: center;">
                     <h3 style="margin: 0;">Qty 0</h3>
                 </div>
                 <div style="width: 50%; text-align: right;">
-                  <h3 style="margin: 0;">${reportData[0][0]["PlanModel"]}</h3>
+                  <h3 style="margin: 0;">${reportData[0] && reportData[0][0]["PlanModel"]}</h3>
                 </div>
             </div>`;
   
@@ -47,7 +49,7 @@ export default eventHandler(async (event) => {
             htmlContent += `
               
               <h3 style="margin-top: 20px; margin-bottom: 0; border-bottom: 3px solid black">
-                ${reportData[0][0]["WorkCenter"]}
+                ${reportData[0] && reportData[0][0]["WorkCenter"]}
               </h3>
               <h4>
                 Operation
@@ -55,10 +57,10 @@ export default eventHandler(async (event) => {
               <div style="margin-top: 20px; ;">
                 <div style="display:flex; flex-direction: row; justify-content: space-between;">
                   <h4 style="margin: 0;">
-                    ${1}. ${reportData[0][0]["Operation"]}
+                    ${1}. ${ reportData[0] && reportData[0][0]["Operation"]}
                   </h4>
                   <p style="margin: 0;">
-                    ${reportData[0][0]["hours"]}
+                    ${reportData[0] && reportData[0][0]["hours"]}
                     <b>Hrs.</b>
                   </p>
                 </div>`
@@ -129,39 +131,41 @@ export default eventHandler(async (event) => {
                     <div style="display: inline-flex;">
                         <p style="margin: 0;">Prepared By:</p>
                         <p style="margin: 0;padding-left: 4px;">
-                          ${reportData[0][0]["PreparedBy"]}
+                          ${reportData[0] && reportData[0][0]["PreparedBy"]}
                         </p>
                     </div>
                     <div style="width: 30%; text-align: center;display: inline-flex;">
                         <p style="margin: 0;">Approved By:</p>
-                        <p style="margin: 0;padding-left: 4px;"> ${reportData[0][0]["ApprovedBy" || ""]}</p>
+                        <p style="margin: 0;padding-left: 4px;"> ${reportData[0] && reportData[0][0]["ApprovedBy"] || ""}</p>
                     </div>
                     <div style="width: 30%; text-align: right;display: inline-flex;">
                         <p style="margin: 0;">Verified By:</p>
-                        <p style="margin: 0;padding-left: 4px;"> ${reportData[0][0]["verifiedby"] || ""}</p>
+                        <p style="margin: 0;padding-left: 4px;"> ${reportData[0] && reportData[0][0]["verifiedby"] || ""}</p>
                     </div>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-top: 20px;">
                     <div style="display: inline-flex;">
                         <p style="margin: 0;">Date:</p>
                         <p style="margin: 0; padding-left: 4px;">
-                          ${reportData[0][0]["PreparedDate"]
-                            ? format(reportData[0][0]["PreparedDate"], "MM/dd/yyyy")
+                          ${reportData[0] && reportData[0][0]["PreparedDate"]
+                            ? format(reportData[0] && reportData[0][0]["PreparedDate"], "MM/dd/yyyy")
                             : ""}
                         </p>
                     </div>
                     <div style="width: 30%; text-align: center;display: inline-flex;">
                         <p style="margin: 0;">Date:</p>
                         <p style="margin: 0; padding-left: 4px;">
-                          ${reportData[0][0]["ApprovedDate"]
-                            ? format(reportData[0][0]["ApprovedDate"], "MM/dd/yyyy")
+                          ${reportData[0] && reportData[0][0]["ApprovedDate"]
+                            ? format(reportData[0] && reportData[0][0]["ApprovedDate"], "MM/dd/yyyy")
                             : ""}
                         </p>
                     </div>
                     <div style="width: 30%; text-align: center;display: inline-flex;">
                         <p style="margin: 0;">Date:</p>
                         <p style="margin: 0; padding-left: 4px;">
-                          
+                          ${reportData[0] && reportData[0][0]["verified"]
+                            ? format(reportData[0] && reportData[0][0]["verified"], "MM/dd/yyyy")
+                            : ""}
                         </p>
                     </div>
                 </div>

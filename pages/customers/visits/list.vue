@@ -1,10 +1,19 @@
 <script lang="ts" setup>
+import CustomersSiteVisitDetail from '~/components/customers/CustomersSiteVisitDetail.vue';
+
 useSeoMeta({
-  title: 'Grimm-Customers Visit'
+  title: 'Grimm-Site Visit'
 })
 </script>
 
+
 <template>
-  <div class="w-full flex items-center text-center justify-center">This page is under development and not available yet.
-  </div>
+  <UDashboardPage>
+    <UDashboardPanel grow>
+      <UDashboardNavbar class="gmsPurpleHeader" title="Site Visits" />
+      <div class="overflow-y-scroll">
+        <CustomersSiteVisitDetail/>
+      </div>
+    </UDashboardPanel>
+  </UDashboardPage>
 </template>

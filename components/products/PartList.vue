@@ -11,6 +11,9 @@ const props = defineProps({
     type: [String, Number, null],
     required: true,
   },
+  subTitle: {
+    type: [String, Number, null],
+  }
 });
 
 const toast = useToast();
@@ -71,11 +74,11 @@ const listColumns = ref([
   },
   {
     key: "inventorycost",
-    label: "Inv. Cost",
+    label: "Inv. Cost ($)",
   },
   {
     key: "totalCost",
-    label: "Total",
+    label: "Total ($)",
   },
   {
     key: "laborHours",
@@ -108,8 +111,9 @@ init();
     class="space-y-4"
     @submit="onSubmit"
   >
-    <div class="w-full flex flex-col">
-      <div class="w-full mt-5">
+    <div class="w-full flex flex-col p-3">
+      <p><b>#{{subTitle}}</b></p>
+      <div class="w-full pt-3">
         <UTable
           :rows="partList"
           :columns="listColumns"
@@ -128,10 +132,11 @@ init();
         </UTable>
       </div>
       <div class="flex">
-        <div class="mt-5 ml-4">
+        <div class="pt-3">
           <UButton
             variant="outline"
             color="green"
+            icon="i-heroicons-document-text"
             label="Generate Excel"
             :ui="{
               base: 'w-fit',

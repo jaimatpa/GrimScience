@@ -39,7 +39,7 @@ const applyFilters = (params) => {
 };
 
 export const getAllOperation = async (jobId, instanceId, jobQty) => {
-  console.log(jobId, instanceId, jobQty)
+  
   const list = await sequelize.query(`
     Select distinct tblJobOperations.*, tblPlan.UniqueID as PID from tblJobOperations left join tblPlan on tblJobOperations.PlanID = tblPlan.uniqueID Where tblJobOperations.instanceid = :instanceid and jobID = :jobId order by number asc
   `, {
@@ -52,8 +52,6 @@ export const getAllOperation = async (jobId, instanceId, jobQty) => {
   const modList = list.map(item =>{
     return {...item, Hours: (parseFloat(item.Hours) * parseFloat(jobQty)).toFixed(2)}
   } )
-
-  console.log(modList)
 
   return modList;
 }
@@ -181,14 +179,17 @@ export const getEmployeeSchedules = async (sortBy, sortOrder, filterParams) => {
     order: [[sortBy || 'UniqueID', sortOrder || 'ASC']],
   });
 
+  
+
   const formattedList = list.map((item: any) => {
+    console.log(item.tblEmployee)
     return {
       UniqueID: item.UniqueID,
       JobID: item.JobID,
       OperationID: item.OperationID,
       StartTime: formatDate(new Date(item.StartTime)),
       Hours: item.Hours,
-      employee: `#${item.tblEmployee.payrollnumber} ${item.tblEmployee.fname} ${item.tblEmployee.lname}`
+      employee:   `#${item.tblEmployee.payrollnumber} ${item.tblEmployee.fname} ${item.tblEmployee.lname}`
     }
   })
 
@@ -1141,6 +1142,7 @@ export const deleteMfgOperation = async (id) => {
 }
 
 export const getOperationReportData = async (id) => {
+
   const reportData = await sequelize.query(`
     Select (select verified from tblJobOperations where tblJobOperations.PlanID = tblPlan.UniqueID and tblJobOperations.JobID=0) as verified,(select verifiedby from tblJobOperations where tblJobOperations.PlanID = tblPlan.UniqueID and tblJobOperations.JobID=0) as verifiedby,tblPlan.uniqueID as OUID, tblSteps.UniqueID as SID, (select top 1 '#' + model + ' ' + description from tblBP  Where instanceID = tblPlan.InstanceID  and uniqueid in ( select max(uniqueid) from tblbp where instanceid=tblPlan.InstanceID)) as PlanModel, tblPlan.hours,tblBP.ProductLine, tblPlan.Number, tblPlan.Operation, tblSteps.Step, tblSteps.description as StepDescription, tblSteps.notes as notes, tblBPParts.Note, tblBPParts.Qty, tblBP.InventoryUnit, tblBP.model, tblBP.description as BPDescription, tblPlan.WorkCenter, ApprovedBy, ApprovedDate, PreparedBy, PreparedDate  from tblPlan left join tblSteps on tblSteps.PlanID = tblPlan.UniqueID left join tblBPParts on tblBPParts.StepID = tblSteps.UniqueID left join tblBP on tblBP.uniqueID = tblBPParts.partID Where tblPlan.InstanceID = :instanceId Order by tblPlan.Number, cast(step as int), model
   `, {
@@ -1148,7 +1150,8 @@ export const getOperationReportData = async (id) => {
     type: QueryTypes.SELECT
   });
 
-  return reportData
+
+  return { reportData }
 }
 
 export const getPartList = async (instanceID) => {

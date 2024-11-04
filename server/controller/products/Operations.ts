@@ -372,7 +372,7 @@ export const getWorkCenter = async () => {
 }
 
 export const cloneOperations = async (sourceModelName, targetModelName, username) => {
-
+  console.log(sourceModelName, targetModelName, username)
   // Step 1: Fetch target model details
   const targetModel = await sequelize.query(`
     SELECT * FROM tblBP WHERE MODEL = :targetModelName AND CODE <> 'inactive' 
@@ -385,7 +385,7 @@ export const cloneOperations = async (sourceModelName, targetModelName, username
   if (targetModel.length === 0) {
     throw new Error("This model does not exist. Please create a model before cloning its instructions.");
   }
-
+  console.log(1)
   const productInstanceID = targetModel[0].instanceID;
 
   // Step 2: Fetch source model details
@@ -397,7 +397,7 @@ export const cloneOperations = async (sourceModelName, targetModelName, username
   });
 
   const sourceInstanceID = sourceModel[0].instanceID;
-
+  console.log(2)
   // Step 3: Fetch operations from the source model
   const sourceOperations = await sequelize.query(`
     SELECT UniqueID FROM tblPlan WHERE instanceID = :sourceInstanceID
@@ -416,7 +416,6 @@ export const cloneOperations = async (sourceModelName, targetModelName, username
     });
 
     
-    // throw new Error("gasdg")
     // Create new operation for target model
     const today = new Date();
     const formattedDate = String(today.getMonth() + 1).padStart(2, '0')  + '/' + 
@@ -489,7 +488,9 @@ export const cloneOperations = async (sourceModelName, targetModelName, username
       }
     }
   }
+  console.log(3)
   await reorderOperations(productInstanceID);
+  console.log(4)
   return targetModelName;
 };
 

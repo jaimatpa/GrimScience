@@ -98,8 +98,8 @@ init();
       loader="dots" />
   </div>
   <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
-    <div class="w-full flex flex-col">
-      <div class="w-full mt-5">
+    <div class="w-full flex flex-col p-3">
+      <div class="w-full ">
         <UTable
           :rows="partList"
           :columns="listColumns"
@@ -118,7 +118,7 @@ init();
         </UTable>
       </div>
       <div class="flex">
-        <div class="mt-5 ml-4">
+        <div class="pt-3">
           <UButton
             variant="outline"
             color="green"

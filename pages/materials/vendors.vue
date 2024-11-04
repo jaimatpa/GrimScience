@@ -1,5 +1,10 @@
 <script lang="ts" setup>
 import type { UTableColumn } from '~/types';
+import PrintLabel from '~/components/materials/vendors/PrintLabel.vue';
+import PurchaseDetails from '~/components/materials/vendors/PurchaseDetails.vue';
+import PartsForm from '~/components/materials/Parts/PartsForm.vue';
+import Parts from './parts.vue';
+
 
 const props = defineProps({
   isPage: {
@@ -9,16 +14,17 @@ const props = defineProps({
   },
   isNewReport: {
     type: Boolean,
-    required:false,
+    required: false,
     default: true
   }
 });
-const emit = defineEmits(['handleSelect' , 'close'])
+const emit = defineEmits(['handleSelect', 'close'])
+const toast = useToast()
 
 const handleSelectRow = () => {
-    const ser = gridMeta.value.selectedVendor;
-    emit("handleSelect", ser);
-    emit("close");
+  const ser = gridMeta.value.selectedVendor;
+  emit("handleSelect", ser);
+  emit("close");
 };
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
@@ -71,7 +77,7 @@ const gridMeta = ref({
   numberOfVendors: 0,
   vendors: [],
   parts: [],
-  POItems: ["PO#123", "PO#1223", "PO#1243", "PO#124"],
+  POItems: [],
   selectedVendor: null,
   selectedPart: null,
   sort: {
@@ -185,7 +191,7 @@ const onSelect = async (row) => {
   gridMeta.value.isLoadingDetails = true;
   gridMeta.value.modalData = row;
   gridMeta.value.neReportData = row;
-  
+
   gridMeta.value.selectedVendor = row;
   try {
     await useApiFetch('/api/materials/vendors/vendorSuppliedParts', {
@@ -237,10 +243,30 @@ const fetchSuppliedParts = async (search: string) => {
     gridMeta.value.isLoadingDetails = false;
   }
 };
+const fetchPOList = async (search: string) => {
+  gridMeta.value.isLoading = true;
+  if (!search) return;
+  console.log(search)
+  try {
+    const response = await useApiFetch(`/api/materials/vendors/getAllPo?vendor=${search}`, {
+      method: 'GET',
+    });
 
-const onPartsSuppliedDetails = (e) => {
+    if (response.body) {
+      gridMeta.value.POItems = response.body
+    } else {
+      console.log('Unexpected response structure or status code:', response);
+    }
+
+  } catch (error) {
+    console.error('Error fetching supplied parts:', error);
+  } finally {
+    gridMeta.value.isLoading = false;
+  }
+};
+const onPartsSuppliedDetails = () => {
+  console.log("onPartsSuppliedDetails")
   showPartsSuppliedModal.value = true;
-  suppliedPart.value = e;
 };
 
 const formData = ref({});
@@ -251,6 +277,7 @@ watch(
     if (newVendor) {
       fetchSuppliedParts(newVendor.NAME);
       formData.value = { ...newVendor };
+      fetchPOList(newVendor.NUMBER);
     }
   },
   { immediate: true }
@@ -295,37 +322,6 @@ const clearForm = () => {
   formData.value = {};
   filterValues.value = {};
 };
-const modifyVendor = async () => {
-  console.log('Form Data:', formData);
-  await useApiFetch('/api/materials/vendors/update', {
-    method: 'PUT',
-    body: formData,
-    onResponse({ response }) {
-      toast.add({
-        title: "Success",
-        description: response._data.message,
-        icon: 'i-heroicons-check-circle',
-        color: 'green'
-      });
-      console.log(response)
-    }
-  });
-};
-const addVendor = async () => {
-  console.log('Form Data:', formData);
-  await useApiFetch('/api/materials/vendors/create', {
-    method: 'POST',
-    body: formData,
-    onResponse({ response }) {
-      toast.add({
-        title: "Success",
-        description: response._data.message,
-        icon: 'i-heroicons-check-circle',
-        color: 'green'
-      })
-    }
-  });
-};
 await useApiFetch('/api/common/vendorStatus', {
   method: 'GET',
   onResponse({ response }) {
@@ -334,11 +330,10 @@ await useApiFetch('/api/common/vendorStatus', {
       .filter(status => status !== null && status !== "");
   }
 });
-const toast = useToast()
 useApiFetch('/api/auth/employees', {
   onResponse({ response }) {
     if (response.status === 200) {
-      loadingOverlay.value = false;
+      gridMeta.isLoading.value = false;
       approvedByOptions.value = response._data.body
     }
   }
@@ -353,62 +348,65 @@ const items = [
     key: "checks"
   },
 ];
+
+useApiFetch('/api/auth/employees', {
+  onResponse({ response }) {
+    if (response.status === 200) {
+      loadingOverlay.value = false;
+      approvedByOptions.value = response._data.body
+    }
+  }
+})
+const save = async () => {
+  console.log('Form Data:', formData);
+  await useApiFetch('/api/materials/vendors/update', {
+    method: 'PUT',
+    body: formData.value,
+    onResponse({ response }) {
+      if (response.status === 200) {
+        toast.add({
+          title: "Success",
+          description: response._data.message,
+          icon: 'i-heroicons-check-circle',
+          color: 'green'
+        });
+        console.log(response)
+      }
+    }
+  });
+};
+const create = async () => {
+  console.log('Form Data:', formData);
+  await useApiFetch('/api/materials/vendors/create', {
+    method: 'POST',
+    body: formData.value,
+    onResponse({ response }) {
+      toast.add({
+        title: "Success",
+        description: response._data.message,
+        icon: 'i-heroicons-check-circle',
+        color: 'green'
+      })
+    }
+  });
+};
+
+
 </script>
 
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar class="gmsBlueHeader" title="Vendors" />
-      <div class="overflow-y-scroll h-full">
-        <div class="overflow-y-scroll grid grid-cols-2 gap-2 h-[30vh]">
-          <div class="">
+      <div class="overflow-y-scroll">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="oveflow-hidden">
             <div>
               <div class="px-4 py-2 gmsBlueTitlebar">
                 <h2>Vendors Lookup</h2>
               </div>
-              <UTable :rows="gridMeta.vendors" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
-                divide: 'divide-gray-200 dark:divide-gray-800',
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'p-0'
-                },
-                td: {
-                  padding: 'py-1'
-                }
-              }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }" @select="onSelect"
-                @dblclick="onDblClick">
-                <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-                  <template v-if="column.kind !== 'actions'">
-                    <div class="px-4 py-3.5">
-                      <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
-                        @handle-input-change="handleFilterInputChange" :label="column.label" :sortable="column.sortable"
-                        :sort-key="column.key"
-                        :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                        :filterable="column.filterable" :filter-key="column.key" />
-                    </div>
-                  </template>
-                </template>
-              </UTable>
-              <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
-                <div class="flex flex-row justify-end mr-20 mt-1">
-                  <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfVendors | 0"
-                    v-model="gridMeta.page" @update:model-value="handlePageChange()" />
-                </div>
-              </div>
-            </div>
-            <!-- <div v-if="!props.isPage">
-              
-            </div> -->
-          </div>
-          <div>
-            <div class="px-4 py-2 gmsBlueTitlebar">
-              <h2>Parts Lookup</h2>
-            </div>
-
-            <div class="w-full">
-              <UTable :rows="gridMeta.parts" :columns="partsColumns" :loading="gridMeta.isLoadingDetails" class="w-full"
-                :ui="{
+              <div class="h-[20vh] overflow-y-scroll">
+                <UTable :rows="gridMeta.vendors" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
                   divide: 'divide-gray-200 dark:divide-gray-800',
                   th: {
                     base: 'sticky top-0 z-10',
@@ -418,12 +416,54 @@ const items = [
                   td: {
                     padding: 'py-1'
                   }
+                }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }" @select="onSelect"
+                  @dblclick="onDblClick">
+                  <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+                    <template v-if="column.kind !== 'actions'">
+                      <div class="px-4 py-3.5">
+                        <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                          @handle-input-change="handleFilterInputChange" :label="column.label"
+                          :sortable="column.sortable" :sort-key="column.key"
+                          :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
+                          :filterable="column.filterable" :filter-key="column.key" />
+                      </div>
+                    </template>
+                  </template>
+                </UTable>
+              </div>
+              <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
+                <div class="flex flex-row justify-end mr-20 mt-1">
+                  <UPagination :max="7" :page-count="gridMeta.pageSize" :total="gridMeta.numberOfVendors | 0"
+                    v-model="gridMeta.page" @update:model-value="handlePageChange()" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="px-4 py-2 gmsBlueTitlebar">
+              <h2>Parts Lookup</h2>
+            </div>
+
+            <div class="h-[20vh] overflow-y-scroll">
+              <UTable :rows="gridMeta.parts" @select="row => gridMeta.selectedPart = row"
+                @dblclick="onPartsSuppliedDetails" :columns="partsColumns" :loading="gridMeta.isLoadingDetails"
+                class="w-full" :ui="{
+                  divide: 'divide-gray-200 dark:divide-gray-800',
+                  th: {
+                    base: 'sticky top-0 z-10',
+                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                    padding: 'p-0',
+                  },
+                  td: {
+                    padding: 'py-1',
+                  },
                 }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }">
 
               </UTable>
             </div>
           </div>
         </div>
+
         <div>
           <UForm :state="formData" class="flex flex-col gap-3 space-y-3">
 
@@ -431,41 +471,66 @@ const items = [
               <h2>Vendor Information</h2>
             </div>
             <div class="grid grid-cols-2 gap-4 p-4">
-              <UFormGroup label="Number">
-                <UInput v-model="formData.NUMBER" />
-              </UFormGroup>
-              <UFormGroup label="Name">
-                <UInput v-model="formData.NAME" />
-              </UFormGroup>
+              <div class="flex flex-row gap-3">
+                <div class="basis-1/3">
+                  <UFormGroup label="Number">
+                    <UInput v-model="formData.NUMBER" />
+                  </UFormGroup>
+                </div>
+                <div class="basis-2/3">
+                  <UFormGroup label="Name">
+                    <UInput v-model="formData.NAME" />
+                  </UFormGroup>
+                </div>
+              </div>
               <UFormGroup label="Website">
                 <UInput v-model="formData.WEBSITE" />
               </UFormGroup>
-              <UFormGroup label="Address">
-                <UInput v-model="formData.ADDESS" />
-              </UFormGroup>
-              <UFormGroup label="City">
-                <UInput v-model="formData.CITY" />
-              </UFormGroup>
-              <div class="grid grid-cols-2 gap-2">
-                <UFormGroup label="State">
-                  <USelect v-model="formData.STATE" :options="stateOptions" />
-                </UFormGroup>
-                <UFormGroup label="ZIP">
-                  <UInput v-model="formData.ZIP" />
+              <div>
+                <UFormGroup label="Address">
+                  <UInput v-model="formData.ADDESS" />
                 </UFormGroup>
               </div>
-              <UFormGroup label="Customer Number">
-                <UInput v-model="formData.CUSTNUMBER" />
-              </UFormGroup>
-              <UFormGroup label="Terms">
-                <UInput v-model="formData.TERMS" />
-              </UFormGroup>
-              <UFormGroup label="Country">
-                <UInput v-model="formData.COUNTRY" />
-              </UFormGroup>
-              <UFormGroup label="Ship Via">
-                <UInput v-model="formData.SHIPVIA" />
-              </UFormGroup>
+              <div class="flex flex-row gap-3">
+                <div class="w-full">
+                  <UFormGroup label="Customer Number">
+                    <UInput v-model="formData.CUSTNUMBER" />
+                  </UFormGroup>
+                </div>
+                <div class="w-full">
+                  <UFormGroup label="Terms">
+                    <UInput v-model="formData.TERMS" />
+                  </UFormGroup>
+                </div>
+
+              </div>
+
+              <div class="grid grid-cols-5 gap-2">
+                <div class="col-span-3">
+                  <UFormGroup label="City">
+                    <UInput v-model="formData.CITY" />
+                  </UFormGroup>
+                </div>
+                <div class="col-span-1">
+                  <UFormGroup label="State">
+                    <USelect v-model="formData.STATE" :options="stateOptions" />
+                  </UFormGroup>
+                </div>
+                <div class="col-span-1">
+                  <UFormGroup label="ZIP">
+                    <UInput v-model="formData.ZIP" />
+                  </UFormGroup>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <UFormGroup label="Country">
+                  <UInput v-model="formData.COUNTRY" />
+                </UFormGroup>
+                <UFormGroup label="Ship Via">
+                  <UInput v-model="formData.SHIPVIA" />
+                </UFormGroup>
+              </div>
             </div>
 
             <div class="grid grid-cols-5 gap-3">
@@ -587,7 +652,7 @@ const items = [
                         </div>
 
                         <template #footer>
-                          <UButton type="submit" color="black">
+                          <UButton @click="onViewOrderDetails" color="black">
                             View {{ item.key === 'orders' ? 'Order' : 'Check' }}
                           </UButton>
                         </template>
@@ -601,7 +666,7 @@ const items = [
               <div class="col-span-3 h-full">
                 <UCard>
                   <UFormGroup label="Comments">
-                    <UTextarea v-model="formData.COMMENTS" rows="3" />
+                    <UTextarea v-model="formData.COMMENTS" :rows="3" />
                   </UFormGroup>
                 </UCard>
               </div>
@@ -610,29 +675,50 @@ const items = [
 
           </UForm>
         </div>
+        <div class="gap-3 flex">
+          <div v-if="props.isPage">
+            <UButton icon="i-heroicons-cursor-arrow-ripple" :disabled="!gridMeta.selectedVendor" variant="outline"
+              color="green" label="Select" truncate @click="emit('handleSelect', gridMeta.selectedVendor)">
+            </UButton>
+          </div>
+          <UButton @click="create" :disabled="gridMeta.selectedVendor" variant="outline" color="green"
+            icon="i-heroicons-plus" class="flex-1">
+            Add Vendor
+          </UButton>
+          <UButton @click="save" :disabled="!gridMeta.selectedVendor" variant="outline" color="primary"
+            icon="i-heroicons-pencil-square" class="flex-1">
+            Modify Vendor
+          </UButton>
+          <UButton @click="clearForm" variant="outline" color="primary" icon="i-heroicons-arrow-path" class="flex-1">
+            Clear
+          </UButton>
+          <UButton @click="onPrintLabel" variant="outline" color="primary" icon="i-heroicons-tag" class="flex-1">
+            Vendor Label
+          </UButton>
+          <UButton @click="onCreatePurchaseOrder" variant="outline" color="green" icon="i-heroicons-plus"
+            class="flex-1">
+            Create Purchase Order
+          </UButton>
+        </div>
       </div>
-      <div class="gap-3 flex">
-        <UButton icon="i-heroicons-cursor-arrow-ripple" variant="outline" color="green" label="Select" truncate
-          @click="emit('handleSelect', gridMeta.selectedVendor)">
-        </UButton>
-        <UButton @click="addVendor" variant="outline" color="green" icon="i-heroicons-plus" class="flex-1">
-          Add Vendor
-        </UButton>
-        <UButton @click="modifyVendor" variant="outline" color="primary" icon="i-heroicons-pencil-square"
-          class="flex-1">
-          Modify Vendor
-        </UButton>
-        <UButton @click="clearForm" variant="outline" color="primary" icon="i-heroicons-arrow-path" class="flex-1">
-          Clear
-        </UButton>
-        <UButton @click="onPrintLabel" variant="outline" color="primary" icon="i-heroicons-tag" class="flex-1">
-          Vendor Label
-        </UButton>
-        <UButton @click="createPurchaseOrder" variant="outline" color="green" icon="i-heroicons-plus" class="flex-1">
-          Create Purchase Order
-        </UButton>
-      </div>
+      <UDashboardModal v-model="showLabelModal" title="Print Vendor Label" :ui="printModaluiConfig">
+        <PrintLabel :isVisible="showLabelModal" :data="gridMeta.modalData.printLabel" @close="showLabelModal = false">
+        </PrintLabel>
+      </UDashboardModal>
+      <UDashboardModal v-model="showCreatePurchaseOrderModal" title="Create Purchase Order" :ui="modalUIConfig">
+        <PurchaseDetails :is-creating="true" :vendor-details="gridMeta.modalData.createPurchaseOrder"></PurchaseDetails>
+      </UDashboardModal>
+      <UDashboardModal v-model="showOrderListModal" title="Orders List" :ui="modalUIConfig">
+        <PurchaseDetails :is-creating="false" :vendor-details="gridMeta.selectedVendor"
+          :modal-data="{ ...gridMeta.selectedVendor, PONUMBER: selectedOrder.split[0] }"></PurchaseDetails>
+      </UDashboardModal>
 
+      <UDashboardModal v-model="showPartsSuppliedModal" title="Supplied Parts Details" :ui="modalUIConfig">
+        <Parts />
+        <!-- <PartsForm :selected-parts="gridMeta.selectedPart.UniqueID"
+          :selectedPartInstace="gridMeta.selectedPart.InstanceID" :is-modal="true"
+          :selectedPartModel="gridMeta.selectedPart.MODEL" /> -->
+      </UDashboardModal>
     </UDashboardPanel>
   </UDashboardPage>
 </template>

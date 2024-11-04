@@ -509,10 +509,16 @@ else propertiesInit();
 
     <UForm :validate="validate" :validate-on="['submit']" :state="formData" @submit="onSubmit">
         <UDashboardNavbar v-if="props.isPage" class="gmsBlueHeader w-full" title="Corrective / Preventative Actions">
+            <template #right>
+                <UButton color="green" variant="outline" :loading="exportIsLoading" label="Export to Excel"
+                    trailing-icon="i-heroicons-document-text" @click="excelExport" block />
+            </template>
         </UDashboardNavbar>
-        <div class="flex flex-row">
-            <div class="basis-2/3 border-[1px] border-slate-600 border-l-0 border-b-0 border-t-0 pb-3">
-                <div class="w-full px-3 py-1 bg-slate-400">Lookup</div>
+        <div class="grid grid-cols-3">
+            <div class="col-span-2 border-[1px] border-slate-600 border-l-0 border-b-0 border-t-0 pb-3">
+                <div class="w-full px-3 py-1 gmsBlueTitlebar">
+                    <h2>Lookup</h2>
+                </div>
                 <div class="flex flex-col space-y-2 px-3 pr-7">
                     <div class="flex justify-end">
                         <UCheckbox v-model="filterValues.chkOpenOnly" label="Show Open Only" class="pt-4" />
@@ -565,9 +571,11 @@ else propertiesInit();
                     </UTable>
                 </div>
             </div>
-            <div class="basis-1/3">
-                <div class="w-full px-3 py-1 bg-slate-400">Complaints</div>
-                <div class="flex mt-11 px-3 pl-7">
+            <div class="col-span-1">
+                <div class="w-full px-3 py-1 gmsBlueTitlebar">
+                    <h2>Complaints</h2>
+                </div>
+                <div class="flex p-2">
                     <div class="">
                         <UTable :rows="complaintGridMeta.complaints" :columns="complaintGridMeta.defaultColumns"
                             class="w-[400px] overflow-y-auto" :ui="{
@@ -613,10 +621,13 @@ else propertiesInit();
                 </div>
             </div>
         </div>
-        <div class="flex flex-row">
-            <div class="basis-2/3 border-[1px] border-slate-600 border-l-0 border-b-0 border-t-0">
-                <div class="w-full px-3 py-1 bg-slate-400">Action</div>
-                <div class="flex flex-col space-y-2 px-3 pr-7 py-3">
+        <div class="grid grid-cols-3">
+            <div class="col-span-2 border-[1px] border-slate-600 border-l-0 border-b-0 border-t-0">
+
+                <div class="w-full px-3 py-1 gmsBlueTitlebar">
+                    <h2>Action</h2>
+                </div>
+                <div class="flex flex-col space-y-2 p-2">
                     <div class="flex flex-row space-x-2">
                         <div class="min-w-[100px]">
                             <UFormGroup label="Number">
@@ -782,45 +793,38 @@ else propertiesInit();
                     </div>
                 </div>
             </div>
-            <div class="basis-1/3 flex flex-col">
-                <div class="w-full px-3 py-1 bg-slate-400">Investigations</div>
-                <div class="flex flex-col p-3 pl-7 space-y-2">
-                    <div class="">
-                        <UTable :rows="investigationGridMeta.investigations"
-                            :columns="investigationGridMeta.defaultColumns" class="w-[400px] overflow-y-auto" :ui="{
-                                wrapper: 'overflow-auto h-[570px] border-2 border-gray-300 dark:border-gray-700',
-                                divide: 'divide-gray-200 dark:divide-gray-800',
-                                tr: {
-                                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                                },
-                                th: {
-                                    base: 'sticky top-0 z-10',
-                                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                                    padding: 'p-0',
-                                },
-                                td: {
-                                    base: 'h-[31px]',
-                                    padding: 'py-0',
-                                },
-                            }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-                            @select="">
-                            <template v-for="column in investigationGridMeta.defaultColumns"
-                                v-slot:[`${column.key}-header`]>
-                                <template>
-                                    <div class="min-w-[160px]">
-                                        <div class="px-4 py-3.5">
-                                            <CommonSortAndInputFilter @handle-input-change="" :label="column.label"
-                                                :sortable="column.sortable" :sort-key="column.key"
-                                                :filterable="column.filterable" :filter-key="column.key" />
-                                        </div>
-                                    </div>
-                                </template>
+            <div class="col-span-1 flex flex-col">
+                <div class="w-full px-3 py-1 gmsBlueTitlebar">
+                    <h2>Investigations</h2>
+                </div>
+                <div class="p-3">
+                    <UTable :rows="investigationGridMeta.investigations" :columns="investigationGridMeta.defaultColumns"
+                        class="overflow-y-auto" :ui="{
+                            wrapper: 'overflow-auto min-h-[300px] border-2 border-gray-300 dark:border-gray-700',
+                            divide: 'divide-gray-200 dark:divide-gray-800',
+                            tr: {
+                                active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                            },
+                            th: {
+                                base: 'sticky top-0 z-10',
+                                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                                padding: 'p-0',
+                            },
+                            td: {
+                                padding: 'py-1',
+                            },
+                        }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }" @select="">
+                        <template v-for="column in investigationGridMeta.defaultColumns"
+                            v-slot:[`${column.key}-header`]>
+                            <template>
+                                <div class="px-4 py-3.5">
+                                    <CommonSortAndInputFilter @handle-input-change="" :label="column.label"
+                                        :sortable="column.sortable" :sort-key="column.key"
+                                        :filterable="column.filterable" :filter-key="column.key" />
+                                </div>
                             </template>
-                            <template #empty-state>
-                                <div></div>
-                            </template>
-                        </UTable>
-                    </div>
+                        </template>
+                    </UTable>
 
                 </div>
             </div>
@@ -860,7 +864,7 @@ else propertiesInit();
     <UDashboardModal v-model="modalMeta.isPartsModalOpen" title="Select Part" :ui="{
         title: 'text-lg',
         header: {
-            base: 'flex flex-row min-h-[0] items-center bg-white',
+            base: 'flex flex-row min-h-[0] items-center bg-gms-blue',
             padding: 'pt-5 sm:px-9',
         },
         body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
@@ -874,7 +878,7 @@ else propertiesInit();
     <UDashboardModal v-model="modalMeta.isVendorModalOpen" title="Select Vendor" :ui="{
         title: 'text-lg',
         header: {
-            base: 'flex flex-row min-h-[0] items-center bg-white',
+            base: 'flex flex-row min-h-[0] items-center bg-gms-blue',
             padding: 'pt-5 sm:px-9',
         },
         body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
@@ -891,17 +895,17 @@ else propertiesInit();
     <UDashboardModal v-model="modalMeta.isEcoModalOpen" title="Select Change Order" :ui="{
         title: 'text-lg',
         header: {
-            base: 'flex flex-row min-h-[0] items-center bg-white',
+            base: 'flex flex-row min-h-[0] items-center bg-gms-blue',
             padding: 'pt-5 sm:px-9',
         },
         body: { base: 'gap-y-1 bg-white', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
         width: 'w-[1200px] sm:max-w-9xl',
     }">
-         <ChangeOrderPage :is-page="false" @close="modalMeta.isEcoModalOpen=false" @selectEco="v => {
+        <ChangeOrderPage :is-page="false" @close="modalMeta.isEcoModalOpen = false" @selectEco="v => {
             formData.ECO = `#${v.NUMBER} ${v.DESCRIPTION}`;
             // modalMeta.isVendorModalOpen = false
 
-    console.log(v)
+            console.log(v)
         }" />
     </UDashboardModal>
 </template>

@@ -11,7 +11,7 @@ export default eventHandler(async (event) => {
       case 'POST':
         const { data ,files} = await readBody<{ files: File[], data:{} }>(event)
         const newProduct = await createProduct(data,files)
-        return { body: { newProduct }, message: 'New product created successfully!'}
+        return { body:  newProduct , message: 'New product created successfully!'}
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

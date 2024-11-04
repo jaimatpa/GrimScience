@@ -1,12 +1,12 @@
 import ExcelJS from 'exceljs'
-import { getAllServiceOrders } from '~/server/controller/service';
+import { getServiceOrders } from '~/server/controller/service';
 
 const workbook = new ExcelJS.Workbook();
 
 export default eventHandler(async (event) => {
   try {
     const { sortBy, sortOrder, ...filterParams } = getQuery(event);
-    const list = await getAllServiceOrders(sortBy, sortOrder, filterParams);
+    const list = await getServiceOrders('1', '10000000', sortBy as string, sortOrder as string, filterParams);
 
     workbook.removeWorksheet('My sheet')
     const worksheet = workbook.addWorksheet('My sheet')

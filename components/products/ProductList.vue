@@ -31,16 +31,9 @@ const toast = useToast();
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
 const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
-const activeTab = ref("lookup");
 
 const user = useCookie<string>('user');
 const username = "#"+user.value.payrollnumber+" "+user.value.fname+" "+user.value.lname
-
-function setActiveTab(tab) {
-  if(!(tab === "history" && gridMeta.value.selectProduct === null)){
-    activeTab.value = tab;
-  }
-}
 
 const headerFilters = ref({
   productline: {
@@ -160,28 +153,6 @@ watchCheckbox('isActive', 'CODE');
 
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
-
-const revisionColumns = ref([
-  {
-    key: "TODAY",
-    label: "Date",
-  },
-  {
-    key: "CODE",
-    label: "Type",
-  },
-]);
-
-const jobColumns = ref([
-  {
-    key: "NUMBER",
-    label: "Job#",
-  },
-  {
-    key: "DATECLOSED",
-    label: "Closed",
-  },
-]);
 
 const columns = computed(() =>
   gridMeta.value.defaultColumns.filter((column) =>
@@ -351,18 +322,7 @@ const onSelect = async (row) => {
   })
 
 };
-const onRevisionSelect = async (row) => {
-  gridMeta.value.selectedProductId = row?.UniqueID;
-  revisions.value.forEach((pro) => {
-    if (pro.UniqueID === row.UniqueID) {
-      pro.class = "bg-gray-200";
-    } else {
-      delete pro.class;
-    }
-  });
-  gridMeta.value.selectProduct = row;
 
-};
 const onDblClick = async () => {
   if (gridMeta.value.selectedProductId) {
     modalMeta.value.modalTitle = "Edit";
@@ -387,36 +347,7 @@ const handleBulkInactive = async () => {
   })
   loadingOverlay.value = false
 }
-const handleCostCalculation = async () => {
-  if (!Number.isNaN(gridMeta.value.selectProduct.SELLINGPRICE)) {
-    loadingOverlay.value = true
-    await useApiFetch('/api/products/costandprofit/'+gridMeta.value.selectedProductId, {
-      method: 'GET',
-      onResponse({ response }) {
-        if(response.status === 200) {
-          costCalculation.value = response._data.body;
-        }
-      }, 
-      onResponseError() {
-        costCalculation.value = {
-          materialCost: null,
-          productLabor: null,
-          productLabourHours: null,
-          subAssemblyLaborCost: null,
-          subAssemblyLaborHours: null,
-          totalLaborCost: null,
-          totalHours: null,
-          totalCost: null,
-          suggestedPrice: null,
-          grossProfitPercent: null,
-          grossProfit: null
-        }
-      }
-    })
-    loadingOverlay.value = false
-  }
-  
-}
+
 const handleModalClose = () => {
   modalMeta.value.isProductModalOpen = false;
 };
@@ -469,69 +400,6 @@ const handleFilterInputChange = async (event, name) => {
   }
   fetchGridData();
 };
-const handlePartListModal = () => {
-  modalMeta.value.isPartsModalOpen = true
-}
-const handleOperationtModal = () => {
-  modalMeta.value.isOperationsModalOpen = true
-  modalMeta.value.modalTitle = "Manufacturing Secquence";
-  modalMeta.value.modalDescription = `Manufacturing Secquence ${
-    gridMeta.value.selectProduct.MODEL ? gridMeta.value.selectProduct.MODEL : gridMeta.value.selectProduct.MODEL
-  }`;
-}
-const handleSerialsModal = () => {
-  modalMeta.value.isSerialModalOpen = true
-  modalMeta.value.modalTitle = "Serial Record Finished Goods";
-  modalMeta.value.modalDescription = "Serial Record" 
-}
-
-const handleCloneModal = () => {
-  sourceCloneModel.value = null
-  modalMeta.value.isCloneModalOpen = true
-}
-
-const handleCloneModalClick = async () => {
-  if(sourceCloneModel.value){
-    loadingOverlay.value = true
-    await useApiFetch(`/api/products/productoperations/cloneoperation`, {
-      method: 'PUT',
-      body: { targetId:sourceCloneModel.value, sourceId:gridMeta.value.selectProduct.MODEL, username },
-      onResponse({ response }) {
-        if(response.status === 200) {
-          sourceCloneModel.value = null
-          modalMeta.value.isCloneModalOpen = false
-          toast.add({
-            title: "Success",
-            description: "Instruction cloned successfully",
-            icon: "i-heroicons-check-circle",
-            color: "green",
-          });
-        }
-      },
-      onResponseError({}) {
-        toast.add({
-          title: "Failed",
-          description: "Failed to clone instructions",
-          icon: "i-heroicons-exclamation-circle",
-          color: "red",
-        });
-      }
-    });
-    loadingOverlay.value = false
-  }else{
-    toast.add({
-      title: "Validation Error",
-      description: "Please provide a model",
-      icon: "i-heroicons-exclamation-circle",
-      color: "red",
-    });
-  }
-}
-
-const closeCloneModal = () => {
-  sourceCloneModel.value = null
-  modalMeta.value.isCloneModalOpen = false
-}
 
 
 </script>
@@ -621,31 +489,11 @@ const closeCloneModal = () => {
         </template>
       </UDashboardToolbar>
 
-      <div v-if="props.isPage" class="px-4 py-2 gmsPurpleTitlebar">
-        <button
-          :class="{
-            'bg-white text-black': activeTab === 'lookup',
-            gmsPurpleTitlebar: activeTab !== 'lookup',
-          }"
-          @click="setActiveTab('lookup')"
-          class="px-4 py-0.5 focus:outline-none rounded-md"
-        >
-          Lookup
-        </button>
-        <button
-          :class="{
-            'bg-white text-black': activeTab === 'history',
-            gmsPurpleTitlebar: activeTab !== 'history',
-          }"
-          @click="setActiveTab('history')"
-          class="px-4 py-0.5 ml-2 focus:outline-none rounded-md"
-        >
-          Product History
-        </button>
+      <div class="px-4 py-2 gmsPurpleTitlebar">
+        <h2>Lookup</h2>
       </div>
 
       <UTable
-        v-if="activeTab === 'lookup'"
         :rows="gridMeta.products"
         :columns="columns"
         :loading="gridMeta.isLoading"
@@ -724,189 +572,7 @@ const closeCloneModal = () => {
         </template>
         
       </UTable>
-      <div v-else class="flex flex-col overflow-y-scroll">
-        <div class="grid grid-cols-2 gap-5 px-5">
-          <div>
-            <span>Revision History</span>
-            <UTable
-              :columns="revisionColumns"
-              :rows="revisions"
-              :ui="{
-                wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'p-1',
-                },
-                td: {
-                  padding: 'py-1'
-                }
-              }"
-              @select="onRevisionSelect"
-              @dblclick="onDblClick"
-            />
-          </div>
-          <div>
-            <span>Job History</span>
-            <UTable
-              :columns="jobColumns"
-              :rows="jobHistory"
-              :ui="{
-                wrapper: 'h-56 border-2 border-gray-300 dark:border-gray-700',
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'p-1',
-                },
-              }"
-            />
-          </div>
 
-
-          <div>
-            <span>Cost</span>
-            <div class="space-y-4 border-2 p-2">
-              <div class="flex flex-row space-x-3">
-                
-              
-                <p class="basis-1/2">Selling Price</p>
-              
-                <p>$</p>
-                <UInput class="basis-1/2"
-                disabled
-                v-model="gridMeta.selectProduct.SELLINGPRICE"
-                  
-                />
-
-              </div>
-              <div class="flex flex-row space-x-3">
-                
-                
-                <p class="basis-1/2">Suggested Price</p>
-
-                <p>$</p>
-                <UInput class="basis-1/2"
-                disabled
-                  v-model="costCalculation.suggestedPrice"
-                />
-
-              </div>
-
-              <div class="flex flex-row space-x-3">
-                
-                
-                <p class="basis-1/3">Product Labor</p>
-
-                <p>$</p>
-                <UInput class="basis-1/3"
-                disabled
-                  v-model="costCalculation.productLabor"
-                />
-
-
-
-                <UInput class="basis-1/3"
-                disabled
-                  v-model="costCalculation.productLabourHours"
-                />
-                <p>hr</p>
-
-              
-              
-              </div>
-
-              <div class="flex flex-row space-x-3">
-                
-                
-                <p class="basis-1/3">Subassembly Labor</p>
-                <p>$</p>
-                <UInput class="basis-1/3"
-                disabled
-                   v-model="costCalculation.subAssemblyLaborCost"
-                />
-
-                <UInput class="basis-1/3"
-                disabled
-                  v-model="costCalculation.subAssemblyLaborHours"
-                />
-                <p>hr</p>
-              
-              
-              </div>
-
-              <div class="flex flex-row space-x-3 border-t border-gray-300 pt-3">
-                
-                
-                <p class="basis-1/3">Total Labor</p>
-                <p>$</p>
-                <UInput class="basis-1/3"
-                disabled
-                  v-model="costCalculation.totalCost"
-                />
-
-                <UInput class="basis-1/3"
-                disabled
-                  v-model="costCalculation.totalHours"
-                />
-                <p>hr</p>
-              
-              
-              </div>
-
-              <div class="flex flex-row space-x-3 ">
-                
-                
-                <p class="basis-1/3">Material Cost</p>
-                <p class="basis-1/3">$ {{ costCalculation.materialCost }}</p>
-
-              </div>
-
-              <div class="flex flex-row space-x-3">
-                
-                
-                <p class="basis-1/3">Total Cost</p>
-                <p class="basis-1/3">$ {{ costCalculation.totalCost }}</p>
-                
-
-              </div>
-
-              <div class="flex flex-row space-x-3">
-                
-                
-                <p class="basis-1/3">Gross Profit</p>
-                <p class="basis-1/3"> $ {{ costCalculation.grossProfit }}</p>
-                <p class="basis-1/3">{{ costCalculation.grossProfitPercent }} %</p>
-
-              
-              
-              </div>
-
-              <div class="flex flex-row space-x-2">
-                
-              
-                <p class="basis-1/2">Units Shipped   YTD = </p>
-                <p class="basis-1/2">Total=</p>
-              
-              
-              </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleOperationtModal" >View Operations</UButton>
-              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleCloneModal" >Clone Operations</UButton>
-              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handlePartListModal" >View Parts List</UButton>
-              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleSerialsModal">View Serials</UButton>
-              <UButton class="bg-[#9b4b99] text-white hover:bg-[#7f3e7e]" @click="handleCostCalculation" >View Costs</UButton>
-            </div>
-
-
-
-            </div>
-            
-          </div>
-
-        </div>
-      </div>
-      <!-- v-if="props.isPage && activeTab === 'lookup'" -->
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div
           class="flex flex-row justify-end mr-20 mt-1"
@@ -953,7 +619,7 @@ const closeCloneModal = () => {
     width: 'w-[1250px] sm:max-w-9xl',
   }"
 >
-  <ProductsForm
+  <ProductsProductForm
     @close="handleModalClose"
     @save="handleModalSave"
     :selected-product="gridMeta.selectedProductId"
@@ -961,83 +627,6 @@ const closeCloneModal = () => {
   />
   </UDashboardModal>
 
-   <!-- Parts List Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isPartsModalOpen"
-    title="Parts Listing"
-    :ui="{
-      width: 'w-[1000px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
-    }"
-  >
-    <ProductsPartList :selected-product="gridMeta.selectedProductId"/>
-  </UDashboardModal>
-
-  <!-- Manufacturing Sequnce Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isOperationsModalOpen"
-    :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
-    :ui="{
-      width: 'w-[1800px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
-    }"
-  >
-    <ProductsManufacturingSequenceForm :selected-product="gridMeta.selectedProductId" :instance-id="gridMeta.selectProduct.instanceID" />
-  </UDashboardModal>
-
-  <!-- Serials Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isSerialModalOpen"
-    :ui="{
-      width: 'w-[1800px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
-    }"
-  >
-    <MaterialsSerialsSerialList :is-page="true" :productModel="gridMeta.selectProduct.MODEL" />
-  </UDashboardModal>
-
-  <!-- Clone Operation Modal -->
-  <UDashboardModal
-      v-model="modalMeta.isCloneModalOpen"
-      :ui="{
-        header: {
-          base: 'flex flex-row min-h-[0] items-center',
-          padding: 'p-0 pt-1',
-        },
-        body: { base: 'gap-y-1', padding: 'py-0 sm:pt-0' },
-        width: 'w-[300px]',
-      }"
-    >
-      <div>
-        <div class="">
-          <div class="">What model would you like to clone these instructions to?</div>
-          
-        </div>
-        <div class="mt-3">
-          <UInput v-model="sourceCloneModel" ></UInput>
-        </div>
-        
-        <div class="flex flex-row-reverse mt-2">
-          <div class="min-w-[60px]">
-            <UButton
-              label="Clone"
-              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-              @click="handleCloneModalClick"
-              truncate
-            />
-          </div>
-          <div class="min-w-[60px] mr-3">
-            <UButton
-              label="Cancel"
-              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-              truncate
-              @click="closeCloneModal"
-            />
-          </div>
-        </div>
-      </div>
-    </UDashboardModal>
 
 </template>
 <style scoped></style>

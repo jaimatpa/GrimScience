@@ -9,8 +9,6 @@ onMounted(async () => {
   await fetchGridData();
 });
 
-
-
 const fetchGridData = async () => {
   gridMeta.value.isLoading = true;
   if (
@@ -65,12 +63,12 @@ const headerFilters = ref({
 
 const toast = useToast();
 
-const modalMeta = ref({
-  isSerialModalOpen: false,
-  modalTitle: "Serial",
-  isNewReportModalOpen: false,
-  mainID: "",
-});
+// const modalMeta = ref({
+//   isSerialModalOpen: false,
+//   modalTitle: "Serial",
+//   isNewReportModalOpen: false,
+//   mainID: "",
+// });
 
 const fetchCategoryData = async () => {
   try {
@@ -261,15 +259,6 @@ const gridMeta = ref({
   isLoading: false,
 });
 
-// const formattedOrders = computed(() => {
-//   return gridMeta.value.orders.map((order) => {
-//     return {
-//       ...order,
-//       DESCRIPTION: order.DESCRIPTION.split(" ").slice(0, 5).join(" "),
-//     };
-//   });
-// });
-
 const filterValues = ref({
   QTY: null,
   reqdate: null,
@@ -283,26 +272,6 @@ const searchBYEmpleey = (newDate) => {
   filterValues.value.EMPLOYEE = newDate.label;
   fetchGridData();
 };
-
-// const fetchGridData = async () => {
-//   await useApiFetch("/api/materials/requisitions/table2?type=table2", {
-//     method: "GET",
-//     params: {
-//       page: gridMeta.value.page,
-//       pageSize: gridMeta.value.pageSize,
-//       sortBy: gridMeta.value.sort.column,
-//       sortOrder: gridMeta.value.sort.direction,
-//       ...filterValues.value,
-//     },
-
-//     onResponse({ response }) {
-//       if (response.status === 200) {
-//         gridMeta.value.orders = response._data.tableData;
-//       }
-//       gridMeta.value.isLoading = false;
-//     },
-//   });
-// };
 
 const selectedColumns = ref(gridMeta.value.defaultColumns);
 const exportIsLoading = ref(false);
@@ -360,8 +329,6 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const selectedRows = ref(new Set());
 
-
-
 const toggleRow = (stockNumber: string, checked: boolean) => {
   if (checked) {
     selectedRows.value.add(stockNumber);
@@ -376,18 +343,26 @@ const clearAllSelections = () => {
 </script>
 
 <template>
+   <UDashboardPage>
+    <UDashboardPanel grow>
   <OrderDetailsTable :is-page="true" />
 
-  <UForm class="mt-[20px]">
-    <div class="flex flex-row space-x-6 bg-[#4682B4] w-full">
-      <p class="py-[10px]">Requisitions Lookup</p>
+  <UForm class="">
+    <div class="flex flex-row w-full">
+      <p class="py-[5px] pl-[20px] italic">
+        Parts Needed ( Double Click to select)
+      </p>
     </div>
-    <div class="flex flex-row space-x-6 pt-[20px] pb-[30px]">
-      <div class="flex basis-3/5 max-w-[300px] min-w-[150px] mr-4">
+    <div class="flex flex-row gmsBlueTitlebar w-full">
+      <p class="py-[10px] pl-[20px]">Requisitions Lookup</p>
+    </div>
+
+    <div class="flex flex-row pt-[10px] pb-[30px]">
+      <div class="mr-4 flex pt-[25px] pl-[20px]">
         <UCheckbox :model-value="isAllSelected" />
         <h3 class="pl-[5px]">Show History</h3>
       </div>
-      <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
+      <div class="">
         <h3>By</h3>
 
         <UInputMenu
@@ -397,182 +372,103 @@ const clearAllSelections = () => {
         />
       </div>
     </div>
-
-    <!-- <div
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-4"
-    >
-      <div class="">
-        <UInput
-          v-model="input1"
-          label="Input 1"
-          placeholder="Enter text"
-          class="mb-4"
-        />
-      </div>
-
-      <div class="">
-        <UInput
-          v-model="input2"
-          label="Input 2"
-          placeholder="Enter text"
-          class="mb-4"
-        />
-      </div>
-
-      <div class="">
-        <UInput
-          v-model="input3"
-          label="Input 3"
-          placeholder="Enter text"
-          class="mb-4"
-        />
-      </div>
-
-      <div class="">
-        <UInput
-          v-model="input4"
-          label="Input 4"
-          placeholder="Enter text"
-          class="mb-4"
-        />
-      </div>
-
-      <div class="">
-        <UInput
-          v-model="input5"
-          label="Input 5"
-          placeholder="Enter text"
-          class="mb-4"
-        />
-      </div>
-
-      <div class=" ">
-        <UInput
-          v-model="input6"
-          label="Input 6"
-          placeholder="Enter text"
-          class="mb-4"
-        />
-      </div>
-    </div> -->
-
-    <UDivider />
   </UForm>
 
-  <!-- :rows="gridMeta.orders" -->
+  <div class="">
+    <UTable
+      :rows="gridMeta.orders"
+      :columns="columns"
+      :loading="gridMeta.isLoading"
+      class="w-full overflow-auto h-[300px]"
+      :ui="{
+        divide: 'divide-gray-200 dark:divide-gray-800',
+        th: {
+          base: ' top-0 ',
+          padding: 'pb-0',
+        },
+        td: {
+          padding: 'py-0',
+        },
+      }"
+      :empty-state="{
+        icon: 'i-heroicons-circle-stack-20-solid',
+        label: 'No items.',
+      }"
+      @select="onSelect"
+    >
+      <!-- Add this template for checkbox column header -->
+      <template #checkbox-header>
+        <div class="flex items-center justify-center">
+          <UCheckbox
+            :model-value="isAllSelected"
+            @update:model-value="toggleAllRows"
+          />
+        </div>
+      </template>
 
-    <div>
-      <UTable
-        :rows="gridMeta.orders"
-        :columns="columns"
-        :loading="gridMeta.isLoading"
-        class="w-full"
-        :ui="{
-          divide: 'divide-gray-200 dark:divide-gray-800',
-          th: {
-            base: 'sticky top-0 z-10',
-            padding: 'pb-0',
-          },
-          td: {
-            padding: 'py-1',
-          },
-        }"
-        :empty-state="{
-          icon: 'i-heroicons-circle-stack-20-solid',
-          label: 'No items.',
-        }"
-        @select="onSelect"
-      >
-        <!-- Add this template for checkbox column header -->
-        <template #checkbox-header>
-          <div class="flex items-center justify-center">
-            <UCheckbox
-              :model-value="isAllSelected"
-              @update:model-value="toggleAllRows"
+      <!-- Add this template for checkbox column cells -->
+      <template #checkbox-data="{ row }">
+        <div class="flex items-center justify-center">
+          <UCheckbox
+            :model-value="selectedRows.has(row.STOCKNUMBER)"
+            @update:model-value="
+              (checked) => toggleRow(row.STOCKNUMBER, checked)
+            "
+          />
+        </div>
+      </template>
+
+      <!-- Your existing column headers -->
+      <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+        <template v-if="column.key !== 'checkbox'">
+          <div>
+            <CommonSortAndInputFilter
+              @handle-sorting-button="handleSortingButton"
+              @handle-input-change="handleFilterInputChange"
+              :label="column.label"
+              :sortable="column.sortable"
+              :sort-key="column.key"
+              :sort-icon="''"
+              :filterable="column.filterable"
+              :filter-key="column.key"
             />
           </div>
         </template>
-
-        <!-- Add this template for checkbox column cells -->
-        <template #checkbox-data="{ row }">
-          <div class="flex items-center justify-center">
-            <UCheckbox
-              :model-value="selectedRows.has(row.STOCKNUMBER)"
-              @update:model-value="
-                (checked) => toggleRow(row.STOCKNUMBER, checked)
-              "
-            />
-          </div>
-        </template>
-
-        <!-- Your existing column headers -->
-        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-          <template v-if="column.key !== 'checkbox'">
-            <div>
-              <CommonSortAndInputFilter
-                @handle-sorting-button="handleSortingButton"
-                @handle-input-change="handleFilterInputChange"
-                :label="column.label"
-                :sortable="column.sortable"
-                :sort-key="column.key"
-                :sort-icon="
-                  column?.sortDirection === 'none'
-                    ? noneIcon
-                    : column?.sortDirection === 'asc'
-                    ? ascIcon
-                    : descIcon
-                "
-                :filterable="column.filterable"
-                :filter-key="column.key"
-              />
-            </div>
-          </template>
-        </template>
-      </UTable>
-    </div>
-
-  <div class="flex justify-end space-x-4 pt-[10px]">
-    <div class="basis-1/6">
-      <UButton
-        icon="i-heroicons-plus"
-        label="Uncheck All"
-        variant="outline"
-        color="green"
-        @click="clearAllSelections"
-        :ui="{
-          base: 'min-w-[200px] w-full',
-          truncate: 'flex justify-center w-full',
-        }"
-        truncate
-      />
-    </div>
-    <div class="basis-1/6">
-      <UButton
-        icon="i-heroicons-plus"
-        label="Ordered"
-        variant="outline"
-        color="green"
-        @click="openNewReport()"
-        :ui="{
-          base: 'min-w-[200px] w-full',
-          truncate: 'flex justify-center w-full',
-        }"
-        truncate
-      />
-    </div>
-    <div class="basis-1/6">
-      <UButton
-        icon="i-heroicons-minus-circle"
-        label="Delete Requisition"
-        variant="outline"
-        color="red"
-        :ui="{
-          base: 'min-w-[200px] w-full',
-          truncate: 'flex justify-center w-full',
-        }"
-        truncate
-        @click="deleteEquipmentTableData"
-      />
-    </div>
+      </template>
+    </UTable>
   </div>
+
+
+  <div class="flex justify-between items-center space-x-2 pt-[10px] mb-[15px] px-[20px]">
+  <div class="flex space-x-2">
+    <UButton
+      icon="i-heroicons-plus"
+      label="Uncheck All"
+      variant="outline"
+      color="green"
+      @click="clearAllSelections"
+      truncate
+    />
+    <UButton
+      icon="i-heroicons-minus-circle"
+      label="Delete Requisition"
+      variant="outline"
+      color="red"
+      truncate
+      @click="deleteEquipmentTableData"
+    />
+  </div>
+  <div>
+    <UButton
+      icon="i-heroicons-plus"
+      label="Ordered"
+      variant="outline"
+      color="green"
+      @click="openNewReport()"
+      truncate
+    />
+  </div>
+</div>
+</UDashboardPanel>
+</UDashboardPage>
 </template>

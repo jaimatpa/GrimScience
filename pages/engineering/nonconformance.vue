@@ -8,9 +8,7 @@ useSeoMeta({
   <UDashboardPage>
     <UDashboardPanel grow>
       <UDashboardNavbar class="gmsBlueHeader" title="Non Conformance" />
-      <div class="overflow-y-scroll">
         <EngineeringNonconformanceDetail />
-      </div>
     </UDashboardPanel>
   </UDashboardPage>
 </template>

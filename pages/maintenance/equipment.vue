@@ -5,7 +5,7 @@ import EquipmentPage from "../../components/maintenance/equipment/list.vue";
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardPanelContent>
+      <UDashboardPanelContent class="p-0 bg-gree-400">
         <EquipmentPage />
       </UDashboardPanelContent>
     </UDashboardPanel>

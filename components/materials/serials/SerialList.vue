@@ -324,7 +324,7 @@ const excelExport = async () => {
 };
 
 const onSelect = async (row) => {
- 
+
     gridMeta.value.selectedSerialId = row?.uid;
 
     gridMeta.value.serials.forEach((ser) => {
@@ -389,48 +389,54 @@ const onDblClick = async () => {
                         @click="onCreate()" />
                 </template>
             </UDashboardToolbar>
+            <div class="h-[80vh] overflow-hidden">
 
-            <UTable :rows="gridMeta.serials" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
-                divide: 'divide-gray-200 dark:divide-gray-800',
-                th: {
-                    base: 'sticky top-0 z-10',
-                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'p-0',
-                },
-                td: {
-                    padding: 'py-1',
-                },
-            }" :empty-state="{
+                <UTable :rows="gridMeta.serials" :columns="columns" :loading="gridMeta.isLoading" class="w-full" :ui="{
+                    wrapper: 'relative h-full',
+                    divide: 'divide-gray-200 dark:divide-gray-800',
+                    base: 'overflow-auto',
+                    tbody: 'overflow-y-auto',
+                    th: {
+                        base: 'sticky top-0 z-10',
+                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                        padding: 'p-0',
+                    },
+                    td: {
+                        padding: 'py-1',
+                    },
+                }" :empty-state="{
                     icon: 'i-heroicons-circle-stack-20-solid',
                     label: 'No items.',
                 }" @select="onSelect" @dblclick="onDblClick">
-                <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-                    <template v-if="column.kind !== 'actions'">
-                        <div class="px-4 py-3.5">
-                            <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
-                                @handle-input-change="handleFilterInputChange" :label="column.label"
-                                :sortable="column.sortable" :sort-key="column.key"
-                                :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
-                                :filterable="column.filterable" :filter-key="column.key" />
-                        </div>
+                    <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+                        <template v-if="column.kind !== 'actions'">
+                            <div class="px-4 py-3.5">
+                                <CommonSortAndInputFilter @handle-sorting-button="handleSortingButton"
+                                    @handle-input-change="handleFilterInputChange" :label="column.label"
+                                    :sortable="column.sortable" :sort-key="column.key"
+                                    :sort-icon="column?.sortDirection === 'none' ? noneIcon : column?.sortDirection === 'asc' ? ascIcon : descIcon"
+                                    :filterable="column.filterable" :filter-key="column.key" />
+                            </div>
+                        </template>
+                        <template v-else class="bg-slate-400">
+                            <div class="flex justify-center text-center w-[53px]">
+                                {{ column.label }}
+                            </div>
+                        </template>
                     </template>
-                    <template v-else class="bg-slate-400">
-                        <div class="flex justify-center text-center w-[53px]">
-                            {{ column.label }}
-                        </div>
+                    <template #edit-data="{ row }">
+                        <UTooltip text="Edit" class="flex justify-center">
+                            <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square"
+                                @click="onEdit(row)" />
+                        </UTooltip>
                     </template>
-                </template>
-                <template #edit-data="{ row }">
-                    <UTooltip text="Edit" class="flex justify-center">
-                        <UButton color="gray" variant="ghost" icon="i-heroicons-pencil-square" @click="onEdit(row)" />
-                    </UTooltip>
-                </template>
-                <template #delete-data="{ row }">
-                    <UTooltip text="Delete" class="flex justify-center">
-                        <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
-                    </UTooltip>
-                </template>
-            </UTable>
+                    <template #delete-data="{ row }">
+                        <UTooltip text="Delete" class="flex justify-center">
+                            <UButton color="gray" variant="ghost" icon="i-heroicons-trash" @click="onDelete(row)" />
+                        </UTooltip>
+                    </template>
+                </UTable>
+            </div>
 
             <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
                 <div class="flex flex-row justify-end mr-20 mt-1">
@@ -455,10 +461,10 @@ const onDblClick = async () => {
     <UDashboardModal v-model="modalMeta.isSerialModalOpen" :title="modalMeta.modalTitle" :ui="{
         title: 'text-lg',
         header: {
-            base: 'flex flex-row min-h-[0] items-center',
+            base: 'flex flex-row min-h-[0] items-center bg-gms-blue',
             padding: 'pt-5 sm:px-9',
         },
-        body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
+        body: { base: 'gap-y-1', padding: 'sm:pt-0 p-4 sm:px-9 sm:py-3 sm:pb-5' },
         width: 'w-[1000px] sm:max-w-7xl',
     }">
         <MaterialsSerialsForm @close="handleModalClose" @save="handleModalSave"
@@ -469,7 +475,7 @@ const onDblClick = async () => {
     <UDashboardModal v-model="modalMeta.isCustomerModalOpen" title="Customer Detail" :ui="{
         title: 'text-lg',
         header: {
-            base: 'flex flex-row min-h-[0] items-center',
+            base: 'flex flex-row min-h-[0] items-center bg-gms-purple',
             padding: 'pt-5 sm:px-9',
         },
         body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },

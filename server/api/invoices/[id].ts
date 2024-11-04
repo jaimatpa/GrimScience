@@ -29,8 +29,10 @@ export default eventHandler(async (event) => {
                 price: order.PRIMARYPRICE1,
                 serial: order?.serial ?? '',
                 orderid: id,
-                bpid: order.bdid,
-                UniqueID: order.UniqueID
+                bpid: order.bpid,
+                UniqueID: order.UniqueID,
+
+                type: order.model
               }
               formattedOrderDetail.push(tmp)
             });

@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { UTableColumn } from "~/types";
+import { format } from "date-fns";
 
 useSeoMeta({
-  title: "Grimm-Employees Organization",
+  title: "Grimm-Employees Jobs",
 });
 
 onMounted(() => {
@@ -17,6 +18,11 @@ const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const route = useRoute();
 const toast = useToast();
+
+const startDate = ref(new Date('2019-10-12'));
+const endDate = ref(new Date());
+const isOpen = ref(true)
+const isReleased = ref(false)
 
 const gridMeta = ref({
   defaultColumns: <UTableColumn[]>[
@@ -106,7 +112,7 @@ const gridMeta = ref({
     },
   ],
   page: 1,
-  pageSize: 50,
+  pageSize: 20,
   numberOfOrganization: 0,
   organization: [],
   selectedJobId: null,
@@ -139,10 +145,12 @@ const filterValues = ref({
   PerType: null,
   DATEOPENED: null,
   DATECLOSED: null,
+  ProductionDate: null,
   PercentageComplete: null,
   Cost: null,
   jobcat: null,
   jobsubcat: null,
+  
 });
 
 const selectedColumns = ref(gridMeta.value.defaultColumns);
@@ -191,6 +199,10 @@ const fetchGridData = async () => {
   await useApiFetch("/api/jobs/numbers", {
     method: "GET",
     params: {
+      isOpen: isOpen.value,
+      isReleased: isReleased.value,
+      startDate:startDate.value,
+      endDate:endDate.value,
       ...filterValues.value,
     },
     onResponse({ response }) {
@@ -222,6 +234,10 @@ const fetchGridData = async () => {
       pageSize: gridMeta.value.pageSize,
       sortBy: gridMeta.value.sort.column,
       sortOrder: gridMeta.value.sort.direction,
+      isOpen: isOpen.value,
+      isReleased: isReleased.value,
+      startDate:startDate.value,
+      endDate:endDate.value,
       ...filterValues.value,
     },
     onResponse({ response }) {
@@ -309,12 +325,20 @@ const handleSelectJob = () => {
   
 }
 
+const handleHeaderCheckboxChange = () => {
+  gridMeta.value.page = 1;
+  fetchGridData()
+}
+
+watch([startDate, endDate], () => {
+  fetchGridData();  // Fetch data whenever either startDate or endDate changes
+});
+
 </script>
 
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar class="gmsBlueHeader" title="Jobs"> </UDashboardNavbar>
 
       <div class="px-4 py-2 gmsBlueTitlebar">
         <h2>Sort</h2>
@@ -348,6 +372,23 @@ const handleSelectJob = () => {
               </UFormGroup>
             </div>
           </div>
+
+          <div class="flex flex-row mt-4">
+              <div class="ml-5">
+                <UCheckbox
+                  v-model="isOpen"
+                  label="Show Open Only"
+                  @update:model-value="handleHeaderCheckboxChange"
+                />
+              </div>
+              <div class="ml-5">
+                <UCheckbox
+                  v-model="isReleased"
+                  label="Show Only Released"
+                  @update:model-value="handleHeaderCheckboxChange"
+                />
+              </div>
+          </div>
         </template>
         <template #right>
           <UButton
@@ -373,6 +414,7 @@ const handleSelectJob = () => {
         :loading="gridMeta.isLoading"
         class="w-full"
         :ui="{
+     
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
@@ -428,6 +470,73 @@ const handleSelectJob = () => {
             @update:model-value="handlePageChange()"
           />
         </div>
+      </div>
+      <div class="px-4 py-2 gmsBlueTitlebar">
+        <h2>Date Range Lookup</h2>
+      </div>
+      <div class="px-5 py-2 bg-gms-gray-100">
+        <div class="flex justify-between gap-10">
+          <div class="flex items-center gap-10">
+            <div class="flex items-center gap-2">
+              <p>From</p>
+                <UFormGroup name="From">
+                  <UPopover :popper="{ placement: 'top-start' }">
+                    <UButton
+                      icon="i-heroicons-calendar-days-20-solid"
+                      :label="
+                        startDate &&
+                        format(startDate, 'MM/dd/yyyy')
+                      "
+                      variant="outline"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }"
+                      truncate
+                    />
+                    <template #panel="{ close }">
+                      <CommonDatePicker
+                        v-model="startDate"
+                        is-required
+                        @close="close"
+                      />
+                    </template>
+                  </UPopover>
+                </UFormGroup>
+            </div>
+            <div class="flex items-center gap-2">
+              <p>To</p>
+              <UFormGroup name="To">
+                  <UPopover :popper="{ placement: 'top-start' }">
+                    <UButton
+                      icon="i-heroicons-calendar-days-20-solid"
+                      :label="
+                        endDate &&
+                        format(endDate, 'MM/dd/yyyy')
+                      "
+                      variant="outline"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }"
+                      truncate
+                    />
+                    <template #panel="{ close }">
+                      <CommonDatePicker
+                        v-model="endDate"
+                        is-required
+                        @close="close"
+                      />
+                    </template>
+                  </UPopover>
+                </UFormGroup>
+            </div>
+            <UButton color="primary" variant="solid">
+              Lookup
+            </UButton>
+          </div> 
+        </div>
+       
       </div>
     </UDashboardPanel>
   </UDashboardPage>

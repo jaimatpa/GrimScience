@@ -5,7 +5,7 @@ import Requisitions from "../../components/materials/requisitions/list.vue";
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardPanelContent>
+      <UDashboardPanelContent class="p-0 bg-gms-gray-100">
         <Requisitions />
       </UDashboardPanelContent>
     </UDashboardPanel>

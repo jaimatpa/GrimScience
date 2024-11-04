@@ -5,12 +5,10 @@ export default eventHandler(async (event) => {
     const method = event._method;
     const { selectedJobs } = await readBody(event);
 
-    console.log(selectedJobs)
-
     switch(method.toUpperCase()){
       case 'DELETE':
         await deleteJobs(selectedJobs)
-        return { body: '', message: 'Job deleted successfully' }
+        return { body: '', message: 'Job has been deleted.' }
       default:
         setResponseStatus(event, 405);
         return { error: 'Method Not Allowed' };

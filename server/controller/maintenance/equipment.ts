@@ -283,15 +283,32 @@ export const removeReportTableData = (id) => {
 
 
 // ok code
+// export const getAllMatchReportData = async (orderId, query) => {
+//   try {
+//     const orderIdInt = parseInt(orderId, 10); 
+//     // console.log("tabel", orderIdInt)
+
+//     if (isNaN(orderIdInt)) {
+//       throw new Error('Invalid OrderID: must be a valid number');
+//     }
+
+//     const reports = await tblMaintainenceReports.findAll({
+//       where: {
+//         OrderID: orderIdInt 
+//       },
+//       attributes: ['uniqueid', 'No', 'date', 'by'],
+//       order: [['No', 'DESC']]
+//     });
+//     return reports;
+//   } catch (error) {
+//     throw new Error(`Error fetching reports: ${error.message}`);
+//   }
+// };
+
+
 export const getAllMatchReportData = async (orderId, query) => {
-
-
-
   try {
-    
     const orderIdInt = parseInt(orderId, 10); 
-
-    console.log("tabel", orderIdInt)
 
     if (isNaN(orderIdInt)) {
       throw new Error('Invalid OrderID: must be a valid number');
@@ -304,10 +321,31 @@ export const getAllMatchReportData = async (orderId, query) => {
       attributes: ['uniqueid', 'No', 'date', 'by'],
       order: [['No', 'DESC']]
     });
-    return reports;
+
+    // Format dates in the reports
+    const formattedReports = reports.map(report => {
+      const plainReport = report.get({ plain: true }); // Convert Sequelize model to plain object
+      return {
+        ...plainReport,
+        date: formatDate(plainReport.date)
+      };
+    });
+
+    return formattedReports;
   } catch (error) {
     throw new Error(`Error fetching reports: ${error.message}`);
   }
+};
+
+// Date formatting helper function
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: '2-digit'
+  });
 };
 
 // ok code
@@ -325,6 +363,7 @@ export const getAllReportByData = async () => {
     throw new Error(`Error fetching reports: ${error.message}`);
   }
 };
+
 // ok code
 export const getAllReportWhereData = async () => {
   try {
@@ -443,6 +482,8 @@ export const getAllEquipment= async (sortBy, sortOrder, filterParams) => {
       [Op.like]: `%${filterParams.company}%`,
     };
 
+
+    
   const list = await tblMaintainenceOrders.findAll({
     attributes: [
       "MANO",
@@ -450,7 +491,7 @@ export const getAllEquipment= async (sortBy, sortOrder, filterParams) => {
       "SUBCATAGORY",
       "PART",
       "SERIAL",
-   
+     "REQUIRED"
     ],
     order: [
       [
@@ -461,20 +502,22 @@ export const getAllEquipment= async (sortBy, sortOrder, filterParams) => {
     raw: true,
   });
 
-
+// console.log("-------------------------", list)
   const formattedList = list.map((item: any) => {
     return {
-      uniqueID: item.uniqueID,
-      ORIGINATORDATE:item.ORIGINATORDATE,
-      DESCRIPTION: item.DESCRIPTION,
-      REASONFORCHANGE: item.REASONFORCHANGE,
-      PRODUCT: item.PRODUCT,
-      DISTRIBUTIONDATE: item.DISTRIBUTIONDATE,
+      uniqueID: item.MANO,
+      ORIGINATORDATE:item.CATAGORY,
+      DESCRIPTION: item.SUBCATAGORY,
+      REASONFORCHANGE: item.PART,
+      PRODUCT: item.SERIAL,
+      DISTRIBUTIONDATE: item.REQUIRED,
     
     };
   });
   return formattedList;
 };
+
+
 
 
 // ok code
@@ -506,7 +549,7 @@ export const createNewReport = async (reportData) => {
     const formattedDate = formatDate(reportData.reportCreateData);
 
     // Step 2: Build the INSERT statement dynamically
-    const columns = ['No', 'OrderID', 'Date', '[By]', 'DESCRIPTION', 'Inhouse', 'Vendor', 'Sub1', 'Sub2', 'Sub3', 'Sub4', 'Inst1', 'Inst2', 'Inst3', 'Inst4', 'IC1', 'IC2', 'IC3', 'IC4'];
+    const columns = ['No', 'OrderID', 'Date', '[By]', 'DESCRIPTION', 'Inhouse', 'Vendor', 'Sub1', 'Sub2', 'Sub3', 'Sub4', 'Inst1', 'Inst2', 'Inst3', 'Inst4', 'IC1', 'IC2', 'IC3', 'IC4','CalibrationProcedure','ThirdPartyReport'];
     const values = [
       maxNumber,
       orderId,
@@ -527,6 +570,8 @@ export const createNewReport = async (reportData) => {
       reportData.numberValue01 || null,
       reportData.numberValue02 || null,
       reportData.numberValue03 || null,
+      reportData.fileUpload01 || null,
+      reportData.fileUpload02 || null,
     ];
 
     // Filter out empty values and corresponding columns
@@ -694,7 +739,6 @@ export const createNewReport = async (reportData) => {
         throw new Error('No record found for the given OrderID');
       }
   
-      // Step 2: Construct the raw SQL query for insertion
       const sqlQuery = `
         INSERT INTO tblMaintReportMeasurements (ReportID, UOM, Applied, Reading, Adjusted, Min)
         VALUES (:ReportID, :UOM, :Applied, :Reading, :Adjusted, :Min)
@@ -713,16 +757,15 @@ export const createNewReport = async (reportData) => {
         type: sequelize.QueryTypes.INSERT,
       });
   
-      // Step 3: Fetch all records matching the fetched 'No' value (noValue)
       const insertedRecords = await sequelize.query(
         'SELECT * FROM tblMaintReportMeasurements WHERE ReportID = :reportId',
         {
-          replacements: { reportId: noValue || 0 }, // Use the fetched noValue
-          type: sequelize.QueryTypes.SELECT, // Specify the query type
+          replacements: { reportId: noValue || 0 }, 
+          type: sequelize.QueryTypes.SELECT, 
         }
       );
   
-      console.log('Inserted Records:', insertedRecords);
+      // console.log('Inserted Records:', insertedRecords);
       return insertedRecords; // Return all matching records after insertion
   
     } catch (error) {

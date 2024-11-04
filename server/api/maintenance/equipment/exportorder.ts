@@ -5,6 +5,7 @@ const workbook = new ExcelJS.Workbook();
 
 export default eventHandler(async (event) => {
 
+
   try {
     const { sortBy, sortOrder, ...filterParams } = getQuery(event);
     const list = await getAllEquipment(sortBy, sortOrder, filterParams);

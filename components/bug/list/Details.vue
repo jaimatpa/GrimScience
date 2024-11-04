@@ -226,7 +226,6 @@ const handlePageChange = async () => {
 const onCreate = () => {
   gridMeta.value.selectedBug = null;
   modalMeta.value.modalTitle = "Add Bug";
-  modalMeta.value.modalDescription = "Add a new Bug";
   modalMeta.value.isBugModalOpen = true;
 };
 
@@ -237,7 +236,6 @@ const onSelect = async (row) => {
 const onDblClick = async () => {
   if (gridMeta.value.selectedBug) {
     modalMeta.value.modalTitle = "Edit Bug";
-    modalMeta.value.modalDescription = "Edit bug information";
     modalMeta.value.isBugModalOpen = true;
   }
 };
@@ -322,8 +320,12 @@ const printPDF = async () => {
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar class="bg-gms-pink-500" title="Bug Sheet">
+      <UDashboardNavbar class="gmsRedHeader" title="Bugs">
       </UDashboardNavbar>
+
+      <div class="px-4 py-2 border-t gmsRedTitlebar">
+        <h2>Bug Lookup</h2>
+      </div>
 
       <UDashboardToolbar class="">
         <template #left>
@@ -368,10 +370,6 @@ const printPDF = async () => {
           </div>
         </template>
       </UDashboardToolbar>
-
-      <div class="px-4 py-2 bg-gms-pink-400">
-        <h2>Bug Lookup</h2>
-      </div>
 
       <UTable
         :rows="gridMeta.bug"
@@ -453,11 +451,10 @@ const printPDF = async () => {
   <UDashboardModal
     v-model="modalMeta.isBugModalOpen"
     :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
     :ui="{
       title: 'text-lg',
       header: {
-        base: 'flex flex-row min-h-[0] items-center',
+        base: 'flex flex-row min-h-[0] items-center gmsRedHeader',
         padding: 'pt-5 sm:px-9',
       },
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },

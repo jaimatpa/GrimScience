@@ -1,4 +1,4 @@
-@import "@bryntum/calendar/calendar.stockholm.css";
+/* @import "@bryntum/calendar/calendar.stockholm.css"; */
 
 .white-divider div {
   border-color: #fff !important;
@@ -250,9 +250,12 @@ button {
   border-radius: 5px 5px 0 0;
   margin-top:-15px;
   padding: 1rem 1rem 0.5rem 1rem;
+  align-items:center;
 }
 
 .gms-modalForm {
+  margin-top:0;
+  row-gap:0;
 padding:0;
 padding-bottom: 1rem;
 font-size:13px;

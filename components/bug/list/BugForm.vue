@@ -15,28 +15,16 @@ const props = defineProps({
   },
 });
 
-
 const toast = useToast();
 
 const loadingOverlay = ref(false);
 const bugExist = ref(true);
 
-const typeList = ref([
-  "Bug",
-  "Quick Fix",
-  "Project",
-]);
+const typeList = ref(["Bug", "Quick Fix", "Project"]);
 
-const authorList = ref([
-  "Joseph Grimm",
-  "Leith Stetson",
-]);
+const authorList = ref(["Joseph Grimm", "Leith Stetson"]);
 
-const versionList = ref([
-  "V-1",
-  "V-2",
-  "V-3",
-]);
+const versionList = ref(["V-1", "V-2", "V-3"]);
 
 const formList = ref([]);
 const employeeList = ref([]);
@@ -70,8 +58,8 @@ const editInit = async () => {
 
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
-            formData[key] = ["datea"].includes(key) 
-              ? convertToDate(response._data.body[key]) 
+            formData[key] = ["datea"].includes(key)
+              ? convertToDate(response._data.body[key])
               : response._data.body[key];
           }
         }
@@ -92,11 +80,13 @@ const propertiesInit = async () => {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        formList.value = response._data.body.filter((item: any) => item !== null);
+        formList.value = response._data.body.filter(
+          (item: any) => item !== null
+        );
       }
     },
     onResponseError() {
-      formList.value = []
+      formList.value = [];
     },
   });
 
@@ -104,32 +94,36 @@ const propertiesInit = async () => {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
-        employeeList.value = response._data.body.filter((item: any) => item !== null);
+        employeeList.value = response._data.body.filter(
+          (item: any) => item !== null
+        );
       }
     },
     onResponseError() {
-      employeeList.value = []
+      employeeList.value = [];
     },
   });
 
   loadingOverlay.value = false;
 };
 
-
 const validate = (state: any): FormError[] => {
   const errors: FormError[] = [];
 
-  if (!state.resolved || !['OPEN', 'CLOSED'].includes(state.resolved)) {
-    errors.push({ path: 'resolved', message: 'Status must be either "Open" or "Closed".' });
+  if (!state.resolved || !["OPEN", "CLOSED"].includes(state.resolved)) {
+    errors.push({
+      path: "resolved",
+      message: 'Status must be either "Open" or "Closed".',
+    });
   }
   if (!state.formName) {
-    errors.push({ path: 'formName', message: 'Form Reported is required.' });
+    errors.push({ path: "formName", message: "Form Reported is required." });
   }
-  if (!state.complaintText || state.complaintText.trim() === '') {
-    errors.push({ path: 'complaintText', message: 'Description is required.' });
+  if (!state.complaintText || state.complaintText.trim() === "") {
+    errors.push({ path: "complaintText", message: "Description is required." });
   }
-  if (!state.descr || state.descr.trim() === '') {
-    errors.push({ path: 'descr', message: 'Bug details are required.' });
+  if (!state.descr || state.descr.trim() === "") {
+    errors.push({ path: "descr", message: "Bug details are required." });
   }
 
   return errors;
@@ -156,8 +150,8 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
 
   loadingOverlay.value = true;
 
-  const apiUrl = props.selectedBug 
-    ? `/api/bugs/${props.selectedBug.uniqueid}` 
+  const apiUrl = props.selectedBug
+    ? `/api/bugs/${props.selectedBug.uniqueid}`
     : "/api/bugs";
 
   const method = props.selectedBug ? "PUT" : "POST";
@@ -177,13 +171,13 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     },
   });
 
-  loadingOverlay.value = false; 
+  loadingOverlay.value = false;
 
   emit("save");
 };
 
 const resetForm = () => {
-  emit("onCreate")
+  emit("onCreate");
   formData.resolved = null;
   formData.formName = null;
   formData.employee = null;
@@ -230,15 +224,22 @@ else propertiesInit();
       loader="dots"
     />
 
-    <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
-      <h1 class="flex items-center justify-between px-4 py-2 gmsTealHeader">Bug Roster</h1>
-      
+    <UForm
+      :validate="validate"
+      :validate-on="['submit']"
+      :state="formData"
+      class="space-y-4"
+      @submit="onSubmit"
+    >
       <div class="border-r-[3px]">
-        <h2 class="flex items-center justify-between px-4 py-2 gmsTealTitlebar">Bug Information</h2>
-        
+        <h2
+          class="flex items-center justify-between px-4 py-2 gmsRedTitlebar border-t"
+        >
+          Bug Information
+        </h2>
+
         <div class="w-full p-4 flex flex-row space-x-4">
           <div class="flex flex-col space-y-2 w-full">
-
             <div class="flex flex-row space-x-4 justify-start">
               <UCheckbox
                 label="Open"
@@ -254,22 +255,31 @@ else propertiesInit();
               />
             </div>
 
-            <div v-if="props.selectedBug" class="flex justify-between space-x-2">
+            <div
+              v-if="props.selectedBug"
+              class="flex justify-between space-x-2"
+            >
               <UFormGroup label="Bug ID" name="uniqueid" class="w-full">
                 <UInput v-model="formData.uniqueid" :disabled="true" />
               </UFormGroup>
 
-              <UFormGroup label="Date" name="datea"  class="w-full">
+              <UFormGroup label="Date" name="datea" class="w-full">
                 <UPopover :popper="{ placement: 'bottom-start' }">
-                  <UButton 
+                  <UButton
                     :disabled="true"
-                    icon="i-heroicons-calendar-days-20-solid" 
-                    :label="formData.datea && format(formData.datea, 'dd/MM/yyyy')" 
-                    variant="outline" 
-                    class="w-full truncate" 
+                    icon="i-heroicons-calendar-days-20-solid"
+                    :label="
+                      formData.datea && format(formData.datea, 'dd/MM/yyyy')
+                    "
+                    variant="outline"
+                    class="w-full truncate"
                   />
                   <template #panel="{ close }">
-                    <CommonDatePicker v-model="formData.datea" is-required @close="close" />
+                    <CommonDatePicker
+                      v-model="formData.datea"
+                      is-required
+                      @close="close"
+                    />
                   </template>
                 </UPopover>
               </UFormGroup>
@@ -277,23 +287,37 @@ else propertiesInit();
 
             <div class="flex justify-between space-x-2">
               <UFormGroup label="Form Reported" name="formName" class="w-full">
-                <UInputMenu v-model="formData.formName" :options="formList"  />
+                <UInputMenu v-model="formData.formName" :options="formList" />
               </UFormGroup>
               <UFormGroup label="By" name="employee" class="w-full">
-                <UInputMenu v-model="formData.employee" :options="employeeList" />
+                <UInputMenu
+                  v-model="formData.employee"
+                  :options="employeeList"
+                />
               </UFormGroup>
             </div>
 
             <UFormGroup label="Description" name="complaintText" class="w-full">
-              <UInput v-model="formData.complaintText" placeholder="Description" />
+              <UInput
+                v-model="formData.complaintText"
+                placeholder="Description"
+              />
             </UFormGroup>
-            <UFormGroup label="Bug Details" name="descr"  class="w-full">
-              <UInput v-model="formData.descr" placeholder="Bug Datails" />
+            <UFormGroup label="Details of Bug" name="descr" class="w-full">
+              <UTextarea
+                v-model="formData.descr"
+                :rows="6"
+                class="w-full font-mono"
+                placeholder="Bug Details"
+              />
             </UFormGroup>
 
             <div class="flex justify-between space-x-2">
               <UFormGroup label="Type" name="dvanceLevels" class="w-full">
-                <UInputMenu v-model="formData.dvanceLevels" :options="typeList" />
+                <UInputMenu
+                  v-model="formData.dvanceLevels"
+                  :options="typeList"
+                />
               </UFormGroup>
               <UFormGroup label="Cost" name="cost" class="w-full">
                 <UInput v-model="formData.cost" placeholder="Cost" />
@@ -304,8 +328,15 @@ else propertiesInit();
               <UFormGroup label="Authorized By" name="approved" class="w-full">
                 <UInputMenu v-model="formData.approved" :options="authorList" />
               </UFormGroup>
-              <UFormGroup label="Released in Version" name="resolveversion" class="w-full">
-                <UInputMenu v-model="formData.resolveversion" :options="versionList" />
+              <UFormGroup
+                label="Released in Version"
+                name="resolveversion"
+                class="w-full"
+              >
+                <UInputMenu
+                  v-model="formData.resolveversion"
+                  :options="versionList"
+                />
               </UFormGroup>
             </div>
 
@@ -353,7 +384,6 @@ else propertiesInit();
                   @click="onDelete(formData.uniqueid)"
                 />
               </div>
-
             </div>
           </div>
         </div>
@@ -361,4 +391,3 @@ else propertiesInit();
     </UForm>
   </div>
 </template>
-

@@ -67,11 +67,9 @@ const fetchPartCategories = async () => {
     loadingOverlay.value = true;
     try {
         const response = await useApiFetch('/api/common/partCategories', { method: 'GET' });
-        // if (response.status === 200) {
         partCategories.value = response.body
             .map(e => e.PARTTYPE)
             .filter(partType => partType !== null && partType.trim() !== '');
-        // }
     } catch (error) {
         console.log(error);
     } finally {
@@ -165,7 +163,6 @@ const fetchWorkCentersBy = async () => {
         const response = await useApiFetch('/api/materials/vendors/workcenters', {
             method: 'GET',
         });
-        // const workCenterIds = ;
         if (response) {
             console.log(response);
 

@@ -109,7 +109,7 @@ init();
     :state="formData"
     class="space-y-4"
   >
-    <div class="w-full flex flex-col">
+    <div class="w-full flex flex-col p-3">
       <div class="w-full mt-5">
         <UTable
           :rows="operationList"
@@ -121,6 +121,7 @@ init();
               color: 'bg-white dark:text-gray dark:bg-[#111827]',
               padding: 'p-1',
             },
+     
           }"
           @select="onSelect"
         >
