@@ -1,10 +1,15 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 useSeoMeta({
-  title: 'Grimm-Utilities parts'
-})
+  title: "Grimm-Utilities parts",
+});
 </script>
 
 <template>
-  <div class="w-full flex items-center text-center justify-center">This page is under development and not available yet.
-  </div>
+  <UDashboardPage>
+    <UDashboardPanel grow>
+      <UDashboardPanelContent class="p-0 bg-gms-gray-100">
+        <UtilitiesParts/>
+      </UDashboardPanelContent>
+    </UDashboardPanel>
+  </UDashboardPage>
 </template>

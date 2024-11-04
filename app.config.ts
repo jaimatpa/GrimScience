@@ -70,6 +70,7 @@ export default defineAppConfig({
     },
 
     table: {
+      divide: 'divide-gray-200 dark:divide-gray-800',
       wrapper: 'bg-white',
       sortButton: {
         color: 'black'
@@ -107,7 +108,22 @@ export default defineAppConfig({
 
     toggle: {
       inactive: 'bg-gms-gray-300'
-    }
+    },
+
+    
+    dashboard: {
+      modal: {
+        title: 'text-lg text-white',
+        header: {
+          base: 'gms-modalHeader',
+        },
+        body: {
+          base: 'gms-modalForm',
+        },
+        width: 'sm:max-w-9xl',
+      },
+    },
+
 
   }
 })

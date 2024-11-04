@@ -365,7 +365,10 @@ const getCustomerSiteVisit = async () => {
   });
 };
 
+const selectedCustomerRow = ref({})
 const onSelect = async (row) => {
+  selectedCustomerRow.value = row;
+  
   gridMeta.value.selectedCustomerId = row?.UniqueID;
 
   gridMeta.value.customers.forEach((cus) => {
@@ -434,7 +437,7 @@ const onDblInvoicesClick = () => {
 const handleSelect = () => {
   const cus = gridMeta.value.selectCustomer;
   const value = `#${cus?.number} ${cus?.fname} ${cus?.lname}`;
-  emit("select", value);
+  emit("select", selectedCustomerRow.value);
   emit("close");
 };
 const onDblClick = async () => {

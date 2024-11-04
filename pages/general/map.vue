@@ -1,3 +1,20 @@
+<script setup lang="ts">
+import InvoiceDetail from "~/components/invoice/InvoiceDetail.vue";
+import { useMap } from "../../composables/useMap";
+const { mapRef, filters, initMap, openDetails, modalMeta, gridMeta } = useMap();
+
+onMounted(() => {
+  const script = document.createElement("script");
+  script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDnm8l8a4EJtuibuVLa04QmneDNgJQNHcU&callback=initMap`;
+  script.async = true;
+  document.head.appendChild(script);
+  window.initMap = initMap;
+  window.openDetails = openDetails;
+});
+</script>
+
+
+
 <template>
   <div id="container">
     <div id="map" ref="mapRef"></div>
@@ -12,6 +29,7 @@
           <input
             type="checkbox"
             v-model="filter.checked"
+            @change="initMap"
             :id="key"
             :name="key"
             class="cursor-pointer"
@@ -35,7 +53,7 @@
     :ui="{
       title: 'text-lg',
       header: {
-        base: 'flex flex-row min-h-[0] items-center',
+        base: 'flex flex-row min-h-[0] items-center gmsPurpleHeader',
         padding: 'pt-5 sm:px-9',
       },
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
@@ -56,7 +74,7 @@
     :ui="{
       title: 'text-lg',
       header: {
-        base: 'flex flex-row min-h-[0] items-center',
+        base: 'flex flex-row min-h-[0] items-center gmsPurpleHeader',
         padding: 'pt-5 sm:px-9',
       },
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
@@ -76,7 +94,7 @@
     :ui="{
       title: 'text-lg text-white',
       header: {
-        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gmsPurpleHeader',
       },
       body: { base: 'mt-0 gap-y-0 gms-modalForm' },
       width: 'w-[1250px] sm:max-w-9xl',
@@ -92,7 +110,7 @@
     :ui="{
       title: 'text-lg',
       header: {
-        base: 'flex flex-row min-h-[0] items-center',
+        base: 'flex flex-row min-h-[0] items-center gmsPurpleHeader',
         padding: 'pt-5 sm:px-9',
       },
       body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
@@ -101,24 +119,10 @@
   >
     <CustomersSiteVisitDetail
       :selected-customer="gridMeta.selectedCustomerId"
+      :site-visitID="gridMeta.selectedOrderId"
     />
   </UDashboardModal>
 </template>
-
-<script setup lang="ts">
-import InvoiceDetail from "~/components/invoice/InvoiceDetail.vue";
-import { useMap } from "../../composables/useMap";
-const { mapRef, filters, initMap, openDetails, modalMeta, gridMeta } = useMap();
-
-onMounted(() => {
-  const script = document.createElement("script");
-  script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDnm8l8a4EJtuibuVLa04QmneDNgJQNHcU&callback=initMap`;
-  script.async = true;
-  document.head.appendChild(script);
-  window.initMap = initMap;
-  window.openDetails = openDetails;
-});
-</script>
 
 <style scoped>
 #container {

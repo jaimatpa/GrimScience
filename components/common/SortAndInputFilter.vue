@@ -42,7 +42,7 @@ const props = defineProps({
         <template #trailing>
           <UIcon 
             :name="props.sortIcon" 
-            class="w-auto" 
+            class="w-5 h-5" 
           />
         </template>
       </UButton>

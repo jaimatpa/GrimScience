@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import OrderDetailsTable from "./table.vue";
-import NewReportModul from "./NewReportComponent.vue"
-
-
+import NewReportModul from "./NewReportComponent.vue";
 
 onMounted(async () => {
   await init();
-  await fetchCategoryData(); 
+  await fetchCategoryData();
   await fetchSubCategoryData();
   await fetchEquipmentList();
   await fetchEmployeeData();
@@ -53,9 +51,8 @@ const toast = useToast();
 const modalMeta = ref({
   isSerialModalOpen: false,
   modalTitle: "Serial",
-  isNewReportModalOpen:false,
-  mainID:""
-  
+  isNewReportModalOpen: false,
+  mainID: "",
 });
 
 const openSerialRecord = () => {
@@ -63,13 +60,10 @@ const openSerialRecord = () => {
   modalMeta.value.isSerialModalOpen = true;
 };
 
-
-
 const openNewReport = () => {
-  const reportID = handleVModel.value.manValue
-  if (reportID) { 
-
-    modalMeta.value.modalTitle = "Report";
+  const reportID = handleVModel.value.manValue;
+  if (reportID) {
+    modalMeta.value.modalTitle = "";
     modalMeta.value.isNewReportModalOpen = true;
     modalMeta.value.mainID = reportID;
   } else {
@@ -258,8 +252,6 @@ const handleRowSelectedSerial = (row) => {
   handleVModel.value.serialNo = row.Serial;
 };
 
-
-
 const submitForm = async () => {
   const formData = {
     CATAGORY: handleVModel.value.category,
@@ -293,8 +285,6 @@ const submitForm = async () => {
     console.error("Unexpected error:", err);
   }
 };
-
-
 
 const deleteEquipmentTableData = async () => {
   const uniqueId = handleVModel.value.uniqueId;
@@ -376,7 +366,6 @@ const inventoryDetailGridMeta = ref({
 
 const onSelectReportMatchData = async () => {
   try {
-
     const Id = handleVModel.value.manValue;
     if (!Id) {
       console.error("Unique ID is missing");
@@ -390,8 +379,8 @@ const onSelectReportMatchData = async () => {
     );
 
     if (response && response.status === 200) {
-      console.log(response.body)
-      
+      console.log(response.body);
+
       inventoryDetailGridMeta.value.details = response.body;
     } else {
       console.error(
@@ -423,7 +412,7 @@ const handleVModel = ref({
 });
 
 const onSelect = (row) => {
-  console.log(row.No)
+  console.log(row.No);
   handleVModel.value.selectedNoValue = row.No;
 };
 
@@ -442,10 +431,9 @@ const onRemoveReport = async () => {
               icon: "i-heroicons-check-circle",
               color: "green",
             });
-            
+
             const Id = handleVModel.value.manValue;
             onSelectReportMatchData(Id);
-
           } else {
             toast.add({
               title: "Error",
@@ -467,24 +455,9 @@ const onRemoveReport = async () => {
   }
 };
 
-// const isSelected = (row) => {
-//   return selectedRow.value && selectedRow.value.uniqueid === row.uniqueid;
-
-// }
-
-//   MANO: null,
-//   CATAGORY: null,
-//   SUBCATAGORY: null,
-//   PART: null,
-//   ORDEREDBY: null,
-//   SERIAL: null,
-//   REQUIRED: null,
-// });
-
 const onPrevieOrderBtnClick = () => {
-
   if (uniqueIDP.value) {
-    const queryString = new URLSearchParams({ id:uniqueIDP.value }).toString();
+    const queryString = new URLSearchParams({ id: uniqueIDP.value }).toString();
     const fetchData = async (id) => {
       const pdfUrl = `/api/maintenance/equipment/pdf/${id}`;
       try {
@@ -506,110 +479,91 @@ const onPrevieOrderBtnClick = () => {
     alert("Unique ID is missing! The function cannot execute.");
   }
 };
-
-
 </script>
 <template>
-  <OrderDetailsTable
-    :is-page="true"
-    @row-selected="handleRowSelected"
-    :shouldRefresh="shouldRefresh"
-  />
+  <OrderDetailsTable :is-page="true" @row-selected="handleRowSelected" />
 
-  <UCard class="mb-6">
-    <UForm class="space-y-6">
-      <div class="flex flex-row space-x-6 bg-green-100">
-        <p>Maintenance Order</p>
-        <div class="basis-1/10 max-w-[300px] min-w-[150px]">
-          <p
-            class="mt-[15px] p-[7px] bg-white text-black border border-green-500 rounded-md"
-          >
-            {{ handleVModel.manValue || 0 }}
-          </p>
-        </div>
-      </div>
-      <div class="flex flex-row space-x-6">
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Category</h3>
+  <UForm class="bg-gms-gray-100">
+    <div class="flex px-4 py-3 gmsBlueTitlebar">
+      <h2>Maintenance Order #</h2>
+      <UInput class="w-[50px]" v-model="handleVModel.manValue"> </UInput>
+    </div>
+
+    <div class="flex flex-row space-x-2 mt-[20px] px-[20px]">
+      <div class="basis-3/5">
+        <UFormGroup label="Category">
           <UInputMenu
             v-model="handleVModel.category"
             :options="headerFilters.categoryList.options"
           />
-        </div>
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Sub Category</h3>
+        </UFormGroup>
+      </div>
+      <div class="basis-3/5">
+        <UFormGroup label="Sub Category">
           <UInputMenu
             v-model="handleVModel.subCategory"
             :options="headerFilters.subCategoryList.options"
           />
-        </div>
+        </UFormGroup>
+      </div>
 
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Equipment</h3>
+      <div class="basis-3/5">
+        <UFormGroup label="Equipment">
           <UInputMenu
             v-model="handleVModel.equipment"
             :options="headerFilters.equipmentList.options"
           />
-        </div>
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <div class="flex items-center mt-5">
-            <UButton
-              @click="openSerialRecord()"
-              class="px-2 py-[10px] text-white bg-sky-700 hover:bg-sky-800 h-full flex justify-center items-center"
-            >
-              SN
-            </UButton>
-            <input
-              v-model="handleVModel.serialNo"
-              class="border-2 border-black-500 focus:ring-0 p-2 w-full rounded-[5px]"
-              placeholder="Enter text"
-            />
-          </div>
+        </UFormGroup>
+      </div>
+      <div class="basis-3/5">
+        <div class="flex items-center mt-5">
+          <UButton
+            @click="openSerialRecord()"
+            class="py-[6px] text-white gmsBlueHeader hover:bg-sky-800 h-full flex justify-center items-center rounded-[4px]"
+          >
+            SN
+          </UButton>
+          <UInput v-model="handleVModel.serialNo" />
         </div>
       </div>
-      <div class="flex flex-row space-x-6">
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Type</h3>
+    </div>
+    <div class="flex flex-row space-x-2 mt-[20px] px-[20px]">
+      <div class="basis-3/5">
+        <UFormGroup label="Type">
           <UInputMenu
             v-model="handleVModel.type"
             :options="headerFilters.typeList.options"
           />
-        </div>
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Location</h3>
-          <input
-            v-model="handleVModel.location"
-            class="border-2 border-black-500 focus:ring-0 p-2 w-full rounded-[5px]"
-            placeholder="Enter text"
-          />
-        </div>
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Responsible</h3>
+        </UFormGroup>
+      </div>
+      <div class="basis-3/5">
+        <UFormGroup label="Location">
+          <UInput v-model="handleVModel.location" />
+        </UFormGroup>
+      </div>
+      <div class="basis-3/5">
+        <UFormGroup label="Responsible">
           <UInputMenu
             v-model="handleVModel.responsible"
             :options="headerFilters.employeeList.options"
           />
-        </div>
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Date In Service</h3>
-          <UInput
-            v-model="handleVModel.dateInService"
-            type="date"
-            class="w-40"
-          />
-        </div>
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <h3>Next Req. Service</h3>
-          <UInput
-            v-model="handleVModel.nextReqService"
-            type="date"
-            class="w-40"
-          />
-        </div>
+        </UFormGroup>
       </div>
-      <div class="w-full">
-        <div class="basis-1/2 w-[480px]">
-          <h3>Maintenance</h3>
+      <div class="basis-3/5">
+        <UFormGroup label="Date In Service">
+          <UInput v-model="handleVModel.dateInService" type="date" />
+        </UFormGroup>
+      </div>
+      <div class="basis-3/5">
+        <UFormGroup label="Next Req. Service">
+          <UInput v-model="handleVModel.nextReqService" type="date" />
+        </UFormGroup>
+      </div>
+    </div>
+
+    <div class="flex flex-row w-full my-[20px] px-[20px]">
+      <div class="basis-1/2">
+        <UFormGroup label="Maintenance">
           <textarea
             v-model="handleVModel.Maintenance"
             placeholder="Enter details"
@@ -617,88 +571,64 @@ const onPrevieOrderBtnClick = () => {
             class="border py-6 px-4 rounded w-full leading-[10px]"
           >
           </textarea>
-        </div>
+        </UFormGroup>
       </div>
+    </div>
 
-      <div class="flex flex-row space-x-4">
-        <div class="w-3/4 flex flex-col"></div>
-      </div>
+    <div class="flex justify-end space-x-2 pr-[20px] mt-[-65px] pb-[20px]">
+      <UButton
+        icon="i-heroicons-minus-circle"
+        label="Delete"
+        variant="outline"
+        color="red"
+        @click="deleteEquipmentTableData"
+        truncate
+      />
+      <UButton
+        icon="i-f7-rays"
+        label="Clear"
+        @click="clearValues"
+        variant="outline"
+        color="red"
+        truncate
+      />
+      <UButton
+        color="gray"
+        label="Preview"
+        variant="outline"
+        icon="i-heroicons-eye"
+        @click="onPrevieOrderBtnClick"
+      />
+      <UButton
+        icon="i-heroicons-plus"
+        label="Add/Save"
+        variant="outline"
+        color="green"
+        @click="submitForm"
+        truncate
+      />
+    </div>
+  </UForm>
 
-      <div class="flex justify-end space-x-4">
-        <div class="basis-1/6 w-full">
-          <UButton
-            icon="i-heroicons-plus"
-            label="Add/Save"
-            variant="outline"
-            color="green"
-            @click="submitForm"
-            :ui="{
-              base: 'min-w-[200px] w-full',
-              truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
-        </div>
+  <div class="flex px-4 py-2 gmsBlueTitlebar">
+    <h2>Maintenance Order</h2>
+  </div>
 
-        <div class="basis-1/6 w-full">
-          <UButton
-            icon="i-heroicons-minus-circle"
-            label="Delete"
-            variant="outline"
-            color="red"
-            @click="deleteEquipmentTableData"
-            :ui="{
-              base: 'min-w-[200px] w-full',
-              truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
-        </div>
-        <div class="basis-1/6 w-full">
-          <UButton
-            icon="i-f7-rays"
-            label="Clear"
-            @click="clearValues"
-            variant="outline"
-            color="red"
-            :ui="{
-              base: 'min-w-[200px] w-full',
-              truncate: 'flex justify-center w-full',
-            }"
-            truncate
-          />
-        </div>
-        <div>
-          <UButton
-            class="px-[30px]"
-            color="gray"
-            label="Preview"
-            icon="i-heroicons-eye"
-            @click="onPrevieOrderBtnClick"
-          />
-        </div>
-      </div>
-      <UDivider />
-    </UForm>
-  </UCard>
-  <div class="basis-1/2">
+  <div class="px-[20px] pt-[20px]">
     <UTable
       :rows="inventoryDetailGridMeta.details"
       :columns="inventoryDetailGridMeta.defaultColumns"
       :loading="inventoryDetailGridMeta.isLoading"
       class="w-full"
       :ui="{
-        wrapper:
-          'overflow-y-auto h-60 border-2 border-gray-300 dark:border-gray-700',
-        divide: 'divide-gray-200 dark:divide-gray-800',
         th: {
-          base: 'sticky top-0 z-10',
+          base: 'sticky top-0 z-0',
           color: 'bg-white dark:text-gray dark:bg-[#111827]',
-          padding: 'p-0',
+          padding: 'p-[4px]',
         },
         td: {
-          base: 'h-[31px]',
-          padding: 'py-0',
+          base: 'px-[5px] py-[5px]',
+          padding: 'my-2',
         },
       }"
       :empty-state="{
@@ -707,12 +637,12 @@ const onPrevieOrderBtnClick = () => {
       }"
       @select="onSelect"
     >
-      <template
+      <!-- <template
         v-for="column in inventoryDetailGridMeta.defaultColumns"
         v-slot:[`${column.key}-header`]
       >
         <template v-if="column.kind !== 'actions'">
-          <div class="px-1 py-1">
+          <div class="">
             <CommonSortAndInputFilter
               :label="column.label"
               :sortable="column.sortable"
@@ -727,9 +657,9 @@ const onPrevieOrderBtnClick = () => {
             {{ column.label }}
           </div>
         </template>
-      </template>
+      </template> -->
 
-      <template #default="{ rows }">
+      <!-- <template #default="{ rows }">
         <template v-for="row in rows" :key="row.uniqueid">
           <tr
             @click="onSelect(row)"
@@ -753,50 +683,33 @@ const onPrevieOrderBtnClick = () => {
             </td>
           </tr>
         </template>
-      </template>
+      </template> -->
     </UTable>
   </div>
-  <div class="flex justify-end space-x-4 pt-[10px]">
-    <div class="basis-1/6">
-      <UButton
-        icon="i-heroicons-plus"
-        label="New Report"
-        variant="outline"
-        color="green"
-        @click="openNewReport()"
-        :ui="{
-          base: 'min-w-[200px] w-full',
-          truncate: 'flex justify-center w-full',
-        }"
-        truncate
-      />
-    </div>
-    <div class="basis-1/6">
+
+  <div class="flex justify-end space-x-2 py-[10px] mr-[20px]">
+    <UButton
+      icon="i-heroicons-plus"
+      label="New Report"
+      variant="outline"
+      color="green"
+      @click="openNewReport()"
+      truncate
+    />
     <UButton
       icon="i-heroicons-minus-circle"
       label="Remove Report"
       variant="outline"
       color="red"
-      :ui="{
-        base: 'min-w-[200px] w-full',
-        truncate: 'flex justify-center w-full',
-      }"
       truncate
       @click="onRemoveReport"
     />
   </div>
-  </div>
-
 
   <UDashboardModal
     v-model="modalMeta.isSerialModalOpen"
-    :title="modalMeta.modalTitle"
     :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center',
-        padding: 'pt-5 sm:px-9',
-      },
+    
       body: {
         base: 'gap-y-1',
         padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
@@ -810,31 +723,17 @@ const onPrevieOrderBtnClick = () => {
     />
   </UDashboardModal>
 
-
-
-  <UDashboardModal 
+  <UDashboardModal
     v-model="modalMeta.isNewReportModalOpen"
-    :title="modalMeta.modalTitle"
-    
     :ui="{
-      title: 'text-lg',
-      header: {
-        base: 'flex flex-row min-h-[0] items-center bg-[#FFFF]',
-        padding: ' sm:px-9',
-      },
+    
       body: {
-        base: ' bg-[#FFFF]',
-        padding:'pb-[30px]',
-        
+        base: 'bg-gms-gray-100',
+        padding: 'pb-[30px]',
       },
       width: 'w-[3000px] sm:max-w-7xl',
     }"
   >
-
-    <NewReportModul
-     @select="handleRowSelectedSerial"
-     @close="closeSerialModal"
-     :mainID="modalMeta.mainID"
-    />
+    <NewReportModul :mainID="modalMeta.mainID" />
   </UDashboardModal>
 </template>

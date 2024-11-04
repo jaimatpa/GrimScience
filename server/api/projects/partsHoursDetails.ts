@@ -2,12 +2,13 @@ import { gePartsHours } from '~/server/controller/projects/projects';
 
 export default eventHandler(async (event) => {
   try {
-    const JobId = getQuery(event).JobId; // Assuming you are getting JobId from query params
+    const jobId = getQuery(event).JobId; 
+    const OperationID = getQuery(event).OperationID; 
     const method = event._method;
 
     switch (method.toUpperCase()) {
       case 'GET':
-        const parts = await gePartsHours(JobId);
+        const parts = await gePartsHours(jobId, OperationID);
         return { body: parts, message: '' };
       default:
         setResponseStatus(event, 405);

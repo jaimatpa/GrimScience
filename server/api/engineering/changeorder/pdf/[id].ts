@@ -20,15 +20,15 @@ export default eventHandler(async (event) => {
         <body style="font-family: Arial; max-width: 1024px; margin: 0 auto;">
           <div style="display: flex; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                <img style="width: 198px; height: 75px;" src="data:image/png;base64,${base64Image}" alt="Grimm Avatar" />
-                <h3 style="margin: 0; padding-left: 5px;padding-top: 5px; font-size:20px;">Engineering Changes</h3>
+                <img style="width:200px; height: 100px;" src="data:image/png;base64,${base64Image}" alt="Grimm Avatar" />
+                <h3 style="margin: 0; padding-left:10px;padding-top: 15px; font-size:20px;">Engineering Changes</h3>
             </div>
-            <div style="width: 30%;">
+            <div style="width: 30%; margin-top:30px">
               <h4 style="margin: 0;">
-                <strong>ID:</strong> <span style="font-size: 14px;">${jobOperations[0]["uniqueID"]}</span>
+                <strong>#:</strong> <span style="font-size: 14px;">${jobOperations[0]["uniqueID"]}</span>
               </h4>
               <h4 style="margin: 0;">
-              <strong>Date:</strong> <span style="font-size: 14px;">${jobOperations[0]["ENGDATEAPPROVED"] ? format(jobOperations[0]["ORIGINATORDATE"], 'MM/dd/yyyy') : ''}</span>
+              Date: <span style="font-size: 14px;">${jobOperations[0]["ENGDATEAPPROVED"] ? format(jobOperations[0]["ORIGINATORDATE"], 'MM/dd/yyyy') : ''}</span>
               </h4>
               <h4 style="margin: 0;">
                 <strong>By:</strong> <span style="font-size: 14px;">${jobOperations[0]["SIGNATURE"]}</span>
@@ -44,14 +44,14 @@ export default eventHandler(async (event) => {
           htmlContent += `
        
           <div style="display: flex; justify-content: space-between; margin-top:40px; border-top: 2px solid #000;">
-            <div style="width: 50%; margin-top:40px;">
-              <p style=" margin-bottom: 0;"> <strong>Description:</strong>  <br/>
+            <div style="width: 50%; margin-top:40px; ">
+              <p style=" margin-bottom:4px;"> <strong>Description:</strong>  <br/>
               
               <span style="font-size: 12px;">${jobOperations[0]["DESCRIPTION"]}</span>
               
             </div>
             <div style="width: 50%; margin-top:40px;">
-              <p style="margin-top: 12px; margin-bottom: 0;">Reason for Change: <br/>
+              <p style="margin-top: 12px; margin-bottom: 4px;">Reason for Change: <br/>
               
               <span style="font-size: 12px;">${jobOperations[0]["REASONFORCHANGE"]}</span>
           
@@ -60,13 +60,13 @@ export default eventHandler(async (event) => {
 
 
           <div style="display: flex; justify-content: space-between; margin-top: 40px;">
-            <div style="width: 50%;">
-              <p style="margin-top: 12px; margin-bottom: 0;">Issue:<br/>
+            <div style="width: 50% padding-right:20px;">
+              <p style="margin-top: 12px; margin-bottom:4px;">Issue:<br/>
                  <span style="font-size: 12px;">${jobOperations[0]["ISSUE"]}</span>
             
             </div>
             <div style="width: 50%;">
-              <p style="margin-top: 12px; margin-bottom: 0;">Solution:<br/>
+              <p style="margin-top: 12px;">Solution:<br/>
                  <span style="font-size: 12px;">${jobOperations[0]["SOLUTION"]}</span>
             </div>
           </div>
@@ -74,26 +74,27 @@ export default eventHandler(async (event) => {
 
 
           <div style="margin-top: 40px;">
-            <h4 style="margin: 0;"> Parts Affected:<br/></h4>
+            <h4 style="margin: 4px;"font-size: 18px; > Parts Affected:<br/></h4>
              <span style="font-size: 12px;">${jobOperations[0]["PARTS"]}</span>
          
             </div>
 
                <div style="margin-top: 40px;">
-            <h4 style="margin: 0;"> Product Affected:<br/></h4>
+
+       <p style="margin-top: 12px; margin-bottom:4px;"> Product Affected:<br/>
              <span style="font-size: 12px;">${jobOperations[0]["ProductsDetails"]}</span>
          
             </div>
 
           <div style="margin-top: 40px;">
-            <h4 style="margin: 0;"> EQUIPMENT Affected:<br/></h4>
+           <p style="margin-top: 12px; margin-bottom:4px;">Equipment Affected:<br/>
              <span style="font-size: 12px;">${jobOperations[0]["EQUIPMENT"]}</span>
          
             </div>
 
 
 
-        <table style="margin-top: 40px; width: 100%;">
+        <table style="margin-top: 40px; width: 100%; text-align: left;">
     <thead>
         <tr>
             <th></th>
@@ -105,28 +106,28 @@ export default eventHandler(async (event) => {
     </thead>
     <tbody>
         <tr>
-            <td><span>Originator</span></td>
+            <td><span style="font-size: 12px;>Originator</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ORIGINATOR"]}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ORIGINATORDATE"]}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ENGAPPROVAL"] }</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ENGCOMMENTS"] }</span></td>
         </tr>
         <tr>
-            <td><span>Engineering</span></td>
+            <td><span style="font-size: 12px;>Engineering</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ENGAPPROVER"]}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ENGDATEAPPROVED"] ? format(jobOperations[0]["ENGDATEAPPROVED"], 'MM/dd/yyyy') : ''}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ENGAPPROVAL"] }</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["ENGCOMMENTS"] }</span></td>
         </tr>
         <tr>
-            <td><span>Marketing</span></td>
+            <td><span style="font-size: 12px;>Marketing</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["MARAPPROVER"]}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["MARDATEAPPROVED"] ? format(jobOperations[0]["MARDATEAPPROVED"], 'MM/dd/yyyy') : ''}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["MARAPPROVAL"] }</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["MARCOMMENTS"] }</span></td>
         </tr>
         <tr>
-            <td><span>Manufacturing</span></td>
+            <td><span style="font-size: 12px;>Manufacturing</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["MANAPPROVER"]}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["MANDATEAPPROVED"] ? format(jobOperations[0]["MANDATEAPPROVED"], 'MM/dd/yyyy') : ''}</span></td>
             <td><span style="font-size: 12px;">${jobOperations[0]["MANAPPROVAL"] }</span></td>

@@ -1,5 +1,7 @@
 import { Sequelize, Op } from "sequelize";
 import {  vwServiceReportListing } from "~/server/models";
+import  sequelize  from '../../utils/databse';  
+import { QueryTypes } from 'sequelize';
 
 const applyFilters = (params) => {
     const filterParams = ['SO#','SO Status','SN#','SO Date', 'Cust #', 'Company', 'city','ST','SO Type', 'Failure Comment', 'SR#', 'Status', 'Type', 'Service Tech', 'SR Date', 'Week','Invoice','REPAIRSMADE']
@@ -37,6 +39,8 @@ const applyFilters = (params) => {
 export const getScheduleList = async (page, pageSize, sortBy, sortOrder, filterParams) => {
     const limit = parseInt(pageSize as string, 10) || 10;
     const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
+
+    console.log("filterParams",filterParams)
 
     const whereClause = applyFilters(filterParams);
 
@@ -80,20 +84,57 @@ export const getScheduleList = async (page, pageSize, sortBy, sortOrder, filterP
         'REPAIRSMADE': item.REPAIRSMADE
     };
     })
-
-    console.log('formattedList',formattedList);
     
     return formattedList;
 }
 
 export const getAllSchedules = async (sortBy, sortOrder, filterParams) => {
+    filterParams = JSON.parse(filterParams)
+
+    console.log("filterParams",filterParams)
+
     const whereClause = applyFilters(filterParams);
+
     const list = await vwServiceReportListing.findAll({
-      attributes: ['uniqueID','SO#','SO Status','SN#','SO Date', 'Cust #', 'Company', 'city','ST','SO Type', 'Failure Comment', 'SR#', 'Status', 'Type', 'Service Tech', 'SR Date', 'Week','Invoice','REPAIRSMADE'],
-      where: whereClause,
-      order: [[sortBy as string || 'UniqueID', sortOrder as string || 'ASC']],
+        attributes: ['uniqueID','SO#','SO Status','SN#','SO Date', 'Cust #', 'Company', 'city','ST','SO Type', 'Failure Comment', 'SR#', 'Status', 'Type', 'Service Tech', 'SR Date', 'Week','Invoice','REPAIRSMADE'],
+        where: whereClause,
+        order: [[sortBy as string || 'uniqueID', sortOrder as string || 'ASC']]
     });
-    return list;
+
+    const formattedList = list.map((item: any) => {
+        let soDate = new Date(item['SO Date']).toISOString().split('T')
+        soDate = soDate[0].split('-')
+        let formattedSoDate = `${soDate[1]}/${soDate[2]}/${soDate[0]}`
+
+        let srDate = new Date(item['SR Date']).toISOString().split('T')
+        srDate = srDate[0].split('-')
+        let formattedSrDate = `${srDate[1]}/${srDate[2]}/${srDate[0]}`
+
+       // Return the formatted item, making sure to include all attributes
+       return {
+        uniqueID: item.uniqueID,
+        'SO#': item['SO#'],
+        'SO Status': item['SO Status'],
+        'SN#': item['SN#'],
+        'SO Date': formattedSoDate,  // Use formatted date
+        'Cust #': item['Cust #'],
+        'Company': item.Company,
+        'city': item.city,
+        'ST': item.ST,
+        'SO Type': item['SO Type'],
+        'Failure Comment': item['Failure Comment'],
+        'SR#': item['SR#'],
+        'Status': item.Status,
+        'Type': item.Type,
+        'Service Tech': item['Service Tech'],
+        'SR Date': formattedSrDate,
+        'Week': item.Week,
+        'Invoice': item.Invoice,
+        'REPAIRSMADE': item.REPAIRSMADE
+    };
+    })
+
+    return formattedList;
   }
 
 export const getNumberOfSchedules = async (filterParams) => {
@@ -137,22 +178,15 @@ export const ScheduleExistByID = async (id: number | string) => {
   }
 
   export const getServiceTech = async () => {
-    const result = await vwServiceReportListing.findAll({
-      attributes: [
-        [Sequelize.fn('DISTINCT', Sequelize.col('Service Tech')), 'Service Tech']
-      ],
-      where: {
-        [Op.and]: [
-          { 'Service Tech': { [Op.ne]: null } },
-          { 'Service Tech': { [Op.ne]: '' } }
-        ]
-      },
-      order: [['Service Tech', 'ASC']],
-      raw: true
+
+    let distinctByEmployees = await sequelize.query(`
+        select '#' + payrollno + ' ' + lname + ', ' + fname from tblemployee where active = 1 order by payrollnumber asc
+    `, {
+        type: QueryTypes.SELECT
     });
   
-    const distinctST = result.map((item: any) => item['Service Tech']);
-    return distinctST;
+    distinctByEmployees = distinctByEmployees.map((item: any) => item['']);
+    return distinctByEmployees;
   }
 
   export const getSOCategories = async () => {

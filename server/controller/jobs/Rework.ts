@@ -79,7 +79,7 @@ export const getSelectedPartInfo = async (jobId, jobOperationId) => {
 
 export const saveReworkParts = async (lngJobID, lngJobOperationID, parts) => {
   try {
-    console.log(lngJobID, lngJobOperationID, parts)
+
     for (const item of parts) {
       // Query to check if an existing record exists in tblOperationReworks
       const existingRecord = await sequelize.query(`

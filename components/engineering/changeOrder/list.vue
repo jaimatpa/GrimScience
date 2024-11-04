@@ -98,7 +98,7 @@ const clearFields = () => {
     productsDetails: "",
   }),
     (selectedRowParts.value = {
-      partsDetails: "",
+      partsDetail: "",
     }),
     (selectedRowData.value = {
       uniqueID: "",
@@ -131,13 +131,13 @@ const clearFields = () => {
       MANUFACTURING: "",
       ENGINEERING: "",
       ProductsDetails: "",
-      partsDetail: "",
     });
 
   Description.value = "";
   IssueDetails.value = "";
   solutionOrder.value = "";
   uniqueIdNumber.value = "";
+  number.value="";
   DetailsReasonChange.value = "";
   fromModel.value = "";
   toModel.value = "";
@@ -167,6 +167,7 @@ const clearFields = () => {
   productsDetails.value = "";
   partsDetail.value = "";
   CompleteDate.value = "";
+  
   verificationNotRequired.value = false;
 };
 
@@ -217,10 +218,9 @@ const formatDate = (date) => {
 };
 
 const handleRowSelected = (row) => {
-  console.log("functon okay ", row);
+  // console.log("functon okay ", row);
   uniqueIDP.value = row.uniqueID;
   selectedRow.value = row;
-
   selectedRowData.value = {
     uniqueID: row.uniqueID,
     DESCRIPTION: row.DESCRIPTION,
@@ -465,7 +465,7 @@ const toModel = ref("");
 const DetailsReasonChange = ref("");
 const PartsAffect = ref("");
 const ProductAffect = ref("");
-const number = ref("")
+const number = ref("");
 const uniqueIdNumber = ref("");
 const verificationNotRequired = ref(false);
 
@@ -509,7 +509,7 @@ const submitInsertForm = async () => {
     DISTRIBUTIONDATE: CompleteDate.value,
     APPROVAL: CompleteBoolean.value || "",
     COMMENTS: commentsComplete.value,
-    NUMBER:number.value
+    NUMBER: number.value,
   };
 
   // console.log(formData);
@@ -694,341 +694,484 @@ const init = async () => {
   }
 };
 
-// const handleChange = (field, newValue) => {
-//   formState[field] = newValue;
-// };
+
 </script>
 <template>
   <!-- Top product line search option start-->
-  <EngineeringChangeOrderDetail :is-page="true" @row-selected="handleRowSelected" :shouldRefresh="shouldRefresh" />
+  <EngineeringChangeOrderDetail
+    :is-page="true"
+    @row-selected="handleRowSelected"
+    :shouldRefresh="shouldRefresh"
+  />
   <!-- Top product line search option End-->
-  <UCard class="mb-6">
-    <!-- <UForm :schema="formSchema" :state="formState" class="space-y-6"> -->
-    <UForm class="space-y-6">
-      <div class="flex flex-row space-x-6">
-        <div class="basis-1/10 max-w-[300px] min-w-[150px]">
-          <p class="mt-[15px] p-[7px] bg-gray-600 text-white border border-green-500 rounded-md">
-            {{ number || 0 }}
-          </p>
-        </div>
-        <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
-          <UFormGroup label="Product Line" name="productLine">
-            <USelect v-model="productLineOption" :options="headerFilters.productLines.options"
-              @change="handleChange('productLine', $event)" />
-          </UFormGroup>
-        </div>
-      </div>
+  <div class="flex justify-between px-4 py-2 gmsBlueTitlebar">
+      <h2>Action</h2>
+    </div>
 
-      <div class="flex flex-row space-x-3 pb-4">
-        <div class="basis-1/5 max-w-[300px] min-w-[150px] mr-4">
-          <UFormGroup label="Reason For Change" name="changeReason">
-            <USelect v-model="changeReasonData" :options="changeReason"
-              @change="handleChange('changeReasonOptions', $event)" />
-          </UFormGroup>
-        </div>
-        <div class="w-full">
-          <UFormGroup label="Action/ Description (40 Characters )" name="Description">
-            <UTextarea v-model="Description" placeholder="Action/ Description (40 Characters )"
-              class="w-full h-[1px]" />
-          </UFormGroup>
-        </div>
+  <UForm class="space-y-6 pt-[10px] px-[20px]">
+    <div class="flex flex-row space-x-6">
+      <div class="basis-1/10 max-w-[100px] min-w-[100px]">
+        <UFormGroup label="#">
+          <UInput v-model="number" readonly > </UInput>
+        </UFormGroup>
       </div>
+      <div class="basis-3/5 max-w-[300px] min-w-[150px] mr-4">
+        <UFormGroup label="Product Line" name="productLine">
+          <USelect
+            v-model="productLineOption"
+            :options="headerFilters.productLines.options"
+          />
+        </UFormGroup>
+      </div>
+    </div>
 
-      <div class="pt-[4px]">
-        <div class="w-full">
-          <UFormGroup label="Issue( 100 characters or Less)" name="IssueDetails">
-            <UTextarea v-model="IssueDetails" class="w-full" />
-          </UFormGroup>
-        </div>
+    <div class="flex flex-row space-x-3 pb-4">
+      <div class="basis-1/5 max-w-[300px] min-w-[150px] mr-4">
+        <UFormGroup label="Reason For Change" name="changeReason">
+          <USelect
+            v-model="changeReasonData"
+            :options="changeReason"
+            @change="handleChange('changeReasonOptions', $event)"
+          />
+        </UFormGroup>
       </div>
+      <div class="w-full">
+        <UFormGroup
+          label="Action/ Description (40 Characters )"
+          name="Description"
+        >
+          <UTextarea
+            v-model="Description"
+          
+            class="w-full h-[1px]"
+          />
+        </UFormGroup>
+      </div>
+    </div>
 
-      <div class="flex flex-row space-x-4 mt-[4px]">
-        <div class="w-1/2">
-          <UFormGroup label="Solution( 100 characters or Less)" name="solutionOrder">
-            <UTextarea v-model="solutionOrder" />
+    <div class="pt-[4px]">
+      <div class="w-full">
+        <UFormGroup label="Issue( 100 characters or Less)" name="IssueDetails">
+          <UTextarea v-model="IssueDetails" class="w-full" />
+        </UFormGroup>
+      </div>
+    </div>
+
+    <div class="flex flex-row space-x-4 mt-[4px]">
+      <div class="w-1/2">
+        <UFormGroup
+          label="Solution(100 characters or Less)"
+          name="solutionOrder"
+        >
+          <UTextarea v-model="solutionOrder" />
+        </UFormGroup>
+      </div>
+      <div class="w-1/2 mt-[30px] ml-[20px]">
+        <UCheckbox
+          v-model="verificationNotRequired"
+          label="Verification & Validation - Not Required"
+          help="Check if product has been 100% tested and inspected for specification conformity & effectiveness"
+        />
+      </div>
+    </div>
+    <div class="flex flex-row space-x-4 mt-[4px]">
+      <div class="w-1/4">
+        <UFormGroup label="From Model" name="fromModel">
+          <UInput v-model="fromModel" />
+        </UFormGroup>
+      </div>
+      <div class="w-1/4">
+        <UFormGroup label="To Model" name="toModel">
+          <UInput v-model="toModel" />
+        </UFormGroup>
+      </div>
+      <div class="w-1/2">
+        <UFormGroup
+          label="Please Details Reason For Change"
+          name="ResoneChange"
+        >
+          <UTextarea v-model="DetailsReasonChange" class="w-full" />
+        </UFormGroup>
+      </div>
+    </div>
+    <div class="flex flex-row space-x-4 ">
+      <div class="w-3/4 flex flex-col">
+        <div class="flex justify-between items-center">
+          <UFormGroup
+            class="flex-1"
+            label="Parts and Affected"
+            name="PartsAffect"
+          >
+            <UInput class="h-full" />
           </UFormGroup>
-        </div>
-        <div class="w-1/2 mt-[30px] ml-[20px]">
-          <UCheckbox v-model="verificationNotRequired" label="Verification & Validation - Not Required"
-            help="Check if product has been 100% tested and inspected for specification conformity & effectiveness" />
+          <UButton
+            @click="onOpenParts()"
+            class="mb-2 px-[5px] w-1/4 text-white gmsBlueHeader flex justify-center items-center mt-[30px] ml-[10px]"
+          >
+            Find
+          </UButton>
         </div>
       </div>
-      <div class="flex flex-row space-x-4 mt-[4px]">
-        <div class="w-1/4">
-          <UFormGroup label="From Model" name="fromModel">
-            <UInput v-model="fromModel" />
-          </UFormGroup>
-        </div>
-        <div class="w-1/4">
-          <UFormGroup label="To Model" name="toModel">
-            <UInput v-model="toModel" />
-          </UFormGroup>
-        </div>
-        <div class="w-1/2">
-          <UFormGroup label="Please Details Reason For Change" name="ResoneChange">
-            <UTextarea v-model="DetailsReasonChange" class="w-full" />
-          </UFormGroup>
+      <div class="w-3/4 flex flex-col">
+        <div class="flex justify-between items-center">
+          <label class="text-left">Products Affected</label>
+          <UButton
+            class="mb-2 px-[5px] w-1/4 text-white gmsBlueHeader flex justify-center items-center mt-[30px]"
+            @click="onOpenProduct()"
+          >
+            Find
+          </UButton>
         </div>
       </div>
-      <div class="flex flex-row space-x-4">
-        <div class="w-3/4 flex flex-col">
-          <div class="flex justify-between items-center">
-            <UFormGroup class="flex-1" label="Parts and Affected" name="PartsAffect">
-              <UInput class="h-full" />
-            </UFormGroup>
-            <UButton @click="onOpenParts()"
-              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[30px] ml-[10px]">
-              Find
-            </UButton>
-          </div>
-        </div>
-        <div class="w-3/4 flex flex-col">
-          <div class="flex justify-between items-center">
-            <h2 class="text-left">Products Affected</h2>
-            <UButton
-              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[30px]"
-              @click="onOpenProduct()">
-              Find
-            </UButton>
-          </div>
-        </div>
-      </div>
-      <div class="flex flex-row space-x-4">
-        <div class="w-3/4 flex flex-col">
-          <div class="h-[70px] overflow-y-auto border-2 border-gray-300 rounded-md">
-            <div v-for="(part, index) in selectedRowParts.partsArray" :key="index"
-              class="flex items-center pl-[8px] pt-[5px]">
-              <div @click="handleSelectPart(index)" :class="[
+    </div>
+    <div class="flex flex-row space-x-4">
+      <div class="w-3/4 flex flex-col bg-white">
+        <div
+          class="h-[70px] overflow-y-auto border-[1px] border-black rounded-md"
+        >
+          <div
+            v-for="(part, index) in selectedRowParts.partsArray"
+            :key="index"
+            class="flex items-center pl-[8px] pt-[5px]"
+          >
+            <div
+              @click="handleSelectPart(index)"
+              :class="[
                 'cursor-pointer',
                 {
                   'bg-sky-200 px-[10px] ':
                     selectedRowParts.selectedIndex === index,
                 },
-              ]">
-                #{{ part.MODEL }} {{ part.DESCRIPTION }}
-              </div>
+              ]"
+            >
+              #{{ part.MODEL }} {{ part.DESCRIPTION }}
             </div>
           </div>
         </div>
-        <div class="w-3/4 flex flex-col">
-          <div class="h-[70px] overflow-y-auto border-2 border-gray-300 rounded-md">
-            <div v-for="(product, index) in selectedRowProducts.productsArray" :key="index"
-              class="flex items-center pl-[8px] pt-[5px]">
-              <div @click="handleSelectProduct(index)" :class="[
+      </div>
+      <div class="w-3/4 flex flex-col bg-white">
+        <div
+          class="h-[70px] overflow-y-auto border-[1px] border-black rounded-md"
+        >
+          <div
+            v-for="(product, index) in selectedRowProducts.productsArray"
+            :key="index"
+            class="flex items-center pl-[8px] pt-[5px]"
+          >
+            <div
+              @click="handleSelectProduct(index)"
+              :class="[
                 'cursor-pointer',
                 {
                   'bg-sky-200 px-[10px] ':
                     selectedRowProducts.selectedIndex === index,
                 },
-              ]">
-                #{{ product.UniqueID }} {{ product.PRODUCTLINE }}
-              </div>
+              ]"
+            >
+              #{{ product.UniqueID }} {{ product.PRODUCTLINE }}
             </div>
           </div>
         </div>
       </div>
-      <div class="flex flex-row space-x-4">
-        <div class="w-3/4 flex flex-col">
-          <div class="flex justify-between items-center">
-            <UFormGroup class="flex-1" name="firstInput">
-              <UInput v-model="partsDetail" class="h-full" />
-            </UFormGroup>
-            <UButton @click="handleRemovePart"
-              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[10px] ml-[10px]">
-              Remove
-            </UButton>
-          </div>
-        </div>
-        <div class="w-3/4 flex flex-col">
-          <div class="flex justify-between items-center">
-            <UFormGroup class="flex-1" name="firstInput">
-              <UInput v-model="productsDetails" class="h-full" />
-            </UFormGroup>
-            <UButton @click="handleRemoveProduct"
-              class="mb-2 px-[5px] w-1/4 text-white bg-sky-700 hover:bg-sky-800 flex justify-center items-center mt-[10px] ml-[10px]">
-              Remove
-            </UButton>
-          </div>
+    </div>
+    <div class="flex flex-row space-x-4">
+      <div class="w-3/4 flex flex-col">
+        <div class="flex justify-between items-center">
+          <UFormGroup class="flex-1" name="firstInput">
+            <UInput v-model="partsDetail" class="h-full" />
+          </UFormGroup>
+          <UButton
+            @click="handleRemovePart"
+            class="mb-2 px-[5px] w-1/4 text-white gmsBlueHeader flex justify-center items-center mt-[10px] ml-[10px]"
+          >
+            Remove
+          </UButton>
         </div>
       </div>
-      <div class="px-[20px] pb-[20px]">
-        <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-8">
-          <div class="lg:col-span-1 flex gap-1 flex items-center justify-center mt-6">
-            <h3>Originator</h3>
-          </div>
-          <div class="lg:col-span-1">
-            <h3>Employee</h3>
-
+      <div class="w-3/4 flex flex-col">
+        <div class="flex justify-between items-center">
+          <UFormGroup class="flex-1" name="firstInput">
+            <UInput v-model="productsDetails" class="h-full" />
+          </UFormGroup>
+          <UButton
+            @click="handleRemoveProduct"
+            class="mb-2 px-[5px] w-1/4 text-white gmsBlueHeader flex justify-center items-center mt-[10px] ml-[10px]"
+          >
+            Remove
+          </UButton>
+        </div>
+      </div>
+    </div>
+    <div class="px-[20px] pb-[5px]">
+      <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-8">
+        <div
+          class="lg:col-span-1 flex gap-1 flex items-center justify-center mt-6"
+        >
+          <h3>Originator</h3>
+        </div>
+        <div class="lg:col-span-1">
+          <UFormGroup label="Employee">
             <UInputMenu v-model="originatorData" :options="employeeOptions" />
-          </div>
-
-          <div class="lg:col-span-1">
-            <h3>Date</h3>
-            <UInput v-model="originatorDate" type="date" class="w-40 cursor-pointer" />
-          </div>
-
-          <div class="lg:col-span-1">
-            <h3>Yes/No</h3>
-          </div>
-          <div class="lg:col-span-1">
-            <h3>Comments</h3>
-          </div>
+          </UFormGroup>
         </div>
 
-        <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-2">
-          <div class="lg:col-span-1 flex gap-3">
-            <UCheckbox v-model="engineeringCheck" />
-            <h3>Engineering</h3>
-          </div>
-          <div class="lg:col-span-1">
-            <UInputMenu v-model="engineeringData" :options="employeeOptions" />
-          </div>
-          <div class="lg:col-span-1">
-            <UInput v-model="engineeringDate" type="date" class="w-40 cursor-pointer" />
-          </div>
-          <div class="lg:col-span-1">
-            <div class="flex items-center space-x-4">
-              <URadio v-model="engineeringBoolean" value="yes" class="cursor-pointer" />
-              <span>Yes</span>
-              <URadio v-model="engineeringBoolean" value="no" class="cursor-pointer" />
-              <span>No</span>
-              <URadio v-model="engineeringBoolean" value="tbd" class="cursor-pointer" />
-              <span>TBD</span>
-            </div>
-          </div>
-          <div class="lg:col-span-2 ml-[25px]">
-            <UInput v-model="engineeringComments" placeholder="Comments" class="flex-grow" />
-          </div>
+        <div class="lg:col-span-1">
+          <UFormGroup label="Date">
+            <UInput
+              v-model="originatorDate"
+              type="date"
+              class="cursor-pointer"
+            />
+          </UFormGroup>
         </div>
 
-        <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-2">
-          <div class="lg:col-span-1 flex gap-3">
-            <UCheckbox v-model="marketingCheck" />
-            <h3>Marketing</h3>
-          </div>
-          <div class="lg:col-span-1">
-            <UInputMenu v-model="marketingData" :options="employeeOptions" />
-          </div>
-          <div class="lg:col-span-1">
-            <UInput v-model="marketingDate" type="date" class="w-40" />
-          </div>
-          <div class="lg:col-span-1">
-            <div class="flex items-center space-x-4">
-              <URadio v-model="marketingBoolean" value="yes" />
-              <span>Yes</span>
-              <URadio v-model="marketingBoolean" value="no" />
-              <span>No</span>
-              <URadio v-model="marketingBoolean" value="tbd" />
-              <span>TBD</span>
-            </div>
-          </div>
-          <div class="lg:col-span-2 ml-[25px]">
-            <UInput v-model="marketingComments" placeholder="Comments" class="flex-grow" />
-          </div>
+        <div class="lg:col-span-1">
+          <UFormGroup label="Yes/No">
+        </UFormGroup>
         </div>
-
-        <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-2">
-          <div class="lg:col-span-1 flex gap-3">
-            <UCheckbox v-model="manufacturingCheck" />
-            <h3>Manufacturing</h3>
-          </div>
-          <div class="lg:col-span-1">
-            <UInputMenu v-model="manufacturingData" :options="employeeOptions" />
-          </div>
-          <div class="lg:col-span-1">
-            <UInput v-model="manufacturingDate" type="date" class="w-40" />
-          </div>
-          <div class="lg:col-span-1">
-            <div class="flex items-center space-x-4">
-              <URadio v-model="manufacturingBoolean" value="yes" />
-              <span>Yes</span>
-              <URadio v-model="manufacturingBoolean" value="no" />
-              <span>No</span>
-              <URadio v-model="manufacturingBoolean" value="tbd" />
-              <span>TBD</span>
-            </div>
-          </div>
-          <div class="lg:col-span-2 ml-[25px]">
-            <UInput v-model="manufacturingComments" placeholder="Comments" class="flex-grow" />
-          </div>
-        </div>
-
-        <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-2">
-          <div class="lg:col-span-1 flex gap-5 flex items-center justify-center">
-            <h3>Complete</h3>
-          </div>
-          <div class="lg:col-span-1">
-            <UInputMenu v-model="signature" :options="SignatureList" />
-          </div>
-          <div class="lg:col-span-1">
-            <UInput v-model="CompleteDate" type="date" class="w-40" />
-          </div>
-          <div class="lg:col-span-1">
-            <div class="flex items-center space-x-4">
-              <URadio v-model="CompleteBoolean" value="yes" />
-              <span>Yes</span>
-              <URadio v-model="CompleteBoolean" value="no" />
-              <span>No</span>
-              <URadio v-model="CompleteBoolean" value="tbd" />
-              <span>TBD</span>
-            </div>
-          </div>
-          <div class="lg:col-span-2 ml-[25px]">
-            <UInput v-model="commentsComplete" placeholder="Comments" class="flex-grow" />
-          </div>
+        <div class="lg:col-span-1">
+          <UFormGroup label="Comments">
+          </UFormGroup>
         </div>
       </div>
-      <div class="flex justify-end space-x-4">
-        <UButton class="px-[30px]" @click="submitInsertForm" color="green" label="Add" icon="i-heroicons-plus" />
-        <UButton class="px-[30px]" @click="submitInsertForm" color="blue" label="Modify" icon="i-heroicons-pencil" />
 
-        <UButton class="px-[30px]" @click="clearFields" color="red" label="Clear Form" icon="i-heroicons-trash" />
-
-        <div>
-          <UButton class="px-[30px]" color="gray" label="Preview ECO" icon="i-heroicons-eye"
-            @click="onPrevieOrderBtnClick" />
+      <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-2">
+        <div class="lg:col-span-1 flex gap-3">
+          <UCheckbox v-model="engineeringCheck" />
+          <h3>Engineering</h3>
+        </div>
+        <div class="lg:col-span-1">
+          <UInputMenu v-model="engineeringData" :options="employeeOptions" />
+        </div>
+        <div class="lg:col-span-1">
+          <UInput
+            v-model="engineeringDate"
+            type="date"
+            
+          />
+        </div>
+        <div class="lg:col-span-1">
+          <div class="flex items-center space-x-4">
+            <URadio
+              v-model="engineeringBoolean"
+              value="yes"
+              class="cursor-pointer"
+            />
+            <span>Yes</span>
+            <URadio
+              v-model="engineeringBoolean"
+              value="no"
+              class="cursor-pointer"
+            />
+            <span>No</span>
+            <URadio
+              v-model="engineeringBoolean"
+              value="tbd"
+              class="cursor-pointer"
+            />
+            <span>TBD</span>
+          </div>
+        </div>
+        <div class="lg:col-span-2 ml-[25px]">
+          <UInput
+            v-model="engineeringComments"
+            placeholder="Comments"
+            class="flex-grow"
+          />
         </div>
       </div>
-      <div v-if="!props.isPage" class="basis-1/3 flex justify-end">
-        <div class="min-w-[150px]">
-          <UButton icon="i-heroicons-cursor-arrow-ripple" label="Select" variant="outline" :ui="{
+
+      <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-2">
+        <div class="lg:col-span-1 flex gap-3">
+          <UCheckbox v-model="marketingCheck" />
+          <h3>Marketing</h3>
+        </div>
+        <div class="lg:col-span-1">
+          <UInputMenu v-model="marketingData" :options="employeeOptions" />
+        </div>
+        <div class="lg:col-span-1">
+          <UInput v-model="marketingDate" type="date"  />
+        </div>
+        <div class="lg:col-span-1">
+          <div class="flex items-center space-x-4">
+            <URadio v-model="marketingBoolean" value="yes" />
+            <span>Yes</span>
+            <URadio v-model="marketingBoolean" value="no" />
+            <span>No</span>
+            <URadio v-model="marketingBoolean" value="tbd" />
+            <span>TBD</span>
+          </div>
+        </div>
+        <div class="lg:col-span-2 ml-[25px]">
+          <UInput
+            v-model="marketingComments"
+            placeholder="Comments"
+            class="flex-grow"
+          />
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-2">
+        <div class="lg:col-span-1 flex gap-3">
+          <UCheckbox v-model="manufacturingCheck" />
+          <h3>Manufacturing</h3>
+        </div>
+        <div class="lg:col-span-1">
+          <UInputMenu v-model="manufacturingData" :options="employeeOptions" />
+        </div>
+        <div class="lg:col-span-1">
+          <UInput v-model="manufacturingDate" type="date"  />
+        </div>
+        <div class="lg:col-span-1">
+          <div class="flex items-center space-x-4">
+            <URadio v-model="manufacturingBoolean" value="yes" />
+            <span>Yes</span>
+            <URadio v-model="manufacturingBoolean" value="no" />
+            <span>No</span>
+            <URadio v-model="manufacturingBoolean" value="tbd" />
+            <span>TBD</span>
+          </div>
+        </div>
+        <div class="lg:col-span-2 ml-[25px]">
+          <UInput
+            v-model="manufacturingComments"
+            placeholder="Comments"
+            class="flex-grow"
+          />
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-6 lg:items-start gap-3 mt-2">
+        <div class="lg:col-span-1 flex gap-5 flex items-center justify-center">
+          <h3>Complete</h3>
+        </div>
+        <div class="lg:col-span-1">
+          <UInputMenu v-model="signature" :options="SignatureList" />
+        </div>
+        <div class="lg:col-span-1">
+          <UInput v-model="CompleteDate" type="date"  />
+        </div>
+        <div class="lg:col-span-1">
+          <div class="flex items-center space-x-4">
+            <URadio v-model="CompleteBoolean" value="yes" />
+            <span>Yes</span>
+            <URadio v-model="CompleteBoolean" value="no" />
+            <span>No</span>
+            <URadio v-model="CompleteBoolean" value="tbd" />
+            <span>TBD</span>
+          </div>
+        </div>
+        <div class="lg:col-span-2 ml-[25px]">
+          <UInput
+            v-model="commentsComplete"
+            placeholder="Comments"
+            class="flex-grow"
+          />
+        </div>
+      </div>
+    </div>
+    <div class="flex space-x-4 pb-[15px]">
+      <UButton
+        class="px-[30px]"
+        @click="submitInsertForm"
+        color="green"
+        label="Add"
+        variant="outline"
+        truncate
+        icon="i-heroicons-plus"
+      />
+
+      <UButton
+        class="px-[30px]"
+        @click="submitInsertForm"
+        color="primary"
+        label="Modify"
+        icon="i-heroicons-pencil-square"
+        variant="outline"
+        truncate
+      />
+
+      <UButton
+        class="px-[30px]"
+        @click="clearFields"
+        color="red"
+        label="Clear Form"
+        icon="i-heroicons-trash"
+        variant="outline"
+        truncate
+      />
+
+      <div>
+        <UButton
+          class="px-[30px]"
+          color="primary"
+          label="Preview ECO"
+          icon="i-heroicons-eye"
+          @click="onPrevieOrderBtnClick"
+          variant="outline"
+          truncate
+        />
+      </div>
+    </div>
+    <div v-if="!props.isPage" class="basis-1/3 flex justify-end">
+      <div class="min-w-[150px]">
+        <UButton
+          icon="i-heroicons-cursor-arrow-ripple"
+          label="Select"
+          variant="outline"
+          :ui="{
             base: 'min-w-[200px] w-full',
             truncate: 'flex justify-center w-full',
-          }" @click="handleSelect" truncate />
-        </div>
+          }"
+          @click="handleSelect"
+          truncate
+        />
       </div>
-      <UDivider />
-    </UForm>
-  </UCard>
+    </div>
+  </UForm>
 
-  <UDashboardModal v-model="modalMeta.isCustomerModalOpen" :title="modalMeta.modalTitle" :ui="{
-    title: 'text-lg',
-    header: {
-      base: 'flex flex-row min-h-[0] items-center',
-      padding: 'pt-5 sm:px-9',
-    },
-    body: {
-      base: 'gap-y-1',
-      padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
-    },
-    width: 'w-[3000px] sm:max-w-7xl',
-  }">
-    <ProductsProductList @rowSelectedProduct="handleRowSelectedProduct" @close="closeProductModal" />
+  <UDashboardModal
+    v-model="modalMeta.isCustomerModalOpen"
+    :title="modalMeta.modalTitle"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'pt-5 sm:px-9',
+      },
+      body: {
+        base: 'gap-y-1',
+        padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+      },
+      width: 'w-[3000px] sm:max-w-7xl',
+    }"
+  >
+    <ProductsProductList
+      @rowSelectedProduct="handleRowSelectedProduct"
+      @close="closeProductModal"
+    />
   </UDashboardModal>
 
-  <UDashboardModal v-model="partsMeta.isPartsModalOpen" :title="partsMeta.modalTitle" :ui="{
-    title: 'text-lg',
-    header: {
-      base: 'flex flex-row min-h-[0] items-center',
-      padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
-    },
-    body: {
-      base: 'gap-y-1',
-      padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
-    },
-    width: 'w-[4000px] sm:max-w-7xl',
-  }">
-    <PartsModalPage @rowSelectedParts="handleSelectedPart" @close="closePartsModal"
-      :isSelectButton="partsSelectButton" />
+  <UDashboardModal
+    v-model="partsMeta.isPartsModalOpen"
+    :title="partsMeta.modalTitle"
+    :ui="{
+      title: 'text-lg',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center',
+        padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+      },
+      body: {
+        base: 'gap-y-1',
+        padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5',
+      },
+      width: 'w-[4000px] sm:max-w-7xl',
+    }"
+  >
+    <PartsModalPage
+      @rowSelectedParts="handleSelectedPart"
+      @close="closePartsModal"
+      :isSelectButton="partsSelectButton"
+    />
   </UDashboardModal>
 </template>

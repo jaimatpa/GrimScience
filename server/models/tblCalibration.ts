@@ -126,6 +126,7 @@ const tblCalibration = sequelize.define('tblCalibration', {
       type: DataTypes.STRING,
    },
 }, {
+   tableName:"tblCalibration",
    timestamps: false
 });
 

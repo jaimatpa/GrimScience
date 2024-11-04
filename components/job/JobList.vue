@@ -4,7 +4,7 @@ import Loading from "vue-loading-overlay";
 import { format } from "date-fns";
 
 useSeoMeta({
-  title: "Grimm-Employees Organization",
+  title: "Grimm-Employees Jobs",
 });
 
 const props = defineProps({
@@ -116,6 +116,7 @@ const gridMeta = ref({
   numberOfOrganization: 0,
   organization: [],
   selectedJobId: null,
+  selectedJob: null,
   sort: {
     column: "UniqueID",
     direction: "asc",
@@ -166,7 +167,6 @@ const filterValues = ref({
   Cost: null,
   jobcat: null,
   jobsubcat: null,
-  
 });
 
 const selectedColumns = ref(gridMeta.value.defaultColumns);
@@ -340,6 +340,14 @@ const onEdit = (row) => {
 
 const onSelect = async (row) => {
   gridMeta.value.selectedJobId = row?.UniqueID;
+  gridMeta.value.selectedJob = { ...row, class: "" };
+  gridMeta.value.organization.forEach((c) => {
+    if (c.UniqueID === row.UniqueID) {
+      c.class = "bg-gray-200";
+    } else {
+      delete c.class;
+    }
+  });
 };
 
 const onDblClick = async () => {
@@ -499,7 +507,7 @@ const openJobDetailsForm = (jobId) => {
         :rows="gridMeta.organization"
         :columns="columns"
         :loading="gridMeta.isLoading"
-         v-model="selected"
+        v-model="selected"
         class="w-full"
         :ui="{
           divide: 'divide-gray-200 dark:divide-gray-800',
@@ -629,22 +637,18 @@ const openJobDetailsForm = (jobId) => {
             color="red"
             variant="outline"
             label="Bulk Close Jobs"
-            trailing-icon="i-heroicons-document-text"
             @click="handleBulkClose"
            >
           </UButton>
-            <UButton
-              icon="i-heroicons-minus-circle-20-solid"
-              color="red"
-              variant="outline"
-              label="Delete Job"
-              @click="onDelete"
-            >
-            </UButton>
+          <UButton
+            icon="i-heroicons-minus-circle-20-solid"
+            color="red"
+            variant="outline"
+            label="Delete Job"
+            @click="onDelete"
+          >
+          </UButton>
           </div>
-          
-
-          
         </div>
        
       </div>
@@ -652,36 +656,44 @@ const openJobDetailsForm = (jobId) => {
   </UDashboardPage>
 
   <!-- Job Detail Modal -->
-  <!-- Job Detail Modal -->
-  <UDashboardModal v-model="modalMeta.isJobFormModalOpen" :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription" :ui="{
-      width: 'w-[1100px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
-    }"
+  <UDashboardModal 
+    v-model="modalMeta.isJobFormModalOpen" 
+    :title="'Job Information'"
+    :ui="{
+    title: 'text-lg text-white',
+    header: {
+      base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+    },
+    body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+    width: 'w-[1100px] sm:max-w-9xl',
+  }"
   >
     <JobForm
       @close="handleModalClose"
       @save="handleModalSave"
       :selected-job="gridMeta.selectedJobId"
       @open="openJobDetailsForm"
+      @refreshList="fetchGridData"
     />
   </UDashboardModal>
 
   <!-- Delete Confirmation Modal -->
   <UDashboardModal
     v-model="modalMeta.isDeleteModalOpen"
-    title="Delete operation"
+    title="Delete Job"
     description="Are you ABSOLUTELY sure you wish to delete?"
     icon="i-heroicons-exclamation-circle"
     prevent-close
     :close-button="null"
     :ui="{
+      title:'text-black',
       icon: {
         base: 'text-red-500 dark:text-red-400'
       } as any,
       footer: {
-        base: 'ml-16'
-      } as any
+        base: 'ml-14'
+      } as any,
+      width: 'w-[500px]',
     }"
   >
     <template #footer>

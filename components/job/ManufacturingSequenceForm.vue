@@ -22,7 +22,7 @@ const props = defineProps({
 
 // Retrieve the user cookie
 const user = useCookie<string>('user');
-const username = "#"+user.value.payrollnumber+" "+user.value.fname+" "+user.value.lname
+const username = "#" + user.value.payrollnumber + " " + user.value.fname + " " + user.value.lname
 
 const toast = useToast();
 const router = useRouter();
@@ -34,6 +34,7 @@ const perTypes = ref([]);
 const totalHours = ref("0");
 const subScheduleHrs = ref("0");
 const workCenters = ref([]);
+const copiedOperations = ref([]);
 const formData = reactive({
   UniqueID: null,
   Number: null,
@@ -51,7 +52,7 @@ const editInit = async () => {
 };
 
 const getOperations = async () => {
-  await useApiFetch("/api/jobs/operations/mfg/"+props.instanceId, {
+  await useApiFetch("/api/jobs/operations/mfg/" + props.instanceId, {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
@@ -106,7 +107,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
     await useApiFetch("/api/jobs/operations/mfg/create", {
       method: "POST",
       body: {
-        data: {...event.data, skills: skillGridMeta.value.skills, instanceId : props.instanceId, username},
+        data: { ...event.data, skills: skillGridMeta.value.skills, instanceId: props.instanceId, username },
       },
       onResponse({ response }) {
         if (response.status === 200) {
@@ -125,10 +126,10 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   } else {
     // Edit Operation
     isLoading.value = true;
-    await useApiFetch("/api/jobs/operations/mfg/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+    await useApiFetch("/api/jobs/operations/mfg/" + prodOperationGridMeta.value.selectedOperation.UniqueID, {
       method: "PUT",
       body: {
-        data: {...event.data, skills: skillGridMeta.value.skills, instanceId : props.instanceId, username},
+        data: { ...event.data, skills: skillGridMeta.value.skills, instanceId: props.instanceId, username },
       },
       onResponse({ response }) {
         if (response.status === 200) {
@@ -191,21 +192,21 @@ const getOperationSteps = async () => {
 
   stepsGridMeta.value.isLoading = true;
 
-  await useApiFetch("/api/jobs/operations/mfg/operationsteps/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+  await useApiFetch("/api/jobs/operations/mfg/operationsteps/" + prodOperationGridMeta.value.selectedOperation.UniqueID, {
     method: "GET",
     onResponse({ response }) {
       if (response.status === 200) {
         stepsGridMeta.value.steps = response._data.body.steps;
-        if(stepsGridMeta.value.selectedStep !== null){
+        if (stepsGridMeta.value.selectedStep !== null) {
           stepsGridMeta.value.steps.forEach((step) => {
-          if (step.UniqueID === stepsGridMeta.value.selectedStep.UniqueID) {
-            step.class = "bg-gray-200";
-          } else {
-            delete step.class;
-          }
-        });
+            if (step.UniqueID === stepsGridMeta.value.selectedStep.UniqueID) {
+              step.class = "bg-gray-200";
+            } else {
+              delete step.class;
+            }
+          });
         }
-        
+
       }
     },
     onResponseError() {
@@ -215,8 +216,6 @@ const getOperationSteps = async () => {
 
   stepsGridMeta.value.isLoading = false;
 }
-
-
 
 const handleClearCick = () => {
   Object.keys(formData).forEach((key) => {
@@ -231,9 +230,9 @@ const handleClearCick = () => {
 
 const handleDeleteClick = async () => {
 
-  if(prodOperationGridMeta.value.selectedOperation !== null){
+  if (prodOperationGridMeta.value.selectedOperation !== null) {
     loadingOverlay.value = true
-    await useApiFetch("/api/jobs/operations/mfg/productoperations/"+prodOperationGridMeta.value.selectedOperation.UniqueID, {
+    await useApiFetch("/api/jobs/operations/mfg/productoperations/" + prodOperationGridMeta.value.selectedOperation.UniqueID, {
       method: "DELETE",
       onResponse({ response }) {
         if (response.status === 200) {
@@ -251,7 +250,7 @@ const handleDeleteClick = async () => {
     loadingOverlay.value = false
     modalMeta.value.isDeleteModalOpen = false
   }
-  
+
 };
 
 const prodOperationGridMeta = ref({
@@ -321,7 +320,8 @@ const modalMeta = ref({
   modalDescription: "View Parts Listing",
   isSkillModalOpen: false,
   isStepInformationModalOpen: false,
-  isDeleteModalOpen: false
+  isDeleteModalOpen: false,
+  isClipboardModalOpen: false
 });
 
 const handleStepCreate = () => {
@@ -368,13 +368,13 @@ const onStepDblClick = () => {
 }
 
 const handleStepUp = async () => {
-  if(stepsGridMeta.value.selectedStep !== null){
+  if (stepsGridMeta.value.selectedStep !== null) {
     await useApiFetch(`/api/jobs/operations/mfg/operationsteps/upstep`, {
       method: 'PUT',
       body: { stepId: stepsGridMeta.value.selectedStep.UniqueID, planId: prodOperationGridMeta.value.selectedOperation.UniqueID },
       onResponse({ response }) {
         getOperationSteps()
-        if(response.status === 200) {
+        if (response.status === 200) {
           toast.add({
             title: "Success",
             description: "Step up successfully",
@@ -383,7 +383,7 @@ const handleStepUp = async () => {
           });
         }
       },
-      onResponseError({}) {
+      onResponseError({ }) {
         toast.add({
           title: "Failed",
           description: "Failed to move step",
@@ -392,7 +392,7 @@ const handleStepUp = async () => {
         });
       }
     });
-  }else{
+  } else {
     toast.add({
       title: "Failed",
       description: "Please select a step",
@@ -400,17 +400,17 @@ const handleStepUp = async () => {
       color: "red",
     });
   }
-  
+
 }
 
 const handleStepDown = async () => {
-  if(stepsGridMeta.value.selectedStep !== null){
+  if (stepsGridMeta.value.selectedStep !== null) {
     await useApiFetch(`/api/jobs/operations/mfg/operationsteps/downstep`, {
       method: 'PUT',
-      body: {stepId: stepsGridMeta.value.selectedStep.UniqueID, planId: prodOperationGridMeta.value.selectedOperation.UniqueID },
+      body: { stepId: stepsGridMeta.value.selectedStep.UniqueID, planId: prodOperationGridMeta.value.selectedOperation.UniqueID },
       onResponse({ response }) {
         getOperationSteps()
-        if(response.status === 200) {
+        if (response.status === 200) {
           toast.add({
             title: "Success",
             description: "Step down successfully",
@@ -419,7 +419,7 @@ const handleStepDown = async () => {
           });
         }
       },
-      onResponseError({}) {
+      onResponseError({ }) {
         toast.add({
           title: "Failed",
           description: "Failed to move step",
@@ -428,7 +428,7 @@ const handleStepDown = async () => {
         });
       }
     });
-  }else{
+  } else {
     toast.add({
       title: "Failed",
       description: "Please select a step",
@@ -436,7 +436,7 @@ const handleStepDown = async () => {
       color: "red",
     });
   }
-  
+
 }
 
 const handleStepModalClose = () => {
@@ -461,11 +461,11 @@ const onSkillSelect = (row) => {
 }
 
 const handleRemoveSkill = () => {
-  if(skillGridMeta.value.selectedSkill !== null){
-    skillGridMeta.value.skills =  skillGridMeta.value.skills.filter(skill => {
+  if (skillGridMeta.value.selectedSkill !== null) {
+    skillGridMeta.value.skills = skillGridMeta.value.skills.filter(skill => {
       return skill.UniqueID !== skillGridMeta.value.selectedSkill.UniqueID
     })
-  }else{
+  } else {
     toast.add({
       title: "Failed",
       description: "Please select a operation and skill",
@@ -477,7 +477,7 @@ const handleRemoveSkill = () => {
 
 
 const handleSkillModalClose = (data) => {
-  skillGridMeta.value.skills = [...skillGridMeta.value.skills,data]
+  skillGridMeta.value.skills = [...skillGridMeta.value.skills, data]
   modalMeta.value.isSkillModalOpen = false
 }
 
@@ -493,6 +493,15 @@ const previewOperationReport = () => {
   window.open(`/api/jobs/exportoperation/${props.instanceId}`);
 };
 
+const handleClipboardClose = () => {
+  modalMeta.value.isClipboardModalOpen = false;
+};
+
+const handleCopyOp = () => {
+  copiedOperations.value = [...copiedOperations.value, {instanceId: props.instanceId, operation: prodOperationGridMeta.value.selectedOperation, desc: prodOperationGridMeta.value.selectedOperation.Operation  }]
+  localStorage.setItem('copyOpList', JSON.stringify(copiedOperations.value) ) 
+};
+
 if (props.selectedJob !== null) editInit();
 else propertiesInit();
 </script>
@@ -501,359 +510,274 @@ else propertiesInit();
 
 
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
   <template v-if="!props.isModal && !JobExist">
-    <CommonNotFound
-      :name="'Organization not found'"
-      :message="'The organization you are looking for does not exist'"
-      :to="'/employees/organization'"
-    />
+    <CommonNotFound :name="'Organization not found'" :message="'The organization you are looking for does not exist'"
+      :to="'/employees/organization'" />
   </template>
   <template v-else>
-    <UForm
-      :validate="validate"
-      :validate-on="['submit']"
-      :state="formData"
-      class="space-y-4"
-      @submit="onSubmit"
-    >
-      <div class="flex flex-col space-x-4">
-        <div class="flex flex-row space-x-3 items-end mb-4 px-4">
-          <div class="">
-            <UFormGroup label="Number" name="ReportsTo">
-              <UInput v-model="formData.Number" placeholder="" />
-            </UFormGroup>
-          </div>
-          <div class="">
-            <UFormGroup label="Week" name="Job Qty">
-              <UInput v-model="formData.week" type="number" placeholder="" />
-            </UFormGroup>
-          </div>
-          <div class="">
-            <UFormGroup label="Operation" name="Job Type">
-              <UInput v-model="formData.Operation" placeholder="" />
-            </UFormGroup>
-          </div>
-          <div class="">
-            <UFormGroup label="Work Center" name="Unit Material Cost">
-              <UInputMenu
-                v-model="formData.WorkCenter"
-                v-model:query="formData.WorkCenter"
-                :options="workCenters"
-              />
-            </UFormGroup>
-          </div>
-          <div class="">
-            <UFormGroup label="Hours" name="Relieve Inventory Per">
-              <UInput v-model="formData.Hours" type="number" placeholder="" />
-            </UFormGroup>
-          </div>
+    <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
 
-          <div class="w-[120px]">
-            <UButton
-              icon="i-heroicons-document-text"
-              type="submit"
-              variant="outline"
-              color="green"
-              label="Save"
-              :ui="{
-                base: 'w-full',
-                truncate: 'flex justify-center w-full',
-              }"
-              truncate
-            />
+      <div class="flex flex-col">
+
+        <div class="flex flex-col space-y-2">
+          <div class="flex justify-between px-4 py-2 gmsBlueTitlebar">
+            <h2 class="flex items-center">Operation</h2>
           </div>
-          <div class="w-[120px]">
-            <UButton
-              icon="i-f7-rays"
-              variant="outline"
-              color="red"
-              :label="'Clear'"
-              :ui="{
-                base: 'w-full',
-                truncate: 'flex justify-center w-full',
-              }"
-              @click="handleClearCick"
-              truncate
-            />
-          </div>
-          <div class="w-[120px]">
-            <UButton
-              icon="i-heroicons-minus-circle"
-              variant="outline"
-              color="red"
-              label="Delete"
-              :ui="{
-                base: 'w-full',
-                truncate: 'flex justify-center w-full',
-              }"
-              @click="modalMeta.isDeleteModalOpen = true"
-              truncate
-            />
+          <div class="flex flex-row px-4 space-x-2">
+            <div class="w-2/3 flex space-x-2">
+              <div class="basis-1/6">
+                <UFormGroup label="Number" name="ReportsTo">
+                  <UInput v-model="formData.Number" placeholder="" />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/6">
+                <UFormGroup label="Week" name="Job Qty">
+                  <UInput v-model="formData.week" type="number" placeholder="" />
+                </UFormGroup>
+              </div>
+              <div class="basis-2/6">
+                <UFormGroup label="Operation" name="Job Type">
+                  <UInput v-model="formData.Operation" placeholder="" />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/6">
+                <UFormGroup label="Work Center" name="Unit Material Cost">
+                  <UInputMenu v-model="formData.WorkCenter" v-model:query="formData.WorkCenter"
+                    :options="workCenters" />
+                </UFormGroup>
+              </div>
+              <div class="basis-1/6">
+                <UFormGroup label="Hours" name="Relieve Inventory Per">
+                  <UInput v-model="formData.Hours" type="number" placeholder="" />
+                </UFormGroup>
+              </div>
+
+            </div>
+            <div class="w-1/3 flex space-x-2 items-end">
+
+              <div class="w-1/3">
+                <UButton icon="i-heroicons-document-text" type="submit" variant="outline" color="green" label="Save"
+                  block />
+              </div>
+
+              <div class="w-1/3">
+                <UButton icon="i-f7-rays" variant="outline" color="red" label="Clear" @click="handleClearCick" block />
+              </div>
+
+              <div class="w-1/3">
+                <UButton icon="i-heroicons-minus-circle" variant="outline" color="red" label="Delete"
+                  @click="modalMeta.isDeleteModalOpen = true" block />
+              </div>
+
+            </div>
+
           </div>
         </div>
 
-        <div class="flex">
-          <div class="w-3/5">
-            <div class="menuBlue text-white py-3 pl-2 opacity-75">
-              Manufacturing Secquence
-            </div>
-            <div class="mt-4">
-              <UTable
-                :columns="prodOperationGridMeta.defaultColumns"
-                :rows="prodOperationGridMeta.operations"
-                :ui="{
-                  wrapper:
-                    'h-[668px] border-2 border-gray-300 dark:border-gray-700',
-                  tr: {
-                    active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                  },
-                  th: {
-                    base: 'sticky top-0 z-10',
-                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'px-2 py-0',
-                  },
-                  td: {
-                    base: 'h-[31px]',
-                    padding: 'px-2 py-0',
-                  },
-                }"
-                @select="handleProdOperationSelect"
-              >
+      </div>
+
+      <div class="w-full flex border-t-[3px] border-black border-solid">
+
+        <div class="w-2/3 border-r-[3px] border-black border-solid flex flex-col space-y-2">
+          <div class="flex justify-between px-4 py-2 gmsBlueTitlebar">
+            <h2 class="flex items-center">Manufacturing Sequence</h2>
+          </div>
+          <div class="px-4 py-2 flex flex-col space-y-2">
+            <div>
+              <UTable :columns="prodOperationGridMeta.defaultColumns" :rows="prodOperationGridMeta.operations" :ui="{
+                wrapper:
+                  'h-[600px] border-2 border-gray-300 dark:border-gray-700',
+                tr: {
+                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                },
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'px-2 py-0',
+                },
+                td: {
+                  base: 'h-[31px]',
+                  padding: 'px-2 py-0',
+                },
+              }" @select="handleProdOperationSelect">
                 <template #empty-state>
                   <div></div>
                 </template>
               </UTable>
             </div>
-            <div class="flex mt-5 justify-between items-center">
-              <UButton
-                icon="i-heroicons-eye"
-                label="Preview Report"
-                color="green"
-                variant="outline"
-                :ui="{
-                  base: 'w-fit',
-                  truncate: 'flex justify-center w-full',
-                }"
-                @click="previewOperationReport"
-                truncate
-              />
-              <UButton
-                label="Clipboard"
-                color="green"
-                variant="outline"
-                icon="i-heroicons-clipboard-document-list"
-                :ui="{ base: 'w-fit', truncate: 'flex justify-center w-full' }"
-              />
-              <div class="">
-                <UButton
-                  icon="i-heroicons-magnifying-glass"
-                  variant="outline"
-                  color="green"
-                  label="View Parts List"
-                  :ui="{
-                    base: 'w-fit',
-                    truncate: 'flex justify-center w-full',
-                  }"
-                  truncate
-                  @click="onPartsClick()"
-                />
+            <div class="flex space-x-2">
+              <div class="w-1/4">
+                <UButton icon="i-heroicons-eye" label="Preview Report" color="primary" variant="outline"
+                  @click="previewOperationReport" block />
               </div>
-              <div class="flex">
-                <span class="text-sm text-right w-full">
-                  Total Hrs:
-                  {{ totalHours }}</span
-                >
+              <div class="w-1/4">
+                <UButton label="Clipboard" color="primary" variant="outline" icon="i-heroicons-clipboard-document-list"
+                  block @click="modalMeta.isClipboardModalOpen = true" />
               </div>
+              <div class="w-1/4">
+                <UButton icon="i-heroicons-magnifying-glass" variant="outline" color="primary" label="View Parts List"
+                  block @click="onPartsClick()" />
+              </div>
+              <div class="w-1/4">
+                <div class="flex">
+                  <span class="text-sm text-right w-full">
+                    Total Hrs:
+                    {{ totalHours }}</span>
+                </div>
+              </div>
+
             </div>
           </div>
-          <div class="w-2/5">
-            <div class="menuBlue text-white py-3 pl-2 opacity-75">Steps</div>
+
+        </div>
+
+        <div class="w-1/3 flex flex-col space-y-2">
+          <div class="flex justify-between px-4 py-2 gmsBlueTitlebar">
+            <h2 class="flex items-center">Steps</h2>
+          </div>
+          <div class="px-4 py-2 flex flex-col space-y-2">
             <div>
-              <div class="pt-4 pl-4">
-                <UTable
-                  
-                  :columns="stepsGridMeta.defaultColumns"
-                  :rows="stepsGridMeta.steps"
-                  :ui="{
-                    wrapper:
-                      'h-[668px] border-2 border-gray-300 dark:border-gray-700',
-                    tr: {
-                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                    },
-                    th: {
-                      base: 'sticky top-0 z-10',
-                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                      padding: 'px-2 py-0',
-                    },
-                    td: {
-                      base: 'h-[31px]',
-                      padding: 'px-2 py-0',
-                    },
-                  }"
-                  @select="onStepSelect"
-                  @dblclick="onStepDblClick"
-                >
-                  <template #empty-state>
-                    <div></div>
-                  </template>
-                </UTable>
-              </div>
+              <UTable :columns="stepsGridMeta.defaultColumns" :rows="stepsGridMeta.steps" :ui="{
+                wrapper:
+                  'h-[600px] border-2 border-gray-300 dark:border-gray-700',
+                tr: {
+                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                },
+                th: {
+                  base: 'sticky top-0 z-10',
+                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                  padding: 'px-2 py-0',
+                },
+                td: {
+                  base: 'h-[31px]',
+                  padding: 'px-2 py-0',
+                },
+              }" @select="onStepSelect" @dblclick="onStepDblClick">
+                <template #empty-state>
+                  <div></div>
+                </template>
+              </UTable>
+            </div>
 
-              <div class="flex justify-between my-3">
-                <div class="flex space-x-3 ml-5">
-                  <div>
-                    <UButton
-                      icon="i-f7-arrowtriangle-down-fill"
-                      color="blue"
-                      label="Down"
-                      :ui="{
-                        base: 'w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                      @click="handleStepDown"
-                    />
-                  </div>
-                  <div class="">
-                    <UButton
-                      icon="i-f7-arrowtriangle-up-fill"
-                      color="blue"
-                      label="Up"
-                      :ui="{
-                        base: 'w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      truncate
-                      @click="handleStepUp"
-                    />
-                  </div>
+            <div class="flex space-x-2">
+              <div class="w-2/3 flex space-x-2">
+                <div class="basis-1/4">
+                  <UButton icon="i-f7-arrowtriangle-down-fill" color="blue" label="Down" @click="handleStepDown"
+                    block />
                 </div>
-                <div class="flex space-x-3">
-                  <div class="">
-                    <UButton
-                      icon="i-heroicons-plus"
-                      variant="outline"
-                      color="green"
-                      label="Create Step"
-                      :ui="{
-                        base: 'w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      @click="handleStepCreate"
-                      truncate
-                    />
-                  </div>
+                <div class="basis-1/4">
+                  <UButton icon="i-f7-arrowtriangle-up-fill" color="blue" label="Up" @click="handleStepUp" block />
+                </div>
+                <div class="basis-1/4"></div>
+                <div class="basis-1/4">
+                  <UButton color="blue" label="Refresh" block />
                 </div>
               </div>
-              <!-- <div>
-                <div class="menuBlue text-white py-3 pl-2 opacity-75">
-                  Skills
-                </div>
-                <div class="pt-4 pl-4">
-                  <UTable      
-                    :columns="skillGridMeta.defaultColumns"
-                    :rows="skillGridMeta.skills"
-                    :ui="{
-                      wrapper:
-                        'h-[371px] border-2 border-gray-300 dark:border-gray-700',
-                      tr: {
-                        active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                      },
-                      th: {
-                        base: 'sticky top-0 z-10',
-                        color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                        padding: 'px-2 py-0',
-                      },
-                      td: {
-                        base: 'h-[31px]',
-                        padding: 'px-2 py-0',
-                      },
-                    }"
-                    @select="onSkillSelect"
-                  >
-                    <template #empty-state>
-                      <div></div>
-                    </template>
-                  </UTable>
-                </div>
+              <div class="w-1/3">
+                <UButton icon="i-heroicons-plus" variant="outline" color="green" label="Create Step" block
+                  @click="handleStepCreate" />
+              </div>
 
-                <div class="flex justify-between w-full my-3 px-5">
-                  <div class="">
-                    <UButton
-                      icon="i-heroicons-plus"
-                      variant="outline"
-                      color="green"
-                      label="Add Skill"
-                      :ui="{
-                        base: 'w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      @click="handleSkillClick"
-                      truncate
-                    />
-                  </div>
-                  <div class="">
-                    <UButton
-                      icon="i-heroicons-minus"
-                      variant="outline"
-                      color="red"
-                      label="Remove Skill"
-                      :ui="{
-                        base: 'w-full',
-                        truncate: 'flex justify-center w-full',
-                      }"
-                      @click="handleRemoveSkill"
-                      truncate
-                    />
-                  </div>
-                </div>
-              </div> -->
             </div>
           </div>
         </div>
+
+
+
+        <!-- <div class="flex flex-col space-y-2">
+        <div class="flex justify-between px-4 py-2 gmsBlueTitlebar">
+        <h2 class="flex items-center">Skills</h2>
+        </div>
+        <div class="flex flex-col px-4 pt-2 space-y-2">
+        <div>
+          <UTable :columns="skillGridMeta.defaultColumns" :ui="{
+            wrapper:
+              'h-[200px] border-2 border-gray-300 dark:border-gray-700',
+            tr: {
+              active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+            },
+            th: {
+              base: 'sticky top-0 z-10',
+              color: 'bg-white dark:text-gray dark:bg-[#111827]',
+              padding: 'px-2 py-0',
+            },
+            td: {
+              base: 'h-[31px]',
+              padding: 'px-2 py-0',
+            },
+          }">
+            <template #empty-state>
+              <div></div>
+            </template>
+          </UTable>
+        </div>
+        <div class="flex space-x-2 justify-between">
+          <div class="basis-1/3">
+            <UButton icon="i-heroicons-plus" variant="outline" color="green" label="Add Skill" block
+              @click="handleSkillClick" />
+          </div>
+
+          <div class="basis-1/3">
+            <UButton icon="i-heroicons-minus" variant="outline" color="red" label="Remove Skill" block />
+          </div>
+        </div>
+        </div>
+        </div> -->
+
       </div>
+
     </UForm>
   </template>
 
+  <!-- Clip Board -->
+
+  <CommonMfgClipboard 
+    v-if="modalMeta.isClipboardModalOpen" 
+    :instanceId="props.instanceId" 
+    @close="handleClipboardClose"
+    @copyOp = "handleCopyOp"
+    @refreshOperations = "getOperations"
+  />
+
+
   <!-- Parts List Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isPartsModalOpen"
-    title="Parts Listing"
+  <UDashboardModal 
+    v-model="modalMeta.isPartsModalOpen" 
+    title="Parts Listing" 
     :ui="{
-      width: 'w-[1000px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1000px] sm:max-w-9xl',
     }"
   >
-    <JobPartsList :instanceID="props.instanceId"/>
+    <JobPartsList :instanceID="props.instanceId" />
   </UDashboardModal>
 
   <!-- New Step Info Modal -->
-  <UDashboardModal
+  <UDashboardModal 
     v-model="modalMeta.isStepInformationModalOpen"
     :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
+    :description="modalMeta.modalDescription" 
     :ui="{
-      width: 'w-[1200px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1200px] sm:max-w-9xl',
     }"
-  >
-    <ProductsProdStepInformationForm
-      :operation-id="prodOperationGridMeta.selectedOperation.UniqueID"
+    >
+    <ProductsProdStepInformationForm :operation-id="prodOperationGridMeta.selectedOperation.UniqueID"
       :instance-id="prodOperationGridMeta.selectedOperation.instanceid"
       :step-id="stepsGridMeta.selectedStep ? stepsGridMeta.selectedStep.UniqueID : null"
       :next-step="stepsGridMeta.steps.length > 0 ? String.fromCharCode(stepsGridMeta.steps[stepsGridMeta.steps.length - 1].Step.charCodeAt(0) + 1) : 'A'"
-      @close="handleStepModalClose"
-      @change="getOperationSteps"
-      :is-modal="true"
-    />
+      @close="handleStepModalClose" @change="getOperationSteps" :is-modal="true" />
   </UDashboardModal>
 
   <!-- Product Skill Modal -->
@@ -891,34 +815,22 @@ else propertiesInit();
   </UDashboardModal> -->
 
   <!-- Delete Confirmation Modal -->
-  <UDashboardModal
-    v-model="modalMeta.isDeleteModalOpen"
-    title="Delete operation"
-    description="Are you sure you wish to delete this entire operatin?"
+  <UDashboardModal 
+    v-model="modalMeta.isDeleteModalOpen" title="Delete operation"
+    description="Are you sure you wish to delete this entire operatin?" 
     icon="i-heroicons-exclamation-circle"
-    prevent-close
-    :close-button="null"
-    :ui="{
+    prevent-close :close-button="null" :ui="{
       icon: {
         base: 'text-red-500 dark:text-red-400'
       } as any,
       footer: {
-        base: 'ml-16'
-      } as any
-    }"
-  >
+        base: 'ml-14'
+      } as any,
+      width: 'w-[500px]'
+    }">
     <template #footer>
-      <UButton
-        color="red"
-        label="Delete"
-        :loading="loadingOverlay"
-        @click="handleDeleteClick"
-      />
-      <UButton
-        color="white"
-        label="Cancel"
-        @click="modalMeta.isDeleteModalOpen = false"
-      />
+      <UButton color="red" label="Delete" :loading="loadingOverlay" @click="handleDeleteClick" />
+      <UButton color="white" label="Cancel" @click="modalMeta.isDeleteModalOpen = false" />
     </template>
   </UDashboardModal>
 

@@ -19,7 +19,6 @@ export default defineEventHandler(async (event) => {
     ];
 
     if(path.startsWith('/api/')){
-      console.log("--API REQUEST--", path);
 
       if (excludeAPIs.find((exAPI)=>path.includes(exAPI)) && !excludeAPIs.find((exAPI)=>path.includes(exAPI))) {
         const authHeader = getHeader(event, 'Authorization');

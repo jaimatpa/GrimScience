@@ -384,13 +384,12 @@ propertiesInit();
     class="space-y-4"
     @submit="onSubmit"
   >
-    <div class="flex flex-col space-x-4">
-      <div class="gmsPurpleTitlebar py-3 mb-2 pl-2">Parts Used</div>
-      <div class="flex items-end justify-end mb-5">
+    <div class="flex flex-col p-3">
+      <div class="flex items-end justify-end py-3">
         <div class="w-[120px]">
           <UButton
             label="Remove"
-            class="gmsPurpleTitlebar"
+            color="gms-purple"
             :ui="{
               base: 'w-full',
               truncate: 'flex justify-center w-full',
@@ -518,11 +517,11 @@ propertiesInit();
         </div>
       </div>
 
-      <div class="flex items-end justify-end mt-5">
+      <div class="flex items-end justify-end py-3">
         <div class="w-[120px]">
           <UButton
             label="Save"
-            class="gmsPurpleTitlebar"
+            color="gms-purple"
             :ui="{
               base: 'w-full',
               truncate: 'flex justify-center w-full',
@@ -545,7 +544,7 @@ propertiesInit();
         width: 'w-[600px]',
       }"
     >
-      <div>
+      <div class="p-3">
         <div class="flex flex-row space-x-5">
           <div class="flex items-center">How Many Items Would You Like To Place on this Job?</div>
           <div class="flex-1 mr-4">

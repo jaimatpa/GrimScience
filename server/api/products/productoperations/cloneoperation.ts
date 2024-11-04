@@ -5,12 +5,14 @@ export default eventHandler(async (event) => {
     
     const method = event._method;
     const { targetId, sourceId, username } = await readBody(event);
-    
+    console.log(targetId, sourceId, username)
     switch(method.toUpperCase()){
       case 'PUT':
         const modelExist = await productExistByModel(targetId);
+        console.log(modelExist)
         if (modelExist) {
           const updatedID = await cloneOperations(sourceId ,targetId, username)
+          console.log(updatedID)
           return { body: { updatedID }, message: 'Instruction cloned successfully' };
         } else {
           setResponseStatus(event, 404);

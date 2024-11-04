@@ -146,10 +146,14 @@ watchCheckbox('complaints', 'ValidComplaint');
 watch(() => filterValues.value.PRODUCTDESC, () => fetchBuiltCount())
 
 const percent = computed(() => {
-  if (totalOrders.value === 0) {
+  if (totalBuilt.value === 0) {
     return 0;
   }
-  return Math.round((totalBuilt.value / totalOrders.value) * 100);
+  const calculatedPercent = Math.round((gridMeta.value.numberOfServiceOrders / totalBuilt.value) * 100);
+
+  return Math.min(calculatedPercent, 100);
+
+  return calculatedPercent;
 });
 
 const selectedColumns = ref(gridMeta.value.defaultColumns)
@@ -157,137 +161,137 @@ const exportIsLoading = ref(false)
 
 const columns = computed(() => gridMeta.value.defaultColumns.filter(column => selectedColumns.value.includes(column)))
 
-  const init = async () => {
-    gridMeta.value.isLoading = true
-    fetchGridData()
-    fetchBuiltCount()
-    for(const key in headerFilters.value) {
-      const apiURL = headerFilters.value[key]?.api?? `/api/service/orders/${key}`;
-      await useApiFetch(apiURL, {
-        method: 'GET',
-        onResponse({ response }) {
-          if(response.status === 200) {
-            headerFilters.value[key].options = [null, ...response._data.body];
-          }
+const init = async () => {
+  gridMeta.value.isLoading = true
+  fetchGridData()
+  fetchBuiltCount()
+  for (const key in headerFilters.value) {
+    const apiURL = headerFilters.value[key]?.api ?? `/api/service/orders/${key}`;
+    await useApiFetch(apiURL, {
+      method: 'GET',
+      onResponse({ response }) {
+        if (response.status === 200) {
+          headerFilters.value[key].options = [null, ...response._data.body];
         }
-      })
-    }
+      }
+    })
   }
+}
 
-  
-  const fetchGridData = async () => {
-    gridMeta.value.isLoading = true
-    await useApiFetch('/api/service/orders/numbers', {
-      method: 'GET',
-      params: {
-        ...filterValues.value
-      }, 
-      onResponse({ response }) {
-        if(response.status === 200) {
-          gridMeta.value.numberOfServiceOrders = response._data.body
-        }
-      }
-    })
-    if (
-      gridMeta.value.page * gridMeta.value.pageSize >
-      gridMeta.value.numberOfServiceOrders
-    ) {
-      gridMeta.value.page =
-        Math.ceil(gridMeta.value.numberOfServiceOrders / gridMeta.value.pageSize) | 1;
-    }
-    await useApiFetch('/api/service/orders/', {
-      method: 'GET',
-      params: {
-        page: gridMeta.value.page,
-        pageSize: gridMeta.value.pageSize, 
-        sortBy: gridMeta.value.sort.column,
-        sortOrder: gridMeta.value.sort.direction,
-        ...filterValues.value,
-      }, 
-      onResponse({ response }) {
-        if(response.status === 200) {
-          gridMeta.value.orders = response._data.body
-        }
-        gridMeta.value.isLoading = false
-      }
-    });
-  }
-  const fetchBuiltCount = async () => {
-    await useApiFetch('/api/service/orders/builtCount', {
-      method: 'GET',
-      params: {
-        PRODUCTLINE: `${filterValues.value.PRODUCTDESC}`
-      }, 
-      onResponse({ response }) {
-        if(response.status === 200) {
-          totalBuilt.value = response._data.body
-        }
-      }
-    })
-  }
-  const handleModalClose = () => {
-    modalMeta.value.isServiceOrderModalOpen = false
-  }
-  const handleModalSave = async () => {
-    handleModalClose()
-    fetchGridData()
-  }
-  const handlePageChange = async () => {
-    fetchGridData()
-  }
-  const handleFilterChange = () => {
-    gridMeta.value.page = 1
-    fetchGridData()
-  }
-  const handleSortingButton = async (btnName: string) => {
-    gridMeta.value.page = 1
-    for(const column of columns.value) {
-      if(column.sortable) {
-        if (column.key === btnName) {
-          switch(column.sortDirection) {
-            case 'none':
-              column.sortDirection = 'asc';
-              gridMeta.value.sort.column = btnName;
-              gridMeta.value.sort.direction = 'asc';
-              break;
-            case 'asc':
-              column.sortDirection = 'desc';
-              gridMeta.value.sort.column = btnName;
-              gridMeta.value.sort.direction = 'desc';
-              break;
-            default:
-              column.sortDirection = 'none';
-              gridMeta.value.sort.column = 'COMPLAINTNUMBER';
-              gridMeta.value.sort.direction = 'desc';
-              break;
-          }
-        } else {
-          column.sortDirection = 'none';
-        }
+
+const fetchGridData = async () => {
+  gridMeta.value.isLoading = true
+  await useApiFetch('/api/service/orders/numbers', {
+    method: 'GET',
+    params: {
+      ...filterValues.value
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        gridMeta.value.numberOfServiceOrders = response._data.body
       }
     }
-    init()
+  })
+  if (
+    gridMeta.value.page * gridMeta.value.pageSize >
+    gridMeta.value.numberOfServiceOrders
+  ) {
+    gridMeta.value.page =
+      Math.ceil(gridMeta.value.numberOfServiceOrders / gridMeta.value.pageSize) | 1;
   }
-  const handleFilterInputChange = async (event, name) => {
-    gridMeta.value.page = 1
-    if (filterValues.value.hasOwnProperty(name)) {
-      filterValues.value[name] = event;
-    } else {
-      console.error(`Filter does not have property: ${name}`);
-    }
-    init()
-  }
-  const excelExport = () => {
-    exportIsLoading.value = true
-    const params = {
-        sortBy: gridMeta.value.sort.column,
-        sortOrder: gridMeta.value.sort.direction,
-        ...filterValues.value,
+  await useApiFetch('/api/service/orders/', {
+    method: 'GET',
+    params: {
+      page: gridMeta.value.page,
+      pageSize: gridMeta.value.pageSize,
+      sortBy: gridMeta.value.sort.column,
+      sortOrder: gridMeta.value.sort.direction,
+      ...filterValues.value,
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        gridMeta.value.orders = response._data.body
       }
-    const paramsString = Object.entries(params)
-      .filter(([_, value]) => value !== null)
-      .map(([key, value]) => {
-        if(value !== null)
+      gridMeta.value.isLoading = false
+    }
+  });
+}
+const fetchBuiltCount = async () => {
+  await useApiFetch('/api/service/orders/builtCount', {
+    method: 'GET',
+    params: {
+      PRODUCTLINE: `${filterValues.value.PRODUCTDESC}`
+    },
+    onResponse({ response }) {
+      if (response.status === 200) {
+        totalBuilt.value = response._data.body
+      }
+    }
+  })
+}
+const handleModalClose = () => {
+  modalMeta.value.isServiceOrderModalOpen = false
+}
+const handleModalSave = async () => {
+  handleModalClose()
+  fetchGridData()
+}
+const handlePageChange = async () => {
+  fetchGridData()
+}
+const handleFilterChange = () => {
+  gridMeta.value.page = 1
+  fetchGridData()
+}
+const handleSortingButton = async (btnName: string) => {
+  gridMeta.value.page = 1
+  for (const column of columns.value) {
+    if (column.sortable) {
+      if (column.key === btnName) {
+        switch (column.sortDirection) {
+          case 'none':
+            column.sortDirection = 'asc';
+            gridMeta.value.sort.column = btnName;
+            gridMeta.value.sort.direction = 'asc';
+            break;
+          case 'asc':
+            column.sortDirection = 'desc';
+            gridMeta.value.sort.column = btnName;
+            gridMeta.value.sort.direction = 'desc';
+            break;
+          default:
+            column.sortDirection = 'none';
+            gridMeta.value.sort.column = 'COMPLAINTNUMBER';
+            gridMeta.value.sort.direction = 'desc';
+            break;
+        }
+      } else {
+        column.sortDirection = 'none';
+      }
+    }
+  }
+  init()
+}
+const handleFilterInputChange = async (event, name) => {
+  gridMeta.value.page = 1
+  if (filterValues.value.hasOwnProperty(name)) {
+    filterValues.value[name] = event;
+  } else {
+    console.error(`Filter does not have property: ${name}`);
+  }
+  init()
+}
+const excelExport = () => {
+  exportIsLoading.value = true
+  const params = {
+    sortBy: gridMeta.value.sort.column,
+    sortOrder: gridMeta.value.sort.direction,
+    ...filterValues.value,
+  }
+  const paramsString = Object.entries(params)
+    .filter(([_, value]) => value !== null)
+    .map(([key, value]) => {
+      if (value !== null)
         return `${key}=${value}`
     })
     .join("&")
@@ -313,7 +317,7 @@ const onDblClick = async () => {
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar class="gmsPurpleHeader" title="Service Order">
+      <UDashboardNavbar class="gmsPurpleHeader" title="Service Order List">
       </UDashboardNavbar>
 
       <div class="px-4 py-2 gmsPurpleTitlebar">
@@ -353,7 +357,7 @@ const onDblClick = async () => {
           </div>
         </template>
         <template #right>
-          <div class="flex flex-row space-x-2">
+          <div class="flex flex-col space-y-2">
             <div>
               <UButton icon="i-heroicons-document-text" label="Export to Excel" color="green" variant="outline"
                 :ui="{ base: 'min-w-[210px] w-full', truncate: 'flex justify-center w-full' }" truncate
@@ -370,7 +374,7 @@ const onDblClick = async () => {
       <div class="px-4 py-2 gmsPurpleTitlebar">
         <h2>Order Lookup</h2>
       </div>
-      <div class="flex flex-row px-4 pt-4 bg-gms-gray-100">
+      <div class="flex flex-row px-4 py-4 pt-6 bg-gms-gray-100">
         <template v-for="checkbox in headerCheckboxes">
           <div class="basis-1/5">
             <UCheckbox v-model="filterValues[checkbox.filterKey]" :label="checkbox.label"
@@ -431,5 +435,5 @@ const onDblClick = async () => {
       :selected-complaint="gridMeta.selectedCompaintNumber" :selected-order="gridMeta.selectedOrderId" />
   </UDashboardModal>
 
-  
+
 </template>

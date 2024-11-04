@@ -136,7 +136,6 @@ export const createProduct = async (data,files) => {
     SPECSHEET = '/ProductSpecFiles/'+newProduct.dataValues.UniqueID+'_'+file.name
   }
 
-
   const newUpdatedProduct = await sequelize.query( `
     UPDATE tblBP 
     SET TODAY = :today ,
@@ -148,10 +147,10 @@ export const createProduct = async (data,files) => {
       today: formatDateForSQLServer(today), 
       instanceID: newProduct.dataValues.UniqueID,
       specsheet: SPECSHEET, 
-      uniqueID: data.UniqueID }
+      uniqueID: newProduct.dataValues.UniqueID }
   });
   
-  return newUpdatedProduct;
+  return newProduct.dataValues;
 };
 
 export const updateProduct = async (data,files) => {
@@ -251,6 +250,7 @@ export const inactiveProduct = async (id, reqData) => {
 }
 
 export const bulkInactiveProduct = async (data) => {
+  console.log(data)
   const promises = data.map(async uniqueID => {
     const tableDetail = await tblBP.findByPk(uniqueID);
     tableDetail.dataValues.UniqueID = null;

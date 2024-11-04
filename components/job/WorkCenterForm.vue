@@ -53,7 +53,7 @@ const fetchResponsibilities = async () => {
         responsibilities.value = response._data.body;
       }
     },
-    onResponseError({}) {
+    onResponseError({ }) {
       responsibilities.value = [];
     },
   });
@@ -68,7 +68,7 @@ const fetchWorkCenters = async () => {
         workCenterGridMeta.value.options = response._data.body;
       }
     },
-    onResponseError({}) {
+    onResponseError({ }) {
       WorkCenterExist.value = false;
       workCenterGridMeta.value.options = [];
     },
@@ -107,7 +107,7 @@ const fetchEmployeeWorkCenters = async () => {
         }
       }
     },
-    onResponseError({}) {
+    onResponseError({ }) {
       workCenters.value = [];
     },
   });
@@ -273,142 +273,101 @@ const headerCheckboxes = ref({
 
 <template>
   <div class="vl-parent">
-    <loading
-      v-model:active="loadingOverlay"
-      :is-full-page="true"
-      color="#000000"
-      backgroundColor="#1B2533"
-      loader="dots"
-    />
+    <loading v-model:active="loadingOverlay" :is-full-page="true" color="#000000" backgroundColor="#1B2533"
+      loader="dots" />
   </div>
-  <UForm
-    :validate="validate"
-    :validate-on="['submit']"
-    :state="formData"
-    class="space-y-4"
-    @submit="onSubmit"
-  >
-    <div class="w-full flex flex-col">
-      <div class="grid grid-cols-2 gap-x-4">
-        <div class="w-full mt-5">
-          <div class="flex space-x-3 justify-between">
-            <div class="basis-1/2">
-              <UFormGroup label="Number" name="Number">
-                <UInput v-model="formData.NUMBER" />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/2">
-              <UFormGroup label="Name" name="Name">
-                <UInput v-model="formData.NAME" />
-              </UFormGroup>
-            </div>
-          </div>
-          <div class="w-full my-3 flex space-x-4">
+  <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
+    <div class="w-full flex flex-col space-y-2 p-4">
+      <div class="flex space-x-2">
+        <div class="basis-1/4">
+          <UFormGroup label="Number" name="Number">
+            <UInput v-model="formData.NUMBER" />
+          </UFormGroup>
+        </div>
+        <div class="basis-1/4">
+          <UFormGroup label="Name" name="Name">
+            <UInput v-model="formData.NAME" />
+          </UFormGroup>
+        </div>
+        <div class="basis-1/2">
+          <UFormGroup label="Position Responsibilites" name="Position Responsibilites">
+            <UInputMenu v-model="formData.position" v-model:query="formData.position" :options="responsibilities" />
+          </UFormGroup>
+        </div>
+      </div>
+
+
+      <div class="flex space-x-2 items-end">
+
+        <div class="w-1/2 flex flex-col space-y-2">
+          <div class="flex space-x-2">
             <template v-for="checkbox in headerCheckboxes">
               <div class="">
-                <UCheckbox
-                  v-model="checkbox.isChecked"
-                  :label="checkbox.label"
-                />
+                <UCheckbox v-model="checkbox.isChecked" :label="checkbox.label" />
               </div>
             </template>
           </div>
-          <div class="">
-            <UButton
-              icon="i-heroicons-document-text"
-              type="submit"
-              variant="outline"
-              color="green"
-              label="Save"
-              :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }"
-              truncate
-            />
+          <div>
+            <UButton icon="i-heroicons-document-text" type="submit" variant="outline" color="green" label="Save"
+              block />
           </div>
-          <div class="mt-4">
-            <UTable
-              v-model="selected"
-              v-model:selected="selected"
-              :columns="workCenterGridMeta.defaultColumns"
-              :rows="workCenterGridMeta.options"
-              :ui="{
-                wrapper:
-                  'h-[528px] border-2 border-gray-300 dark:border-gray-700',
-                tr: {
-                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                },
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'px-2 py-0',
-                },
-                td: {
-                  base: 'h-[31px]',
-                  padding: 'px-2 py-0',
-                },
-              }"
-              @select="handleWorkCenterSelect"
-            >
-              <template #empty-state>
-                <div></div>
-              </template>
-            </UTable>
-          </div>
+
+        </div>
+        <div class="basis-4/12">
+          <UFormGroup label="Account" name="Account">
+            <UInputMenu :options="[]" />
+          </UFormGroup>
+        </div>
+        <div class="basis-2/12">
+          <UButton color="primary" variant="outline" block label="Load QB" icon="i-heroicons-pencil-square" />
         </div>
 
-        <div class="w-full mt-5">
-          <div class="">
-            <UFormGroup
-              label="Position Responsibilites"
-              name="Position Responsibilites"
-            >
-              <UInputMenu
-                v-model="formData.position"
-                v-model:query="formData.position"
-                :options="responsibilities"
-              />
-            </UFormGroup>
-          </div>
-
-          <div class="flex items-end gap-x-4 mt-5">
-            <div class="w-3/4">
-              <UFormGroup label="Account" name="Account">
-                <UInputMenu :options="[]" />
-              </UFormGroup>
-            </div>
-            <div class="w-1/4">
-              <UButton
-                color="blue"
-                variant="outline"
-                :ui="{
-                  base: 'w-full',
-                  truncate: 'flex justify-center w-full',
-                }"
-                label="Load QB"
-                icon="i-heroicons-pencil-square"
-              />
-            </div>
-          </div>
-
-          <div class="mt-4">
-            <UTable
-              :columns="workCenterColumns"
-              :ui="{
-                wrapper:
-                  'h-[528px] border-2 border-gray-300 dark:border-gray-700',
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'p-1',
-                },
-              }"
-            >
-              <template #empty-state>
-                <div></div>
-              </template>
-            </UTable>
-          </div>
-        </div>
       </div>
+
+      <div class="flex space-x-2">
+        <div class="w-1/2">
+          <UTable v-model="selected" v-model:selected="selected" :columns="workCenterGridMeta.defaultColumns"
+            :rows="workCenterGridMeta.options" :ui="{
+              wrapper:
+                'h-[528px] border-2 border-gray-300 dark:border-gray-700',
+              tr: {
+                active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+              },
+              th: {
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                padding: 'px-2 py-0',
+              },
+              td: {
+                base: 'h-[31px]',
+                padding: 'px-2 py-0',
+              },
+            }" @select="handleWorkCenterSelect">
+            <template #empty-state>
+              <div></div>
+            </template>
+          </UTable>
+        </div>
+        <div class="w-1/2">
+          <div class="">
+            <UTable :columns="workCenterColumns" :ui="{
+              wrapper:
+                'h-[528px] border-2 border-gray-300 dark:border-gray-700',
+              th: {
+                base: 'sticky top-0 z-10',
+                color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                padding: 'p-1',
+              },
+            }">
+              <template #empty-state>
+                <div></div>
+              </template>
+            </UTable>
+          </div>
+        </div>
+
+      </div>
+
     </div>
   </UForm>
 </template>

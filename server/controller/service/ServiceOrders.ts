@@ -1,9 +1,10 @@
-import { Op, Sequelize } from 'sequelize';
+import { Op, QueryTypes, Sequelize } from 'sequelize';
 import { tblCustomers, tblComplaints, tblServiceReport, tblInventoryTransactions, tblInventoryTransactionDetails, tblCurrentInventory, tblInventory, tblBP } from "~/server/models";
 import { format } from 'date-fns';
+import sequelize from '~/server/utils/databse';
 
 export const getServiceTotalBuilt = async (filterParams) => {
- 
+
   tblInventory.belongsTo(tblBP, { foreignKey: 'BPID', targetKey: 'UniqueID' });
   tblBP.hasMany(tblInventory, { foreignKey: 'BPID', sourceKey: 'UniqueID' });
 
@@ -28,179 +29,227 @@ export const getServiceTotalBuilt = async (filterParams) => {
   return countDistinctSerials;
 };
 
-export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filterParams) => {
+// export const getServiceOrders = async (page, pageSize, sortBy, sortOrder, filterParams) => {
 
-  const limit = parseInt(pageSize as string, 10) || 10;
-  const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
-  let whereClause = {}
-  let customerWhereClause = {}
-  if (filterParams.COMPLAINTNUMBER) whereClause['COMPLAINTNUMBER'] = { [Op.like]: `%${filterParams.COMPLAINTNUMBER}%` };
-  if (filterParams.PRODUCTDESC) whereClause['PRODUCTDESC'] = { [Op.like]: `%${filterParams.PRODUCTDESC}%` };
-  if (filterParams.SERIALNO) whereClause['SERIALNO'] = { [Op.like]: `%${filterParams.SERIALNO}%` };
-  if (filterParams.COMPLAINTDATE) whereClause[Op.and] = [
-    Sequelize.where(Sequelize.fn('FORMAT', Sequelize.col('COMPLAINTDATE'), 'MM/dd/yyyy'), {
-      [Op.like]: Sequelize.literal(`'%${filterParams.COMPLAINTDATE}%'`)
-    })
-  ]
-  if (filterParams.FAILINVEST) whereClause['FAILINVEST'] = { [Op.like]: `%${filterParams.FAILINVEST}%` };
-  if (filterParams.OPENCASE === 'true') whereClause['OPENCASE'] = 0
-  if (filterParams.OPENCASE === 'false') whereClause['OPENCASE'] = 1
-  if (filterParams.CRYOThermCheckup === 'true') whereClause['ValidComplaintReason'] = { [Op.like]: `%CRYOTherm Checkup%` };
-  if (filterParams.NonMedicalDevice === 'true') whereClause['ValidComplaintReason'] = { [Op.like]: `%Non-Medical Device%` };
-  if (filterParams.ValidComplaint === 'true') whereClause['ValidComplaint'] = -1
-  if (filterParams.INJURYREPORTNO === 'true') whereClause['INJURYREPORTNO'] = 1
-  if (filterParams.company1) customerWhereClause['company1'] = { [Op.like]: `%${filterParams.company1}%` };
-  tblComplaints.hasOne(tblCustomers, { foreignKey: 'UniqueID', sourceKey: 'CustomerID' })
-  const list = await tblComplaints.findAll({
-    attributes: [
-      'uniqueID',
-      'COMPLAINTNUMBER',
-      'SERIALNO',
-      'COMPLAINTDATE',
-      'FAILINVEST',
-      'OPENCASE',
-      'INJURYREPORTNO',
-      'ValidComplaint',
-      'WarrentyService',
-      'ValidComplaintReason',
-      [Sequelize.col('tblCustomer.company1'), 'company1'],
-      [Sequelize.col('tblCustomer.UniqueID'), 'customerID']
-    ],
-    include: [
-      {
-        model: tblCustomers,
-        attributes: ['UniqueID', 'company1'],
-        where: customerWhereClause
-      }
-    ],
-    where: {
-      ...whereClause
-    },
-    order: [[sortBy as string || 'COMPLAINTNUMBER', sortOrder as string || 'DESC']],
-    offset,
-    limit,
-    raw: true
-  })
-  const formattedList = list.map((item: any) => {
-    let openCase;
-    let injury;
-    let warranty;
-    let complaint;
-    if (item.OPENCASE === '0')
-      openCase = 'OPEN'
-    else
-      openCase = 'CLOSED'
-    if (item.INJURYREPORTNO === 0)
-      injury = 'NO'
-    else
-      injury = 'YES'
-    if (item.WarrentyService === -1)
-      warranty = 'YES'
-    else
-      warranty = 'NO'
-    if (item.ValidComplaint === '-1')
-      complaint = 'Yes'
-    else
-      complaint = 'NO'
-    let complaintDate = new Date(item.COMPLAINTDATE).toISOString().split('T')
-    complaintDate = complaintDate[0].split('-')
-    let formattedDate = `${complaintDate[1]}/${complaintDate[2]}/${complaintDate[0]}`
-    
-    return {
-      uniqueID: item.uniqueID,
-      COMPLAINTNUMBER: item.COMPLAINTNUMBER,
-      SERIALNO: item.SERIALNO,
-      FAILINVEST: item.FAILINVEST,
-      COMPLAINTDATE: formattedDate,
-      Status: openCase,
-      INJURYREPORTNO: injury,
-      Warranty: warranty,
-      Complaint: complaint,
-      customerID: item['tblCustomer.UniqueID'],
-      company1: item['tblCustomer.company1']
-    }
-  })
-  return formattedList;
-}
+//   const limit = parseInt(pageSize as string, 10) || 10;
+//   const offset = ((parseInt(page as string, 10) - 1) || 0) * limit;
+//   let whereClause = {}
+//   let customerWhereClause = {}
+//   if (filterParams.COMPLAINTNUMBER) whereClause['COMPLAINTNUMBER'] = { [Op.like]: `%${filterParams.COMPLAINTNUMBER}%` };
+//   if (filterParams.PRODUCTDESC) whereClause['PRODUCTDESC'] = { [Op.like]: `%${filterParams.PRODUCTDESC}%` };
+//   if (filterParams.SERIALNO) whereClause['SERIALNO'] = { [Op.like]: `%${filterParams.SERIALNO}%` };
+//   if (filterParams.COMPLAINTDATE) whereClause[Op.and] = [
+//     Sequelize.where(Sequelize.fn('FORMAT', Sequelize.col('COMPLAINTDATE'), 'MM/dd/yyyy'), {
+//       [Op.like]: Sequelize.literal(`'%${filterParams.COMPLAINTDATE}%'`)
+//     })
+//   ]
+//   if (filterParams.FAILINVEST) whereClause['FAILINVEST'] = { [Op.like]: `%${filterParams.FAILINVEST}%` };
+//   if (filterParams.OPENCASE === 'true') whereClause['OPENCASE'] = 0
+//   if (filterParams.OPENCASE === 'false') whereClause['OPENCASE'] = 1
+//   if (filterParams.CRYOThermCheckup === 'true') whereClause['ValidComplaintReason'] = { [Op.like]: `%CRYOTherm Checkup%` };
+//   if (filterParams.NonMedicalDevice === 'true') whereClause['ValidComplaintReason'] = { [Op.like]: `%Non-Medical Device%` };
+//   if (filterParams.ValidComplaint === 'true') whereClause['ValidComplaint'] = -1
+//   if (filterParams.INJURYREPORTNO === 'true') whereClause['INJURYREPORTNO'] = 1
+//   if (filterParams.company1) customerWhereClause['company1'] = { [Op.like]: `%${filterParams.company1}%` };
+//   tblComplaints.hasOne(tblCustomers, { foreignKey: 'UniqueID', sourceKey: 'CustomerID' })
+//   const list = await tblComplaints.findAll({
+//     attributes: [
+//       'uniqueID',
+//       'COMPLAINTNUMBER',
+//       'SERIALNO',
+//       'COMPLAINTDATE',
+//       'FAILINVEST',
+//       'OPENCASE',
+//       'INJURYREPORTNO',
+//       'ValidComplaint',
+//       'WarrentyService',
+//       'ValidComplaintReason',
+//       [Sequelize.col('tblCustomer.company1'), 'company1'],
+//       [Sequelize.col('tblCustomer.UniqueID'), 'customerID']
+//     ],
+//     include: [
+//       {
+//         model: tblCustomers,
+//         attributes: ['UniqueID', 'company1'],
+//         where: customerWhereClause
+//       }
+//     ],
+//     where: {
+//       ...whereClause
+//     },
+//     order: [[sortBy as string || 'COMPLAINTNUMBER', sortOrder as string || 'DESC']],
+//     offset,
+//     limit,
+//     raw: true
+//   })
+//   const formattedList = list.map((item: any) => {
+//     let openCase;
+//     let injury;
+//     let warranty;
+//     let complaint;
+//     if (item.OPENCASE === '0')
+//       openCase = 'OPEN'
+//     else
+//       openCase = 'CLOSED'
+//     if (item.INJURYREPORTNO === 0)
+//       injury = 'NO'
+//     else
+//       injury = 'YES'
+//     if (item.WarrentyService === -1)
+//       warranty = 'YES'
+//     else
+//       warranty = 'NO'
+//     if (item.ValidComplaint === '-1')
+//       complaint = 'Yes'
+//     else
+//       complaint = 'NO'
+//     let complaintDate = new Date(item.COMPLAINTDATE).toISOString().split('T')
+//     complaintDate = complaintDate[0].split('-')
+//     let formattedDate = `${complaintDate[1]}/${complaintDate[2]}/${complaintDate[0]}`
 
+//     return {
+//       uniqueID: item.uniqueID,
+//       COMPLAINTNUMBER: item.COMPLAINTNUMBER,
+//       SERIALNO: item.SERIALNO,
+//       FAILINVEST: item.FAILINVEST,
+//       COMPLAINTDATE: formattedDate,
+//       Status: openCase,
+//       INJURYREPORTNO: injury,
+//       Warranty: warranty,
+//       Complaint: complaint,
+//       customerID: item['tblCustomer.UniqueID'],
+//       company1: item['tblCustomer.company1']
+//     }
+//   })
+//   return formattedList;
+// }
+export const getServiceOrders = async (page: string, pageSize: string, sortBy: string, sortOrder: string, filterParams: any) => {
+  const limit = parseInt(pageSize, 10) || 10;
+  const offset = ((parseInt(page, 10) - 1) || 0) * limit;
+
+  let whereConditions: string[] = [];
+  const replacements: any = {};
+
+  // Build WHERE conditions based on filter params
+  if (filterParams.COMPLAINTNUMBER) {
+    whereConditions.push("c.COMPLAINTNUMBER LIKE :complaintNumber");
+    replacements.complaintNumber = `%${filterParams.COMPLAINTNUMBER}%`;
+  }
+
+  if (filterParams.PRODUCTDESC) {
+    whereConditions.push("c.PRODUCTDESC LIKE :productDesc");
+    replacements.productDesc = `%${filterParams.PRODUCTDESC}%`;
+  }
+
+  if (filterParams.SERIALNO) {
+    whereConditions.push("c.SERIALNO LIKE :serialNo");
+    replacements.serialNo = `%${filterParams.SERIALNO}%`;
+  }
+
+  if (filterParams.COMPLAINTDATE) {
+    whereConditions.push("FORMAT(c.COMPLAINTDATE, 'MM/dd/yyyy') LIKE :complaintDate");
+    replacements.complaintDate = `%${filterParams.COMPLAINTDATE}%`;
+  }
+
+  if (filterParams.FAILINVEST) {
+    whereConditions.push("c.FAILINVEST LIKE :failInvest");
+    replacements.failInvest = `%${filterParams.FAILINVEST}%`;
+  }
+
+  if (filterParams.OPENCASE === 'true') {
+    whereConditions.push("c.OPENCASE = :openCase");
+    replacements.openCase = 0;
+  }
+
+  if (filterParams.OPENCASE === 'false') {
+    whereConditions.push("c.OPENCASE = :openCase");
+    replacements.openCase = 1;
+  }
+
+  if (filterParams.CRYOThermCheckup === 'true') {
+    whereConditions.push("c.ValidComplaintReason LIKE :cryoTherm");
+    replacements.cryoTherm = '%CRYOTherm Checkup%';
+  }
+
+  if (filterParams.NonMedicalDevice === 'true') {
+    whereConditions.push("c.ValidComplaintReason LIKE :nonMedical");
+    replacements.nonMedical = '%Non-Medical Device%';
+  }
+
+  if (filterParams.ValidComplaint === 'true') {
+    whereConditions.push("c.ValidComplaint = :validComplaint");
+    replacements.validComplaint = -1;
+  }
+
+  if (filterParams.INJURYREPORTNO === 'true') {
+    whereConditions.push("c.INJURYREPORTNO = :injuryReport");
+    replacements.injuryReport = 1;
+  }
+
+  if (filterParams.company1) {
+    whereConditions.push("cust.company1 LIKE :company");
+    replacements.company = `%${filterParams.company1}%`;
+  }
+
+  const whereClause = whereConditions.length > 0
+    ? `WHERE ${whereConditions.join(' AND ')}`
+    : '';
+
+  const query = `
+    SELECT 
+      c.uniqueID,
+      c.COMPLAINTNUMBER,
+      c.SERIALNO,
+      c.COMPLAINTDATE,
+      c.FAILINVEST,
+      c.OPENCASE,
+      c.INJURYREPORTNO,
+      c.ValidComplaint,
+      c.WarrentyService,
+      c.ValidComplaintReason,
+      cust.company1,
+      cust.UniqueID as customerID
+    FROM tblComplaints c
+    LEFT JOIN tblCustomers cust ON cust.UniqueID = c.CustomerID
+    ${whereClause}
+    ORDER BY ${sortBy || 'c.COMPLAINTNUMBER'} ${sortOrder || 'DESC'}
+    OFFSET :offset ROWS
+    FETCH NEXT :limit ROWS ONLY
+  `;
+
+  // Count query for total records (for pagination)
+  const countQuery = `
+    SELECT COUNT(*) as total
+    FROM tblComplaints c
+    LEFT JOIN tblCustomers cust ON cust.UniqueID = c.CustomerID
+    ${whereClause}
+  `;
+
+  try {
+    // Add pagination parameters
+    replacements.offset = offset;
+    replacements.limit = limit;
+
+    const [results, countResult] = await Promise.all([
+      sequelize.query(query, {
+        replacements,
+        type: QueryTypes.SELECT
+      }),
+      sequelize.query(countQuery, {
+        replacements,
+        type: QueryTypes.SELECT
+      })
+    ]);
+
+    return results
+  } catch (error) {
+    console.error('Error executing service orders query:', error);
+    throw error;
+  }
+};
 export const getComplaintDetail = async (id) => {
   const detail = await tblComplaints.findByPk(id)
   return detail
-}
-
-export const getAllServiceOrders = async (sortBy, sortOrder, filterParams) => {
-  let whereClause = {}
-  let customerWhereClause = {}
-  if (filterParams.COMPLAINTNUMBER) whereClause['COMPLAINTNUMBER'] = { [Op.like]: `%${filterParams.COMPLAINTNUMBER}%` };
-  if (filterParams.SERIALNO) whereClause['SERIALNO'] = { [Op.like]: `%${filterParams.SERIALNO}%` };
-  if (filterParams.COMPLAINTDATE) whereClause[Op.and] = [
-    Sequelize.where(Sequelize.fn('FORMAT', Sequelize.col('COMPLAINTDATE'), 'MM/dd/yyyy'), {
-      [Op.like]: Sequelize.literal(`'%${filterParams.COMPLAINTDATE}%'`)
-    })
-  ]
-  if (filterParams.FAILINVEST) whereClause['FAILINVEST'] = { [Op.like]: `%${filterParams.FAILINVEST}%` };
-  if (filterParams.company) customerWhereClause['company1'] = { [Op.like]: `%${filterParams.company}%` };
-  tblComplaints.hasOne(tblCustomers, { foreignKey: 'UniqueID', sourceKey: 'CustomerID' })
-  const list = await tblComplaints.findAll({
-    attributes: [
-      'uniqueID',
-      'COMPLAINTNUMBER',
-      'SERIALNO',
-      'COMPLAINTDATE',
-      'FAILINVEST',
-      'OPENCASE',
-      'INJURYREPORTNO',
-      'WarrentyService',
-      [Sequelize.col('tblCustomer.company1'), 'company1'],
-      [Sequelize.col('tblCustomer.UniqueID'), 'customerID']
-    ],
-    include: [
-      {
-        model: tblCustomers,
-        attributes: ['UniqueID', 'company1'],
-        where: customerWhereClause
-      }
-    ],
-    where: {
-      OPENCASE: 0,
-      ...whereClause
-    },
-    order: [[sortBy as string || 'COMPLAINTNUMBER', sortOrder as string || 'DESC']],
-    raw: true
-  })
-  const formattedList = list.map((item: any) => {
-    let openCase;
-    let injury;
-    let warranty;
-    if (item.OPENCASE === '0')
-      openCase = 'OPEN'
-    else
-      openCase = 'CLOSE'
-    if (item.injury === 0)
-      injury = 'NO'
-    else
-      injury = 'YES'
-    if (item.WarrentyService === -1)
-      warranty = 'YES'
-    else
-      warranty = 'NO'
-    let complaintDate = new Date(item.COMPLAINTDATE).toISOString().split('T')
-    complaintDate = complaintDate[0].split('-')
-    let formattedDate = `${complaintDate[1]}/${complaintDate[2]}/${complaintDate[0]}`
-    return {
-      uniqueID: item.uniqueID,
-      COMPLAINTNUMBER: item.COMPLAINTNUMBER,
-      SERIALNO: item.SERIALNO,
-      FAILINVEST: item.FAILINVEST,
-      COMPLAINTDATE: formattedDate,
-      Status: openCase,
-      INJURYREPORTNO: injury,
-      Warranty: warranty,
-      customerID: item['tblCustomer.UniqueID'],
-      company1: item['tblCustomer.company1']
-    }
-  })
-  return formattedList;
 }
 
 export const getNumberOfServiceOrders = async (filterParams) => {
@@ -577,4 +626,19 @@ export const createComplaint = async (reqData, newCompId, getSerialRes) => {
   }
   const newComplaint = await tblComplaints.create(createReqData)
   return newComplaint
+}
+
+export const getServiceOrderByCustomer = async (customerId) => {
+  const complaintOrders = await sequelize.query(
+    `SELECT uniqueid, opencase as openclosed, complaintdate as DateTime, complaintnumber as number 
+     FROM tblComplaints 
+     WHERE CustomerID = :customerId 
+     ORDER BY uniqueid DESC`,
+    {
+      replacements: { customerId },
+      type: QueryTypes.SELECT
+    }
+  );
+
+  return complaintOrders;
 }

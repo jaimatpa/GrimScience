@@ -745,9 +745,9 @@ else
             <div class="flex flex-row space-x-2 pt-1">
               <div class="flex-1">
                 <p class="font-medium">
-                Description
+                Service Description
               </p>
-                <UTextarea v-model="formData.REPAIRSMADE" :rows="2" />
+                <UTextarea v-model="formData.REPAIRSMADE" :rows="3" />
               </div>
             </div>
           </div>
@@ -809,7 +809,7 @@ else
     </div>
     <div class="flex flex-col">
       <div class="w-full px-3 py-1 gmsPurpleTitlebar">
-        Warranty Material
+        Material
       </div>
       <div class="flex flex-row space-x-3 p-3">
         <div class="w-1/2">

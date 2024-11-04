@@ -31,7 +31,7 @@ export default eventHandler(async (event) => {
               <td width="70" style="padding:2px 30px 2px 0; text-align: right; vertical-align: top;">${item.SERIALNO}</td>
               <td width="200" style="padding:2px 30px 2px 0; text-align: center; vertical-align: top;">${item.COMPLAINTDATE}</td>
               <td width="500" style="padding:2px 30px 2px 0; text-align: right; ">
-                <div>
+                <div style="text-align:left;">
                   <div>${item.cusomternumber}</div>
                   <div>${item.cusomterfname} ${item.cusomterlname}</div>
                   <div>${item.cusomtercompany1}</div>

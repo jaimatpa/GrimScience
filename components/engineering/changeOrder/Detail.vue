@@ -31,14 +31,12 @@ const descIcon = "i-heroicons-bars-arrow-down-20-solid";
 const noneIcon = "i-heroicons-arrows-up-down-20-solid";
 
 const headerFilters = ref({
-
   productLines: {
     label: "Product Line",
     filter: "PRODUCT",
     api: "/api/materials/productlines",
     options: [],
   },
-
 });
 
 const headerCheckboxes = ref({
@@ -219,11 +217,6 @@ const handlePageChange = async () => {
   fetchGridData();
 };
 
-// const handleFilterChange = () => {
-//   gridMeta.value.page = 1;
-//   fetchGridData();
-// };
-
 const handleSortingButton = async (btnName: string) => {
   gridMeta.value.page = 1;
   for (const column of columns.value) {
@@ -294,25 +287,50 @@ const onDblClick = () => {
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardNavbar
+      <!-- <UDashboardNavbar
         v-show="props.isPage"
-        class="gmsPurpleHeader"
+        class="gmsBlueHeader"
         title="Change Order"
       >
-      </UDashboardNavbar>
-      <UDashboardToolbar class="bg-gms-gray-100">
         <template #left>
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/5 max-w-[300px] min-w-[150px] mr-4">
-              <UFormGroup label="Product Line" name="productLine">
-                <USelect
-                  v-model="filterValues.PRODUCT"
-                  :options="headerFilters.productLines.options"
-                  @change="() => handleCheckboxChange()"
-                />
-              </UFormGroup>
-            </div>
+          <div class="">
+            <UFormGroup
+              label="Product Line"
+              name="productLine"
+              class="flex flex-row pr-[3px]"
+            >
+              <USelect
+                v-model="filterValues.PRODUCT"
+                :options="headerFilters.productLines.options"
+                @change="() => handleCheckboxChange()"
+              />
+            </UFormGroup>
           </div>
+        </template>
+      </UDashboardNavbar> -->
+
+      <UDashboardNavbar
+        class="gmsBlueHeader"
+        title="Change Order"
+      >
+  
+        <template #center>
+          <div class="flex items-center ml-[-400px]">
+            <h2 class="bg-white px-[20px] py-[3px] rounded-[5px]">Product Line</h2>
+              <USelect
+                v-model="filterValues.PRODUCT"
+                :options="headerFilters.productLines.options"
+                @change="handleCheckboxChange"
+                class="min-w-[200px] border-  border-solid border-gray-300 rounded-none"
+              />
+       
+          </div>
+        </template>
+      </UDashboardNavbar>
+
+      <UDashboardToolbar class="gmsBlueTitlebar mt-[-1px]">
+        <template #left>
+          <h3>Lookup</h3>
         </template>
         <template #right>
           <div class="flex flex-row space-x-2">
@@ -348,7 +366,7 @@ const onDblClick = () => {
           </div>
         </template>
       </UDashboardToolbar>
-      <!-- :rows="gridMeta.orders" -->
+
       <UTable
         :rows="formattedOrders"
         :columns="columns"
@@ -358,10 +376,10 @@ const onDblClick = () => {
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
             base: 'sticky top-0 z-10',
-            padding:'pb-0',
+            padding: 'pb-0',
           },
           td: {
-            padding:'py-1',
+            padding: 'py-1',
           },
         }"
         :empty-state="{

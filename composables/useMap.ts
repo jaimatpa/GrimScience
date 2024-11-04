@@ -26,19 +26,19 @@ export const useMap = () => {
 
   const filters = reactive<Record<string, Filter>>({
     pendingInstalls: {
-      checked: false,
+      checked: true,
       color: "darkgreen",
       label: "Pending Installations",
       labelColor: "#fff",
     },
     checkups: {
-      checked: false,
+      checked: true,
       color: "lightblue",
       label: "Checkups",
       labelColor: "#222",
     },
     serviceReports: {
-      checked: false,
+      checked: true,
       color: "red",
       label: "Open Field Complaints",
       labelColor: "#fff",
@@ -90,7 +90,6 @@ export const useMap = () => {
     params: { action: "getPins" },
     key: "map-pins",
   });
-  console.log("Pin--------", pins.value);
 
   const initMap = () => {
     if (!mapRef.value) return;
@@ -549,7 +548,7 @@ export const useMap = () => {
       method: "GET",
       onResponse({ response }) {
         if (response.status === 200) {
-          // gridMeta.value.selectedOrderId = response._data.body.orderid;
+          gridMeta.value.selectedOrderId = id;
           gridMeta.value.selectedCustomerId = response._data.body.CustomerID;
           modalMeta.value.isSiteVisitModalOpen = true;
         }

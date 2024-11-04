@@ -31,6 +31,7 @@ const tagEntryFormData = ref({
   jobNum: 0,
   investigationNum: 0
 });
+
 const createTagEntriesFormData = ref({
   UniqueID: null,
   NonConformanceID: null,
@@ -55,7 +56,17 @@ const nonConformanceGridMeta = ref({
       key: 'STATUS',
       label: 'Status',
       filterable: true,
-      filterOptions: []
+      filterOptions: [
+        "",
+        "Quarantined",
+        "Rework",
+        "Scrap",
+        "Rejected",
+        "Inspected",
+        "Return to Stock",
+        "Repairable",
+        "Inspected/Use As Is"
+      ]
     }, {
       key: 'TAGASSIGNEDTO',
       label: 'Assigned To',
@@ -65,7 +76,12 @@ const nonConformanceGridMeta = ref({
       key: 'TAGLOCATION',
       label: 'Locastion',
       filterable: true,
-      filterOptions: []
+      filterOptions: [
+        "",
+        "#35 Service",
+        "#62 Electronics",
+        "#Materials"
+      ]
     }, {
       key: 'PARTS',
       label: 'Description',
@@ -92,6 +108,7 @@ const nonConformanceGridMeta = ref({
   selectedNonConformance: null,
   isLoading: false
 })
+
 const tagEntriesGridMeta = ref({
   defaultColumns: <UTableColumn[]>[
     {
@@ -167,6 +184,8 @@ const editInit = async () => {
 const propertiesInit = async () => {
   loadingOverlay.value = true
   await fetchNonConformances();
+
+  
   await useApiFetch(`/api/engineering/nonconformances/filters`, {
     method: 'GET',
     onResponse({ response }) {
@@ -174,6 +193,10 @@ const propertiesInit = async () => {
         const filters = response._data.body;
 
         const employees = filters.employees;
+        nonConformanceGridMeta.value.defaultColumns.find(column => column.key === 'TAGASSIGNEDTO').filterOptions = employees.map(emp => ({
+          label: emp,
+          value: emp
+        }));
         tagEntriesGridMeta.value.defaultColumns.find(column => column.key === 'ByEmployee').filterOptions = employees.map(emp => ({
           label: emp,
           value: emp
@@ -213,7 +236,11 @@ const fetchNonConformanceTags = async (uid) => {
             createTagEntriesFormData.value[k] = response._data.body[k];
           }
         });
-
+        //  Object.keys(createTagEntriesFormData.value).forEach(k => {
+        //   if (k in response._data.body) {
+        //     createTagEntriesFormData.value[k] = response._data.body[k];
+        //   }
+        // });
       }
     }
   })
@@ -269,6 +296,7 @@ const handleSaveNonConformanceTags = async () => {
     onResponse({ response }) {
       console.log(response)
       if (response.status === 200) {
+        fetchNonConformanceTags(createTagEntriesFormData.value.UniqueID)
         toast.add({
           title: "Success",
           description: response._data.message,
@@ -418,14 +446,14 @@ const handleNonConformancePDFGeneration = async () => {
     })
 
     if (data) {
-      // Create a Blob from the PDF data
+      
       const blob = new Blob([data], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
 
-      // Open the PDF in a new tab
+      
       window.open(url, '_blank')
 
-      // Clean up the URL object
+      
       URL.revokeObjectURL(url)
 
       toast.add({
@@ -568,12 +596,14 @@ else
             }
           }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
           @select="onNonConformanceSelect" @dblclick="onNonConformanceDblclick">
+
+
           <template v-for="column in nonConformanceGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
             <template v-if="!column.filterOptions">
               <template v-if="column.key === 'SERVICEREPORT' || 'TAGASSIGNEDTO'">
                 <div class="px-1 py-1  min-w-[150px]">
                   <CommonSortAndInputFilter @handle-input-change="handleFilterChange" :label="column.label"
-                    :filterable="column.filterable" :filter-key="column.key" />
+                    :filterable="column.filterable" :filter-key="column.key" :filterOptions="column.filterOptions" />
                 </div>
               </template>
               <template v-else>
@@ -590,6 +620,8 @@ else
               </div>
             </template>
           </template>
+
+
         </UTable>
       </div>
     </div>
@@ -667,11 +699,12 @@ else
             }
           }" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
           @select="(row) => onNonConformanceSelectTag(row)">
+
           <template v-for="column in tagEntriesGridMeta.defaultColumns" v-slot:[`${column.key}-header`]>
             <template v-if="!column.filterOptions">
               <div class="px-1 py-1">
                 <CommonSortAndInputFilter @handle-input-change="handleTagEntriesFormData" :label="column.label"
-                  :filterable="column.filterable" :filter-key="column.key" />
+                  :filterable="column.filterable" :filter-key="column.key" :v-model="['000']" />
               </div>
             </template>
             <template v-else>
@@ -750,17 +783,23 @@ else
 
   </UForm>
   <UDashboardModal title="Select serial" :ui="{
-    width: 'w-[1440px] sm:max-w-9xl',
+    header: {
+      base: 'bg-gms-blue',
+    },
+    width: 'w-[1250px]',
   }" v-model="isSerialModal">
-    <MaterialsSerialsSerialList @select="v => { formData.SERIAL = v.MODEL; isSerialModal = false }" />
+    <UDashboardPanel grow>
+      <MaterialsSerialsSerialList @select="v => { formData.SERIAL = v.MODEL; isSerialModal = false }" />
+    </UDashboardPanel>
   </UDashboardModal>
+
   <UDashboardModal :ui="{
-    width: 'w-[1440px] sm:max-w-9xl',
+    header: {
+      base: 'bg-gms-blue',
+    },
+    width: 'w-[1250px]',
   }" title="Select Part" v-model="isPartModal">
-    <UDashboardModal :ui="{
-      width: 'w-[1440px] sm:max-w-9xl',
-    }" title="Select Part" v-model="isPartModal">
-      <MaterialsPartsPartList :is-page="false" @close="isPartModal = false" @select="desc => formData.PARTS = desc" />
-    </UDashboardModal>
+
+    <MaterialsPartsPartList :is-page="false" @close="isPartModal = false" @select="desc => formData.PARTS = desc" />
   </UDashboardModal>
 </template>

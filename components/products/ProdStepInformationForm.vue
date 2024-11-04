@@ -3,6 +3,7 @@ import type { FormError, FormSubmitEvent } from "#ui/types";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
 import type { UTableColumn } from "~/types";
+import Parts from '~/pages/materials/parts.vue';
 const { handleFileInput, files } = useFileStorage();
 
 const ascIcon = "i-heroicons-bars-arrow-up-20-solid";
@@ -341,6 +342,10 @@ const stepGridMeta = ref({
   isLoading: false,
 });
 
+const modalMeta = ref({
+  isPartsLookupModelOpne: false
+})
+
 const handleFileUpload = (event) => {
   const selectedFiles = Array.from(event.target.files);
   stepFiles.value = [...stepFiles.value, ...selectedFiles];
@@ -384,8 +389,13 @@ const onPartSelect = async (row) => {
 };
 
 const onPartDblClick = async () => {
-  //
+  modalMeta.value.isPartsLookupModelOpne = true
 };
+
+const handlePartsListClose = async () => {
+  modalMeta.value.isPartsLookupModelOpne = false;
+}
+
 
 const handleQuantityClick = () => {
   if(partsStockGridMeta.value.selectedPart){
@@ -550,220 +560,48 @@ else propertiesInit();
       class="space-y-4"
       @submit="onSubmit"
     >
-      <div class="flex flex-col">
-        <div class="menuBlue text-white py-3 pl-2 opacity-75">Details</div>
 
-        <div class="flex">
-          <div class="w-1/2">
-            <div class="flex flex-row space-x-3 items-end mb-4 px-4">
-              <div class="">
-                <UFormGroup label="Step" name="Unit Material Cost">
-                  <input
-                    type="file"
-                    size="sm"
-                    icon="i-heroicons-folder"
-                    id="file-upload"
-                    multiple
-                    @input="handleFileInput"
-                    @change="handleFileUpload"
-                  />
-                </UFormGroup>
-              </div>
-              <div class="">
-                <UFormGroup label="Description" name="ReportsTo">
-                  <UInput v-model="formData.Description" placeholder="" />
-                </UFormGroup>
-              </div>
-            </div>
-            <UTable
-              :columns="stepGridMeta.defaultColumns"
-              :rows="stepGridMeta.steps"
-              :ui="{
-                wrapper:
-                  'h-[268px] border-2 border-gray-300 dark:border-gray-700',
-                tr: {
-                  active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
-                },
-                th: {
-                  base: 'sticky top-0 z-10',
-                  color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                  padding: 'px-2 py-0',
-                },
-                td: {
-                  base: 'h-[31px]',
-                  padding: 'px-2 py-0',
-                },
-              }"
-            >
-            <template #file-data="{ row }">
-              <UTooltip  text="File">
-                <a 
-                  v-if="row.path" 
-                  class=" text-blue underline" 
-                  :href="row.path" 
-                  download
-                >
-                  Download
-                </a>
-                <span v-else></span>
-              </UTooltip>
-            </template>
-            <template #delete-data="{ row , index}">
-              <UTooltip text="Delete" >
-                <UButton
-                  color="red"
-                  variant="ghost"
-                  icon="i-heroicons-minus-circle"
-                  @click="removeFile(row.uniqueID, index)"
-                />
-              </UTooltip>
-            </template>
-            </UTable>
+      <div>
 
+        <div class="flex flex-col space-y-2 pb-3">
+          <div class="w-full px-3 py-1 gmsBlueTitlebar">
+            Details
           </div>
-          <div class="w-1/2">
-            <div class="pt-4 pl-4 mt-7">
-              <div class="">
-                <UFormGroup label="Notes" name="ReportsTo">
-                  <UTextarea
-                    v-model="formData.notes"
-                    :rows="13"
-                    placeholder=""
-                  />
-                </UFormGroup>
-              </div>
-              <div class="flex justify-between my-4">
-                <div class="w-[120px]">
-                  <UButton
-                    icon="i-heroicons-document-text"
-                    type="submit"
-                    variant="outline"
-                    color="green"
-                    label="Save"
-                    :ui="{
-                      base: 'w-full',
-                      truncate: 'flex justify-center w-full',
-                    }"
-                    truncate
-                  />
-                </div>
-                <div class="w-[120px]">
-                  <UButton
-                    icon="i-heroicons-minus-circle"
-                    variant="outline"
-                    color="red"
-                    label="Delete"
-                    :ui="{
-                      base: 'w-full',
-                      truncate: 'flex justify-center w-full',
-                    }"
-                    @click="handleDelteStep"
-                    truncate
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex flex-col w-full">
-        <div class="menuBlue text-white py-3 pl-2 opacity-75">
-          Parts Required
+          
+          
         </div>
 
-        <div class="flex">
-          <div class="w-1/2">
+        <div class="flex flex-col space-y-2">
 
-            <div class="mt-5">
+          <div class="flex">
+
+            <div class="w-1/2 p-3">
+              <div class="flex flex-row space-x-3 items-end pb-3">
+                <div class="">
+                  <UFormGroup label="Step" name="Unit Material Cost">
+                    <input
+                      type="file"
+                      size="sm"
+                      icon="i-heroicons-folder"
+                      id="file-upload"
+                      multiple
+                      @input="handleFileInput"
+                      @change="handleFileUpload"
+                    />
+                  </UFormGroup>
+                </div>
+                <div class="">
+                  <UFormGroup label="Description" name="ReportsTo">
+                    <UInput v-model="formData.Description" placeholder="" />
+                  </UFormGroup>
+                </div>
+              </div>
               <UTable
-                :rows="productGridMeta.products"
-                :columns="productGridMeta.defaultColumns"
-                :loading="productGridMeta.isLoading"
-                class="w-full"
+                :columns="stepGridMeta.defaultColumns"
+                :rows="stepGridMeta.steps"
                 :ui="{
                   wrapper:
-                    'overflow-y-auto h-60 border-2 border-gray-300 dark:border-gray-700',
-                  divide: 'divide-gray-200 dark:divide-gray-800',
-                  th: {
-                    base: 'sticky top-0 z-10',
-                    color: 'bg-white dark:text-gray dark:bg-[#111827]',
-                    padding: 'p-0',
-                  },
-                  td: {
-                    base: 'h-[31px]',
-                    padding: 'py-0',
-                  },
-                }"
-                :empty-state="{
-                  icon: 'i-heroicons-circle-stack-20-solid',
-                  label: 'No items.',
-                }"
-                @select="onProductSelect"
-                @dblclick="onProductDblClick"
-              >
-                <template
-                  v-for="column in productGridMeta.defaultColumns"
-                  v-slot:[`${column.key}-header`]
-                >
-                  <template v-if="!column.filterOptions">
-                    <div class="px-1 py-1">
-                      <CommonSortAndInputFilter
-                        @handle-sorting-button="handleProductSortingButton"
-                        @handle-input-change="handleProductFilterInputChange"
-                        :label="column.label"
-                        :sortable="column.sortable"
-                        :sort-key="column.key"
-                        :sort-icon="
-                          column?.sortDirection === 'none'
-                            ? noneIcon
-                            : column?.sortDirection === 'asc'
-                            ? ascIcon
-                            : descIcon
-                        "
-                        :filterable="column.filterable"
-                        :filter-key="column.key"
-                      />
-                    </div>
-                  </template>
-                  <template v-else>
-                    <div class="px-1 py-1 min-w-[120px]">
-                      <CommonSortAndSelectFilter
-                        @handle-sorting-button="handleProductSortingButton"
-                        @handle-select-change="handleProductFilterInputChange"
-                        :label="column.label"
-                        :sortable="column.sortable"
-                        :sort-key="column.key"
-                        :sort-icon="
-                          column?.sortDirection === 'none'
-                            ? noneIcon
-                            : column?.sortDirection === 'asc'
-                            ? ascIcon
-                            : descIcon
-                        "
-                        :value="productFilterValues[column.key]"
-                        :filterable="column.filterable"
-                        :filter-key="column.key"
-                        :filter-options="column.filterOptions"
-                      />
-                    </div>
-                  </template>
-                </template>
-                <template #UniqueID-data="{ row }">
-                  <div class="w-[50px]">
-                    {{ row.UniqueID }}
-                  </div>
-                </template>
-              </UTable>
-            </div>
-          </div>
-          <div class="w-1/2">
-            <div class="pl-4 mt-5">
-              <UTable
-                :columns="partsStockGridMeta.defaultColumns"
-                :rows="partsStockGridMeta.parts"
-                :ui="{
-                  wrapper: 'h-60 border-2 border-gray-300 dark:border-gray-700',
+                    'h-[268px] border-2 border-gray-300 dark:border-gray-700',
                   tr: {
                     active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
                   },
@@ -777,64 +615,279 @@ else propertiesInit();
                     padding: 'px-2 py-0',
                   },
                 }"
-                @select="onPartSelect"
-                @dblclick="onPartDblClick"
               >
-                <template #empty-state>
-                  <div></div>
+                <template #file-data="{ row }">
+                  <UTooltip  text="File">
+                    <a 
+                      v-if="row.path" 
+                      class=" text-blue underline" 
+                      :href="row.path" 
+                      download
+                    >
+                      Download
+                    </a>
+                    <span v-else></span>
+                  </UTooltip>
+                </template>
+                <template #delete-data="{ row , index}">
+                  <UTooltip text="Delete" >
+                    <UButton
+                      color="red"
+                      variant="ghost"
+                      icon="i-heroicons-minus-circle"
+                      @click="removeFile(row.uniqueID, index)"
+                    />
+                  </UTooltip>
                 </template>
               </UTable>
             </div>
 
-            <div class="flex justify-between my-3 px-4">
-              <div>
-                <span class="text-sm text-left w-full italic">
-                  Double-click To View Part</span
-                >
-              </div>
-              <div class="flex space-x-3">
-                <div>
-                  <UButton
-                    color="blue"
-                    label="Update Key"
-                    :ui="{
-                      base: 'w-full',
-                      truncate: 'flex justify-center w-full',
-                    }"
-                    @click="handleUpdateKey"
-                    truncate
-                  />
-                </div>
+            <div class="w-1/2">
+              <div class="p-3">
                 <div class="">
-                  <UButton
-                    color="blue"
-                    label="Update Qty"
-                    :ui="{
-                      base: 'w-full',
-                      truncate: 'flex justify-center w-full',
-                    }"
-                    @click="handleUpdateQty"
-                    truncate
-                  />
+                  <UFormGroup label="Notes" name="ReportsTo">
+                    <UTextarea
+                      v-model="formData.notes"
+                      :rows="15"
+                      placeholder=""
+                    />
+                  </UFormGroup>
                 </div>
-                <div class="">
-                  <UButton
-                    color="blue"
-                    label="Remove"
-                    :ui="{
-                      base: 'w-full',
-                      truncate: 'flex justify-center w-full',
-                    }"
-                    @click="handleRemovePart"
-                    truncate
-                  />
+                <div class="flex justify-between my-4">
+                  <div class="w-[120px]">
+                    <UButton
+                      icon="i-heroicons-document-text"
+                      type="submit"
+                      variant="outline"
+                      color="green"
+                      label="Save"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }"
+                      truncate
+                    />
+                  </div>
+                  <div class="w-[120px]">
+                    <UButton
+                      icon="i-heroicons-minus-circle"
+                      variant="outline"
+                      color="red"
+                      label="Delete"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }"
+                      @click="handleDelteStep"
+                      truncate
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+
+          </div>
+          
+        </div>
+
+        <div>
+          <div class="w-full px-3 py-1 gmsBlueTitlebar">
+            Parts Required
+          </div>
+          <div class="w-full px-3 pt-2">
+                  <p><b> Part Lookup</b></p>
+                </div>
+          <div class="flex space-x-4">
+           
+            <div class="w-1/2">
+              
+              <div class="py-3 pl-3">
+                
+                <UTable
+                  :rows="productGridMeta.products"
+                  :columns="productGridMeta.defaultColumns"
+                  :loading="productGridMeta.isLoading"
+                  class="w-full"
+                  :ui="{
+                    wrapper:
+                      'overflow-y-auto h-60 border-2 border-gray-300 dark:border-gray-700',
+                    divide: 'divide-gray-200 dark:divide-gray-800',
+                    th: {
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                      padding: 'p-0',
+                    },
+                    td: {
+                      base: 'h-[31px]',
+                      padding: 'py-0',
+                    },
+                  }"
+                  :empty-state="{
+                    icon: 'i-heroicons-circle-stack-20-solid',
+                    label: 'No items.',
+                  }"
+                  @select="onProductSelect"
+                  @dblclick="onProductDblClick"
+                >
+                  <template
+                    v-for="column in productGridMeta.defaultColumns"
+                    v-slot:[`${column.key}-header`]
+                  >
+                    <template v-if="!column.filterOptions">
+                      <div class="px-1 py-1">
+                        <CommonSortAndInputFilter
+                          @handle-sorting-button="handleProductSortingButton"
+                          @handle-input-change="handleProductFilterInputChange"
+                          :label="column.label"
+                          :sortable="column.sortable"
+                          :sort-key="column.key"
+                          :sort-icon="
+                            column?.sortDirection === 'none'
+                              ? noneIcon
+                              : column?.sortDirection === 'asc'
+                              ? ascIcon
+                              : descIcon
+                          "
+                          :filterable="column.filterable"
+                          :filter-key="column.key"
+                        />
+                      </div>
+                    </template>
+                    <template v-else>
+                      <div class="px-1 py-1 min-w-[120px]">
+                        <CommonSortAndSelectFilter
+                          @handle-sorting-button="handleProductSortingButton"
+                          @handle-select-change="handleProductFilterInputChange"
+                          :label="column.label"
+                          :sortable="column.sortable"
+                          :sort-key="column.key"
+                          :sort-icon="
+                            column?.sortDirection === 'none'
+                              ? noneIcon
+                              : column?.sortDirection === 'asc'
+                              ? ascIcon
+                              : descIcon
+                          "
+                          :value="productFilterValues[column.key]"
+                          :filterable="column.filterable"
+                          :filter-key="column.key"
+                          :filter-options="column.filterOptions"
+                        />
+                      </div>
+                    </template>
+                  </template>
+                  <template #UniqueID-data="{ row }">
+                    <div class="w-[50px]">
+                      {{ row.UniqueID }}
+                    </div>
+                  </template>
+                </UTable>
+              </div>
+            </div>
+
+            <div class="w-1/2">
+              <div class="py-3 pr-3">
+                <UTable
+                  :columns="partsStockGridMeta.defaultColumns"
+                  :rows="partsStockGridMeta.parts"
+                  :ui="{
+                    wrapper: 'h-60 border-2 border-gray-300 dark:border-gray-700',
+                    tr: {
+                      active: 'hover:bg-gray-200 dark:hover:bg-gray-800/50',
+                    },
+                    th: {
+                      base: 'sticky top-0 z-10',
+                      color: 'bg-white dark:text-gray dark:bg-[#111827]',
+                      padding: 'px-2 py-0',
+                    },
+                    td: {
+                      base: 'h-[31px]',
+                      padding: 'px-2 py-0',
+                    },
+                  }"
+                  @select="onPartSelect"
+                  @dblclick="onPartDblClick"
+                >
+                  <template #empty-state>
+                    <div></div>
+                  </template>
+                </UTable>
+              </div>
+
+              <div class="flex justify-between px-4">
+                <div>
+                  <span class="text-sm text-left w-full italic">
+                    Double-click To View Part</span
+                  >
+                </div>
+                <div class="flex space-x-3">
+                  <div>
+                    <UButton
+                      color="blue"
+                      label="Update Key"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }"
+                      @click="handleUpdateKey"
+                      truncate
+                    />
+                  </div>
+                  <div class="">
+                    <UButton
+                      color="blue"
+                      label="Update Qty"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }"
+                      @click="handleUpdateQty"
+                      truncate
+                    />
+                  </div>
+                  <div class="">
+                    <UButton
+                      color="blue"
+                      label="Remove"
+                      :ui="{
+                        base: 'w-full',
+                        truncate: 'flex justify-center w-full',
+                      }"
+                      @click="handleRemovePart"
+                      truncate
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
+
       </div>
+      
     </UForm>
+
+    <!-- Parts Modal -->
+    <UDashboardModal
+      v-model="modalMeta.isPartsLookupModelOpne"
+      title="Parts"
+      :ui="{
+      title: 'text-lg text-white',
+        description: 'text-black',
+        header: {
+          base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
+        },
+        body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+        width: 'w-[1250px] sm:max-w-9xl',
+      }"
+    >
+      <Parts
+      :isModal="true" 
+      :model="partsStockGridMeta.selectedPart.MODEL"
+      @close="handlePartsListClose"
+      />
+    </UDashboardModal>
 
     <UDashboardModal
       v-model="isQuantityModalOpen"
@@ -847,7 +900,7 @@ else propertiesInit();
         width: 'w-[300px]',
       }"
     >
-      <div>
+      <div class="px-6" >
         <div class="flex flex-row space-x-5">
           <div class="flex items-center">Quantity to Add?</div>
           <div class="flex-1 mr-4">
@@ -886,7 +939,7 @@ else propertiesInit();
         width: 'w-[300px]',
       }"
     >
-      <div>
+      <div class="px-6 " >
         <div class="flex flex-row space-x-5">
           <div class="flex items-center">Key to Add?</div>
           <div class="flex-1 mr-4">

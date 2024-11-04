@@ -6,7 +6,7 @@ import WorkCenterPage from "../../components/utilities/workcenter-component.vue"
 <template>
   <UDashboardPage>
     <UDashboardPanel grow>
-      <UDashboardPanelContent>
+      <UDashboardPanelContent class="p-0 bg-gms-gray-100">
         <WorkCenterPage />
       </UDashboardPanelContent>
     </UDashboardPanel>

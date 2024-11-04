@@ -4,7 +4,7 @@ export default eventHandler(async (event) => {
   try {
     const { page, pageSize, sortBy, sortOrder, isOpen, isReleased, startDate, endDate, ...filterParams  } = getQuery(event);
     const method = event._method;
-    console.log("running...")
+   
     switch(method.toUpperCase()){
       case 'GET':
         const list = await getAllJobs(page, pageSize, sortBy, sortOrder, filterParams, isOpen, isReleased, startDate.slice(1, -1), endDate.slice(1, -1));

@@ -222,12 +222,10 @@ export const getPoByVendor = async (vendor) => {
       replacements: { vendor },
       type: QueryTypes.SELECT
     });
-
     if (results.length > 0) {
-      return results;
+      return results.map(result => `${result.PONUMBER} ${result.DATE}`);
     }
 
-    throw new Error('Vendor not found');
   } catch (error) {
     console.error('Error querying vendor:', error);
     throw error;

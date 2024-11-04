@@ -99,7 +99,7 @@ export default <Partial<Config>>{
           '950': '#0b2546',
           'DEFAULT': '#0d4c8b',
         },
-        'gms-pink': {
+        'gms-red': {
           '50': '#fcf4f4',
           '100': '#fae9ea',
           '200': '#f4d7d8',

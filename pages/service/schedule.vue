@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { format, addDays, getISOWeeksInYear, getISOWeek } from "date-fns";
 // import { BryntumGantt } from "@bryntum/gantt-vue-3";
-import "@bryntum/gantt/gantt.stockholm.css";
+// import "@bryntum/gantt/gantt.stockholm.css";
 
 import type { UTableColumn } from "~/types";
 
@@ -39,7 +39,7 @@ const headerCheckboxes = ref({
   },
   customer: {
     label: "Customer",
-    isChecked: false,
+    isChecked: true,
   },
   closed: {
     label: "Closed",
@@ -51,7 +51,7 @@ const headerCheckboxes = ref({
   },
   factory: {
     label: "Factory",
-    isChecked: false,
+    isChecked: true,
   },
 });
 
@@ -314,9 +314,9 @@ const setCurrentWeekOfYear = () => {
   const currentDate = new Date();
   const currentYear = new Date().getFullYear();
   getCurrentYearName.value = currentDate.getFullYear().toString().slice(-2);
-  const currentWeek = getISOWeek(currentDate);
-  const lastTwoDigits = currentYear.toString().slice(-2);
-  filterValues.value.Week = `${lastTwoDigits}-${currentWeek}`; //
+  // const currentWeek = getISOWeek(currentDate);
+  // const lastTwoDigits = currentYear.toString().slice(-2);
+  // filterValues.value.Week = `${lastTwoDigits}-${currentWeek}`; 
 };
 
 const getCurrentYearWeeks = () => {
@@ -668,13 +668,11 @@ const handleModalSave = async () => {
 };
 
 const onSelect = async (row) => {
-  console.log(row)
-  // gridMeta.value.selectedCustomerId = null;
 
   await getCustomerByUniqueID(row["Cust #"]);
   gridMeta.value.selectedServiceId = row?.uniqueID;
   gridMeta.value.selectedCompaintNumber = row["SO#"];
-  gridMeta.value.selectedSerialNumber = row["SO#"];
+  gridMeta.value.selectedSerialNumber = row["SN#"];
 
 };
 
@@ -707,11 +705,12 @@ const handleCheckboxChange = () => {
 };
 
 const excelExport = async () => {
+
   exportIsLoading.value = true;
   const params = {
     sortBy: gridMeta.value.sort.column,
     sortOrder: gridMeta.value.sort.direction,
-    ...filterValues.value,
+    filterValues: encodeURIComponent(JSON.stringify(filterValues.value)),
   };
   const paramsString = Object.entries(params)
     .filter(([_, value]) => value !== null)
@@ -719,6 +718,8 @@ const excelExport = async () => {
       if (value !== null) return `${key}=${value}`;
     })
     .join("&");
+
+  console.log(`/api/service/schedule/exportlist?${paramsString}`)
   location.href = `/api/service/schedule/exportlist?${paramsString}`;
   exportIsLoading.value = false;
 };
@@ -1040,8 +1041,10 @@ const onScheduletaskDblClick = async (event) => {
     v-model="modalMeta.isReportModalOpen"
     title="Service Report"
     :ui="{
-      width: 'w-[1800px] sm:max-w-9xl',
-      body: { padding: 'py-0 sm:pt-0' },
+  header: {
+    base: 'bg-gms-purple',
+  },
+  width: 'w-[1250px]',
     }"
   >
     <ServiceReportDetail
@@ -1056,8 +1059,10 @@ const onScheduletaskDblClick = async (event) => {
     v-model="modalMeta.isSoOrderModalOpen"
     title="Service Report"
     :ui="{
-      width: 'w-[1800px] sm:max-w-9xl',
-      body: { padding: 'py-0 sm:pt-0' },
+    header: {
+        base: 'bg-gms-purple',
+      },
+      width: 'w-[1250px]',
     }"
   >
     <ServiceOrderDetail
@@ -1065,7 +1070,7 @@ const onScheduletaskDblClick = async (event) => {
       @save="onServiceReportSave"
       :selectedSerial="gridMeta.selectedSerialNumber"
       :selected-customer="gridMeta.selectedCustomerId"
-      :selected-complaint="gridMeta.selectedComplaintNumber"
+      :selected-complaint="gridMeta.selectedCompaintNumber"
       :selected-order="gridMeta.selectedServiceId"
       :form-action="null"
        :mainID="gridMeta.selectedSerialNumber"

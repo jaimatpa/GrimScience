@@ -354,8 +354,10 @@ const onDblClick = async () => {
     <!-- Manufacturing Sequnce Modal -->
     <UDashboardModal v-model="modalMeta.isManufacturingSequenceModalOpen" title="Manufacturing Sequence" description=""
         :ui="{
-            width: 'w-[1800px] sm:max-w-7xl',
-            body: { padding: 'py-0 sm:pt-0' },
+            title: 'text-lg text-white',
+            header: { base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader' },
+            body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+            width: 'w-[1250px] sm:max-w-9xl',
         }">
         <JobManufacturingSequenceForm :selected-job="selectedJobId" :instance-id="selectedJobInstanceId" />
     </UDashboardModal>

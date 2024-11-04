@@ -2,287 +2,10 @@
 const route = useRoute();
 const appConfig = useAppConfig();
 const { isHelpSlideoverOpen } = useDashboard();
-
-const customersItems = [
-  [
-    {
-      label: "List",
-      to: "/customers/customers/list",
-      exact: true,
-    },
-    {
-      label: "Service Orders",
-      to: "/service/serviceorders/list",
-    },
-    {
-      label: "Message",
-      to: "/customers/messages/list",
-    },
-    {
-      label: "Quote",
-      to: "/customers/quotes/list",
-    },
-    {
-      label: "Invoice",
-      to: "/customers/invoices/list",
-    },
-    {
-      label: "Site Visit",
-      to: "/customers/visits/list",
-    },
-  ],
-];
-const serviceItems = [
-  [
-    {
-      label: "Customers",
-      to: "/customers/customers/list",
-      exact: true,
-    },
-    {
-      label: "Service Order",
-      to: "/service/serviceorders/list",
-    },
-    {
-      label: "Schedule",
-      to: "/service/schedule",
-    },
-    {
-      label: "Calendar",
-      to: "/service/calendar",
-    },
-  ],
-];
-const marketingItems = [
-  [
-    {
-      label: "Products",
-      to: "/marketing/products/list",
-      exact: true,
-    },
-    {
-      label: "Job Cost",
-      to: "/marketing/cost",
-    },
-    {
-      label: "Report",
-      to: "/marketing/report",
-    },
-    {
-      label: "Field Sales & Service",
-      to: "/marketing/sales",
-    },
-    {
-      label: "Territories",
-      to: "/marketing/territories",
-    },
-    {
-      label: "Projects",
-      to: "/marketing/projects",
-    },
-  ],
-];
-const employeesItems = [
-  [
-    {
-      label: "List",
-      to: "/employees/list",
-      exact: true,
-    },
-    {
-      label: "Organization",
-      to: "/employees/organization",
-    },
-  ],
-];
-const accountingItems = [
-  [
-    {
-      label: "Payables",
-      to: "/accounting/payables",
-      exact: true,
-    },
-    {
-      label: "Receivables",
-      to: "/accounting/receivables",
-    },
-  ],
-];
-const ITItems = [
-  [
-    {
-      label: "Corian Parts Monitor",
-      to: "/it/monitor",
-      exact: true,
-    },
-  ],
-];
-const engineeringItems = [
-  [
-    {
-      label: "Change Orders",
-      to: "/engineering/orders",
-      exact: true,
-    },
-    {
-      label: "Non-Conformance",
-      to: "/engineering/nonconformance",
-    },
-    {
-      label: "Investigation",
-      to: "/engineering/investigation",
-    },
-    {
-      label: "CAPA",
-      to: "/engineering/capa",
-    },
-    {
-      label: "Approvals",
-      to: "/engineering/approvals",
-    },
-    {
-      label: "KQI",
-      to: "/engineering/kqi",
-    },
-    {
-      label: "Projects",
-      to: "/engineering/projects",
-    },
-  ],
-];
-const materialsItems = [
-  [
-    {
-      label: "Parts",
-      to: "/materials/parts",
-      exact: true,
-    },
-    {
-      label: "Purchases",
-      to: "/materials/purchases",
-    },
-    {
-      label: "Vendors",
-      to: "/materials/vendors",
-    },
-    {
-      label: "Requisitions",
-      to: "/materials/requisitions",
-    },
-    {
-      label: "Serials",
-      to: "/materials/serials",
-    },
-    {
-      label: "MRP",
-      to: "/materials/mrp",
-    },
-    {
-      label: "Transactions",
-      to: "/materials/transactions",
-    },
-    {
-      label: "Journal",
-      to: "/materials/journal",
-    },
-    {
-      label: "Report",
-      to: "/materials/report",
-    },
-  ],
-];
-const manufacturingItems = [
-  [
-    {
-      label: "Jobs",
-      to: "/manufacturing/jobs",
-      exact: true,
-    },
-    {
-      label: "Schedule",
-      to: "/manufacturing/schedule",
-    },
-    {
-      label: "Labor Report",
-      to: "/manufacturing/labor",
-    },
-    {
-      label: "Projects",
-      to: "/manufacturing/projects",
-    },
-  ],
-];
-const maintenanceItems = [
-  [
-    {
-      label: "Equipment",
-      to: "/maintenance/equipment",
-      exact: true,
-    },
-    {
-      label: "Calibration",
-      to: "/maintenance/calibration",
-    },
-    {
-      label: "Workstations",
-      to: "/maintenance/workstations",
-    },
-  ],
-];
-const utilitiesItems = [
-  [
-    {
-      label: "Shipping Rates",
-      to: "/utilities/rates",
-      exact: true,
-    },
-    {
-      label: "Label - Parts",
-      to: "/utilities/parts",
-    },
-    {
-      label: "Label - Folders",
-      to: "/utilities/folders",
-    },
-    {
-      label: "Settings",
-      to: "/utilities/settings",
-    },
-    {
-      label: "App Projects",
-      to: "/utilities/projects",
-    },
-    {
-      label: "Permissions",
-      to: "/utilities/permissions",
-    },
-  ],
-];
-const helpItems = [
-  [
-    {
-      label: "Help",
-      to: "/help/help",
-      exact: true,
-    },
-    {
-      label: "About",
-      to: "/help/about",
-    },
-    {
-      label: "Operational",
-      to: "/help/operational",
-    },
-    {
-      label: "Create",
-      to: "/help/create",
-    },
-    {
-      label: "Update",
-      to: "/help/update",
-    },
-  ],
-];
+const isTimeEntryModalOpen = ref(false);
+const handleTimeEntryModal = () => {
+  isTimeEntryModalOpen.value = true;
+}
 
 const links = [
   {
@@ -756,19 +479,6 @@ const links = [
 ];
 
 
-const footerLinks = [
-  {
-    label: "Invite people",
-    icon: "i-heroicons-plus",
-    to: "/settings/members",
-  },
-  {
-    label: "Help & Support",
-    icon: "i-heroicons-question-mark-circle",
-    click: () => (isHelpSlideoverOpen.value = true),
-  },
-];
-
 const groups = [
   {
     key: "links",
@@ -791,7 +501,6 @@ const groups = [
   //   }]
   // }
 ];
-
 const defaultColors = ref(
   ["green", "teal", "cyan", "sky", "blue", "indigo", "violet"].map((color) => ({
     label: color,
@@ -835,12 +544,25 @@ const Logout = () => {
   navigateTo('/login');
 }
 
-let currentTime = ref('');
+const currentTime = ref('');
 
 const getCurrentTime = () => {
-  currentTime.value = new Date().toLocaleTimeString();
+  const options: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true, // Use 12-hour format
+  };
+  currentTime.value = new Date().toLocaleTimeString(undefined, options);
 };
+const user = useCookie('user');
 
+const fullname = computed(() => {
+  return `${user.value?.fname || ''} ${user.value?.lname || ''}`.trim()
+})
+
+const modalTitle = computed(() => {
+  return `Time Entries For: ${fullname.value}`
+})
 onMounted(() => {
   getCurrentTime();
   setInterval(getCurrentTime, 1000);
@@ -880,7 +602,7 @@ onMounted(() => {
             </div>
             <div class="text-center text-white mb-10">
               <UButtonGroup>
-                <UButton label="Time Entry" icon="i-heroicons-plus" color="green" />
+                <UButton label="Time Entry" @click="handleTimeEntryModal" icon="i-heroicons-plus" color="green" />
                 <UButton label="Log Out" color="white" icon="i-heroicons-arrow-left-on-rectangle" @click="Logout" />
               </UButtonGroup>
             </div>
@@ -890,20 +612,7 @@ onMounted(() => {
           <UDashboardSidebarLinks v-for="link in links" :key="link.id" :links="[link]" :ui="getUiConfig(link)" />
 
 
-          <!-- <UDashboardSidebarLinks
-          :links="[{ label: 'Colors', draggable: true, children: colors }]"
-          @update:links="colors => defaultColors = colors"
-        /> -->
-
-          <!-- <div class="flex-1" /> -->
-
-          <!-- <UDashboardSidebarLinks :links="footerLinks" /> -->
-
-
-
           <template #footer>
-
-            <!-- ~/components/UserDropdown.vue -->
             <CommonUserDropdown class="border-t-[1px] border-white py-1 mt-[-8px]" />
           </template>
 
@@ -919,11 +628,18 @@ onMounted(() => {
     </UDashboardLayout>
   </div>
 
-  <UDashboardModal title="Time Entry" :ui="{
-    width: 'w-[1800px] sm:max-w-9xl',
-    body: { padding: 'py-0 sm:pt-0' },
-  }">
-    <ServiceReportDetail :selected-complaint="null" />
-  </UDashboardModal>
+  <UDashboardModal v-model="isTimeEntryModalOpen" :ui="{
+    background: 'bg-gray-100',
+    width: 'w-[800px] sm:max-w-9xl',
+    header: {
+      base: 'bg-gms-blue'
+    },
+    body: {
+      padding: 'py-0 sm:pt-0',
 
+    }
+  }" :title="modalTitle">
+
+    <GeneralTimeEntry />
+  </UDashboardModal>
 </template>

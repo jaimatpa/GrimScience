@@ -2,7 +2,7 @@
 import type { UTableColumn } from "~/types";
 import { defineEmits } from "vue";
 
-onMounted(async() => {
+onMounted(async () => {
   await init();
   fetchGridData();
   await fetchCategoryData();
@@ -29,21 +29,14 @@ watchEffect(() => {
 });
 
 const headerFilters = ref({
-  // productLines: {
-  //   label: "Product Line",
-  //   filter: "PRODUCT",
-  //   api: "/api/materials/productlines",
-  //   options: [],
-  // },
   categoryList: {
-    
     filter: "PRODUCT",
     options: [],
   },
-  subCategoryList:{
+  subCategoryList: {
     filter: "PRODUCT",
-    options: [], 
-  }
+    options: [],
+  },
 });
 
 const gridMeta = ref({
@@ -58,14 +51,18 @@ const gridMeta = ref({
     {
       key: "CATAGORY",
       sortable: true,
+      label: "Category",
       sortDirection: "none",
       filterable: true,
+      filterOptions: [],
     },
     {
       key: "SUBCATAGORY",
+      label: "Sub Category",
       sortable: true,
       sortDirection: "none",
       filterable: true,
+      filterOptions: [],
     },
     {
       key: "PART",
@@ -105,20 +102,11 @@ const gridMeta = ref({
   selectedCompaintNumber: null,
   selectedSerialNumber: null,
   sort: {
-    column:"MANO",
+    column: "MANO",
     direction: "desc",
   },
   isLoading: false,
 });
-
-// const formattedOrders = computed(() => {
-//   return gridMeta.value.orders.map((order) => {
-//     return {
-//       ...order,
-//       DESCRIPTION: order.DESCRIPTION.split(" ").slice(0, 5).join(" "),
-//     };
-//   });
-// });
 
 const modalMeta = ref({
   isServiceOrderModalOpen: false,
@@ -135,18 +123,15 @@ const filterValues = ref({
 });
 
 const handleCategoryChange = (newValue) => {
-  debugger
-  filterValues.value.CATAGORY  = newValue;
+  debugger;
+  filterValues.value.CATAGORY = newValue;
   fetchGridData();
 };
 
 const handleSubcategoryChange = (newValue) => {
-  filterValues.value.SUBCATAGORY  = newValue;
+  filterValues.value.SUBCATAGORY = newValue;
   fetchGridData();
 };
-
-
-
 
 watch(
   filterValues,
@@ -166,12 +151,11 @@ const columns = computed(() =>
 
 const init = async () => {
   fetchGridData();
-  gridMeta.value.isLoading = true
+  gridMeta.value.isLoading = true;
 };
 
-
 const fetchGridData = async () => {
-  debugger
+  debugger;
   gridMeta.value.isLoading = true;
   await useApiFetch("/api/maintenance/equipment/totalNumber", {
     method: "GET",
@@ -194,9 +178,7 @@ const fetchGridData = async () => {
       1;
   }
 
-  
   await useApiFetch("/api/maintenance/equipment/getTableData", {
-  
     method: "GET",
     params: {
       page: gridMeta.value.page,
@@ -215,40 +197,83 @@ const fetchGridData = async () => {
   });
 };
 
-const fetchCategoryData = async () => { 
-  try {
-    const {data }= await useFetch("/api/maintenance/equipment/getAllCategory");
-    if (data._rawValue) {
-      headerFilters.value.categoryList.options = data._rawValue.map((category) => ({
-        label: category ,
-        value: category, 
-      }));
-  
-    } else {
-      console.error("No category data found");
-    }
-  } catch (err) {
-    console.error("Error fetching category data:", err);
-  }
+// const fetchCategoryData = async () => {
+//   try {
+//     const { data } = await useFetch(
+//       "/api/maintenance/equipment/getAllCategory"
+//     );
+//     if (data._rawValue) {
+//       headerFilters.value.categoryList.options = data._rawValue.map(
+//         (category) => ({
+//           label: category,
+//           value: category,
+//         })
+//       );
+//     } else {
+//       console.error("No category data found");
+//     }
+//   } catch (err) {
+//     console.error("Error fetching category data:", err);
+//   }
+// };
+
+const fetchCategoryData = async () => {
+  await useApiFetch(`/api/maintenance/equipment/getAllCategory`, {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        const filters = response._data;
+        // console.log("hello API-----------------",filters)
+
+        gridMeta.value.defaultColumns.find(
+          (column) => column.key === "CATAGORY"
+        ).filterOptions = filters.map((emp) => ({
+          label: emp,
+          value: emp,
+        }));
+      }
+    },
+  });
 };
 
-const fetchSubCategoryData = async () => { 
-  try {
-    const {data }= await useFetch("/api/maintenance/equipment/getAllSubCategory");
-    if (data._rawValue) {
-      headerFilters.value.subCategoryList.options = data._rawValue.map((category) => ({
-        label: category,
-        value: category, 
-      }));
-  
-    } else {
-      console.error("No category data found");
-    }
-  } catch (err) {
-    console.error("Error fetching category data:", err);
-  }
-};
+// const fetchSubCategoryData = async () => {
+//   try {
+//     const { data } = await useFetch(
+//       "/api/maintenance/equipment/getAllSubCategory"
+//     );
+//     if (data._rawValue) {
+//       headerFilters.value.subCategoryList.options = data._rawValue.map(
+//         (category) => ({
+//           label: category,
+//           value: category,
+//         })
+//       );
+//     } else {
+//       console.error("No category data found");
+//     }
+//   } catch (err) {
+//     console.error("Error fetching category data:", err);
+//   }
+// };
 
+const fetchSubCategoryData = async () => {
+  await useApiFetch(`/api/maintenance/equipment/getAllSubCategory`, {
+    method: "GET",
+    onResponse({ response }) {
+      if (response.status === 200) {
+        const filters = response._data;
+        // console.log("hello API-----------------",filters)
+
+        gridMeta.value.defaultColumns.find(
+          (column) => column.key === "SUBCATAGORY"
+        ).filterOptions = filters.map((emp) => ({
+          label: emp,
+          value: emp,
+        }));
+      }
+    },
+  });
+};
 
 const handleModalClose = () => {
   modalMeta.value.isServiceOrderModalOpen = false;
@@ -309,13 +334,21 @@ const excelExport = () => {
   exportIsLoading.value = false;
 };
 
-
 const emit = defineEmits(["rowSelected", "rowDoubleClicked"]);
 const onSelect = (row) => {
   emit("rowSelected", row);
 };
 const onDblClick = () => {
   emit("rowDoubleClicked");
+};
+
+
+const handleTagEntriesFormData = async (event, name) => {
+  if (filterValues.value.hasOwnProperty(name)) {
+    filterValues.value[name] = event;
+  } else {
+    console.error(`Filter does not have property: ${name}`);
+  }
 };
 </script>
 
@@ -324,19 +357,9 @@ const onDblClick = () => {
     <UDashboardPanel grow>
       <UDashboardNavbar
         v-show="props.isPage"
-        class="gmsPurpleHeader"
+        class="gmsBlueHeader"
         title="Order Details"
       >
-      </UDashboardNavbar>
-      <UDashboardToolbar class="bg-gms-gray-100">
-        <template #left>
-          <div class="flex flex-row space-x-3">
-            <div class="basis-1/7 max-w-[300px] min-w-[150px] mr-4">
-              <UFormGroup label="Maintenance order lookup" name="productLine">
-              </UFormGroup>
-            </div>
-          </div>
-        </template>
         <template #right>
           <div class="flex flex-row space-x-2">
             <div>
@@ -345,94 +368,28 @@ const onDblClick = () => {
                 label="Export to Excel"
                 color="green"
                 variant="outline"
-                :ui="{
-                  base: 'min-w-[210px] w-full',
-                  truncate: 'flex justify-center w-full',
-                }"
                 truncate
                 @click="excelExport"
               />
             </div>
           </div>
         </template>
+      </UDashboardNavbar>
+      <UDashboardToolbar class="gmsBlueTitlebar mt-[-1px]">
+        <template #left>
+          <div class="flex flex-row space-x-3">
+            <div class="basis-1/7 max-w-[300px] min-w-[150px] mr-4 font-normal">
+              <UFormGroup
+                label="Maintenance order lookup"
+                name="productLine"
+                class="font-normal"
+              >
+              </UFormGroup>
+            </div>
+          </div>
+        </template>
       </UDashboardToolbar>
       <UTable
-  :rows="gridMeta.orders"
-  :columns="columns"
-  :loading="gridMeta.isLoading"
-  class="w-full"
-  :ui="{
-    divide: 'divide-gray-200 dark:divide-gray-800',
-    th: {
-      base: 'top-0 z-5 px-1',
-      padding: 'pb-0',
-    },
-    td: {
-      padding: 'py-0.5 px-1',
-    },
-  }"
-  :empty-state="{
-    icon: 'i-heroicons-circle-stack-20-solid',
-    label: 'No items.',
-  }"
-  @select="onSelect"
-  @dblclick="onDblClick"
->
-  <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-    <div class="space-x-2"> 
-
-      
-      <template v-if="column.key === 'CATAGORY'">
-        <div class="w-full"> 
-          <USelect
-            v-model="filterValues.CATEGORY"
-            :options="headerFilters.categoryList.options"
-            @change="handleCategoryChange"
-            class="w-full" 
-          />
-          <span class="text-xs text-gray-500">Category</span>
-        </div>
-      </template>
-
-      <template v-if="column.key === 'SUBCATAGORY'">
-        <div class="w-full">
-          <USelect
-            v-model="filterValues.SUBCATEGORY"
-            :options="headerFilters.subCategoryList.options"
-            @change="handleSubcategoryChange"
-            class="w-full"
-          />
-          <span class="text-xs text-gray-500">Subcategory</span>
-        </div>
-      </template>
-
-   
-      <template
-        v-else-if="['MANO','PART', 'ORDEREDBY', 'SERIAL', 'REQUIRED'].includes(column.key)"
-      >
-        <div class="w-full">
-          <input
-            type="text"
-            v-model="filterValues[column.key]"
-            @input="filterTable"
-            placeholder="Search"
-            class="w-full mt-1 border border-gray-300 rounded px-2 py-1" 
-          /><br/>
-          <span class="text-xs text-gray-500">{{ column.label }}</span>
-        </div>
-      </template>
-
-      <template v-else>
-        <div class="w-full">
-          <span class="text-xs text-gray-500">{{ column.label }}</span>
-        </div>
-      </template>
-
-    </div>
-  </template>
-</UTable>
-
-      <!-- <UTable
         :rows="gridMeta.orders"
         :columns="columns"
         :loading="gridMeta.isLoading"
@@ -440,11 +397,11 @@ const onDblClick = () => {
         :ui="{
           divide: 'divide-gray-200 dark:divide-gray-800',
           th: {
-            base: ' top-0 z-10 px-1',
+            base: 'top-0 z-5 px-1',
             padding: 'pb-0',
           },
           td: {
-            padding: 'py-0.5 px-1',
+            padding: 'py-0.5 px-5',
           },
         }"
         :empty-state="{
@@ -454,61 +411,86 @@ const onDblClick = () => {
         @select="onSelect"
         @dblclick="onDblClick"
       >
-        <template v-for="column in columns" v-slot:[`${column.key}-header`]>
-         
-     
-          <template v-if="column.key === 'CATAGORY'">
-            <div>
-              <USelect
-                v-model="filterValues.CATAGORY"
-                :options="headerFilters.categoryList.options" 
-                @change="handleCategoryChange"
-                class="w-full"
+        <template
+          v-for="column in gridMeta.defaultColumns"
+          v-slot:[`${column.key}-header`]
+        >
+          <template v-if="!column.filterOptions">
+            <div class="px-1 py-1">
+              <CommonSortAndInputFilter
+                @handle-input-change="handleTagEntriesFormData"
+                :label="column.label"
+                :filterable="column.filterable"
+                :filter-key="column.key"
               />
-              <span class="text-xs text-gray-500">Category</span>
             </div>
           </template>
-
-       
-          <template v-if="column.key === 'SUBCATAGORY'">
-            <div>
-              <USelect
-                v-model="filterValues.SUBCATAGORY"
-                :options="headerFilters.subCategoryList.options"
-                @change="handleSubcategoryChange"
-              />
-              <span class="text-xs text-gray-500">Subcategory</span>
-            </div>
-          </template>
-
-     
-          <template
-            v-else-if="
-              ['MANO','PART', 'ORDEREDBY', 'SERIAL', 'REQUIRED'].includes(column.key)
-            "
-          >
-            <div>
-              <input
-                type="text"
-                v-model="filterValues[column.key]"
-                @input="filterTable"
-                placeholder="Search"
-                class="mt-1 border border-gray-300 rounded px-2 py-1"
-              /><br/>
-              <span class="text-xs text-gray-500">{{ column.label }}</span>
-            </div>
-          </template>
-
-      
           <template v-else>
-            <div>
-              <span class="text-xs text-gray-500">{{ column.label }}</span>
+            <div class="px-1 py-1">
+              <CommonSortAndSelectFilter
+                @handle-select-change="handleTagEntriesFormData"
+                :label="column.label"
+                :filterable="column.filterable"
+                :filter-key="column.key"
+                :filter-options="column.filterOptions"
+              />
             </div>
           </template>
         </template>
-      </UTable> -->
 
+        <!-- <template v-for="column in columns" v-slot:[`${column.key}-header`]>
+          <div class="space-x-2">
+            <template v-if="column.key === 'CATAGORY'">
+              <div class="w-full">
+                <USelect
+                  v-model="filterValues.CATEGORY"
+                  :options="headerFilters.categoryList.options"
+                  @change="handleCategoryChange"
+                  class="w-full"
+                />
+                <span class="text-xs text-gray-500">Category</span>
+              </div>
+            </template>
 
+            <template v-if="column.key === 'SUBCATAGORY'">
+              <div class="w-full">
+                <USelect
+                  v-model="filterValues.SUBCATEGORY"
+                  :options="headerFilters.subCategoryList.options"
+                  @change="handleSubcategoryChange"
+                  class="w-full"
+                />
+                <span class="text-xs text-gray-500">Subcategory</span>
+              </div>
+            </template>
+
+            <template
+              v-else-if="
+                ['MANO', 'PART', 'ORDEREDBY', 'SERIAL', 'REQUIRED'].includes(
+                  column.key
+                )
+              "
+            >
+              <div class="w-full">
+                <input
+                  type="text"
+                  v-model="filterValues[column.key]"
+                  @input="filterTable"
+                  placeholder="Search"
+                  class="w-full mt-1 border border-gray-300 rounded px-2 py-1"
+                /><br />
+                <span class="text-xs text-gray-500">{{ column.label }}</span>
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="w-full">
+                <span class="text-xs text-gray-500">{{ column.label }}</span>
+              </div>
+            </template>
+          </div>
+        </template> -->
+      </UTable>
       <div class="border-t-[1px] border-gray-200 mb-1 dark:border-gray-800">
         <div class="flex flex-row justify-end mr-20 mt-1">
           <UPagination

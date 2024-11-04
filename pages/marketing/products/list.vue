@@ -5,5 +5,5 @@ useSeoMeta({
 </script>
 
 <template>
-   <ProductsProductList :is-page="true" />
+  <ProductsProductList :is-page="true" />
 </template>

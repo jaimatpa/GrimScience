@@ -1,14 +1,30 @@
-import { getCustomerInvoices } from '~/server/controller/customers';
+import { QueryTypes } from 'sequelize';
+
+import sequelize from '~/server/utils/databse';
 
 export default eventHandler(async (event) => {
     try {
-        const filterParams = getQuery(event);
+        const { customerid } = getQuery(event);
         const method = event._method;
 
         switch (method.toUpperCase()) {
             case 'GET':
-                const numberOfCustomers = await getCustomerInvoices(filterParams);
-                return { body: numberOfCustomers, message: '' }
+                const invoiceOrders = await sequelize.query(
+                    `SELECT uniqueid,
+                            3 as openclosed,
+                            invoicedate as DateTime,
+                            invoicenumber as number
+                        FROM tblOrder
+                        WHERE Orderdate <> ''
+                        AND CustomerID = :customerid
+                        ORDER BY uniqueid DESC`,
+                    {
+                        replacements: { customerid },
+                        type: QueryTypes.SELECT,
+                    }
+                );
+
+                return { body: invoiceOrders, message: '' }
             default:
                 setResponseStatus(event, 405);
                 return { error: 'Method Not Allowed' };

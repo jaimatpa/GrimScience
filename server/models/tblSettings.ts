@@ -84,6 +84,7 @@ const tblSettings = sequelize.define('tblSettings', {
       type: DataTypes.FLOAT,
    },
 }, {
+   tableName:"tblSettings",
    timestamps: false
 });
 

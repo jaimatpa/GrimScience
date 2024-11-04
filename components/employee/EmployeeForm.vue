@@ -774,10 +774,15 @@ else propertiesInit();
 
   <!-- Work Center Modal -->
   <UDashboardModal v-model="modalMeta.isWorkCenterModalOpen" :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription" :ui="{
-      width: '[w-800px] sm:max-w-5xl',
-      body: { padding: 'py-0 sm:pt-0' },
-    }">
+  :ui="{
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[900px] sm:max-w-9xl',
+      }"
+    >
     <JobWorkCenterForm :selected-employee="props.selectedEmployee" @close="handleWCModalClose" />
   </UDashboardModal>
 

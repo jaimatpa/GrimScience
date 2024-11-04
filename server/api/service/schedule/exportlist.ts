@@ -5,8 +5,9 @@ const workbook = new ExcelJS.Workbook();
 
 export default eventHandler(async (event) => {
   try {
-    const { sortBy, sortOrder, ...filterParams } = getQuery(event);
-    const list = await getAllSchedules(sortBy, sortOrder, filterParams)
+    const { sortBy, sortOrder, filterValues } = getQuery(event);
+
+    const list = await getAllSchedules(sortBy, sortOrder, filterValues)
 
     workbook.removeWorksheet('My sheet')
     const worksheet = workbook.addWorksheet('My sheet')

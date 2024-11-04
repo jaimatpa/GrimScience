@@ -449,10 +449,12 @@ watch(() => gridMeta.value.orders, () => {
   </UDashboardPage>
   <!-- Order Modal -->
   <UDashboardModal v-model="modalMeta.isOrderDetailModalOpen" title="Order" :ui="{
-    title: 'text-lg',
-    header: { base: 'flex flex-row min-h-[0] items-center', padding: 'pt-5 sm:px-9' },
-    body: { base: 'gap-y-1', padding: 'sm:pt-0 sm:px-9 sm:py-3 sm:pb-5' },
-    width: 'w-[1800px] sm:max-w-9xl'
+  title: 'text-lg text-white',
+  header: {
+    base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+  },
+  body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+  width: 'w-[1250px] sm:max-w-9xl',
   }">
     <InvoiceDetail :selected-customer="gridMeta.selectedCustomerId" :selected-order="gridMeta.selectedOrderId"
       @close="handleModalClose" />

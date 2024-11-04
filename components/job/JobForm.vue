@@ -5,7 +5,7 @@ import "vue-loading-overlay/dist/css/index.css";
 import { format } from "date-fns";
 import type { UTableColumn } from "~/types";
 
-const emit = defineEmits(["close", "save", "open"]);
+const emit = defineEmits(["close", "save", "open", "refreshList"]);
 const props = defineProps({
   selectedJob: {
     type: [String, Number, null],
@@ -128,15 +128,9 @@ const editInit = async () => {
     onResponse({ response }) {
       if (response.status === 200) {
         JobExist.value = true;
-        console.log(response._data.body)
         for (const key in response._data.body) {
           if (response._data.body[key] !== undefined) {
             formData[key] = response._data.body[key];
-            // if (key === "Cost") {
-            //   formData[key] = `$${response._data.body[key]}`;
-            // } else {
-            //   formData[key] = response._data.body[key];
-            // }
             instanceID.value = response._data.body["InstanceID"]
           }
         }
@@ -574,8 +568,8 @@ const validate = (state: any): FormError[] => {
   const errors = [];
   if (!state.NUMBER) errors.push({ path: 'NUMBER', message: 'Please enter your Job#.' })
   if (!state.QUANTITY) errors.push({ path: 'QUANTITY', message: 'Please enter a your Job Qty.' })
-  if (!state.JobType) errors.push({ path: 'JobType', message: 'Please enter an Job Type.' })
-  if (!state.PerType) errors.push({ path: 'PerType', message: 'Please enter an Relieve Inventory Per.' })
+  if (!state.JobType) errors.push({ path: 'JobType', message: 'Please enter a Job Type.' })
+  if (!state.PerType) errors.push({ path: 'PerType', message: 'Please enter a Relieve Inventory Per.' })
   return errors;
 };
 
@@ -589,8 +583,9 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       body: event.data,
       onResponse({ response }) {
         if (response.status === 200) {
-          console.log(response._data.body)
+          
           emit("open",response._data.body.UniqueID)
+          emit('refreshList')
           toast.add({
             title: "Success",
             description: response._data.message,
@@ -610,6 +605,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       body: event.data,
       onResponse({ response }) {
         if (response.status === 200) {
+          emit('refreshList')
           toast.add({
             title: "Success",
             description: response._data.message,
@@ -697,7 +693,7 @@ const handleSubOperationSelect = async (row) => {
     if (c.uniqueID === row.uniqueID) {
       c.class = "bg-gray-200";
     } else {
-      c.class = c.class;
+      c.class = c.PID !== null ? "bg-white" : "bg-red-500"
     }
   });
 
@@ -1045,14 +1041,13 @@ const modalMeta = ref({
 
 const onDblClick = () => {
   modalMeta.value.isOperationModalOpen = true;
-  modalMeta.value.modalTitle = "Manufacturing Secquence";
-  modalMeta.value.modalDescription = `Manufacturing Secquence ${
+  modalMeta.value.modalTitle = "Manufacturing Sequence";
+  modalMeta.value.modalDescription = `Manufacturing Sequence ${
     formData.MODEL ? formData.MODEL : formData.PART
   }`;
 };
 
 const handleRWClick = () => {
-  modalMeta.value.isReworkPartsModalOpen = true;
   modalMeta.value.modalTitle = "Parts Used";
   modalMeta.value.modalDescription = "";
 
@@ -1070,10 +1065,12 @@ const handleRWClick = () => {
 
   if (subOperationGridMeta.value.selectedSubOperation !== null) {
     modalMeta.value.reworkModalOperationId = subOperationGridMeta.value.selectedSubOperation.uniqueID
+    modalMeta.value.isReworkPartsModalOpen = true;
   }
 
   if (prodOperationGridMeta.value.selectedOperation !== null) {
     modalMeta.value.reworkModalOperationId = prodOperationGridMeta.value.selectedOperation.uniqueID
+    modalMeta.value.isReworkPartsModalOpen = true;
   }
   
 };
@@ -1087,7 +1084,7 @@ const onPartsClick = () => {
 };
 
 const handleViewOperationClick = () => {
-  window.open(`/api/jobs/exportoperation/${props.selectedJob}`);
+  window.open(`/api/jobs/exportjobreport/?id=${formData.InstanceID}&number=${formData.NUMBER}`);
 };
 
 const handleUpdateQty = async () => {
@@ -1135,7 +1132,7 @@ const handlePullIntoSerial = async () => {
   loadingOverlay.value = false
 }
 
-const handlePullIntoInventory = async () => {
+const handlePutIntoInventory = async () => {
   if(sbQty.value){
     if(formData.PerType === 'Serial/Unit'){
       loadingOverlay.value = true
@@ -1230,6 +1227,7 @@ const handleJobListModalOpen = () => {
 }
 
 const handleJobSelect = async (data) => {
+  modalMeta.value.isJobListModalOpen = false
   loadingOverlay.value = true
   await useApiFetch(`/api/jobs/linkjob/`, {
     method: "POST",
@@ -1247,7 +1245,7 @@ const handleJobSelect = async (data) => {
     },
   });
   loadingOverlay.value = false
-  modalMeta.value.isJobListModalOpen = false
+  
 }
 
 const handleDeleteLinkedJob = async () =>{
@@ -1458,16 +1456,40 @@ const verifyAndCloseOperation = async () => {
 const reOpenOperation = async () => {
   modalMeta.value.isReopneOperationModalOpen = false
   loadingOverlay.value = true
-  await useApiFetch(`/api/jobs/operations/reOpenOp/`, {
+
+  if (
+    subOperationGridMeta.value.selectedSubOperation === null &&
+    prodOperationGridMeta.value.selectedOperation === null
+  ) {
+    toast.add({
+      title: "Failed",
+      description: "Please Select an Operation",
+      icon: "i-heroicons-check-circle",
+      color: "red",
+    });
+  }
+
+  if (subOperationGridMeta.value.selectedSubOperation !== null) {
+    await useApiFetch(`/api/jobs/operations/reOpenOp/`, {
     method: "PUT",
-    params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, unitCost: unitCost.value, employee: username, quantity: formData.QUANTITY },
-    onResponse({ response }) {
-      
-    },
+    params: { jobId: props.selectedJob, operationId: subOperationGridMeta.value.selectedSubOperation.uniqueID, unitCost: unitCost.value, employee: username, quantity: formData.QUANTITY },
   });
+  }
+
+  if (prodOperationGridMeta.value.selectedOperation !== null) {
+    await useApiFetch(`/api/jobs/operations/reOpenOp/`, {
+      method: "PUT",
+      params: { jobId: props.selectedJob, operationId: prodOperationGridMeta.value.selectedOperation.uniqueID, unitCost: unitCost.value, employee: username, quantity: formData.QUANTITY },
+      onResponse({ response }) {
+        
+      },
+    });
+  }
+
   operationHourInputDisable.value = true
   await fetchJobOperation()
   loadingOverlay.value = false
+
 }
 
 const onReworkHrsChange = async (event) => {
@@ -1519,44 +1541,40 @@ else propertiesInit();
       loader="dots" />
   </div>
 
-  <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4" @submit="onSubmit">
+  <UForm :validate="validate" :validate-on="['submit']" :state="formData" class="space-y-4 p-3" @submit="onSubmit">
     <div class="flex space-x-4">
       <div>
         <div class="flex flex-col space-y-4">
           <div class="flex flex-row space-x-3">
-            <div class="basis-1/5">
-              <UFormGroup label="Job #" name="Job #">
+            <div class="basis-1/4">
+              <UFormGroup label="Job #" name="NUMBER">
                 <UInput v-model="formData.NUMBER" />
               </UFormGroup>
             </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Job Qty" name="Job Qty">
+            <div class="basis-1/4">
+              <UFormGroup label="Job Qty" name="QUANTITY">
                 <UInput v-model="formData.QUANTITY" type="number" />
               </UFormGroup>
             </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Job Type" name="Job Type">
+            <div class="basis-1/4">
+              <UFormGroup label="Job Type" name="JobType">
                 <USelect v-model="formData.JobType" :options="jobTypes" />
               </UFormGroup>
             </div>
-            <div class="basis-1/5">
+            <div class="basis-1/4">
               <UFormGroup label="Unit Material Cost ($)" name="Unit Material Cost">
                 <UInput 
                   v-model="unitCost"
                 />
               </UFormGroup>
             </div>
-            <div class="basis-1/5">
-              <UFormGroup label="Relieve Inventory Per" name="Relieve Inventory Per">
-                <UInputMenu v-model="formData.PerType" v-model:query="formData.PerType" :options="perTypes" />
-              </UFormGroup>
-            </div>
+            
           </div>
 
           <div class="flex flex-row space-x-3">
             
             
-            <div class="basis-1/5">
+            <div class="basis-1/4">
               <UFormGroup label="Date Opened" name="Date Opened">
                 <UPopover :popper="{ placement: 'bottom-start' }">
                   <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.DATEOPENED &&
@@ -1571,7 +1589,43 @@ else propertiesInit();
                 </UPopover>
               </UFormGroup>
             </div>
-            <div class="basis-1/5">
+
+            <div class="basis-1/4">
+              <UFormGroup label="By" name="By">
+                <UInputMenu
+                  v-model="formData.ByEmployee"
+                  v-model:query="formData.ByEmployee"
+                  :options="getEmployeees"
+                />
+              </UFormGroup>
+            </div>
+            
+
+            
+
+            <!-- <div class="basis-1/5">
+              <UFormGroup label="" name="Title">
+                <UButton label="Re-Open" icon="i-f7-arrow-clockwise" variant="outline" color="green" class="mt-6" :ui="{
+                  base: 'w-full',
+                  truncate: 'flex justify-center w-full',
+                  
+                }"
+                @click="reOpen"
+                />
+              </UFormGroup>
+            </div> -->
+
+            
+            <div class="basis-1/4">
+              <UFormGroup label="Job Material Cost ($)" name="Job Material Cost">
+                <UInput v-model="formData.Cost" />
+              </UFormGroup>
+            </div> 
+          </div>
+
+          <div class="flex flex-row space-x-3">
+            
+            <div class="basis-1/4">
               <UFormGroup label="Ready To Produce" name="Ready To Produce">
                 <UPopover :popper="{ placement: 'bottom-start' }">
                   <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.ProductionDate &&
@@ -1587,7 +1641,21 @@ else propertiesInit();
               </UFormGroup>
             </div>
 
-            <div class="basis-1/5">
+            <div class="basis-1/4">
+              <UFormGroup label="By" name="By">
+                <UInputMenu
+                  v-model="formData.ProductionBy"
+                  v-model:query="formData.ProductionBy"
+                  :options="getEmployeees"
+                />
+              </UFormGroup>
+            </div>
+            
+          </div>
+
+          <div class="flex flex-row space-x-4">
+            
+            <div class="basis-1/4">
               <UFormGroup label="Job Closed" name="Job Closed">
                 <UPopover :popper="{ placement: 'bottom-start' }">
                   <UButton icon="i-heroicons-calendar-days-20-solid" :label="formData.JOBCLOSED &&
@@ -1601,9 +1669,7 @@ else propertiesInit();
                   </template>
                 </UPopover>
               </UFormGroup>
-            </div>
-
-            <div class="basis-1/5">
+    
               <UFormGroup label="" name="Title">
                 <UButton label="Re-Open" icon="i-f7-arrow-clockwise" variant="outline" color="green" class="mt-6" :ui="{
                   base: 'w-full',
@@ -1613,28 +1679,10 @@ else propertiesInit();
                 @click="reOpen"
                 />
               </UFormGroup>
+     
             </div>
-
             
-            <div class="basis-1/5">
-              <UFormGroup label="Job Material Cost ($)" name="Job Material Cost">
-                <UInput v-model="formData.Cost" />
-              </UFormGroup>
-            </div>
-          </div>
-
-          <div class="flex flex-row space-x-3">
-            
-            <div class="basis-1/5">
-              <UFormGroup label="By" name="By">
-                <UInputMenu
-                  v-model="formData.ByEmployee"
-                  v-model:query="formData.ByEmployee"
-                  :options="getEmployeees"
-                />
-              </UFormGroup>
-            </div>
-            <div class="basis-1/5">
+            <div class="basis-1/4">
               <UFormGroup label="By" name="By">
                 <UInputMenu
                   v-model="formData.ClosedBy"
@@ -1644,29 +1692,21 @@ else propertiesInit();
               </UFormGroup>
             </div>
 
-            
+          </div>
 
-            <div class="basis-1/5">
-              <UFormGroup label="By" name="By">
-                <UInputMenu
-                  v-model="formData.ProductionBy"
-                  v-model:query="formData.ProductionBy"
-                  :options="getEmployeees"
-                />
-              </UFormGroup>
-            </div>
-
-            <div class="basis-1/5">
+          <div class="flex flex-row space-x-3">
+            <div class="basis-1/4">
               <UFormGroup label="Category" name="Category">
                 <UInputMenu v-model="formData.jobcat" v-model:query="formData.jobcat" :options="jobCat" />
               </UFormGroup>
             </div>
-            <div class="basis-1/5">
+            <div class="basis-1/4">
               <UFormGroup label="Sub Category" name="Sub Category">
                 <UInputMenu v-model="formData.jobsubcat" v-model:query="formData.jobsubcat" :options="jobsubcat" />
               </UFormGroup>
             </div>
           </div>
+
 
           <!-- <div class="flex flex-row space-x-3">
             <div class="basis-1/5">
@@ -1700,7 +1740,12 @@ else propertiesInit();
           </div>
         </div>
       </div>
-      <div class="flex flex-col gap-4 justify-start mt-2">
+      <div class="flex flex-col gap-4 justify-start ">
+        <div class="">
+          <UFormGroup label="Relieve Inventory Per" name="PerType">
+            <UInputMenu v-model="formData.PerType" v-model:query="formData.PerType" :options="perTypes" />
+          </UFormGroup>
+        </div>
         <div class="">
           <UButton icon="i-heroicons-magnifying-glass" variant="outline" color="green" label="View Parts List"
             :ui="{ base: 'w-full', truncate: 'flex justify-center w-full' }" truncate @click="onPartsClick()" />
@@ -1922,12 +1967,12 @@ else propertiesInit();
                 icon="i-heroicons-plus"
                 variant="outline"
                 color="green"
-                label="Pull into Inventory"
+                label="Put into Inventory"
                 :ui="{
                   base: 'w-fit',
                   truncate: 'flex justify-center w-full',
                 }"
-                @click="handlePullIntoInventory"
+                @click="handlePutIntoInventory"
                 truncate
               />
             </div>
@@ -2360,9 +2405,14 @@ else propertiesInit();
   <!-- Job List Modal -->
   <UDashboardModal
     v-model="modalMeta.isJobListModalOpen"
+    title="Jobs"
     :ui="{
-      width: 'w-[1800px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
     }"
   >
     <JobListModal @close="handleJobSelect" />
@@ -2371,31 +2421,49 @@ else propertiesInit();
   <!-- Parts List Modal -->
   <UDashboardModal
     v-model="modalMeta.isPartsModalOpen"
-    :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription"
+    title="Parts Listing" 
     :ui="{
-      width: 'w-[1000px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1000px] sm:max-w-9xl',
     }"
   >
     <JobPartsList :instanceID=formData.InstanceID @close="handleModalClose" />
   </UDashboardModal>
 
   <!-- Manufacturing Sequnce Modal -->
-  <UDashboardModal v-model="modalMeta.isOperationModalOpen" :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription" :ui="{
-      width: 'w-[1800px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
+  <UDashboardModal 
+    v-model="modalMeta.isOperationModalOpen" 
+    :title="modalMeta.modalTitle"
+    description="" 
+    :ui="{
+      title: 'text-lg text-white',
+      description: 'text-black',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-blue mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
     }"
-  >
+    >
     <JobManufacturingSequenceForm :selected-job="selectedJob" :instanceId="formData.InstanceID" :isModal="true "/>
   </UDashboardModal>
 
   <!-- Rework Parts Modal -->
-  <UDashboardModal v-model="modalMeta.isReworkPartsModalOpen" :title="modalMeta.modalTitle"
-    :description="modalMeta.modalDescription" :ui="{
-      width: 'w-[1800px] sm:max-w-7xl',
-      body: { padding: 'py-0 sm:pt-0' },
+  <UDashboardModal 
+    v-model="modalMeta.isReworkPartsModalOpen" 
+    :title="modalMeta.modalTitle"
+    :description="modalMeta.modalDescription" 
+    :ui="{
+      title: 'text-lg text-white',
+      header: {
+        base: 'flex flex-row min-h-[0] items-center bg-gms-purple mt-0 gms-modalHeader',
+      },
+      body: { base: 'mt-0 gap-y-0 gms-modalForm' },
+      width: 'w-[1250px] sm:max-w-9xl',
     }"
   >
     <JobReworkParts :selected-job="selectedJob" :operationId="modalMeta.reworkModalOperationId" />
@@ -2410,12 +2478,14 @@ else propertiesInit();
     prevent-close
     :close-button="null"
     :ui="{
+      title:'text-black',
       icon: {
         base: 'text-red-500 dark:text-red-400'
       } as any,
       footer: {
-        base: 'ml-16'
-      } as any
+        base: 'ml-14'
+      } as any,
+      width: 'w-[500px]',
     }"
   >
     <template #footer>
@@ -2440,10 +2510,11 @@ else propertiesInit();
     prevent-close
     :close-button="null"
     :ui="{
+      title:'text-black',
       icon: {
         base: 'text-red-500 dark:text-red-400'
       } as any,
- 
+      width: 'w-[500px]',
     }"
   >
     <template #footer>
@@ -2469,10 +2540,11 @@ else propertiesInit();
     prevent-close
     :close-button="null"
     :ui="{
+      title:'text-black',
       icon: {
         base: 'text-red-500 dark:text-red-400'
       } as any,
- 
+      width: 'w-[500px]',
     }"
   >
     <template #footer>
@@ -2498,10 +2570,11 @@ else propertiesInit();
     prevent-close
     :close-button="null"
     :ui="{
+      title:'text-black',
       icon: {
         base: 'text-red-500 dark:text-red-400'
       } as any,
-
+      width: 'w-[500px]',
     }"
   >
     <template #footer>
@@ -2527,10 +2600,11 @@ else propertiesInit();
     prevent-close
     :close-button="null"
     :ui="{
+      title:'text-black',
       icon: {
         base: 'text-red-500 dark:text-red-400'
       } as any,
-
+      width: 'w-[500px]',
     }"
   >
     <template #footer>
@@ -2556,10 +2630,11 @@ else propertiesInit();
     prevent-close
     :close-button="null"
     :ui="{
+      title:'text-black',
       icon: {
         base: 'text-red-500 dark:text-red-400'
       } as any,
-
+      width: 'w-[500px]',
     }"
   >
     <template #footer>
@@ -2585,10 +2660,11 @@ else propertiesInit();
     prevent-close
     :close-button="null"
     :ui="{
+      title:'text-black',
       icon: {
         base: 'text-red-500 dark:text-red-400'
       } as any,
-
+      width: 'w-[500px]',
     }"
   >
     <template #footer>
@@ -2614,10 +2690,11 @@ else propertiesInit();
     prevent-close
     :close-button="null"
     :ui="{
+      title:'text-black',
       icon: {
         base: 'text-red-500 dark:text-red-400'
       } as any,
-
+      width: 'w-[500px]',
     }"
   >
     <template #footer>
